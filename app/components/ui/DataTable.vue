@@ -272,10 +272,11 @@ watch(() => props.data, () => {
         <UiIcon name="solar:spinner-bold-duotone" class="w-8 h-8 text-[var(--text-primary)] animate-spin" />
       </div>
 
-      <div class="overflow-x-auto">
+      <div class="overflow-x-auto overflow-y-auto custom-scrollbar max-h-[calc(100vh-240px)]">
         <table class="w-full text-left text-sm whitespace-nowrap">
-          <thead class="bg-[var(--bg-app)] border-b border-[var(--border-app)] text-[var(--text-app)] font-bold tracking-wider text-[11px]">
-            <tr>
+          <thead class="bg-[var(--bg-app)] text-[var(--text-app)] font-bold tracking-wider text-[11px] sticky top-0 z-20">
+            <!-- Add a pseudo-element or border for sticky header to prevent transparent gaps -->
+            <tr class="shadow-[0_1px_0_var(--border-app)]">
               <!-- Multi Select Header -->
               <th v-if="selectable" class="px-6 py-4 w-12">
                 <input 
