@@ -42,14 +42,14 @@ const menuItems = computed(() => [
             key="full"
             src="~/assets/images/yessir_pos_logo_purple.svg" 
             alt="Yessir POS" 
-            class="h-10 w-auto" 
+            class="h-12 w-auto transition-all duration-300" 
           />
           <img 
             v-else
             key="icon"
             src="~/assets/images/yessir_icon.svg" 
             alt="Y" 
-            class="h-10 w-10" 
+            class="h-12 w-12 transition-all duration-200" 
           />
         </Transition>
       </NuxtLink>
@@ -140,15 +140,22 @@ const menuItems = computed(() => [
 }
 
 /* Logo fade animation */
-.logo-fade-enter-active,
-.logo-fade-leave-active {
-  transition: all 0.3s ease;
+.logo-fade-enter-active {
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
-.logo-fade-enter-from,
+.logo-fade-leave-active {
+  transition: all 0.2s cubic-bezier(0.4, 0, 1, 1);
+}
+
+.logo-fade-enter-from {
+  opacity: 0;
+  transform: scale(0.5) rotate(-10deg);
+}
+
 .logo-fade-leave-to {
   opacity: 0;
-  transform: scale(0.8);
+  transform: scale(0.5) rotate(10deg);
 }
 
 /* Tooltip fade animation */

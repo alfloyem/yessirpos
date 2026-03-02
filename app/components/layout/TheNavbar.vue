@@ -54,19 +54,19 @@ onMounted(() => {
     <div class="flex items-center gap-4">
       <button 
         @click="toggleSidebar"
-        class="text-[var(--text-app)] opacity-60 hover:opacity-100 hover:text-[var(--text-primary)] transition-all cursor-pointer group"
+        class="text-[var(--text-app)] opacity-60 hover:opacity-100 hover:text-[var(--text-primary)] hover:scale-110 transition-all cursor-pointer group"
       >
         <Transition name="menu-icon" mode="out-in">
           <UiIcon 
             v-if="isSidebarCollapsed"
             key="menu"
-            name="solar:menu-dots-bold-duotone" 
+            name="solar:sidebar-minimalistic-bold-duotone" 
             class="w-8 h-8"
           />
           <UiIcon 
             v-else
             key="close"
-            name="solar:alt-arrow-left-bold-duotone" 
+            name="solar:sidebar-code-bold-duotone" 
             class="w-8 h-8"
           />
         </Transition>
@@ -183,18 +183,21 @@ onMounted(() => {
 }
 
 /* Menu icon animation */
-.menu-icon-enter-active,
+.menu-icon-enter-active {
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
 .menu-icon-leave-active {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 1, 1);
 }
 
 .menu-icon-enter-from {
   opacity: 0;
-  transform: rotate(-90deg) scale(0.5);
+  transform: rotate(-180deg) scale(0.3);
 }
 
 .menu-icon-leave-to {
   opacity: 0;
-  transform: rotate(90deg) scale(0.5);
+  transform: rotate(180deg) scale(0.3);
 }
 </style>
