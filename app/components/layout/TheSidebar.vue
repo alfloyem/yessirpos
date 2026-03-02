@@ -30,27 +30,33 @@ const menuItems = computed(() => [
 <template>
   <aside class="w-64 h-screen bg-[var(--bg-sidebar)] border-r border-[var(--border-app)] flex flex-col fixed left-0 top-0 z-50">
     <!-- Logo Section -->
-    <div class="px-6 py-6 h-20 flex items-center justify-start border-b border-[var(--border-app)] opacity-90">
+    <div class="px-6 py-6 h-20 flex items-center justify-start">
       <NuxtLink :to="localePath('/')" class="flex items-center gap-2">
         <img src="~/assets/images/yessir_pos_logo_purple.svg" alt="Yessir POS" class="h-10 w-auto" />
       </NuxtLink>
     </div>
 
     <!-- Navigation -->
-    <nav class="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
+    <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
       <NuxtLink 
         v-for="item in menuItems" 
         :key="item.label"
         :to="localePath(item.to)"
-        class="flex items-center gap-3 px-4 py-3 text-[15px] font-medium transition-all rounded-lg group"
-        active-class="bg-[var(--text-primary)] text-white shadow-md"
+        class="flex items-center gap-3 px-3 py-2.5 text-[16px] font-medium transition-all rounded-lg group relative"
+        active-class="bg-[var(--text-primary)]/10 text-[var(--text-primary)]"
         :class="[
           $route.path === localePath(item.to) 
-            ? 'bg-[var(--text-primary)] text-white'
+            ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)]' 
             : 'text-[var(--text-app)] hover:opacity-80 hover:bg-[var(--bg-app)] hover:text-[var(--text-primary)]'
         ]"
       >
-        <Icon :name="item.icon" class="w-6 h-6 flex-shrink-0" />
+        <!-- Left vertical bar for active item -->
+        <span 
+          v-if="$route.path === localePath(item.to)"
+          class="absolute left-0 top-0 bottom-0 w-1 bg-[var(--text-primary)] rounded-r-full"
+        ></span>
+        
+        <Icon :name="item.icon" class="w-9 h-9 flex-shrink-0" />
         <span class="truncate">{{ item.label }}</span>
       </NuxtLink>
     </nav>
@@ -61,7 +67,7 @@ const menuItems = computed(() => [
         @click="logout"
         class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-[var(--color-brand-danger)] hover:bg-[var(--bg-app)] rounded-lg transition-all"
       >
-        <Icon name="solar:logout-bold-duotone" class="w-5 h-5" />
+        <Icon name="solar:logout-bold-duotone" class="w-9 h-9" />
         <span>{{ t('logout') }}</span>
       </button>
     </div>
@@ -72,8 +78,5 @@ const menuItems = computed(() => [
 /* Hidden scrollbar */
 ::-webkit-scrollbar {
   width: 0px;
-}
-.router-link-active :deep(svg) {
-  filter: brightness(0) invert(1);
 }
 </style>
