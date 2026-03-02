@@ -162,9 +162,6 @@ const highlightText = (text: any) => {
   }
 }
 
-// Dropdown state for columns
-const showColVis = ref(false)
-
 // Export
 const handleExport = () => {
   exportToCSV(props.title || 'export', localColumns.value, filteredAndSortedData.value)
@@ -209,32 +206,29 @@ watch(() => props.data, () => {
         </Transition>
 
         <!-- Column Visibility -->
-        <div class="relative">
-          <UiButton 
-            variant="outline"
-            size="sm"
-            icon="solar:eye-bold-duotone"
-            @click="showColVis = !showColVis"
-          >
-            <span class="hidden sm:inline">Sütunlar</span>
-          </UiButton>
+        <UiDropdown menuClass="absolute left-0 top-full mt-2 w-48 p-2 z-[60]">
+          <template #trigger>
+            <UiButton 
+              variant="outline"
+              size="sm"
+              icon="solar:eye-bold-duotone"
+            >
+              <span class="hidden sm:inline">Sütunlar</span>
+            </UiButton>
+          </template>
 
-          <!-- Dropdown -->
-          <div 
-            v-if="showColVis" 
-            class="absolute left-0 top-full mt-2 w-48 bg-[var(--bg-sidebar)] border border-[var(--border-app)] rounded-xl shadow-xl z-50 p-2"
-          >
+          <template #menu>
             <div 
               v-for="col in localColumns" 
               :key="col.key"
-              @click="toggleColumn(col)"
+              @click.stop="toggleColumn(col)"
               class="flex items-center gap-3 px-3 py-2 text-sm cursor-pointer rounded-lg hover:bg-[var(--bg-app)] transition-colors"
             >
               <input type="checkbox" :checked="col.visible" class="pointer-events-none accent-[var(--text-primary)]" />
               <span class="truncate">{{ col.label }}</span>
             </div>
-          </div>
-        </div>
+          </template>
+        </UiDropdown>
 
         <!-- Export -->
         <UiButton 
