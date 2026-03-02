@@ -3,6 +3,7 @@ import { useI18n, useLocalePath } from '#i18n'
 const { t } = useI18n()
 const localePath = useLocalePath()
 const { logout } = useAuth()
+const isSidebarCollapsed = useState('sidebarCollapsed', () => false)
 
 // Using Solar Duotone icons which match the professional look
 const menuItems = computed(() => [
@@ -28,11 +29,29 @@ const menuItems = computed(() => [
 </script>
 
 <template>
-  <aside class="w-64 h-screen bg-[var(--bg-sidebar)] border-r border-[var(--border-app)] flex flex-col fixed left-0 top-0 z-50">
+  <aside 
+    class="h-screen bg-[var(--bg-sidebar)] border-r border-[var(--border-app)] flex flex-col fixed left-0 top-0 z-50 transition-all duration-300"
+    :class="isSidebarCollapsed ? 'w-20' : 'w-64'"
+  >
     <!-- Logo Section -->
-    <div class="px-6 py-6 h-20 flex items-center justify-start">
+    <div class="px-6 py-6 h-20 flex items-center justify-center overflow-hidden">
       <NuxtLink :to="localePath('/')" class="flex items-center gap-2">
-        <img src="~/assets/images/yessir_pos_logo_purple.svg" alt="Yessir POS" class="h-10 w-auto" />
+        <Transition name="logo-fade" mode="out-in">
+          <img 
+            v-if="!isSidebarCollapsed"
+            key="full"
+            src="~/assets/images/yessir_pos_logo_purple.svg" 
+            alt="Yessir POS" 
+            class="h-10 w-auto" 
+          />
+          <img 
+            v-else
+            key="icon"
+            src="~/assets/images/yessir_icon.svg" 
+            alt="Y" 
+            class="h-10 w-10" 
+          />
+        </Transition>
       </NuxtLink>
     </div>
 
@@ -47,7 +66,8 @@ const menuItems = computed(() => [
         :class="[
           $route.path === localePath(item.to) 
             ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)]' 
-            : 'text-[var(--text-app)] hover:opacity-80 hover:bg-[var(--bg-app)] hover:text-[var(--text-primary)]'
+            : 'text-[var(--text-app)] hover:opacity-80 hover:bg-[var(--bg-app)] hover:text-[var(--text-primary)]',
+          isSidebarCollapsed ? 'justify-center' : ''
         ]"
       >
         <!-- Left vertical bar for active item -->
@@ -56,8 +76,22 @@ const menuItems = computed(() => [
           class="absolute left-0 top-0 bottom-0 w-1 bg-[var(--text-primary)] rounded-r-full"
         ></span>
         
-        <UiIcon :name="item.icon" size="sidebar" />
-        <span class="truncate">{{ item.label }}</span>
+        <UiIcon :name="item.icon" size="sidebar" class="flex-shrink-0" />
+        
+        <!-- Text with transition -->
+        <Transition name="text-fade">
+          <span v-if="!isSidebarCollapsed" class="truncate">{{ item.label }}</span>
+        </Transition>
+
+        <!-- Tooltip on hover when collapsed -->
+        <Transition name="tooltip-fade">
+          <div 
+            v-if="isSidebarCollapsed"
+            class="absolute left-full ml-2 px-3 py-2 bg-[var(--text-primary)] text-white text-sm rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 z-50"
+          >
+            {{ item.label }}
+          </div>
+        </Transition>
       </NuxtLink>
     </nav>
 
@@ -65,10 +99,23 @@ const menuItems = computed(() => [
     <div class="px-4 py-4 border-t border-[var(--border-app)]">
       <button 
         @click="logout"
-        class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-[var(--color-brand-danger)] hover:bg-[var(--bg-app)] rounded-lg transition-all"
+        class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-[var(--color-brand-danger)] hover:bg-[var(--bg-app)] rounded-lg transition-all relative group"
+        :class="isSidebarCollapsed ? 'justify-center' : ''"
       >
-        <UiIcon name="solar:logout-bold-duotone" size="lg" />
-        <span>{{ t('logout') }}</span>
+        <UiIcon name="solar:logout-bold-duotone" size="lg" class="flex-shrink-0" />
+        <Transition name="text-fade">
+          <span v-if="!isSidebarCollapsed">{{ t('logout') }}</span>
+        </Transition>
+
+        <!-- Tooltip for logout when collapsed -->
+        <Transition name="tooltip-fade">
+          <div 
+            v-if="isSidebarCollapsed"
+            class="absolute left-full ml-2 px-3 py-2 bg-[var(--color-brand-danger)] text-white text-sm rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 z-50"
+          >
+            {{ t('logout') }}
+          </div>
+        </Transition>
       </button>
     </div>
   </aside>
@@ -78,5 +125,41 @@ const menuItems = computed(() => [
 /* Hidden scrollbar */
 ::-webkit-scrollbar {
   width: 0px;
+}
+
+/* Text fade animation */
+.text-fade-enter-active,
+.text-fade-leave-active {
+  transition: all 0.2s ease;
+}
+
+.text-fade-enter-from,
+.text-fade-leave-to {
+  opacity: 0;
+  transform: translateX(-10px);
+}
+
+/* Logo fade animation */
+.logo-fade-enter-active,
+.logo-fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.logo-fade-enter-from,
+.logo-fade-leave-to {
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+/* Tooltip fade animation */
+.tooltip-fade-enter-active,
+.tooltip-fade-leave-active {
+  transition: all 0.2s ease;
+}
+
+.tooltip-fade-enter-from,
+.tooltip-fade-leave-to {
+  opacity: 0;
+  transform: translateX(-5px);
 }
 </style>
