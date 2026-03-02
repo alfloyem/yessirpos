@@ -56,16 +56,36 @@ onMounted(() => {
         @click="toggleSidebar"
         class="text-[var(--text-app)] opacity-60 hover:opacity-100 hover:text-[var(--text-primary)] hover:scale-110 transition-all cursor-pointer"
       >
-        <UiIcon 
+        <!-- Hamburger Menu Icon (Collapsed) -->
+        <svg 
           v-if="isSidebarCollapsed"
-          name="solar:hamburger-menu-bold-duotone" 
-          class="w-9 h-9"
-        />
-        <UiIcon 
+          xmlns="http://www.w3.org/2000/svg" 
+          width="36" 
+          height="36" 
+          viewBox="0 0 24 24"
+          class="transition-all"
+        >
+          <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5">
+            <path d="M20 7H4"/>
+            <path d="M20 12H4" opacity="0.5"/>
+            <path d="M20 17H4"/>
+          </g>
+        </svg>
+        
+        <!-- X Icon (Open) -->
+        <svg 
           v-else
-          name="solar:close-circle-bold-duotone" 
-          class="w-9 h-9"
-        />
+          xmlns="http://www.w3.org/2000/svg" 
+          width="36" 
+          height="36" 
+          viewBox="0 0 24 24"
+          class="transition-all"
+        >
+          <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5">
+            <path d="M18 6L6 18"/>
+            <path d="M6 6l12 12" opacity="0.5"/>
+          </g>
+        </svg>
       </button>
     </div>
 

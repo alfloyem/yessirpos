@@ -82,16 +82,6 @@ const menuItems = computed(() => [
         <Transition name="text-fade">
           <span v-if="!isSidebarCollapsed" class="truncate">{{ item.label }}</span>
         </Transition>
-
-        <!-- Tooltip on hover when collapsed -->
-        <Transition name="tooltip-fade">
-          <div 
-            v-if="isSidebarCollapsed"
-            class="absolute left-full ml-2 px-3 py-2 bg-[var(--text-primary)] text-white text-sm rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 z-50"
-          >
-            {{ item.label }}
-          </div>
-        </Transition>
       </NuxtLink>
     </nav>
 
@@ -105,16 +95,6 @@ const menuItems = computed(() => [
         <UiIcon name="solar:logout-bold-duotone" size="lg" class="flex-shrink-0" />
         <Transition name="text-fade">
           <span v-if="!isSidebarCollapsed">{{ t('logout') }}</span>
-        </Transition>
-
-        <!-- Tooltip for logout when collapsed -->
-        <Transition name="tooltip-fade">
-          <div 
-            v-if="isSidebarCollapsed"
-            class="absolute left-full ml-2 px-3 py-2 bg-[var(--color-brand-danger)] text-white text-sm rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 z-50"
-          >
-            {{ t('logout') }}
-          </div>
         </Transition>
       </button>
     </div>
