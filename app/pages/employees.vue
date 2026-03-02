@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useI18n } from '#i18n'
 import DataTable from '~/components/ui/DataTable.vue'
 import Modal from '~/components/ui/Modal.vue'
@@ -11,6 +11,39 @@ const { t } = useI18n()
 useHead({
   title: t('menu.employees')
 })
+
+// --- Helper for Username Generation ---
+const normalizeForUsername = (text: string) => {
+  if (!text) return ''
+  return String(text)
+    .toLocaleLowerCase('tr-TR')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, "") // remove accents
+    .replace(/[^a-z0-9]/g, "") // remove spaces and special characters
+}
+
+const generateUsername = (first?: string, last?: string, currentId?: any) => {
+  const f = normalizeForUsername(first || '')
+  const l = normalizeForUsername(last || '')
+  
+  let base = ''
+  if (f && l) base = `${f}_${l}`
+  else if (f) base = f
+  else if (l) base = l
+  
+  if (!base) return ''
+
+  let finalUsername = base
+  let counter = 1
+  
+  // mockData içindeki mevcut usernameleri kontrol et
+  while (mockData.value.some(m => m.username === finalUsername && m.id !== currentId)) {
+    counter++
+    finalUsername = `${base}${counter}`
+  }
+
+  return finalUsername
+}
 
 // --- Centralized Schema ---
 const employeeSchema: (FormField & { inTable?: boolean, sortable?: boolean })[] = [
@@ -44,7 +77,7 @@ const formFields = employeeSchema
 
 // --- Data ---
 const mockData = ref<any[]>([
-  { id: 1, firstName: 'Ahmet', lastName: 'Yılmaz', username: 'ahmet_y', email: 'ahmet@yessirpos.com', phone: '+90 555 123 4567', gender: 'Kişi', status: 'Aktif', notes: 'Hızlı çalışan' },
+  { id: 1, firstName: 'Ahmet', lastName: 'Yılmaz', username: 'ahmet_yilmaz', email: 'ahmet@yessirpos.com', phone: '+90 555 123 4567', gender: 'Kişi', status: 'Aktif', notes: 'Hızlı çalışan' },
   { id: 2, firstName: 'Ayşe', lastName: 'Kaya', username: 'aysekaya', email: 'ayse@yessirpos.com', phone: '+90 555 987 6543', gender: 'Qadın', status: 'Aktif', notes: '' },
 ])
 
@@ -55,9 +88,40 @@ const showDeleteModal = ref(false)
 const formData = ref<Record<string, any>>({})
 const bulkSelectedIds = ref<any[]>([])
 
+// --- Auto-Username Logic ---
+const isUsernameManuallyEdited = ref(false)
+const lastGeneratedUsername = ref('')
+
+watch(() => [formData.value.firstName, formData.value.lastName], ([newFirst, newLast]) => {
+  // Sadece ekleme ekranında veya manuel olarak el ile ellenmemişse (veya silinip geri alınmışsa) otomatik doldur
+  if (showAddModal.value && !isUsernameManuallyEdited.value) {
+    const generated = generateUsername(newFirst, newLast, formData.value.id)
+    formData.value.username = generated
+    lastGeneratedUsername.value = generated
+  }
+})
+
+watch(() => formData.value.username, (newVal) => {
+  if (showAddModal.value && newVal !== lastGeneratedUsername.value) {
+    if (newVal) {
+      // Kullanıcı kendisi üzerine bir şey yazmış, otomatik oluşturmayı durdur
+      isUsernameManuallyEdited.value = true
+    } else {
+      // Kullanıcı tamamen silmiş, tekrar otomatik formata çevirme izni ver
+      isUsernameManuallyEdited.value = false
+      const generated = generateUsername(formData.value.firstName, formData.value.lastName, formData.value.id)
+      formData.value.username = generated
+      lastGeneratedUsername.value = generated
+    }
+  }
+})
+
+
 // --- Handlers ---
 const handleAdd = () => {
   formData.value = {} // Empty form
+  isUsernameManuallyEdited.value = false
+  lastGeneratedUsername.value = ''
   showAddModal.value = true
 }
 
