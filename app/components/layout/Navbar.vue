@@ -119,7 +119,7 @@ const selectLanguage = (code) => {
       <!-- Language Switcher & Theme Toggle -->
       <div class="flex items-center gap-2 md:gap-3 md:pl-6 md:border-l border-[var(--border-app)]">
         <!-- Language Dropdown -->
-        <UiDropdown menuClass="absolute top-12 right-0 bg-[var(--input-bg)] z-50 min-w-[120px]">
+        <UiDropdown menuClass="absolute top-12 right-0 bg-[var(--input-bg)] z-[200] min-w-[150px]">
           <template #trigger>
             <button class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg hover:border-[var(--text-primary)] hover:scale-105 transition-all cursor-pointer overflow-hidden">
               <img :src="currentFlag" :alt="locale" class="w-5 h-5 md:w-6 md:h-6 object-cover rounded" />
@@ -131,11 +131,11 @@ const selectLanguage = (code) => {
               v-for="l in locales"
               :key="l.code"
               @click="selectLanguage(l.code); close()"
-              class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-all hover:bg-[var(--text-primary)]/10 hover:text-[var(--text-primary)]"
+              class="w-full flex items-center gap-3 px-4 py-3.5 text-sm font-medium transition-all hover:bg-[var(--text-primary)]/10 hover:text-[var(--text-primary)] whitespace-nowrap cursor-pointer"
               :class="locale === l.code ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)]' : 'text-[var(--text-app)]'"
             >
-              <img :src="languageFlags[l.code]" :alt="l.name" class="w-5 h-5 object-cover rounded" />
-              <span>{{ l.name }}</span>
+              <img :src="languageFlags[l.code]" :alt="l.name" class="w-5 h-5 object-cover rounded flex-shrink-0" />
+              <span class="leading-none">{{ l.name }}</span>
             </button>
           </template>
         </UiDropdown>
