@@ -25,10 +25,14 @@ const toggleSidebar = () => {
   isSidebarCollapsed.value = !isSidebarCollapsed.value
 }
 
+import azFlag from '~/assets/images/flags/az.png'
+import enFlag from '~/assets/images/flags/gb.png'
+import ruFlag from '~/assets/images/flags/ru.png'
+
 const languageFlags = {
-  az: '/images/flags/azerbaijan.png',
-  en: '/images/flags/england.png',
-  ru: '/images/flags/russia.png'
+  az: azFlag,
+  en: enFlag,
+  ru: ruFlag
 }
 
 const currentFlag = computed(() => languageFlags[locale.value])
