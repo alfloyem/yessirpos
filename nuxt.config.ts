@@ -23,7 +23,7 @@ export default defineNuxtConfig({
     ],
     defaultLocale: 'tr',
     strategy: 'no_prefix',
-    langDir: 'locales', // This will refer to the 'locales' folder inside the root 'i18n' folder
+    langDir: 'locales',
   },
 
   colorMode: {

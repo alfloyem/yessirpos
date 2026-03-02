@@ -6,5 +6,25 @@
   "submit": "Sign In",
   "logout": "Log Out",
   "dashboard": "Dashboard",
-  "slogan": "The premium point of sale experience."
+  "slogan": "The premium point of sale experience.",
+  "menu": {
+    "home": "Home",
+    "customers": "Customers",
+    "products": "Products",
+    "bundles": "Product Bundles",
+    "suppliers": "Suppliers",
+    "reports": "Reports",
+    "intake": "Intake",
+    "sales": "Sales",
+    "employees": "Employees"
+  },
+  "user": {
+    "name": "MR Musa",
+    "role": "Admin",
+    "initials": "MR"
+  },
+  "footer": {
+    "terms": "Terms",
+    "privacy": "Privacy"
+  }
 }

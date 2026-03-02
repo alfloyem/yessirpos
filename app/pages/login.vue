@@ -33,14 +33,14 @@ const handleLogin = () => {
           <input 
             v-model="email"
             type="email" 
-            class="w-full bg-app-input border border-app-border px-4 py-3 text-sm outline-none focus:border-app-text transition-all placeholder:opacity-30"
+            class="w-full bg-app-input border border-app-border px-4 py-3 text-sm outline-none focus:border-[#8745f3] focus:ring-1 focus:ring-[#8745f3]/20 transition-all placeholder:opacity-30"
             :placeholder="t('email')"
             required
           />
           <input 
             v-model="password"
             type="password" 
-            class="w-full bg-app-input border border-app-border px-4 py-3 text-sm outline-none focus:border-app-text transition-all placeholder:opacity-30"
+            class="w-full bg-app-input border border-app-border px-4 py-3 text-sm outline-none focus:border-[#8745f3] focus:ring-1 focus:ring-[#8745f3]/20 transition-all placeholder:opacity-30"
             :placeholder="t('password')"
             required
           />
@@ -48,7 +48,7 @@ const handleLogin = () => {
 
         <button 
           type="submit"
-          class="w-full bg-app-text text-app-bg py-4 text-[10px] font-black tracking-[0.3em] uppercase hover:opacity-90 active:scale-[0.98] transition-all"
+          class="w-full bg-[#8745f3] text-white py-4 text-[10px] font-black tracking-[0.3em] uppercase hover:bg-[#6b2dd9] hover:shadow-lg hover:shadow-[#8745f3]/30 active:scale-[0.98] transition-all"
         >
           {{ t('submit') }}
         </button>

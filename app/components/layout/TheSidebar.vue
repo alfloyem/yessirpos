@@ -6,15 +6,15 @@ const { logout } = useAuth()
 
 // Using Solar Duotone icons which match the professional look
 const menuItems = [
-  { label: 'Ana səhifə', icon: 'solar:home-2-bold-duotone', to: '/' },
-  { label: 'Müştərilər', icon: 'solar:users-group-two-rounded-bold-duotone', to: '/customers' },
-  { label: 'Mallar', icon: 'solar:box-bold-duotone', to: '/products' },
-  { label: 'Mal Dəstləri', icon: 'solar:layers-minimalistic-bold-duotone', to: '/bundles' },
-  { label: 'Təchizatçılar', icon: 'solar:user-id-bold-duotone', to: '/suppliers' },
-  { label: 'Hesabatlar', icon: 'solar:chart-square-bold-duotone', to: '/reports' },
-  { label: 'Qəbul Edilənlər', icon: 'solar:document-add-bold-duotone', to: '/intake' },
-  { label: 'Satışlar', icon: 'solar:cart-large-bold-duotone', to: '/sales' },
-  { label: 'Əməkdaşlar', icon: 'solar:user-speak-bold-duotone', to: '/employees' },
+  { label: t('menu.home'), icon: 'solar:home-2-bold-duotone', to: '/' },
+  { label: t('menu.customers'), icon: 'solar:users-group-two-rounded-bold-duotone', to: '/customers' },
+  { label: t('menu.products'), icon: 'solar:box-bold-duotone', to: '/products' },
+  { label: t('menu.bundles'), icon: 'solar:layers-minimalistic-bold-duotone', to: '/bundles' },
+  { label: t('menu.suppliers'), icon: 'solar:user-id-bold-duotone', to: '/suppliers' },
+  { label: t('menu.reports'), icon: 'solar:chart-square-bold-duotone', to: '/reports' },
+  { label: t('menu.intake'), icon: 'solar:document-add-bold-duotone', to: '/intake' },
+  { label: t('menu.sales'), icon: 'solar:cart-large-bold-duotone', to: '/sales' },
+  { label: t('menu.employees'), icon: 'solar:user-speak-bold-duotone', to: '/employees' },
 ]
 </script>
 
@@ -34,11 +34,11 @@ const menuItems = [
         :key="item.label"
         :to="localePath(item.to)"
         class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-all rounded-lg group"
-        active-class="bg-[#7367f0] text-white shadow-md shadow-[#7367f0]/30"
+        active-class="bg-[#8745f3] text-white shadow-md shadow-[#8745f3]/30"
         :class="[
           $route.path === localePath(item.to) 
-            ? 'bg-[#7367f0] text-white' 
-            : 'text-[#6f6b7d] hover:bg-[#7367f0]/5'
+            ? 'bg-[#8745f3] text-white' 
+            : 'text-[#6f6b7d] hover:bg-[#8745f3]/5 hover:text-[#8745f3]'
         ]"
       >
         <Icon :name="item.icon" class="w-5 h-5 flex-shrink-0" />

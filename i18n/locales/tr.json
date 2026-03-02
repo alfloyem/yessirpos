@@ -6,5 +6,25 @@
   "submit": "Giriş Yap",
   "logout": "Çıkış Yap",
   "dashboard": "Panel",
-  "slogan": "Premium satış noktası deneyimi."
+  "slogan": "Premium satış noktası deneyimi.",
+  "menu": {
+    "home": "Ana səhifə",
+    "customers": "Müştərilər",
+    "products": "Mallar",
+    "bundles": "Mal Dəstləri",
+    "suppliers": "Təchizatçılar",
+    "reports": "Hesabatlar",
+    "intake": "Qəbul Edilənlər",
+    "sales": "Satışlar",
+    "employees": "Əməkdaşlar"
+  },
+  "user": {
+    "name": "MR Musa",
+    "role": "Admin",
+    "initials": "MR"
+  },
+  "footer": {
+    "terms": "Şərtlər",
+    "privacy": "Məxfilik"
+  }
 }

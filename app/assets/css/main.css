@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #7367f0; /* Indigo/Purple from screenshot */
+  --color-primary: #8745f3; /* Logo purple */
+  --color-secondary: #6b2dd9; /* Darker purple for hover */
   --color-brand-success: #28c76f;
   --color-brand-warning: #ff9f43;
   --color-brand-danger: #ea5455;
@@ -12,10 +13,11 @@
 }
 
 :root {
-  --bg-app: #f8f7fa; /* Light mode content background (light gray as in screen) */
-  --bg-sidebar: #ffffff; /* Sidebar background (pure white) */
-  --text-app: #5d596c; /* Muted text from screenshot */
-  --text-primary: #7367f0;
+  --bg-app: #f8f7fa;
+  --bg-sidebar: #ffffff;
+  --text-app: #5d596c;
+  --text-primary: #8745f3;
+  --text-secondary: #6b2dd9;
   --border-app: #dbdade;
   --input-bg: #ffffff;
 }
@@ -24,7 +26,8 @@
   --bg-app: #25293c;
   --bg-sidebar: #2f3349;
   --text-app: #cfd3ec;
-  --text-primary: #7367f0;
+  --text-primary: #8745f3;
+  --text-secondary: #6b2dd9;
   --border-app: #43496e;
   --input-bg: #2f3349;
 }
@@ -46,4 +49,35 @@
 .page-leave-to {
   opacity: 0;
   transform: translateY(10px);
+}
+
+/* Button Hover Effects */
+button, .btn {
+  @apply transition-all duration-200 ease-in-out;
+}
+
+button:hover:not(:disabled), .btn:hover:not(:disabled) {
+  @apply transform scale-[1.02] shadow-md;
+}
+
+button:active:not(:disabled), .btn:active:not(:disabled) {
+  @apply transform scale-[0.98];
+}
+
+button:disabled, .btn:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+/* Primary Button */
+.btn-primary {
+  @apply bg-[var(--text-primary)] text-white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  @apply bg-[var(--text-secondary)];
+}
+
+/* Link Hover Effects */
+a {
+  @apply transition-colors duration-200;
 }
