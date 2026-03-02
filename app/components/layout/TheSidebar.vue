@@ -56,7 +56,7 @@ const menuItems = computed(() => [
           class="absolute left-0 top-0 bottom-0 w-1 bg-[var(--text-primary)] rounded-r-full"
         ></span>
         
-        <Icon :name="item.icon" class="w-9 h-9 flex-shrink-0" />
+        <UiIcon :name="item.icon" size="sidebar" />
         <span class="truncate">{{ item.label }}</span>
       </NuxtLink>
     </nav>
@@ -67,7 +67,7 @@ const menuItems = computed(() => [
         @click="logout"
         class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-[var(--color-brand-danger)] hover:bg-[var(--bg-app)] rounded-lg transition-all"
       >
-        <Icon name="solar:logout-bold-duotone" class="w-9 h-9" />
+        <UiIcon name="solar:logout-bold-duotone" size="lg" />
         <span>{{ t('logout') }}</span>
       </button>
     </div>

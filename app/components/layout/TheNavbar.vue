@@ -48,11 +48,8 @@ onMounted(() => {
     <!-- Navbar Left (Context specific) -->
     <div class="flex items-center gap-4">
       <button class="text-[var(--text-app)] opacity-60 hover:opacity-100 hover:text-[var(--text-primary)] transition-all">
-        <Icon name="solar:hamburger-menu-bold-duotone" class="w-6 h-6" />
+        <UiIcon name="solar:hamburger-menu-bold-duotone" size="lg" />
       </button>
-      <h2 class="text-base font-bold text-[var(--text-app)] truncate">
-        {{ t('dashboard') }}
-      </h2>
     </div>
 
     <!-- Navbar Right (Actions) -->

@@ -35,5 +35,25 @@
   "footer": {
     "terms": "Условия",
     "privacy": "Конфиденциальность"
+  },
+  "dashboard": {
+    "statistics": "Статистика",
+    "orders": "Заказы",
+    "revenue": "Доход",
+    "expenses": "Расходы",
+    "stock": "Товары на складе",
+    "thisMonth": "Этот месяц",
+    "ordersTrend": "Тренд заказов",
+    "last7Days": "Последние 7 дней",
+    "revenueChart": "График дохода",
+    "completed": "Завершено",
+    "pending": "В ожидании",
+    "cancelled": "Отменено",
+    "topProducts": "Топ продаж",
+    "recentOrders": "Последние заказы",
+    "viewAll": "Посмотреть все",
+    "today": "Сегодня",
+    "thisWeek": "Эта неделя",
+    "count": "шт"
   }
 }

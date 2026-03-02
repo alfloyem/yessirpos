@@ -35,5 +35,25 @@
   "footer": {
     "terms": "Terms",
     "privacy": "Privacy"
+  },
+  "dashboard": {
+    "statistics": "Statistics",
+    "orders": "Orders",
+    "revenue": "Revenue",
+    "expenses": "Expenses",
+    "stock": "Stock Products",
+    "thisMonth": "This Month",
+    "ordersTrend": "Orders Trend",
+    "last7Days": "Last 7 Days",
+    "revenueChart": "Revenue Chart",
+    "completed": "Completed",
+    "pending": "Pending",
+    "cancelled": "Cancelled",
+    "topProducts": "Top Selling Products",
+    "recentOrders": "Recent Orders",
+    "viewAll": "View All",
+    "today": "Today",
+    "thisWeek": "This Week",
+    "count": "count"
   }
 }

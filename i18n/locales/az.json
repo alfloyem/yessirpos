@@ -35,5 +35,25 @@
   "footer": {
     "terms": "Şərtlər",
     "privacy": "Məxfilik"
+  },
+  "dashboard": {
+    "statistics": "Statistika",
+    "orders": "Sifarişlər",
+    "revenue": "Gəlir",
+    "expenses": "Xərc",
+    "stock": "Anbardakı məhsul",
+    "thisMonth": "Bu ay",
+    "ordersTrend": "Sifarişlər Trendi",
+    "last7Days": "Son 7 Gün",
+    "revenueChart": "Gəlir Diaqramı",
+    "completed": "Tamamlanmış",
+    "pending": "Gözləyən",
+    "cancelled": "Ləğv edilmiş",
+    "topProducts": "Ən çox satılan məhsullar",
+    "recentOrders": "Son sifarişlər",
+    "viewAll": "Hamısına bax",
+    "today": "Bu gün",
+    "thisWeek": "Bu həftə",
+    "count": "say"
   }
 }
