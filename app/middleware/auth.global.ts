@@ -1,15 +1,14 @@
 export default defineNuxtRouteMiddleware((to) => {
-  const { isAuthenticated } = useAuth()
+  const { token } = useAuth()
   const localePath = useLocalePath()
-
-  // Define routes that don't require authentication (e.g., login)
-  const isLoginPage = to.path.includes('/login')
-
-  if (!isAuthenticated.value && !isLoginPage) {
-    return navigateTo(localePath('/login'))
+  
+  // Login sayfasına gitmek istiyorsa ve zaten login olmuşsa ana sayfaya yönlendir
+  if (token.value && to.path.includes('/login')) {
+    return navigateTo(localePath('/'))
   }
 
-  if (isAuthenticated.value && isLoginPage) {
-    return navigateTo(localePath('/'))
+  // Login sayfası dışındaki sayfalara gitmek istiyorsa ve login değilse login sayfasına yönlendir
+  if (!token.value && !to.path.includes('/login')) {
+    return navigateTo(localePath('/login'))
   }
 })
