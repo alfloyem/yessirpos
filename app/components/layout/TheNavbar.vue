@@ -4,6 +4,7 @@ const { t, locales, locale, setLocale } = useI18n()
 const colorMode = useColorMode()
 
 const now = ref(new Date())
+const isLangDropdownOpen = ref(false)
 
 onMounted(() => {
   setInterval(() => {
@@ -18,6 +19,28 @@ const formattedTime = computed(() => {
 const toggleTheme = () => {
   colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
 }
+
+const languageFlags = {
+  az: '/images/flags/azerbaijan.png',
+  en: '/images/flags/england.png',
+  ru: '/images/flags/russia.png'
+}
+
+const currentFlag = computed(() => languageFlags[locale.value])
+
+const selectLanguage = (code) => {
+  setLocale(code)
+  isLangDropdownOpen.value = false
+}
+
+// Close dropdown when clicking outside
+onMounted(() => {
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.lang-dropdown')) {
+      isLangDropdownOpen.value = false
+    }
+  })
+})
 </script>
 
 <template>
@@ -42,23 +65,39 @@ const toggleTheme = () => {
 
       <!-- Language Switcher & Theme Toggle -->
       <div class="flex items-center gap-3 pl-6 border-l border-[var(--border-app)]">
-        <!-- Language Switcher -->
-        <div class="flex items-center gap-1 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg p-1">
+        <!-- Language Dropdown -->
+        <div class="relative lang-dropdown">
           <button 
-            v-for="l in locales" 
-            :key="l.code"
-            @click="setLocale(l.code)"
-            class="text-[10px] font-bold px-3 py-1.5 rounded transition-all uppercase cursor-pointer"
-            :class="locale === l.code ? 'bg-[var(--text-primary)] text-white shadow-sm' : 'text-[var(--text-app)] opacity-60 hover:opacity-100'"
+            @click="isLangDropdownOpen = !isLangDropdownOpen"
+            class="w-10 h-10 flex items-center justify-center bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg hover:border-[var(--text-primary)] hover:scale-105 transition-all cursor-pointer overflow-hidden"
           >
-            {{ l.code }}
+            <img :src="currentFlag" :alt="locale" class="w-6 h-6 object-cover rounded" />
           </button>
+
+          <!-- Dropdown Menu -->
+          <Transition name="dropdown">
+            <div 
+              v-if="isLangDropdownOpen"
+              class="absolute top-12 right-0 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg shadow-lg overflow-hidden z-50 min-w-[120px]"
+            >
+              <button
+                v-for="l in locales"
+                :key="l.code"
+                @click="selectLanguage(l.code)"
+                class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-all hover:bg-[var(--text-primary)]/10 hover:text-[var(--text-primary)]"
+                :class="locale === l.code ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)]' : 'text-[var(--text-app)]'"
+              >
+                <img :src="languageFlags[l.code]" :alt="l.name" class="w-5 h-5 object-cover rounded" />
+                <span>{{ l.name }}</span>
+              </button>
+            </div>
+          </Transition>
         </div>
 
         <!-- Theme Toggle -->
         <button 
           @click="toggleTheme"
-          class="w-10 h-10 flex items-center justify-center bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg hover:border-[var(--text-primary)] transition-all group cursor-pointer"
+          class="w-10 h-10 flex items-center justify-center bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg hover:border-[var(--text-primary)] hover:scale-105 transition-all group cursor-pointer"
         >
           <Transition name="theme-switch" mode="out-in">
             <Icon 
@@ -107,5 +146,21 @@ const toggleTheme = () => {
 .theme-switch-leave-to {
   opacity: 0;
   transform: rotate(180deg) scale(0.3);
+}
+
+/* Dropdown animation */
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dropdown-enter-from {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+}
+
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
 }
 </style>
