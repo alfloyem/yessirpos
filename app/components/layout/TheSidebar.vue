@@ -5,7 +5,7 @@ const localePath = useLocalePath()
 const { logout } = useAuth()
 
 // Using Solar Duotone icons which match the professional look
-const menuItems = [
+const menuItems = computed(() => [
   { label: t('menu.home'), icon: 'solar:home-2-bold-duotone', to: '/' },
   { label: t('menu.customers'), icon: 'solar:users-group-two-rounded-bold-duotone', to: '/customers' },
   { label: t('menu.products'), icon: 'solar:box-bold-duotone', to: '/products' },
@@ -15,7 +15,7 @@ const menuItems = [
   { label: t('menu.intake'), icon: 'solar:document-add-bold-duotone', to: '/intake' },
   { label: t('menu.sales'), icon: 'solar:cart-large-bold-duotone', to: '/sales' },
   { label: t('menu.employees'), icon: 'solar:user-speak-bold-duotone', to: '/employees' },
-]
+])
 </script>
 
 <template>
