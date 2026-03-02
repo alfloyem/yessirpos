@@ -31,5 +31,6 @@ const iconClass = computed(() => {
     :name="name" 
     :class="iconClass"
     :style="{ color: color }"
+    mode="svg"
   />
 </template>
