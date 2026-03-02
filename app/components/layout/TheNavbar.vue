@@ -54,22 +54,18 @@ onMounted(() => {
     <div class="flex items-center gap-4">
       <button 
         @click="toggleSidebar"
-        class="text-[var(--text-app)] opacity-60 hover:opacity-100 hover:text-[var(--text-primary)] hover:scale-110 transition-all cursor-pointer group"
+        class="text-[var(--text-app)] opacity-60 hover:opacity-100 hover:text-[var(--text-primary)] hover:scale-110 transition-all cursor-pointer"
       >
-        <Transition name="menu-icon" mode="out-in">
-          <UiIcon 
-            v-if="isSidebarCollapsed"
-            key="menu"
-            name="solar:sidebar-minimalistic-bold-duotone" 
-            class="w-8 h-8"
-          />
-          <UiIcon 
-            v-else
-            key="close"
-            name="solar:sidebar-code-bold-duotone" 
-            class="w-8 h-8"
-          />
-        </Transition>
+        <UiIcon 
+          v-if="isSidebarCollapsed"
+          name="solar:hamburger-menu-bold-duotone" 
+          class="w-9 h-9"
+        />
+        <UiIcon 
+          v-else
+          name="solar:close-circle-bold-duotone" 
+          class="w-9 h-9"
+        />
       </button>
     </div>
 
