@@ -61,30 +61,31 @@ const maxWidthClass = computed(() => {
 
         <!-- Dialog -->
         <div 
-          class="relative w-full bg-[var(--bg-app)] border border-[var(--border-app)] rounded-xl shadow-2xl flex flex-col max-h-[90vh] transition-all"
+          class="relative w-full bg-[var(--bg-app)] border-2 border-[var(--border-app)] rounded-2xl shadow-2xl flex flex-col max-h-[90vh] transition-all"
           :class="maxWidthClass"
           @click.stop
         >
           <!-- Header -->
-          <div class="flex items-center justify-between px-6 py-4 border-b border-[var(--border-app)]">
-            <h3 class="text-lg font-bold text-[var(--text-app)]">
+          <div class="flex items-center justify-between px-8 py-5 border-b border-[var(--border-app)]">
+            <h3 class="text-xl font-bold text-[var(--text-primary)]">
               <slot name="title">{{ title }}</slot>
             </h3>
             <button 
               @click="close" 
-              class="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-app)] opacity-50 hover:opacity-100 hover:bg-[var(--border-app)] transition-all"
+              class="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-app)] bg-[var(--input-bg)] bg-opacity-50 hover:bg-[var(--text-primary)] hover:text-white transition-all shadow-sm"
+              title="Kapat"
             >
-              <UiIcon name="solar:close-circle-bold-duotone" class="w-5 h-5" />
+              <UiIcon name="solar:close-bold" class="w-4 h-4" />
             </button>
           </div>
 
           <!-- Body -->
-          <div class="p-6 overflow-y-auto flex-1">
+          <div class="px-8 py-6 overflow-y-auto flex-1 custom-scrollbar">
             <slot />
           </div>
 
           <!-- Footer -->
-          <div v-if="$slots.footer" class="px-6 py-4 border-t border-[var(--border-app)] bg-[var(--bg-app)] rounded-b-xl flex items-center justify-end gap-3">
+          <div v-if="$slots.footer" class="px-8 py-5 border-t border-[var(--border-app)] bg-[var(--bg-app)] rounded-b-2xl flex items-center justify-end gap-3">
             <slot name="footer" />
           </div>
         </div>

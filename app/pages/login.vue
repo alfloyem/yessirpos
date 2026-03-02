@@ -48,7 +48,7 @@ const handleLogin = async () => {
           YESSIR<span class="opacity-40">POS</span>
         </h1>
         <div class="h-[1px] w-8 bg-[var(--text-app)] opacity-20"></div>
-        <p v-if="error" class="text-[10px] text-[var(--color-brand-danger)] font-bold uppercase tracking-wider">
+        <p v-if="error" class="text-[10px] text-[var(--color-brand-danger)] font-bold tracking-wider">
           {{ error }}
         </p>
       </div>
@@ -75,7 +75,7 @@ const handleLogin = async () => {
 
         <button 
           type="submit"
-          class="w-full bg-[var(--text-primary)] text-white py-4 text-[10px] font-black tracking-[0.3em] uppercase hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
+          class="w-full bg-[var(--text-primary)] text-white py-4 text-[10px] font-black tracking-[0.3em] hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
           :disabled="loading"
         >
           {{ loading ? '...' : t('submit') }}

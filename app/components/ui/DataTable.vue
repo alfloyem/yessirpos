@@ -274,7 +274,7 @@ watch(() => props.data, () => {
 
       <div class="overflow-x-auto">
         <table class="w-full text-left text-sm whitespace-nowrap">
-          <thead class="bg-[var(--bg-app)] border-b border-[var(--border-app)] text-[var(--text-app)] font-bold uppercase tracking-wider text-[11px]">
+          <thead class="bg-[var(--bg-app)] border-b border-[var(--border-app)] text-[var(--text-app)] font-bold tracking-wider text-[11px]">
             <tr>
               <!-- Multi Select Header -->
               <th v-if="selectable" class="px-6 py-4 w-12">

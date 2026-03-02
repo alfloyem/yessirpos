@@ -1,9 +1,10 @@
-<script setup>
-import { ref } from 'vue'
+<script setup lang="ts">
+import { ref, computed } from 'vue'
 import { useI18n } from '#i18n'
 import DataTable from '~/components/ui/DataTable.vue'
 import Modal from '~/components/ui/Modal.vue'
-import Button from '~/components/ui/Button.vue'
+import UiButton from '~/components/ui/Button.vue'
+import DynamicForm, { type FormField } from '~/components/ui/DynamicForm.vue'
 
 const { t } = useI18n()
 
@@ -11,53 +12,95 @@ useHead({
   title: t('menu.employees')
 })
 
-// --- Data & Columns ---
-const columns = [
-  { key: 'name', label: 'Ad Soyad', sortable: true },
-  { key: 'email', label: 'E-Posta', sortable: true },
-  { key: 'role', label: 'Rol', sortable: true },
-  { key: 'phone', label: 'Telefon', sortable: true },
-  { key: 'status', label: 'Durum', sortable: true, visible: true },
+// --- Centralized Schema ---
+const employeeSchema: (FormField & { inTable?: boolean, sortable?: boolean })[] = [
+  { key: 'firstName', label: 'Ad', type: 'text', inTable: true, sortable: true, required: true },
+  { key: 'lastName', label: 'Soyad', type: 'text', inTable: true, sortable: true, required: true },
+  { key: 'username', label: 'İstifadəçi adı', icon: 'solar:user-bold-duotone', type: 'text', inTable: true, sortable: true, required: true },
+  { key: 'email', label: 'E-poçt (Email)', icon: 'solar:letter-bold-duotone', type: 'email', inTable: true, sortable: true },
+  { key: 'phone', label: 'Telefon', icon: 'solar:phone-bold-duotone', type: 'tel', inTable: true, sortable: true },
+  { key: 'gender', label: 'Cinsiyyət', type: 'select', inTable: true, sortable: true, options: [
+    { label: 'Kişi', value: 'Kişi' },
+    { label: 'Qadın', value: 'Qadın' }
+  ]},
+  { key: 'password', label: 'Şifrə', icon: 'solar:lock-password-bold-duotone', type: 'password', inTable: false, required: true },
+  { key: 'status', label: 'Durum', type: 'select', inTable: true, sortable: true, options: [
+    { label: 'Aktif', value: 'Aktif' },
+    { label: 'Pasif', value: 'Pasif' },
+    { label: 'İzinde', value: 'İzinde' }
+  ]},
+  { key: 'notes', label: 'Xüsusi qeyd', type: 'textarea', colSpan: 2, inTable: false },
 ]
 
-const mockData = ref([
-  { id: 1, name: 'Ahmet Yılmaz', email: 'ahmet@yessirpos.com', role: 'Kasiyer', phone: '+90 555 123 4567', status: 'Aktif' },
-  { id: 2, name: 'Ayşe Kaya', email: 'ayse@yessirpos.com', role: 'Müdür', phone: '+90 555 987 6543', status: 'Aktif' },
-  { id: 3, name: 'Mehmet Demir', email: 'mehmet@yessirpos.com', role: 'Kasiyer', phone: '+90 555 456 7890', status: 'Pasif' },
-  { id: 4, name: 'Fatma Şahin', email: 'fatma@yessirpos.com', role: 'Garson', phone: '+90 555 789 0123', status: 'Aktif' },
-  { id: 5, name: 'Ali Can', email: 'ali@yessirpos.com', role: 'Aşçı', phone: '+90 555 321 6547', status: 'İzinde' },
+// Extract table columns dynamically
+const columns = computed(() => 
+  employeeSchema
+    .filter(f => f.inTable)
+    .map(f => ({ key: f.key, label: f.label, sortable: f.sortable }))
+)
+
+// The fields structure for DynamicForm
+const formFields = employeeSchema
+
+// --- Data ---
+const mockData = ref<any[]>([
+  { id: 1, firstName: 'Ahmet', lastName: 'Yılmaz', username: 'ahmet_y', email: 'ahmet@yessirpos.com', phone: '+90 555 123 4567', gender: 'Kişi', status: 'Aktif', notes: 'Hızlı çalışan' },
+  { id: 2, firstName: 'Ayşe', lastName: 'Kaya', username: 'aysekaya', email: 'ayse@yessirpos.com', phone: '+90 555 987 6543', gender: 'Qadın', status: 'Aktif', notes: '' },
 ])
 
 // --- Modals State ---
 const showAddModal = ref(false)
 const showEditModal = ref(false)
 const showDeleteModal = ref(false)
-const selectedEmployee = ref(null)
+const formData = ref<Record<string, any>>({})
+const bulkSelectedIds = ref<any[]>([])
 
 // --- Handlers ---
 const handleAdd = () => {
-  selectedEmployee.value = null
+  formData.value = {} // Empty form
   showAddModal.value = true
 }
 
-const handleEdit = (row) => {
-  selectedEmployee.value = { ...row }
+const handleEdit = (row: any) => {
+  formData.value = { ...row } // Pre-fill form
   showEditModal.value = true
 }
 
-const handleDelete = (row) => {
-  selectedEmployee.value = row
+const handleDelete = (row: any) => {
+  formData.value = { ...row }
   showDeleteModal.value = true
 }
 
-const handleBulkDelete = (ids) => {
+const handleBulkDelete = (ids: any[]) => {
   if (confirm(`${ids.length} personeli silmek istediğinize emin misiniz?`)) {
     mockData.value = mockData.value.filter(m => !ids.includes(m.id))
   }
 }
 
-const handleBulkEdit = (ids) => {
-  alert(`${ids.length} adet kayıt toplu olarak düzenlenmek için seçildi. İşlem modalı açılacak.`)
+const handleBulkEdit = (ids: any[]) => {
+  bulkSelectedIds.value = ids
+  formData.value = {} // Reset it
+  showEditModal.value = true
+}
+
+const saveForm = () => {
+  if (showAddModal.value) {
+    mockData.value.push({ id: Date.now(), ...formData.value })
+    showAddModal.value = false
+  } else if (showEditModal.value) {
+    if (bulkSelectedIds.value.length > 0) {
+      // Apply the filled fields to all selected items
+      const updates = Object.fromEntries(Object.entries(formData.value).filter(([_, v]) => v !== undefined && v !== ''))
+      mockData.value = mockData.value.map(item => 
+        bulkSelectedIds.value.includes(item.id) ? { ...item, ...updates } : item
+      )
+      bulkSelectedIds.value = []
+    } else {
+      const index = mockData.value.findIndex(m => m.id === formData.value.id)
+      if (index !== -1) mockData.value[index] = { ...formData.value }
+    }
+    showEditModal.value = false
+  }
 }
 </script>
 
@@ -98,57 +141,31 @@ const handleBulkEdit = (ids) => {
     </DataTable>
 
     <!-- Modal: Add / Edit -->
-    <Modal v-model="showAddModal" title="Yeni Personel Ekle" max-width="md">
-      <div class="space-y-4">
-        <div class="space-y-1">
-          <label class="text-xs font-bold text-[var(--text-app)] uppercase tracking-wider">Ad Soyad</label>
-          <input type="text" class="w-full bg-[var(--bg-app)] border border-[var(--border-app)] px-4 py-2 text-sm rounded-lg outline-none focus:border-[var(--text-primary)] transition-all" />
-        </div>
-        <div class="space-y-1">
-          <label class="text-xs font-bold text-[var(--text-app)] uppercase tracking-wider">E-Posta</label>
-          <input type="email" class="w-full bg-[var(--bg-app)] border border-[var(--border-app)] px-4 py-2 text-sm rounded-lg outline-none focus:border-[var(--text-primary)] transition-all" />
-        </div>
-        <div class="grid grid-cols-2 gap-4">
-          <div class="space-y-1">
-            <label class="text-xs font-bold text-[var(--text-app)] uppercase tracking-wider">Rol</label>
-            <select class="w-full bg-[var(--bg-app)] border border-[var(--border-app)] px-4 py-2 text-sm rounded-lg outline-none focus:border-[var(--text-primary)] transition-all">
-              <option>Kasiyer</option>
-              <option>Müdür</option>
-              <option>Garson</option>
-            </select>
-          </div>
-          <div class="space-y-1">
-            <label class="text-xs font-bold text-[var(--text-app)] uppercase tracking-wider">Durum</label>
-            <select class="w-full bg-[var(--bg-app)] border border-[var(--border-app)] px-4 py-2 text-sm rounded-lg outline-none focus:border-[var(--text-primary)] transition-all">
-              <option>Aktif</option>
-              <option>Pasif</option>
-              <option>İzinde</option>
-            </select>
-          </div>
-        </div>
-      </div>
+    <Modal v-model="showAddModal" title="Yeni Personel Ekle" max-width="xl">
+      <DynamicForm 
+        :fields="formFields"
+        v-model="formData" 
+      />
       <template #footer>
-        <Button variant="ghost" @click="showAddModal = false">İptal</Button>
-        <Button variant="primary" @click="showAddModal = false">Kaydet</Button>
+        <UiButton variant="ghost" @click="showAddModal = false">İptal</UiButton>
+        <UiButton variant="primary" @click="saveForm">Kaydet</UiButton>
       </template>
     </Modal>
 
-    <!-- Modal: Edit specific (reusing structure for demo) -->
-    <Modal v-model="showEditModal" title="Personeli Düzenle" max-width="md">
-      <div v-if="selectedEmployee" class="space-y-4">
-        <!-- Reusing same form structure but pre-filled -->
-        <div class="space-y-1">
-          <label class="text-xs font-bold text-[var(--text-app)] uppercase tracking-wider">Ad Soyad</label>
-          <input type="text" v-model="selectedEmployee.name" class="w-full bg-[var(--bg-app)] border border-[var(--border-app)] px-4 py-2 text-sm rounded-lg outline-none focus:border-[var(--text-primary)] transition-all" />
-        </div>
-        <div class="space-y-1">
-          <label class="text-xs font-bold text-[var(--text-app)] uppercase tracking-wider">E-Posta</label>
-          <input type="email" v-model="selectedEmployee.email" class="w-full bg-[var(--bg-app)] border border-[var(--border-app)] px-4 py-2 text-sm rounded-lg outline-none focus:border-[var(--text-primary)] transition-all" />
-        </div>
+    <!-- Modal: Edit specific -->
+    <Modal v-model="showEditModal" :title="bulkSelectedIds.length > 0 ? 'Toplu Düzenleme' : 'Personeli Düzenle'" max-width="xl">
+      <div v-if="bulkSelectedIds.length > 0" class="mb-4 p-3 bg-[var(--color-brand-warning)]/10 text-[var(--color-brand-warning)] rounded-lg text-sm font-medium">
+        Uyarı: Toplu düzenleme modundasınız. Burada dolduracağınız alanlar, seçtiğiniz <span class="font-bold">{{ bulkSelectedIds.length }}</span> personelin verisinin üzerine yazılacaktır. Boş bıraktığınız alanlar değişmeyecektir.
       </div>
+
+      <!-- We omit password from edit/bulk-edit via computed or in-template filtering to make it more realistic -->
+      <DynamicForm 
+        :fields="showEditModal && bulkSelectedIds.length > 0 ? formFields.filter(f => !f.key.includes('password')) : formFields"
+        v-model="formData" 
+      />
       <template #footer>
-        <Button variant="ghost" @click="showEditModal = false">İptal</Button>
-        <Button variant="primary" @click="showEditModal = false">Güncelle</Button>
+        <UiButton variant="ghost" @click="showEditModal = false; bulkSelectedIds = []">İptal</UiButton>
+        <UiButton variant="primary" @click="saveForm">Güncelle</UiButton>
       </template>
     </Modal>
 
