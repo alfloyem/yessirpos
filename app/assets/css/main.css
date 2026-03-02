@@ -70,7 +70,7 @@ button, .btn {
 }
 
 button:hover:not(:disabled), .btn:hover:not(:disabled) {
-  @apply transform scale-[1.02] shadow-md;
+  @apply transform scale-[1.02];
 }
 
 button:active:not(:disabled), .btn:active:not(:disabled) {

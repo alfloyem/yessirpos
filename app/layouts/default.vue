@@ -13,7 +13,7 @@ const isSidebarCollapsed = useState('sidebarCollapsed', () => false)
 
     <!-- Main Right Content Container -->
     <div 
-      class="flex-1 flex flex-col min-h-screen transition-all duration-300"
+      class="flex-1 flex flex-col min-h-screen transition-all duration-700 ease-in-out"
       :class="isSidebarCollapsed ? 'ml-20' : 'ml-64'"
     >
       <TheNavbar />

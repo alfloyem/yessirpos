@@ -30,17 +30,21 @@ const menuItems = computed(() => [
 
 <template>
   <aside 
-    class="h-screen bg-[var(--bg-sidebar)] border-r border-[var(--border-app)] flex flex-col fixed left-0 top-0 z-50 transition-all duration-300"
+    class="h-screen bg-[var(--bg-sidebar)] border-r border-[var(--border-app)] flex flex-col fixed left-0 top-0 z-50 transition-all duration-700 ease-in-out"
     :class="isSidebarCollapsed ? 'w-20' : 'w-64'"
   >
     <!-- Logo Section -->
-    <div class="px-6 py-6 h-20 flex items-center justify-start overflow-hidden">
+    <div 
+      class="px-6 py-6 h-20 flex items-center overflow-hidden transition-all duration-700 ease-in-out"
+      :class="isSidebarCollapsed ? 'justify-center' : 'justify-start'"
+    >
       <NuxtLink :to="localePath('/')" class="flex items-center gap-3 relative">
-        <!-- Icon - always visible -->
+        <!-- Icon - always visible with motion blur -->
         <img 
           src="~/assets/images/yessir_icon.svg" 
           alt="Y" 
-          class="h-12 w-12 flex-shrink-0 transition-all duration-300" 
+          class="h-12 w-12 flex-shrink-0 transition-all duration-700 ease-in-out"
+          :style="isSidebarCollapsed ? '' : 'filter: blur(0px)'"
         />
         
         <!-- Text Logo - slides in from left with motion blur -->
@@ -61,12 +65,12 @@ const menuItems = computed(() => [
         v-for="item in menuItems" 
         :key="item.label"
         :to="localePath(item.to)"
-        class="flex items-center gap-3 px-3 py-2.5 text-[16px] font-medium transition-all rounded-lg group relative"
-        active-class="bg-[var(--text-primary)]/10 text-[var(--text-primary)]"
+        class="flex items-center text-[16px] font-medium transition-all duration-700 ease-in-out rounded-lg group relative"
         :class="[
           $route.path === localePath(item.to) 
             ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)]' 
-            : 'text-[var(--text-app)] hover:opacity-80 hover:bg-[var(--bg-app)] hover:text-[var(--text-primary)]'
+            : 'text-[var(--text-app)] hover:opacity-80 hover:bg-[var(--bg-app)] hover:text-[var(--text-primary)]',
+          isSidebarCollapsed ? 'justify-center px-3 py-2.5' : 'gap-3 px-3 py-2.5'
         ]"
       >
         <!-- Left vertical bar for active item -->
@@ -75,15 +79,18 @@ const menuItems = computed(() => [
           class="absolute left-0 top-0 bottom-0 w-1 bg-[var(--text-primary)] rounded-r-full"
         ></span>
         
-        <!-- Icon - always in same position -->
-        <div class="w-[43px] flex items-center justify-center flex-shrink-0">
+        <!-- Icon - centered when collapsed -->
+        <div 
+          class="flex items-center justify-center flex-shrink-0 transition-all duration-700 ease-in-out"
+          :class="isSidebarCollapsed ? '' : 'w-[43px]'"
+        >
           <UiIcon :name="item.icon" size="sidebar" />
         </div>
         
         <!-- Text with smooth opacity transition -->
         <span 
-          class="truncate transition-opacity duration-300"
-          :class="isSidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'"
+          v-if="!isSidebarCollapsed"
+          class="truncate transition-all duration-700 ease-in-out"
         >
           {{ item.label }}
         </span>
@@ -94,14 +101,18 @@ const menuItems = computed(() => [
     <div class="px-4 py-4 border-t border-[var(--border-app)]">
       <button 
         @click="logout"
-        class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-[var(--color-brand-danger)] hover:bg-[var(--bg-app)] rounded-lg transition-all relative group"
+        class="w-full flex items-center text-sm font-medium text-[var(--color-brand-danger)] hover:bg-[var(--bg-app)] rounded-lg transition-all duration-700 ease-in-out relative group"
+        :class="isSidebarCollapsed ? 'justify-center px-4 py-2.5' : 'gap-3 px-4 py-2.5'"
       >
-        <div class="w-8 flex items-center justify-center flex-shrink-0">
+        <div 
+          class="flex items-center justify-center flex-shrink-0 transition-all duration-700 ease-in-out"
+          :class="isSidebarCollapsed ? '' : 'w-8'"
+        >
           <UiIcon name="solar:logout-bold-duotone" size="lg" />
         </div>
         <span 
-          class="transition-opacity duration-300"
-          :class="isSidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'"
+          v-if="!isSidebarCollapsed"
+          class="transition-all duration-700 ease-in-out"
         >
           {{ t('logout') }}
         </span>
@@ -119,7 +130,7 @@ const menuItems = computed(() => [
 /* Text fade animation - smooth opacity only */
 .text-fade-enter-active,
 .text-fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.7s ease-in-out;
 }
 
 .text-fade-enter-from,
@@ -127,24 +138,25 @@ const menuItems = computed(() => [
   opacity: 0;
 }
 
-/* Logo text animation - slides from left with motion blur */
+/* Logo text animation - slides from left with motion blur - very soft */
 .logo-text-enter-active {
-  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.8s ease-in-out;
 }
 
 .logo-text-leave-active {
-  transition: all 0.3s ease;
+  transition: all 0.6s ease-in-out;
 }
 
 .logo-text-enter-from {
   opacity: 0;
-  transform: translateX(-30px);
-  filter: blur(4px);
+  transform: translateX(-20px);
+  filter: blur(3px);
 }
 
 .logo-text-leave-to {
   opacity: 0;
-  transform: translateX(-20px);
+  transform: translateX(-15px);
+  filter: blur(2px);
 }
 
 /* Tooltip fade animation */
