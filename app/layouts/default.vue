@@ -1,7 +1,7 @@
 <script setup>
-import TheSidebar from '~/components/layout/TheSidebar.vue'
-import TheNavbar from '~/components/layout/TheNavbar.vue'
-import TheFooter from '~/components/layout/TheFooter.vue'
+import Sidebar from '~/components/layout/Sidebar.vue'
+import Navbar from '~/components/layout/Navbar.vue'
+import Footer from '~/components/layout/Footer.vue'
 
 const isSidebarCollapsed = useState('sidebarCollapsed', () => false)
 </script>
@@ -9,20 +9,22 @@ const isSidebarCollapsed = useState('sidebarCollapsed', () => false)
 <template>
   <div class="h-screen max-w-screen bg-[var(--bg-app)] text-[var(--text-app)] flex transition-colors duration-200">
     <!-- Fixed Sidebar -->
-    <TheSidebar/>
+    <Sidebar/>
 
     <!-- Main Right Content Container -->
     <div 
       class="min-w-0 flex-1 flex flex-col h-full transition-all duration-200 ease-in-out"
     >
-      <TheNavbar />
+      <Navbar />
 
-      <!-- Content Area -->
-      <main class="flex-1 p-8">
-        <slot />
-      </main>
+      <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col">
+        <!-- Content Area -->
+        <main class="flex-1 p-8">
+          <slot />
+        </main>
 
-      <TheFooter />
+        <Footer />
+      </div>
     </div>
   </div>
 </template>
