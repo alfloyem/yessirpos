@@ -35,8 +35,7 @@ const menuItems = computed(() => [
   >
     <!-- Logo Section -->
     <div 
-      class="px-6 py-6 h-20 flex items-center overflow-hidden transition-all duration-700 ease-in-out"
-      :class="isSidebarCollapsed ? 'justify-center' : 'justify-start'"
+      class="px-6 py-6 h-20 flex items-center justify-start overflow-hidden transition-all duration-700 ease-in-out"
     >
       <NuxtLink :to="localePath('/')" class="flex items-center gap-3 relative">
         <!-- Icon - always visible with motion blur -->
@@ -65,12 +64,11 @@ const menuItems = computed(() => [
         v-for="item in menuItems" 
         :key="item.label"
         :to="localePath(item.to)"
-        class="flex items-center text-[16px] font-medium transition-all duration-700 ease-in-out rounded-lg group relative"
+        class="flex items-center justify-start gap-3 px-3 py-2.5 text-[16px] font-medium transition-all duration-700 ease-in-out rounded-lg group relative"
         :class="[
           $route.path === localePath(item.to) 
             ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)]' 
-            : 'text-[var(--text-app)] hover:opacity-80 hover:bg-[var(--bg-app)] hover:text-[var(--text-primary)]',
-          isSidebarCollapsed ? 'justify-center px-3 py-2.5' : 'gap-3 px-3 py-2.5'
+            : 'text-[var(--text-app)] hover:opacity-80 hover:bg-[var(--bg-app)] hover:text-[var(--text-primary)]'
         ]"
       >
         <!-- Left vertical bar for active item -->
@@ -79,21 +77,29 @@ const menuItems = computed(() => [
           class="absolute left-0 top-0 bottom-0 w-1 bg-[var(--text-primary)] rounded-r-full"
         ></span>
         
-        <!-- Icon - centered when collapsed -->
-        <div 
-          class="flex items-center justify-center flex-shrink-0 transition-all duration-700 ease-in-out"
-          :class="isSidebarCollapsed ? '' : 'w-[43px]'"
-        >
+        <!-- Icon - always in same position -->
+        <div class="flex items-center justify-center flex-shrink-0 w-[43px]">
           <UiIcon :name="item.icon" size="sidebar" />
         </div>
         
-        <!-- Text with smooth opacity transition -->
-        <span 
-          v-if="!isSidebarCollapsed"
-          class="truncate transition-all duration-700 ease-in-out"
+        <!-- Text with smooth opacity and width transition -->
+        <Transition name="text-fade">
+          <span 
+            v-if="!isSidebarCollapsed"
+            class="truncate whitespace-nowrap"
+          >
+            {{ item.label }}
+          </span>
+        </Transition>
+
+        <!-- Tooltip when collapsed -->
+        <div 
+          v-if="isSidebarCollapsed"
+          class="absolute left-full ml-3 px-4 py-2 bg-[var(--text-primary)] text-white text-sm font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 z-[10000] shadow-lg"
         >
           {{ item.label }}
-        </span>
+          <div class="absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-[var(--text-primary)]"></div>
+        </div>
       </NuxtLink>
     </nav>
 
@@ -101,21 +107,30 @@ const menuItems = computed(() => [
     <div class="px-4 py-4 border-t border-[var(--border-app)]">
       <button 
         @click="logout"
-        class="w-full flex items-center text-sm font-medium text-[var(--color-brand-danger)] hover:bg-[var(--bg-app)] rounded-lg transition-all duration-700 ease-in-out relative group"
-        :class="isSidebarCollapsed ? 'justify-center px-4 py-2.5' : 'gap-3 px-4 py-2.5'"
+        class="w-full flex items-center justify-start gap-3 px-4 py-2.5 text-sm font-medium text-[var(--color-brand-danger)] hover:bg-[var(--bg-app)] rounded-lg transition-all duration-700 ease-in-out relative group"
       >
-        <div 
-          class="flex items-center justify-center flex-shrink-0 transition-all duration-700 ease-in-out"
-          :class="isSidebarCollapsed ? '' : 'w-8'"
-        >
+        <div class="flex items-center justify-center flex-shrink-0 w-8">
           <UiIcon name="solar:logout-bold-duotone" size="lg" />
         </div>
-        <span 
-          v-if="!isSidebarCollapsed"
-          class="transition-all duration-700 ease-in-out"
+        
+        <!-- Text with smooth opacity and width transition -->
+        <Transition name="text-fade">
+          <span 
+            v-if="!isSidebarCollapsed"
+            class="whitespace-nowrap"
+          >
+            {{ t('logout') }}
+          </span>
+        </Transition>
+
+        <!-- Tooltip when collapsed -->
+        <div 
+          v-if="isSidebarCollapsed"
+          class="absolute left-full ml-3 px-4 py-2 bg-[var(--color-brand-danger)] text-white text-sm font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 z-[10000] shadow-lg"
         >
           {{ t('logout') }}
-        </span>
+          <div class="absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-[var(--color-brand-danger)]"></div>
+        </div>
       </button>
     </div>
   </aside>
@@ -127,15 +142,23 @@ const menuItems = computed(() => [
   width: 0px;
 }
 
-/* Text fade animation - smooth opacity only */
-.text-fade-enter-active,
-.text-fade-leave-active {
-  transition: opacity 0.7s ease-in-out;
+/* Text fade animation - smooth opacity and width */
+.text-fade-enter-active {
+  transition: all 0.7s ease-in-out;
 }
 
-.text-fade-enter-from,
+.text-fade-leave-active {
+  transition: all 0.5s ease-in-out;
+}
+
+.text-fade-enter-from {
+  opacity: 0;
+  transform: translateX(-10px);
+}
+
 .text-fade-leave-to {
   opacity: 0;
+  transform: translateX(-10px);
 }
 
 /* Logo text animation - slides from left with motion blur - very soft */
