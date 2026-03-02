@@ -5,6 +5,7 @@ const colorMode = useColorMode()
 
 const now = ref(new Date())
 const isLangDropdownOpen = ref(false)
+const isSidebarCollapsed = useState('sidebarCollapsed', () => false)
 
 onMounted(() => {
   setInterval(() => {
@@ -18,6 +19,10 @@ const formattedTime = computed(() => {
 
 const toggleTheme = () => {
   colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
+}
+
+const toggleSidebar = () => {
+  isSidebarCollapsed.value = !isSidebarCollapsed.value
 }
 
 const languageFlags = {
@@ -47,8 +52,24 @@ onMounted(() => {
   <header class="h-16 w-full flex items-center justify-between px-8 bg-[var(--bg-app)] border-b border-[var(--border-app)] sticky top-0 z-40">
     <!-- Navbar Left (Context specific) -->
     <div class="flex items-center gap-4">
-      <button class="text-[var(--text-app)] opacity-60 hover:opacity-100 hover:text-[var(--text-primary)] transition-all">
-        <UiIcon name="solar:hamburger-menu-bold-duotone" size="lg" />
+      <button 
+        @click="toggleSidebar"
+        class="text-[var(--text-app)] opacity-60 hover:opacity-100 hover:text-[var(--text-primary)] transition-all cursor-pointer group"
+      >
+        <Transition name="menu-icon" mode="out-in">
+          <UiIcon 
+            v-if="isSidebarCollapsed"
+            key="menu"
+            name="solar:menu-dots-bold-duotone" 
+            class="w-8 h-8"
+          />
+          <UiIcon 
+            v-else
+            key="close"
+            name="solar:alt-arrow-left-bold-duotone" 
+            class="w-8 h-8"
+          />
+        </Transition>
       </button>
     </div>
 
@@ -159,5 +180,21 @@ onMounted(() => {
 .dropdown-leave-to {
   opacity: 0;
   transform: translateY(-10px) scale(0.95);
+}
+
+/* Menu icon animation */
+.menu-icon-enter-active,
+.menu-icon-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.menu-icon-enter-from {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.5);
+}
+
+.menu-icon-leave-to {
+  opacity: 0;
+  transform: rotate(90deg) scale(0.5);
 }
 </style>

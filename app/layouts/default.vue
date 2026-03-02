@@ -2,6 +2,8 @@
 import TheSidebar from '~/components/layout/TheSidebar.vue'
 import TheNavbar from '~/components/layout/TheNavbar.vue'
 import TheFooter from '~/components/layout/TheFooter.vue'
+
+const isSidebarCollapsed = useState('sidebarCollapsed', () => false)
 </script>
 
 <template>
@@ -10,7 +12,10 @@ import TheFooter from '~/components/layout/TheFooter.vue'
     <TheSidebar />
 
     <!-- Main Right Content Container -->
-    <div class="flex-1 flex flex-col ml-64 min-h-screen">
+    <div 
+      class="flex-1 flex flex-col min-h-screen transition-all duration-300"
+      :class="isSidebarCollapsed ? 'ml-20' : 'ml-64'"
+    >
       <TheNavbar />
 
       <!-- Content Area -->

@@ -24,8 +24,8 @@ const stats = ref([
     value: '12,345', 
     suffix: '₼',
     subtitle: t('dashboard.thisMonth'),
-    icon: 'solar:card-send-bold-duotone',
-    color: '#ff9f43'
+    icon: 'solar:dollar-minimalistic-bold-duotone',
+    color: '#ea5455'
   },
   { 
     label: t('dashboard.stock'), 
@@ -83,7 +83,7 @@ const selectedFilter = ref('today')
             class="w-12 h-12 rounded-lg flex items-center justify-center"
             :style="{ backgroundColor: `${stat.color}15` }"
           >
-            <UiIcon :name="stat.icon" class="w-10 h-10" :style="{ color: stat.color }" />
+            <UiIcon :name="stat.icon" size="lg" :style="{ color: stat.color }" />
           </div>
         </div>
       </div>
