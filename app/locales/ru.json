@@ -1,0 +1,30 @@
+{
+  "welcome": "Добро пожаловать в YessirPOS",
+  "login": "Войти",
+  "email": "Адрес электронной почты",
+  "password": "Пароль",
+  "submit": "Войти",
+  "logout": "Выйти",
+  "dashboard": "Панель управления",
+  "slogan": "Премиум опыт точки продаж.",
+  "menu": {
+    "home": "Главная",
+    "customers": "Клиенты",
+    "products": "Товары",
+    "bundles": "Наборы товаров",
+    "suppliers": "Поставщики",
+    "reports": "Отчеты",
+    "intake": "Приемка",
+    "sales": "Продажи",
+    "employees": "Сотрудники"
+  },
+  "user": {
+    "name": "MR Musa",
+    "role": "Администратор",
+    "initials": "MR"
+  },
+  "footer": {
+    "terms": "Условия",
+    "privacy": "Конфиденциальность"
+  }
+}

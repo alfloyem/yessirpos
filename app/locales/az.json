@@ -1,0 +1,30 @@
+{
+  "welcome": "YessirPOS-a Xoş Gəlmisiniz",
+  "login": "Daxil Ol",
+  "email": "E-poçt Ünvanı",
+  "password": "Şifrə",
+  "submit": "Daxil Ol",
+  "logout": "Çıxış",
+  "dashboard": "İdarə Paneli",
+  "slogan": "Premium satış nöqtəsi təcrübəsi.",
+  "menu": {
+    "home": "Ana Səhifə",
+    "customers": "Müştərilər",
+    "products": "Məhsullar",
+    "bundles": "Məhsul Dəstləri",
+    "suppliers": "Təchizatçılar",
+    "reports": "Hesabatlar",
+    "intake": "Qəbul",
+    "sales": "Satışlar",
+    "employees": "İşçilər"
+  },
+  "user": {
+    "name": "MR Musa",
+    "role": "Administrator",
+    "initials": "MR"
+  },
+  "footer": {
+    "terms": "Şərtlər",
+    "privacy": "Məxfilik"
+  }
+}

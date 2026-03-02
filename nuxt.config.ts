@@ -18,10 +18,11 @@ export default defineNuxtConfig({
 
   i18n: {
     locales: [
+      { code: 'az', name: 'Azərbaycanca', file: 'az.json' },
       { code: 'en', name: 'English', file: 'en.json' },
-      { code: 'tr', name: 'Türkçe', file: 'tr.json' },
+      { code: 'ru', name: 'Русский', file: 'ru.json' },
     ],
-    defaultLocale: 'tr',
+    defaultLocale: 'az',
     strategy: 'no_prefix',
     langDir: 'locales',
   },
