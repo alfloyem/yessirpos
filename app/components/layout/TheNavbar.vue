@@ -48,7 +48,7 @@ const toggleTheme = () => {
             v-for="l in locales" 
             :key="l.code"
             @click="setLocale(l.code)"
-            class="text-[10px] font-bold px-3 py-1.5 rounded transition-all uppercase"
+            class="text-[10px] font-bold px-3 py-1.5 rounded transition-all uppercase cursor-pointer"
             :class="locale === l.code ? 'bg-[var(--text-primary)] text-white shadow-sm' : 'text-[var(--text-app)] opacity-60 hover:opacity-100'"
           >
             {{ l.code }}
@@ -58,7 +58,7 @@ const toggleTheme = () => {
         <!-- Theme Toggle -->
         <button 
           @click="toggleTheme"
-          class="w-10 h-10 flex items-center justify-center bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg hover:border-[var(--text-primary)] transition-all group"
+          class="w-10 h-10 flex items-center justify-center bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg hover:border-[var(--text-primary)] transition-all group cursor-pointer"
         >
           <Transition name="theme-switch" mode="out-in">
             <Icon 
