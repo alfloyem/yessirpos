@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useI18n } from '#i18n'
 import DataTable from '~/components/ui/DataTable.vue'
 import Modal from '~/components/ui/Modal.vue'
+import Button from '~/components/ui/Button.vue'
 
 const { t } = useI18n()
 
@@ -127,8 +128,8 @@ const handleBulkEdit = (ids) => {
         </div>
       </div>
       <template #footer>
-        <button @click="showAddModal = false" class="px-4 py-2 text-sm font-bold text-[var(--text-app)] hover:bg-[var(--bg-app)] rounded-lg transition-all">İptal</button>
-        <button @click="showAddModal = false" class="px-4 py-2 text-sm font-bold text-white bg-[var(--text-primary)] hover:bg-[var(--text-secondary)] rounded-lg transition-all shadow-md">Kaydet</button>
+        <Button variant="ghost" @click="showAddModal = false">İptal</Button>
+        <Button variant="primary" @click="showAddModal = false">Kaydet</Button>
       </template>
     </Modal>
 
@@ -146,8 +147,8 @@ const handleBulkEdit = (ids) => {
         </div>
       </div>
       <template #footer>
-        <button @click="showEditModal = false" class="px-4 py-2 text-sm font-bold text-[var(--text-app)] hover:bg-[var(--bg-app)] rounded-lg transition-all">İptal</button>
-        <button @click="showEditModal = false" class="px-4 py-2 text-sm font-bold text-white bg-[var(--text-primary)] hover:bg-[var(--text-secondary)] rounded-lg transition-all shadow-md">Güncelle</button>
+        <Button variant="ghost" @click="showEditModal = false">İptal</Button>
+        <Button variant="primary" @click="showEditModal = false">Güncelle</Button>
       </template>
     </Modal>
 

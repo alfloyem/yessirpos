@@ -2,6 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import { useI18n } from '#i18n'
 import { exportToCSV } from '~/utils/exportCsv'
+import Button from '~/components/ui/Button.vue'
 
 interface Column {
   key: string
@@ -157,37 +158,40 @@ watch(() => props.data, () => {
       <div class="flex items-center gap-2">
         <!-- Delete Selected -->
          <Transition name="fade">
-          <button 
+          <Button 
             v-if="selectedIds.size > 0"
+            variant="soft-danger"
+            size="sm"
+            icon="solar:trash-bin-trash-bold-duotone"
             @click="emit('bulk-delete', Array.from(selectedIds))"
-            class="flex items-center gap-2 px-3 py-2 text-sm font-bold text-[var(--color-brand-danger)] bg-[var(--color-brand-danger)]/10 border border-[var(--color-brand-danger)]/20 rounded-lg hover:bg-[var(--color-brand-danger)] hover:text-white transition-all shadow-sm"
           >
-            <Icon name="solar:trash-bin-trash-bold-duotone" class="w-4 h-4" />
-            <span>{{ selectedIds.size }} Sil</span>
-          </button>
+            {{ selectedIds.size }} Sil
+          </Button>
         </Transition>
 
         <!-- Edit Selected -->
         <Transition name="fade">
-          <button 
+          <Button 
             v-if="selectedIds.size > 0"
+            variant="soft-primary"
+            size="sm"
+            icon="solar:pen-bold-duotone"
             @click="emit('bulk-edit', Array.from(selectedIds))"
-            class="flex items-center gap-2 px-3 py-2 text-sm font-bold text-[var(--text-primary)] bg-[var(--text-primary)]/10 border border-[var(--text-primary)]/20 rounded-lg hover:bg-[var(--text-primary)] hover:text-white transition-all shadow-sm"
           >
-            <Icon name="solar:pen-bold-duotone" class="w-4 h-4" />
-            <span>Toplu Düzenle</span>
-          </button>
+            Toplu Düzenle
+          </Button>
         </Transition>
 
         <!-- Column Visibility -->
         <div class="relative">
-          <button 
+          <Button 
+            variant="outline"
+            size="sm"
+            icon="solar:eye-bold-duotone"
             @click="showColVis = !showColVis"
-            class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[var(--text-app)] bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg hover:border-[var(--text-primary)] hover:text-[var(--text-primary)] transition-all"
           >
-            <Icon name="solar:eye-bold-duotone" class="w-4 h-4" />
             <span class="hidden sm:inline">Sütunlar</span>
-          </button>
+          </Button>
 
           <!-- Dropdown -->
           <div 
@@ -207,22 +211,24 @@ watch(() => props.data, () => {
         </div>
 
         <!-- Export -->
-        <button 
+        <Button 
+          variant="outline"
+          size="sm"
+          icon="solar:export-bold-duotone"
           @click="handleExport"
-          class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[var(--text-app)] bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg hover:border-[var(--text-primary)] hover:text-[var(--text-primary)] transition-all"
         >
-          <Icon name="solar:export-bold-duotone" class="w-4 h-4" />
           <span class="hidden sm:inline">Dışa Aktar</span>
-        </button>
+        </Button>
 
         <!-- Add New -->
-        <button 
+        <Button 
+          variant="primary"
+          size="sm"
+          icon="solar:add-circle-bold-duotone"
           @click="emit('add')"
-          class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-[var(--text-primary)] hover:bg-[var(--text-secondary)] rounded-lg transition-all shadow-md shadow-[var(--text-primary)]/30 active:scale-95"
         >
-          <Icon name="solar:add-circle-bold-duotone" class="w-4 h-4" />
-          <span>Yeni Ekle</span>
-        </button>
+          Yeni Ekle
+        </Button>
       </div>
     </div>
 
@@ -306,18 +312,20 @@ watch(() => props.data, () => {
                 <!-- Actions Cell -->
                 <td v-if="actions" class="px-6 py-3 text-right" @click.stop>
                   <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button 
+                    <Button 
+                      variant="ghost"
+                      size="icon"
+                      icon="solar:pen-bold-duotone"
                       @click="emit('edit', row)"
-                      class="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-app)] hover:text-[var(--text-primary)] hover:bg-[var(--text-primary)]/10 transition-all"
-                    >
-                      <Icon name="solar:pen-bold-duotone" class="w-4 h-4" />
-                    </button>
-                    <button 
+                      class="hover:text-[var(--text-primary)] hover:bg-[var(--text-primary)]/10"
+                    />
+                    <Button 
+                      variant="ghost"
+                      size="icon"
+                      icon="solar:trash-bin-trash-bold-duotone"
                       @click="emit('delete', row)"
-                      class="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-app)] hover:text-[var(--color-brand-danger)] hover:bg-[var(--color-brand-danger)]/10 transition-all"
-                    >
-                      <Icon name="solar:trash-bin-trash-bold-duotone" class="w-4 h-4" />
-                    </button>
+                      class="hover:text-[var(--color-brand-danger)] hover:bg-[var(--color-brand-danger)]/10"
+                    />
                   </div>
                 </td>
               </tr>
