@@ -5,16 +5,16 @@ import TheFooter from '~/components/layout/TheFooter.vue'
 </script>
 
 <template>
-  <div class="min-h-screen bg-app-bg text-app-text flex transition-colors duration-200">
+  <div class="min-h-screen bg-[var(--bg-app)] text-[var(--text-app)] flex transition-colors duration-200">
     <!-- Fixed Sidebar -->
     <TheSidebar />
 
     <!-- Main Right Content Container -->
-    <div class="flex-1 flex flex-col ml-64">
+    <div class="flex-1 flex flex-col ml-64 min-h-screen">
       <TheNavbar />
 
       <!-- Content Area -->
-      <main class="flex-1 p-12 min-h-screen">
+      <main class="flex-1 p-8">
         <slot />
       </main>
 

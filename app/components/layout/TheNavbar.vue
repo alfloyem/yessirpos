@@ -17,13 +17,13 @@ const formattedTime = computed(() => {
 </script>
 
 <template>
-  <header class="h-16 w-full flex items-center justify-between px-8 bg-[#f8f7fa] border-b border-[#dbdade] sticky top-0 z-40">
+  <header class="h-16 w-full flex items-center justify-between px-8 bg-[var(--bg-app)] border-b border-[var(--border-app)] sticky top-0 z-40">
     <!-- Navbar Left (Context specific) -->
     <div class="flex items-center gap-4">
-      <button class="text-neutral-500 hover:text-[#8745f3] transition-colors">
+      <button class="text-[var(--text-app)] opacity-60 hover:opacity-100 hover:text-[var(--text-primary)] transition-all">
         <Icon name="solar:hamburger-menu-bold-duotone" class="w-6 h-6" />
       </button>
-      <h2 class="text-base font-bold text-[#5d596c] truncate">
+      <h2 class="text-base font-bold text-[var(--text-app)] truncate">
         {{ t('dashboard') }}
       </h2>
     </div>
@@ -31,31 +31,31 @@ const formattedTime = computed(() => {
     <!-- Navbar Right (Actions) -->
     <div class="flex items-center gap-6">
       <!-- Digital Clock -->
-      <div class="hidden md:flex items-center gap-2 text-[#6f6b7d] text-xs font-medium bg-white px-3 py-1.5 rounded-lg border border-[#dbdade]/50 hover:border-[#8745f3]/30 transition-all">
-        <Icon name="solar:clock-circle-bold-duotone" class="w-4 h-4 text-[#8745f3]" />
+      <div class="hidden md:flex items-center gap-2 text-[var(--text-app)] opacity-80 text-xs font-medium bg-[var(--input-bg)] px-3 py-1.5 rounded-lg border border-[var(--border-app)] hover:border-[var(--text-primary)] transition-all">
+        <Icon name="solar:clock-circle-bold-duotone" class="w-4 h-4 text-[var(--text-primary)]" />
         <span>{{ formattedTime }}</span>
       </div>
 
       <!-- Language Switcher -->
-      <div class="flex items-center gap-1 pl-4 border-l border-[#dbdade]">
+      <div class="flex items-center gap-1 pl-4 border-l border-[var(--border-app)]">
         <button 
           v-for="l in locales" 
           :key="l.code"
           @click="setLocale(l.code)"
           class="text-[10px] font-bold px-2 py-1 rounded transition-colors uppercase"
-          :class="locale === l.code ? 'bg-[#8745f3] text-white' : 'text-[#6f6b7d] hover:bg-[#8745f3]/10 hover:text-[#8745f3]'"
+          :class="locale === l.code ? 'bg-[var(--text-primary)] text-white' : 'text-[var(--text-app)] hover:bg-[var(--text-primary)] hover:text-white'"
         >
           {{ l.code }}
         </button>
       </div>
 
       <!-- User Info -->
-      <div class="flex items-center gap-3 pl-4 border-l border-[#dbdade]">
+      <div class="flex items-center gap-3 pl-4 border-l border-[var(--border-app)]">
         <div class="flex flex-col text-right">
-          <span class="text-xs font-bold text-[#5d596c]">{{ t('user.name') }}</span>
-          <span class="text-[10px] text-[#6f6b7d] opacity-60">{{ t('user.role') }}</span>
+          <span class="text-xs font-bold text-[var(--text-app)]">{{ t('user.name') }}</span>
+          <span class="text-[10px] text-[var(--text-app)] opacity-60">{{ t('user.role') }}</span>
         </div>
-        <div class="w-10 h-10 rounded-lg bg-[#8745f3]/10 text-[#8745f3] flex items-center justify-center font-bold text-sm border border-[#8745f3]/20 hover:bg-[#8745f3]/20 transition-all cursor-pointer">
+        <div class="w-10 h-10 rounded-lg bg-[var(--text-primary)] text-white flex items-center justify-center font-bold text-sm border hover:opacity-80 transition-all cursor-pointer">
           {{ t('user.initials') }}
         </div>
       </div>

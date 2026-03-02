@@ -28,9 +28,9 @@ const menuItems = computed(() => [
 </script>
 
 <template>
-  <aside class="w-64 h-screen bg-[#ffffff] border-r border-[#dbdade] flex flex-col fixed left-0 top-0 z-50">
+  <aside class="w-64 h-screen bg-[var(--bg-sidebar)] border-r border-[var(--border-app)] flex flex-col fixed left-0 top-0 z-50">
     <!-- Logo Section -->
-    <div class="px-6 py-6 h-20 flex items-center justify-start border-b border-[#dbdade]/30">
+    <div class="px-6 py-6 h-20 flex items-center justify-start border-b border-[var(--border-app)] opacity-90">
       <NuxtLink :to="localePath('/')" class="flex items-center gap-2">
         <img src="~/assets/images/yessir_pos_logo_purple.svg" alt="Yessir POS" class="h-10 w-auto" />
       </NuxtLink>
@@ -43,11 +43,11 @@ const menuItems = computed(() => [
         :key="item.label"
         :to="localePath(item.to)"
         class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-all rounded-lg group"
-        active-class="bg-[#8745f3] text-white shadow-md shadow-[#8745f3]/30"
+        active-class="bg-[var(--text-primary)] text-white shadow-md"
         :class="[
           $route.path === localePath(item.to) 
-            ? 'bg-[#8745f3] text-white' 
-            : 'text-[#6f6b7d] hover:bg-[#8745f3]/5 hover:text-[#8745f3]'
+            ? 'bg-[var(--text-primary)] text-white'
+            : 'text-[var(--text-app)] hover:opacity-80 hover:bg-[var(--bg-app)] hover:text-[var(--text-primary)]'
         ]"
       >
         <Icon :name="item.icon" class="w-5 h-5 flex-shrink-0" />
@@ -56,10 +56,10 @@ const menuItems = computed(() => [
     </nav>
 
     <!-- Footer of Sidebar -->
-    <div class="px-4 py-4 border-t border-[#dbdade]">
+    <div class="px-4 py-4 border-t border-[var(--border-app)]">
       <button 
         @click="logout"
-        class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-[#ea5455] hover:bg-[#ea5455]/5 rounded-lg transition-all"
+        class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-[var(--color-brand-danger)] hover:bg-[var(--bg-app)] rounded-lg transition-all"
       >
         <Icon name="solar:logout-bold-duotone" class="w-5 h-5" />
         <span>{{ t('logout') }}</span>

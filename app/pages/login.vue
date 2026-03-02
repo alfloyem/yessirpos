@@ -40,15 +40,15 @@ const handleLogin = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center p-8 bg-app-bg text-app-text">
+  <div class="min-h-screen flex items-center justify-center p-8 bg-[var(--bg-app)] text-[var(--text-app)]">
     <div class="w-full max-w-[320px] space-y-12">
       <!-- Minimalist Brand -->
       <div class="space-y-4">
         <h1 class="text-2xl font-serif font-black tracking-tight">
           YESSIR<span class="opacity-40">POS</span>
         </h1>
-        <div class="h-[1px] w-8 bg-current opacity-20"></div>
-        <p v-if="error" class="text-[10px] text-red-500 font-bold uppercase tracking-wider">
+        <div class="h-[1px] w-8 bg-[var(--text-app)] opacity-20"></div>
+        <p v-if="error" class="text-[10px] text-[var(--color-brand-danger)] font-bold uppercase tracking-wider">
           {{ error }}
         </p>
       </div>
@@ -58,7 +58,7 @@ const handleLogin = async () => {
           <input 
             v-model="email"
             type="text" 
-            class="w-full bg-app-input border border-app-border px-4 py-3 text-sm outline-none focus:border-app-text transition-all placeholder:opacity-30"
+            class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] px-4 py-3 text-sm outline-none focus:border-[var(--text-primary)] transition-all placeholder:opacity-30"
             placeholder="Username (admin)"
             required
             :disabled="loading"
@@ -66,7 +66,7 @@ const handleLogin = async () => {
           <input 
             v-model="password"
             type="password" 
-            class="w-full bg-app-input border border-app-border px-4 py-3 text-sm outline-none focus:border-app-text transition-all placeholder:opacity-30"
+            class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] px-4 py-3 text-sm outline-none focus:border-[var(--text-primary)] transition-all placeholder:opacity-30"
             placeholder="Password (admin)"
             required
             :disabled="loading"
@@ -75,7 +75,7 @@ const handleLogin = async () => {
 
         <button 
           type="submit"
-          class="w-full bg-app-text text-app-bg py-4 text-[10px] font-black tracking-[0.3em] uppercase hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
+          class="w-full bg-[var(--text-primary)] text-white py-4 text-[10px] font-black tracking-[0.3em] uppercase hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
           :disabled="loading"
         >
           {{ loading ? '...' : t('submit') }}
