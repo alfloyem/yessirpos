@@ -39,6 +39,15 @@ export default defineNuxtConfig({
 
   app: {
     pageTransition: { name: 'page', mode: 'out-in' },
+    head: {
+      meta: [
+        { name: 'theme-color', content: '#000000' }
+      ],
+      link: [
+        { rel: 'manifest', href: '/manifest.json' },
+        { rel: 'icon', type: 'image/svg+xml', href: '/icon.svg' }
+      ]
+    }
   },
 
   css: ['~/assets/css/main.css'],

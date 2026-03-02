@@ -1,4 +1,4 @@
-<script setup lang="ts">
+br<script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useI18n } from '#i18n'
 import DataTable from '~/components/ui/DataTable.vue'
