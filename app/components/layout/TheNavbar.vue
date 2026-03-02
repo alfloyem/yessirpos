@@ -4,7 +4,6 @@ const { t, locales, locale, setLocale } = useI18n()
 const colorMode = useColorMode()
 
 const now = ref(new Date())
-const isLangDropdownOpen = ref(false)
 const isSidebarCollapsed = useState('sidebarCollapsed', () => false)
 
 onMounted(() => {
@@ -25,27 +24,21 @@ const toggleSidebar = () => {
   isSidebarCollapsed.value = !isSidebarCollapsed.value
 }
 
+import azFlag from '~/assets/images/flags/az.png'
+import enFlag from '~/assets/images/flags/gb.png'
+import ruFlag from '~/assets/images/flags/ru.png'
+
 const languageFlags = {
-  az: '/images/flags/azerbaijan.png',
-  en: '/images/flags/england.png',
-  ru: '/images/flags/russia.png'
+  az: azFlag,
+  en: enFlag,
+  ru: ruFlag
 }
 
 const currentFlag = computed(() => languageFlags[locale.value])
 
 const selectLanguage = (code) => {
   setLocale(code)
-  isLangDropdownOpen.value = false
 }
-
-// Close dropdown when clicking outside
-onMounted(() => {
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.lang-dropdown')) {
-      isLangDropdownOpen.value = false
-    }
-  })
-})
 </script>
 
 <template>
@@ -100,33 +93,26 @@ onMounted(() => {
       <!-- Language Switcher & Theme Toggle -->
       <div class="flex items-center gap-3 pl-6 border-l border-[var(--border-app)]">
         <!-- Language Dropdown -->
-        <div class="relative lang-dropdown">
-          <button 
-            @click="isLangDropdownOpen = !isLangDropdownOpen"
-            class="w-10 h-10 flex items-center justify-center bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg hover:border-[var(--text-primary)] hover:scale-105 transition-all cursor-pointer overflow-hidden"
-          >
-            <img :src="currentFlag" :alt="locale" class="w-6 h-6 object-cover rounded" />
-          </button>
+        <UiDropdown menuClass="absolute top-12 right-0 bg-[var(--input-bg)] z-50 min-w-[120px]">
+          <template #trigger>
+            <button class="w-10 h-10 flex items-center justify-center bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg hover:border-[var(--text-primary)] hover:scale-105 transition-all cursor-pointer overflow-hidden">
+              <img :src="currentFlag" :alt="locale" class="w-6 h-6 object-cover rounded" />
+            </button>
+          </template>
 
-          <!-- Dropdown Menu -->
-          <Transition name="dropdown">
-            <div 
-              v-if="isLangDropdownOpen"
-              class="absolute top-12 right-0 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg shadow-lg overflow-hidden z-50 min-w-[120px]"
+          <template #menu="{ close }">
+            <button
+              v-for="l in locales"
+              :key="l.code"
+              @click="selectLanguage(l.code); close()"
+              class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-all hover:bg-[var(--text-primary)]/10 hover:text-[var(--text-primary)]"
+              :class="locale === l.code ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)]' : 'text-[var(--text-app)]'"
             >
-              <button
-                v-for="l in locales"
-                :key="l.code"
-                @click="selectLanguage(l.code)"
-                class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-all hover:bg-[var(--text-primary)]/10 hover:text-[var(--text-primary)]"
-                :class="locale === l.code ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)]' : 'text-[var(--text-app)]'"
-              >
-                <img :src="languageFlags[l.code]" :alt="l.name" class="w-5 h-5 object-cover rounded" />
-                <span>{{ l.name }}</span>
-              </button>
-            </div>
-          </Transition>
-        </div>
+              <img :src="languageFlags[l.code]" :alt="l.name" class="w-5 h-5 object-cover rounded" />
+              <span>{{ l.name }}</span>
+            </button>
+          </template>
+        </UiDropdown>
 
         <!-- Theme Toggle -->
         <button 
