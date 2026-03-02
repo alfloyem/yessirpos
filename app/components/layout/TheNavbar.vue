@@ -1,6 +1,6 @@
 <script setup>
 import { useI18n } from '#i18n'
-const { t } = useI18n()
+const { t, locales, locale, setLocale } = useI18n()
 const colorMode = useColorMode()
 
 const now = ref(new Date())
@@ -36,8 +36,21 @@ const formattedTime = computed(() => {
         <span>{{ formattedTime }}</span>
       </div>
 
+      <!-- Language Switcher -->
+      <div class="flex items-center gap-1 pl-4 border-l border-[#dbdade]">
+        <button 
+          v-for="l in locales" 
+          :key="l.code"
+          @click="setLocale(l.code)"
+          class="text-[10px] font-bold px-2 py-1 rounded transition-colors uppercase"
+          :class="locale === l.code ? 'bg-[#8745f3] text-white' : 'text-[#6f6b7d] hover:bg-[#8745f3]/10 hover:text-[#8745f3]'"
+        >
+          {{ l.code }}
+        </button>
+      </div>
+
       <!-- User Info -->
-      <div class="flex items-center gap-3 pl-6 border-l border-[#dbdade]">
+      <div class="flex items-center gap-3 pl-4 border-l border-[#dbdade]">
         <div class="flex flex-col text-right">
           <span class="text-xs font-bold text-[#5d596c]">{{ t('user.name') }}</span>
           <span class="text-[10px] text-[#6f6b7d] opacity-60">{{ t('user.role') }}</span>
