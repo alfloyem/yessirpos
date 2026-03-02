@@ -54,7 +54,7 @@ onMounted(() => {
     <div class="flex items-center gap-4">
       <button 
         @click="toggleSidebar"
-        class="text-[var(--text-app)] opacity-60 hover:opacity-100 hover:text-[var(--text-primary)] hover:scale-110 transition-all cursor-pointer"
+        class="text-[var(--text-app)] opacity-60 hover:opacity-100 hover:text-[var(--text-primary)] hover:scale-110 hover:rotate-12 transition-all duration-300 cursor-pointer"
       >
         <!-- Hamburger Menu Icon (Collapsed) -->
         <svg 
@@ -63,7 +63,7 @@ onMounted(() => {
           width="36" 
           height="36" 
           viewBox="0 0 24 24"
-          class="transition-all"
+          class="transition-all duration-300"
         >
           <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5">
             <path d="M20 7H4"/>
@@ -79,7 +79,7 @@ onMounted(() => {
           width="36" 
           height="36" 
           viewBox="0 0 24 24"
-          class="transition-all"
+          class="transition-all duration-300"
         >
           <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5">
             <path d="M18 6L6 18"/>

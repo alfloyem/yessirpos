@@ -34,22 +34,22 @@ const menuItems = computed(() => [
     :class="isSidebarCollapsed ? 'w-20' : 'w-64'"
   >
     <!-- Logo Section -->
-    <div class="px-6 py-6 h-20 flex items-center justify-center overflow-hidden">
-      <NuxtLink :to="localePath('/')" class="flex items-center gap-2">
-        <Transition name="logo-fade" mode="out-in">
+    <div class="px-6 py-6 h-20 flex items-center justify-start overflow-hidden">
+      <NuxtLink :to="localePath('/')" class="flex items-center gap-3 relative">
+        <!-- Icon - always visible -->
+        <img 
+          src="~/assets/images/yessir_icon.svg" 
+          alt="Y" 
+          class="h-12 w-12 flex-shrink-0 transition-all duration-300" 
+        />
+        
+        <!-- Text Logo - slides in from left with motion blur -->
+        <Transition name="logo-text">
           <img 
             v-if="!isSidebarCollapsed"
-            key="full"
-            src="~/assets/images/yessir_pos_logo_purple.svg" 
-            alt="Yessir POS" 
-            class="h-12 w-auto transition-all duration-300" 
-          />
-          <img 
-            v-else
-            key="icon"
-            src="~/assets/images/yessir_icon.svg" 
-            alt="Y" 
-            class="h-12 w-12 transition-all duration-200" 
+            src="~/assets/images/yessir_pos_text_logo.svg" 
+            alt="YESSIR POS" 
+            class="h-8 w-auto" 
           />
         </Transition>
       </NuxtLink>
@@ -66,8 +66,7 @@ const menuItems = computed(() => [
         :class="[
           $route.path === localePath(item.to) 
             ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)]' 
-            : 'text-[var(--text-app)] hover:opacity-80 hover:bg-[var(--bg-app)] hover:text-[var(--text-primary)]',
-          isSidebarCollapsed ? 'justify-center' : ''
+            : 'text-[var(--text-app)] hover:opacity-80 hover:bg-[var(--bg-app)] hover:text-[var(--text-primary)]'
         ]"
       >
         <!-- Left vertical bar for active item -->
@@ -76,12 +75,18 @@ const menuItems = computed(() => [
           class="absolute left-0 top-0 bottom-0 w-1 bg-[var(--text-primary)] rounded-r-full"
         ></span>
         
-        <UiIcon :name="item.icon" size="sidebar" class="flex-shrink-0" />
+        <!-- Icon - always in same position -->
+        <div class="w-[43px] flex items-center justify-center flex-shrink-0">
+          <UiIcon :name="item.icon" size="sidebar" />
+        </div>
         
-        <!-- Text with transition -->
-        <Transition name="text-fade">
-          <span v-if="!isSidebarCollapsed" class="truncate">{{ item.label }}</span>
-        </Transition>
+        <!-- Text with smooth opacity transition -->
+        <span 
+          class="truncate transition-opacity duration-300"
+          :class="isSidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'"
+        >
+          {{ item.label }}
+        </span>
       </NuxtLink>
     </nav>
 
@@ -90,12 +95,16 @@ const menuItems = computed(() => [
       <button 
         @click="logout"
         class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-[var(--color-brand-danger)] hover:bg-[var(--bg-app)] rounded-lg transition-all relative group"
-        :class="isSidebarCollapsed ? 'justify-center' : ''"
       >
-        <UiIcon name="solar:logout-bold-duotone" size="lg" class="flex-shrink-0" />
-        <Transition name="text-fade">
-          <span v-if="!isSidebarCollapsed">{{ t('logout') }}</span>
-        </Transition>
+        <div class="w-8 flex items-center justify-center flex-shrink-0">
+          <UiIcon name="solar:logout-bold-duotone" size="lg" />
+        </div>
+        <span 
+          class="transition-opacity duration-300"
+          :class="isSidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'"
+        >
+          {{ t('logout') }}
+        </span>
       </button>
     </div>
   </aside>
@@ -107,35 +116,35 @@ const menuItems = computed(() => [
   width: 0px;
 }
 
-/* Text fade animation */
+/* Text fade animation - smooth opacity only */
 .text-fade-enter-active,
 .text-fade-leave-active {
-  transition: all 0.2s ease;
+  transition: opacity 0.3s ease;
 }
 
 .text-fade-enter-from,
 .text-fade-leave-to {
   opacity: 0;
-  transform: translateX(-10px);
 }
 
-/* Logo fade animation */
-.logo-fade-enter-active {
-  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+/* Logo text animation - slides from left with motion blur */
+.logo-text-enter-active {
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.logo-fade-leave-active {
-  transition: all 0.2s cubic-bezier(0.4, 0, 1, 1);
+.logo-text-leave-active {
+  transition: all 0.3s ease;
 }
 
-.logo-fade-enter-from {
+.logo-text-enter-from {
   opacity: 0;
-  transform: scale(0.5) rotate(-10deg);
+  transform: translateX(-30px);
+  filter: blur(4px);
 }
 
-.logo-fade-leave-to {
+.logo-text-leave-to {
   opacity: 0;
-  transform: scale(0.5) rotate(10deg);
+  transform: translateX(-20px);
 }
 
 /* Tooltip fade animation */
