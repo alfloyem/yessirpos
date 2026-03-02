@@ -30,106 +30,99 @@ const menuItems = computed(() => [
 
 <template>
   <aside 
-    class="h-screen bg-[var(--bg-sidebar)] border-r border-[var(--border-app)] flex flex-col fixed left-0 top-0 z-50 transition-all duration-700 ease-in-out"
+    class="h-screen bg-[var(--bg-sidebar)] border-r border-[var(--border-app)] flex flex-col z-50 transition-all duration-300 ease-in-out overflow-hidden"
     :class="isSidebarCollapsed ? 'w-20' : 'w-64'"
   >
     <!-- Logo Section -->
-    <div 
-      class="px-6 py-6 h-20 flex items-center justify-start overflow-hidden transition-all duration-700 ease-in-out"
-    >
-      <NuxtLink :to="localePath('/')" class="flex items-center gap-3 relative">
-        <!-- Icon - always visible with motion blur -->
+    <div class="h-20 px-4 flex items-center flex-shrink-0">
+      <NuxtLink :to="localePath('/')" class="flex items-center gap-3 w-full px-1">
         <img 
           src="~/assets/images/yessir_icon.svg" 
           alt="Y" 
-          class="h-12 w-12 flex-shrink-0 transition-all duration-700 ease-in-out"
-          :style="isSidebarCollapsed ? '' : 'filter: blur(0px)'"
+          class="h-10 w-10 flex-shrink-0 transition-transform duration-300 ease-in-out"
+          :class="isSidebarCollapsed ? 'scale-90' : 'scale-100'"
         />
-        
-        <!-- Text Logo - slides in from left with motion blur -->
-        <Transition name="logo-text">
+        <div 
+          class="flex items-center overflow-hidden transition-all duration-300 ease-in-out"
+          :class="isSidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-[150px] opacity-100'"
+        >
           <img 
-            v-if="!isSidebarCollapsed"
             src="~/assets/images/yessir_pos_text_logo.svg" 
             alt="YESSIR POS" 
-            class="h-8 w-auto" 
+            class="h-6 w-auto flex-shrink-0" 
           />
-        </Transition>
+        </div>
       </NuxtLink>
     </div>
 
     <!-- Navigation -->
-    <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+    <nav class="flex-1 px-3 py-4 flex flex-col gap-1 overflow-y-auto no-scrollbar">
       <NuxtLink 
         v-for="item in menuItems" 
         :key="item.label"
         :to="localePath(item.to)"
-        class="flex items-center justify-start gap-3 px-3 py-2.5 text-[16px] font-medium transition-all duration-700 ease-in-out rounded-lg group relative"
+        class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[15px] font-medium transition-all duration-300 group relative"
         :class="[
           $route.path === localePath(item.to) 
             ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)]' 
-            : 'text-[var(--text-app)] hover:opacity-80 hover:bg-[var(--bg-app)] hover:text-[var(--text-primary)]'
+            : 'text-[var(--text-app)] hover:bg-[var(--bg-app)] hover:text-[var(--text-primary)]'
         ]"
       >
         <!-- Left vertical bar for active item -->
         <span 
-          v-if="$route.path === localePath(item.to)"
-          class="absolute left-0 top-0 bottom-0 w-1 bg-[var(--text-primary)] rounded-r-full"
+          class="absolute left-0 top-1/2 -translate-y-1/2 h-1/2 w-1 rounded-r-full transition-transform duration-300 ease-out origin-center"
+          :class="$route.path === localePath(item.to) ? 'bg-[var(--text-primary)] scale-y-100' : 'bg-transparent scale-y-0'"
         ></span>
         
-        <!-- Icon - always in same position -->
-        <div class="flex items-center justify-center flex-shrink-0 w-[43px]">
+        <!-- Icon -->
+        <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 transition-transform duration-300 group-hover:scale-110">
           <UiIcon :name="item.icon" size="sidebar" />
         </div>
         
-        <!-- Text with smooth opacity and width transition -->
-        <Transition name="text-fade">
-          <span 
-            v-if="!isSidebarCollapsed"
-            class="truncate whitespace-nowrap"
-          >
-            {{ item.label }}
-          </span>
-        </Transition>
+        <!-- Text -->
+        <div 
+          class="flex-1 whitespace-nowrap overflow-hidden transition-all duration-300 ease-in-out"
+          :class="isSidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-[200px] opacity-100'"
+        >
+          {{ item.label }}
+        </div>
 
         <!-- Tooltip when collapsed -->
         <div 
           v-if="isSidebarCollapsed"
-          class="absolute left-full ml-3 px-4 py-2 bg-[var(--text-primary)] text-white text-sm font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 z-[10000] shadow-lg"
+          class="absolute left-full ml-2 px-3 py-1.5 bg-[var(--text-primary)] text-white text-sm font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 z-50 shadow-md"
         >
           {{ item.label }}
-          <div class="absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-[var(--text-primary)]"></div>
+          <div class="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-[var(--text-primary)]"></div>
         </div>
       </NuxtLink>
     </nav>
 
     <!-- Footer of Sidebar -->
-    <div class="px-4 py-4 border-t border-[var(--border-app)]">
+    <div class="p-4 border-t border-[var(--border-app)] flex-shrink-0">
       <button 
         @click="logout"
-        class="w-full flex items-center justify-start gap-3 px-4 py-2.5 text-sm font-medium text-[var(--color-brand-danger)] hover:bg-[var(--bg-app)] rounded-lg transition-all duration-700 ease-in-out relative group"
+        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[var(--color-brand-danger)] hover:bg-[var(--color-brand-danger)]/10 transition-all duration-300 group relative"
       >
-        <div class="flex items-center justify-center flex-shrink-0 w-8">
+        <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 transition-transform duration-300 group-hover:scale-110">
           <UiIcon name="solar:logout-bold-duotone" size="lg" />
         </div>
         
-        <!-- Text with smooth opacity and width transition -->
-        <Transition name="text-fade">
-          <span 
-            v-if="!isSidebarCollapsed"
-            class="whitespace-nowrap"
-          >
-            {{ t('logout') }}
-          </span>
-        </Transition>
+        <!-- Text -->
+        <div 
+          class="flex-1 text-left whitespace-nowrap overflow-hidden transition-all duration-300 ease-in-out"
+          :class="isSidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-[200px] opacity-100'"
+        >
+          {{ t('logout') }}
+        </div>
 
         <!-- Tooltip when collapsed -->
         <div 
           v-if="isSidebarCollapsed"
-          class="absolute left-full ml-3 px-4 py-2 bg-[var(--color-brand-danger)] text-white text-sm font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 z-[10000] shadow-lg"
+          class="absolute left-full ml-2 px-3 py-1.5 bg-[var(--color-brand-danger)] text-white text-sm font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 z-50 shadow-md"
         >
           {{ t('logout') }}
-          <div class="absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-[var(--color-brand-danger)]"></div>
+          <div class="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-[var(--color-brand-danger)]"></div>
         </div>
       </button>
     </div>
@@ -137,60 +130,12 @@ const menuItems = computed(() => [
 </template>
 
 <style scoped>
-/* Hidden scrollbar */
-::-webkit-scrollbar {
-  width: 0px;
+/* Hidden scrollbar but keeps functionality */
+.no-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
 }
-
-/* Text fade animation - smooth opacity and width */
-.text-fade-enter-active {
-  transition: all 0.7s ease-in-out;
-}
-
-.text-fade-leave-active {
-  transition: all 0.5s ease-in-out;
-}
-
-.text-fade-enter-from {
-  opacity: 0;
-  transform: translateX(-10px);
-}
-
-.text-fade-leave-to {
-  opacity: 0;
-  transform: translateX(-10px);
-}
-
-/* Logo text animation - slides from left with motion blur - very soft */
-.logo-text-enter-active {
-  transition: all 0.8s ease-in-out;
-}
-
-.logo-text-leave-active {
-  transition: all 0.6s ease-in-out;
-}
-
-.logo-text-enter-from {
-  opacity: 0;
-  transform: translateX(-20px);
-  filter: blur(3px);
-}
-
-.logo-text-leave-to {
-  opacity: 0;
-  transform: translateX(-15px);
-  filter: blur(2px);
-}
-
-/* Tooltip fade animation */
-.tooltip-fade-enter-active,
-.tooltip-fade-leave-active {
-  transition: all 0.2s ease;
-}
-
-.tooltip-fade-enter-from,
-.tooltip-fade-leave-to {
-  opacity: 0;
-  transform: translateX(-5px);
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
 }
 </style>

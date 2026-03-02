@@ -7,14 +7,13 @@ const isSidebarCollapsed = useState('sidebarCollapsed', () => false)
 </script>
 
 <template>
-  <div class="min-h-screen bg-[var(--bg-app)] text-[var(--text-app)] flex transition-colors duration-200">
+  <div class="h-screen max-w-screen bg-[var(--bg-app)] text-[var(--text-app)] flex transition-colors duration-200">
     <!-- Fixed Sidebar -->
-    <TheSidebar />
+    <TheSidebar/>
 
     <!-- Main Right Content Container -->
     <div 
-      class="flex-1 flex flex-col min-h-screen transition-all duration-700 ease-in-out"
-      :class="isSidebarCollapsed ? 'ml-20' : 'ml-64'"
+      class="min-w-0 flex-1 flex flex-col h-full transition-all duration-200 ease-in-out"
     >
       <TheNavbar />
 
