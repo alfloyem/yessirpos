@@ -59,10 +59,10 @@ const variantClasses = computed(() => {
     :class="[baseClasses, sizeClasses, variantClasses, block ? 'w-full' : '']"
   >
     <!-- Loading Spinner -->
-    <Icon v-if="loading" name="solar:spinner-bold-duotone" class="w-4 h-4 animate-spin" />
+    <UiIcon v-if="loading" name="solar:spinner-bold-duotone" class="w-4 h-4 animate-spin" />
     
-    <!-- Left Icon -->
-    <Icon v-else-if="icon" :name="icon" :class="size === 'sm' ? 'w-3.5 h-3.5' : 'w-4 h-4'" />
+    <!-- Left UiIcon -->
+    <UiIcon v-else-if="icon" :name="icon" :class="size === 'sm' ? 'w-3.5 h-3.5' : 'w-4 h-4'" />
     
     <!-- Slot Content -->
     <span v-if="$slots.default && size !== 'icon'">
@@ -70,6 +70,6 @@ const variantClasses = computed(() => {
     </span>
 
     <!-- Right Icon -->
-    <Icon v-if="iconRight && !loading" :name="iconRight" :class="size === 'sm' ? 'w-3.5 h-3.5' : 'w-4 h-4'" />
+    <UiIcon v-if="iconRight && !loading" :name="iconRight" :class="size === 'sm' ? 'w-3.5 h-3.5' : 'w-4 h-4'" />
   </button>
 </template>

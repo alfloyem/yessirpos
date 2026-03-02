@@ -2,7 +2,6 @@
 import { ref, computed, watch } from 'vue'
 import { useI18n } from '#i18n'
 import { exportToCSV } from '~/utils/exportCsv'
-import Button from '~/components/ui/Button.vue'
 
 interface Column {
   key: string
@@ -11,7 +10,7 @@ interface Column {
   visible?: boolean // By default true
 }
 
-const props = defineProps<{
+interface Props {
   title: string
   data: any[]
   columns: Column[]
@@ -19,7 +18,14 @@ const props = defineProps<{
   selectable?: boolean
   actions?: boolean // show default action column
   searchable?: boolean
-}>()
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  searchable: true,
+  loading: false,
+  selectable: false,
+  actions: false
+})
 
 const emit = defineEmits(['add', 'edit', 'delete', 'bulk-edit', 'bulk-delete', 'row-click'])
 
@@ -86,19 +92,28 @@ const toggleSelect = (id: string | number) => {
   }
 }
 
+// Normalize function to convert Turkish chars to standard and ignore case
+const normalizeText = (text: any) => {
+  if (text === null || text === undefined) return ''
+  return String(text)
+    .toLocaleLowerCase('tr-TR')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, "") // remove accents
+}
+
 // Derived Data
 const filteredAndSortedData = computed(() => {
   let result = [...props.data]
 
   // Global Search
   if (searchQuery.value) {
-    const q = searchQuery.value.toLowerCase()
+    const q = normalizeText(searchQuery.value)
     result = result.filter(item => {
-      // search only in visible columns
-      return visibleColumns.value.some(col => {
-        const val = item[col.key]
-        if (val === null || val === undefined) return false
-        return String(val).toLowerCase().includes(q)
+      // Dynamic: search all keys in the object, independent of column visibility
+      const keys = Object.keys(item)
+      return keys.some(key => {
+        const val = item[key]
+        return normalizeText(val).includes(q)
       })
     })
   }
@@ -121,9 +136,30 @@ const filteredAndSortedData = computed(() => {
 // Highlight Function for template
 const highlightText = (text: any) => {
   if (!searchQuery.value || text === null || text === undefined) return String(text)
-  const q = searchQuery.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // escape regex
-  const regex = new RegExp(`(${q})`, 'gi')
-  return String(text).replace(regex, '<mark class="bg-[#8745f3]/30 text-[var(--text-primary)] px-0.5 rounded">$1</mark>')
+  const query = searchQuery.value.trim()
+  if (!query) return String(text)
+  
+  const escapeRegExp = (string: string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+  const buildCharRegex = (char: string) => {
+    switch (char.toLowerCase()) {
+      case 'i': case 'ı': return '[iıİI]'
+      case 'g': case 'ğ': return '[gğGĞ]'
+      case 's': case 'ş': return '[sşSŞ]'
+      case 'c': case 'ç': return '[cçCÇ]'
+      case 'o': case 'ö': return '[oöOÖ]'
+      case 'u': case 'ü': return '[uüUÜ]'
+      default: return escapeRegExp(char)
+    }
+  }
+
+  const regexStr = Array.from(query).map(buildCharRegex).join('')
+  try {
+    const regex = new RegExp(`(${regexStr})`, 'gi')
+    return String(text).replace(regex, '<mark class="bg-[var(--text-primary)]/30 text-[var(--text-primary)] px-0.5 rounded">$1</mark>')
+  } catch (e) {
+    return String(text)
+  }
 }
 
 // Dropdown state for columns
@@ -142,23 +178,13 @@ watch(() => props.data, () => {
 <template>
   <div class="flex flex-col gap-4">
     <!-- Toolbar -->
-    <div class="flex flex-wrap items-center justify-between gap-4">
-      <!-- Search -->
-      <div v-if="searchable !== false" class="relative group w-full md:w-72">
-        <Icon name="solar:magnifer-bold-duotone" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-app)] opacity-40 group-focus-within:text-[var(--text-primary)] group-focus-within:opacity-100 transition-colors" />
-        <input 
-          v-model="searchQuery"
-          type="text" 
-          placeholder="Ara..." 
-          class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] pl-10 pr-4 py-2 text-sm rounded-lg outline-none focus:border-[var(--text-primary)] transition-all"
-        />
-      </div>
-
-      <!-- Actions Right -->
+    <div class="flex flex-wrap items-center gap-4">
+      
+      <!-- Actions Left -->
       <div class="flex items-center gap-2">
         <!-- Delete Selected -->
          <Transition name="fade">
-          <Button 
+          <UiButton 
             v-if="selectedIds.size > 0"
             variant="soft-danger"
             size="sm"
@@ -166,12 +192,12 @@ watch(() => props.data, () => {
             @click="emit('bulk-delete', Array.from(selectedIds))"
           >
             {{ selectedIds.size }} Sil
-          </Button>
+          </UiButton>
         </Transition>
 
         <!-- Edit Selected -->
         <Transition name="fade">
-          <Button 
+          <UiButton 
             v-if="selectedIds.size > 0"
             variant="soft-primary"
             size="sm"
@@ -179,24 +205,24 @@ watch(() => props.data, () => {
             @click="emit('bulk-edit', Array.from(selectedIds))"
           >
             Toplu Düzenle
-          </Button>
+          </UiButton>
         </Transition>
 
         <!-- Column Visibility -->
         <div class="relative">
-          <Button 
+          <UiButton 
             variant="outline"
             size="sm"
             icon="solar:eye-bold-duotone"
             @click="showColVis = !showColVis"
           >
             <span class="hidden sm:inline">Sütunlar</span>
-          </Button>
+          </UiButton>
 
           <!-- Dropdown -->
           <div 
             v-if="showColVis" 
-            class="absolute right-0 top-full mt-2 w-48 bg-[var(--bg-sidebar)] border border-[var(--border-app)] rounded-xl shadow-xl z-50 p-2"
+            class="absolute left-0 top-full mt-2 w-48 bg-[var(--bg-sidebar)] border border-[var(--border-app)] rounded-xl shadow-xl z-50 p-2"
           >
             <div 
               v-for="col in localColumns" 
@@ -211,24 +237,37 @@ watch(() => props.data, () => {
         </div>
 
         <!-- Export -->
-        <Button 
+        <UiButton 
           variant="outline"
           size="sm"
           icon="solar:export-bold-duotone"
           @click="handleExport"
         >
           <span class="hidden sm:inline">Dışa Aktar</span>
-        </Button>
+        </UiButton>
 
         <!-- Add New -->
-        <Button 
+        <UiButton 
           variant="primary"
           size="sm"
           icon="solar:add-circle-bold-duotone"
           @click="emit('add')"
         >
           Yeni Ekle
-        </Button>
+        </UiButton>
+      </div>
+
+      <!-- Spacer -->
+      <div class="flex-1 min-w-[20px]"></div>
+
+      <!-- Search Component Right -->
+      <div v-if="searchable !== false" class="w-full sm:w-72">
+        <UiInput 
+          v-model="searchQuery" 
+          placeholder="Tabloda ara..." 
+          icon="solar:magnifer-bold-duotone" 
+          clearable 
+        />
       </div>
     </div>
 
@@ -236,7 +275,7 @@ watch(() => props.data, () => {
     <div class="bg-[var(--bg-sidebar)] border border-[var(--border-app)] rounded-xl overflow-hidden shadow-sm relative">
       <!-- Loading Overlay -->
       <div v-if="loading" class="absolute inset-0 bg-[var(--bg-sidebar)]/50 backdrop-blur-sm z-10 flex items-center justify-center">
-        <Icon name="solar:spinner-bold-duotone" class="w-8 h-8 text-[var(--text-primary)] animate-spin" />
+        <UiIcon name="solar:spinner-bold-duotone" class="w-8 h-8 text-[var(--text-primary)] animate-spin" />
       </div>
 
       <div class="overflow-x-auto">
@@ -264,7 +303,7 @@ watch(() => props.data, () => {
               >
                 <div class="flex items-center gap-2">
                   <span>{{ col.label }}</span>
-                  <Icon 
+                  <UiIcon 
                     v-if="col.sortable"
                     :name="sortKey === col.key ? (sortAsc ? 'solar:sort-from-bottom-to-top-bold-duotone' : 'solar:sort-from-top-to-bottom-bold-duotone') : 'solar:sort-vertical-bold-duotone'" 
                     class="w-3.5 h-3.5"
@@ -312,14 +351,14 @@ watch(() => props.data, () => {
                 <!-- Actions Cell -->
                 <td v-if="actions" class="px-6 py-3 text-right" @click.stop>
                   <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button 
+                    <UiButton 
                       variant="ghost"
                       size="icon"
                       icon="solar:pen-bold-duotone"
                       @click="emit('edit', row)"
                       class="hover:text-[var(--text-primary)] hover:bg-[var(--text-primary)]/10"
                     />
-                    <Button 
+                    <UiButton 
                       variant="ghost"
                       size="icon"
                       icon="solar:trash-bin-trash-bold-duotone"
@@ -334,7 +373,7 @@ watch(() => props.data, () => {
             <tr v-else>
               <td :colspan="(selectable ? 1 : 0) + visibleColumns.length + (actions ? 1 : 0)" class="px-6 py-12 text-center">
                 <div class="flex flex-col items-center gap-3 opacity-50">
-                  <Icon name="solar:ghost-bold-duotone" class="w-12 h-12" />
+                  <UiIcon name="solar:ghost-bold-duotone" class="w-12 h-12" />
                   <p class="text-sm">Veri bulunamadı.</p>
                 </div>
               </td>

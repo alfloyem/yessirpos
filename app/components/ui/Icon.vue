@@ -18,7 +18,7 @@ const sizeClasses = {
   md: 'w-6 h-6',      // 24px
   lg: 'w-8 h-8',      // 32px
   xl: 'w-10 h-10',    // 40px
-  sidebar: 'w-[43px] h-[43px]' // 43px - sidebar menu icon size
+  sidebar: 'w-[24px] h-[24px]' // 24px - sidebar menu icon size
 }
 
 const iconClass = computed(() => {
