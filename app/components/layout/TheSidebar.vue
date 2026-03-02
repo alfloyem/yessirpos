@@ -15,6 +15,15 @@ const menuItems = computed(() => [
   { label: t('menu.intake'), icon: 'solar:document-add-bold-duotone', to: '/intake' },
   { label: t('menu.sales'), icon: 'solar:cart-large-bold-duotone', to: '/sales' },
   { label: t('menu.employees'), icon: 'solar:user-speak-bold-duotone', to: '/employees' },
+  { label: t('menu.giftCard'), icon: 'solar:card-bold-duotone', to: '/gift-card' },
+  { label: t('menu.messages'), icon: 'solar:chat-round-dots-bold-duotone', to: '/messages' },
+  { label: t('menu.tax'), icon: 'solar:calculator-bold-duotone', to: '/tax' },
+  { label: t('menu.attributes'), icon: 'solar:tag-bold-duotone', to: '/attributes' },
+  { label: t('menu.expenses'), icon: 'solar:wallet-money-bold-duotone', to: '/expenses' },
+  { label: t('menu.expenseCategory'), icon: 'solar:folder-with-files-bold-duotone', to: '/expense-category' },
+  { label: t('menu.earnings'), icon: 'solar:graph-up-bold-duotone', to: '/earnings' },
+  { label: t('menu.office'), icon: 'solar:buildings-2-bold-duotone', to: '/office' },
+  { label: t('menu.settings'), icon: 'solar:settings-bold-duotone', to: '/settings' },
 ])
 </script>
 

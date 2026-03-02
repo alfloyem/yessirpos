@@ -16,7 +16,16 @@
     "reports": "Отчеты",
     "intake": "Приемка",
     "sales": "Продажи",
-    "employees": "Сотрудники"
+    "employees": "Сотрудники",
+    "giftCard": "Подарочная карта",
+    "messages": "Сообщения",
+    "tax": "Налог",
+    "attributes": "Атрибуты",
+    "expenses": "Расходы",
+    "expenseCategory": "Категория расходов",
+    "earnings": "Доходы",
+    "office": "Офис",
+    "settings": "Настройки"
   },
   "user": {
     "name": "MR Musa",

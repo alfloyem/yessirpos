@@ -16,7 +16,16 @@
     "reports": "Reports",
     "intake": "Intake",
     "sales": "Sales",
-    "employees": "Employees"
+    "employees": "Employees",
+    "giftCard": "Gift Card",
+    "messages": "Messages",
+    "tax": "Tax",
+    "attributes": "Attributes",
+    "expenses": "Expenses",
+    "expenseCategory": "Expense Category",
+    "earnings": "Earnings",
+    "office": "Office",
+    "settings": "Settings"
   },
   "user": {
     "name": "MR Musa",

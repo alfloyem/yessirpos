@@ -10,13 +10,22 @@
   "menu": {
     "home": "Ana Səhifə",
     "customers": "Müştərilər",
-    "products": "Məhsullar",
-    "bundles": "Məhsul Dəstləri",
-    "suppliers": "Təchizatçılar",
+    "products": "Mallar",
+    "bundles": "Mal Dəstləri",
+    "suppliers": "Tədarükçülər",
     "reports": "Hesabatlar",
-    "intake": "Qəbul",
+    "intake": "Qəbul Edilənlər",
     "sales": "Satışlar",
-    "employees": "İşçilər"
+    "employees": "Əməkdaşlar",
+    "giftCard": "Hədiyyə Kartı",
+    "messages": "Mesajlar",
+    "tax": "Vergi",
+    "attributes": "Atributlar",
+    "expenses": "Xərclər",
+    "expenseCategory": "Xərclər Bölməsi",
+    "earnings": "Qazanclar",
+    "office": "Ofis",
+    "settings": "Parametrlər"
   },
   "user": {
     "name": "MR Musa",
