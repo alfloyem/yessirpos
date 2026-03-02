@@ -5,6 +5,7 @@ const colorMode = useColorMode()
 
 const now = ref(new Date())
 const isSidebarCollapsed = useState('sidebarCollapsed', () => false)
+const isMobileMenuOpen = useState('mobileMenuOpen', () => false)
 
 onMounted(() => {
   setInterval(() => {
@@ -22,6 +23,10 @@ const toggleTheme = () => {
 
 const toggleSidebar = () => {
   isSidebarCollapsed.value = !isSidebarCollapsed.value
+}
+
+const toggleMobileMenu = () => {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value
 }
 
 import azFlag from '~/assets/images/flags/az.png'
@@ -42,12 +47,13 @@ const selectLanguage = (code) => {
 </script>
 
 <template>
-  <header class="h-16 w-full flex items-center justify-between px-8 bg-[var(--bg-app)] border-b border-[var(--border-app)] sticky top-0 z-40">
+  <header class="h-16 w-full flex items-center justify-between px-4 md:px-8 bg-[var(--bg-app)] border-b border-[var(--border-app)] sticky top-0 z-40">
     <!-- Navbar Left (Context specific) -->
     <div class="flex items-center gap-4">
+      <!-- Desktop Toggle Button -->
       <button 
         @click="toggleSidebar"
-        class="text-[var(--text-app)] opacity-60 hover:opacity-100 hover:text-[var(--text-primary)] hover:scale-105 transition-all duration-500 cursor-pointer"
+        class="hidden md:block text-[var(--text-app)] opacity-60 hover:opacity-100 hover:text-[var(--text-primary)] hover:scale-105 transition-all duration-500 cursor-pointer"
       >
         <!-- Hamburger Menu Icon (Collapsed) -->
         <svg 
@@ -80,6 +86,26 @@ const selectLanguage = (code) => {
           </g>
         </svg>
       </button>
+
+      <!-- Mobile Toggle Button -->
+      <button 
+        @click="toggleMobileMenu"
+        class="md:hidden text-[var(--text-app)] hover:text-[var(--text-primary)] transition-all cursor-pointer p-1"
+      >
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          width="28" 
+          height="28" 
+          viewBox="0 0 24 24"
+        >
+          <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2">
+            <path d="M4 6h16M4 12h16M4 18h16"/>
+          </g>
+        </svg>
+      </button>
+
+      <!-- Mobile Logo Placeholder (Only visible on mobile) -->
+      <img src="~/assets/images/yessir_pos_text_logo.svg" alt="YESSIR POS" class="h-4 w-auto md:hidden ml-2" />
     </div>
 
     <!-- Navbar Right (Actions) -->
@@ -91,12 +117,12 @@ const selectLanguage = (code) => {
       </div>
 
       <!-- Language Switcher & Theme Toggle -->
-      <div class="flex items-center gap-3 pl-6 border-l border-[var(--border-app)]">
+      <div class="flex items-center gap-2 md:gap-3 md:pl-6 md:border-l border-[var(--border-app)]">
         <!-- Language Dropdown -->
         <UiDropdown menuClass="absolute top-12 right-0 bg-[var(--input-bg)] z-50 min-w-[120px]">
           <template #trigger>
-            <button class="w-10 h-10 flex items-center justify-center bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg hover:border-[var(--text-primary)] hover:scale-105 transition-all cursor-pointer overflow-hidden">
-              <img :src="currentFlag" :alt="locale" class="w-6 h-6 object-cover rounded" />
+            <button class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg hover:border-[var(--text-primary)] hover:scale-105 transition-all cursor-pointer overflow-hidden">
+              <img :src="currentFlag" :alt="locale" class="w-5 h-5 md:w-6 md:h-6 object-cover rounded" />
             </button>
           </template>
 
@@ -117,32 +143,32 @@ const selectLanguage = (code) => {
         <!-- Theme Toggle -->
         <button 
           @click="toggleTheme"
-          class="w-10 h-10 flex items-center justify-center bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg hover:border-[var(--text-primary)] hover:scale-105 transition-all group cursor-pointer"
+          class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg hover:border-[var(--text-primary)] hover:scale-105 transition-all group cursor-pointer"
         >
           <Transition name="theme-switch" mode="out-in">
             <Icon 
               v-if="colorMode.value === 'dark'"
               key="moon"
               name="solar:moon-bold-duotone" 
-              class="w-5 h-5 text-[var(--text-primary)]"
+              class="w-4 h-4 md:w-5 md:h-5 text-[var(--text-primary)]"
             />
             <Icon 
               v-else
               key="sun"
               name="solar:sun-bold-duotone" 
-              class="w-5 h-5 text-[var(--text-primary)]"
+              class="w-4 h-4 md:w-5 md:h-5 text-[var(--text-primary)]"
             />
           </Transition>
         </button>
       </div>
 
       <!-- User Info -->
-      <div class="flex items-center gap-3 pl-4 border-l border-[var(--border-app)]">
-        <div class="flex flex-col text-right">
+      <div class="flex items-center gap-3 pl-2 md:pl-4 border-l border-[var(--border-app)]">
+        <div class="hidden md:flex flex-col text-right">
           <span class="text-xs font-bold text-[var(--text-app)]">{{ t('user.name') }}</span>
           <span class="text-[10px] text-[var(--text-app)] opacity-60">{{ t('user.role') }}</span>
         </div>
-        <div class="w-10 h-10 rounded-lg bg-[var(--text-primary)] text-white flex items-center justify-center font-bold text-sm border hover:opacity-80 transition-all cursor-pointer">
+        <div class="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-[var(--text-primary)] text-white flex items-center justify-center font-bold text-xs md:text-sm border hover:opacity-80 transition-all cursor-pointer">
           {{ t('user.initials') }}
         </div>
       </div>

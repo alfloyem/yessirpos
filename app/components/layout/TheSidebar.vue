@@ -4,6 +4,36 @@ const { t } = useI18n()
 const localePath = useLocalePath()
 const { logout } = useAuth()
 const isSidebarCollapsed = useState('sidebarCollapsed', () => false)
+const isMobileMenuOpen = useState('mobileMenuOpen', () => false)
+
+const closeMobileMenu = () => {
+  isMobileMenuOpen.value = false
+}
+
+// Close mobile menu on route change
+const route = useRoute()
+watch(() => route.path, () => {
+  closeMobileMenu()
+})
+
+const activeTooltip = ref({ label: '', type: 'default' })
+const isTooltipVisible = ref(false)
+const tooltipStyles = ref({})
+
+const showTooltip = (event, label, type = 'default') => {
+  if (!isSidebarCollapsed.value) return
+  const rect = event.currentTarget.getBoundingClientRect()
+  activeTooltip.value = { label, type }
+  isTooltipVisible.value = true
+  tooltipStyles.value = {
+    top: `${rect.top + rect.height / 2}px`,
+    left: `${rect.right + 12}px`
+  }
+}
+
+const hideTooltip = () => {
+  isTooltipVisible.value = false
+}
 
 // Using Solar Duotone icons which match the professional look
 const menuItems = computed(() => [
@@ -29,9 +59,19 @@ const menuItems = computed(() => [
 </script>
 
 <template>
+  <!-- Backdrop for Mobile -->
+  <div 
+    v-if="isMobileMenuOpen"
+    @click="closeMobileMenu"
+    class="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[45] transition-opacity duration-300"
+  ></div>
+
   <aside 
-    class="h-screen bg-[var(--bg-sidebar)] border-r border-[var(--border-app)] flex flex-col z-50 transition-all duration-300 ease-in-out overflow-hidden"
-    :class="isSidebarCollapsed ? 'w-20' : 'w-64'"
+    class="h-screen bg-[var(--bg-sidebar)] border-r border-[var(--border-app)] flex flex-col z-50 transition-all duration-300 ease-in-out overflow-hidden fixed md:relative top-0 left-0"
+    :class="[
+      isSidebarCollapsed ? 'md:w-20' : 'md:w-64',
+      isMobileMenuOpen ? 'w-64 translate-x-0 shadow-2xl' : 'w-64 -translate-x-full md:translate-x-0'
+    ]"
   >
     <!-- Logo Section -->
     <div class="h-20 px-4 flex items-center flex-shrink-0">
@@ -53,6 +93,13 @@ const menuItems = computed(() => [
           />
         </div>
       </NuxtLink>
+      <!-- Mobile Close Button -->
+      <button 
+        @click="closeMobileMenu"
+        class="md:hidden ml-auto p-1 text-[var(--text-app)] hover:bg-[var(--bg-app)] hover:text-[var(--text-primary)] rounded-lg transition-colors"
+      >
+        <UiIcon name="solar:close-circle-bold-duotone" size="lg" />
+      </button>
     </div>
 
     <!-- Navigation -->
@@ -61,6 +108,8 @@ const menuItems = computed(() => [
         v-for="item in menuItems" 
         :key="item.label"
         :to="localePath(item.to)"
+        @mouseenter="showTooltip($event, item.label)"
+        @mouseleave="hideTooltip"
         class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[15px] font-medium transition-all duration-300 group relative"
         :class="[
           $route.path === localePath(item.to) 
@@ -87,14 +136,6 @@ const menuItems = computed(() => [
           {{ item.label }}
         </div>
 
-        <!-- Tooltip when collapsed -->
-        <div 
-          v-if="isSidebarCollapsed"
-          class="absolute left-full ml-2 px-3 py-1.5 bg-[var(--text-primary)] text-white text-sm font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 z-50 shadow-md"
-        >
-          {{ item.label }}
-          <div class="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-[var(--text-primary)]"></div>
-        </div>
       </NuxtLink>
     </nav>
 
@@ -102,6 +143,8 @@ const menuItems = computed(() => [
     <div class="p-4 border-t border-[var(--border-app)] flex-shrink-0">
       <button 
         @click="logout"
+        @mouseenter="showTooltip($event, t('logout'), 'danger')"
+        @mouseleave="hideTooltip"
         class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[var(--color-brand-danger)] hover:bg-[var(--color-brand-danger)]/10 transition-all duration-300 group relative"
       >
         <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 transition-transform duration-300 group-hover:scale-110">
@@ -116,16 +159,36 @@ const menuItems = computed(() => [
           {{ t('logout') }}
         </div>
 
-        <!-- Tooltip when collapsed -->
-        <div 
-          v-if="isSidebarCollapsed"
-          class="absolute left-full ml-2 px-3 py-1.5 bg-[var(--color-brand-danger)] text-white text-sm font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 z-50 shadow-md"
-        >
-          {{ t('logout') }}
-          <div class="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-[var(--color-brand-danger)]"></div>
-        </div>
       </button>
     </div>
+
+    <ClientOnly>
+      <Teleport to="body">
+        <Transition
+          enter-active-class="transition-opacity duration-200"
+          leave-active-class="transition-opacity duration-200"
+          enter-from-class="opacity-0"
+          leave-to-class="opacity-0"
+        >
+          <div 
+            v-if="isTooltipVisible"
+            class="fixed px-3 py-1.5 text-white text-sm font-medium rounded-lg whitespace-nowrap z-[100000] shadow-md pointer-events-none"
+            :class="activeTooltip.type === 'danger' ? 'bg-[var(--color-brand-danger)]' : 'bg-[var(--text-primary)]'"
+            :style="{
+              top: tooltipStyles.top,
+              left: tooltipStyles.left,
+              transform: 'translateY(-50%)'
+            }"
+          >
+            {{ activeTooltip.label }}
+            <div 
+              class="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent"
+              :class="activeTooltip.type === 'danger' ? 'border-r-[var(--color-brand-danger)]' : 'border-r-[var(--text-primary)]'"
+            ></div>
+          </div>
+        </Transition>
+      </Teleport>
+    </ClientOnly>
   </aside>
 </template>
 
