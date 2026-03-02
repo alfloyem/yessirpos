@@ -12,8 +12,12 @@ onMounted(() => {
 })
 
 const formattedTime = computed(() => {
-  return now.value.toLocaleDateString('tr-TR') + ' ' + now.value.toLocaleTimeString('tr-TR')
+  return now.value.toLocaleDateString('az-AZ') + ' ' + now.value.toLocaleTimeString('az-AZ')
 })
+
+const toggleTheme = () => {
+  colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
+}
 </script>
 
 <template>
@@ -36,16 +40,40 @@ const formattedTime = computed(() => {
         <span>{{ formattedTime }}</span>
       </div>
 
-      <!-- Language Switcher -->
-      <div class="flex items-center gap-1 pl-4 border-l border-[var(--border-app)]">
+      <!-- Language Switcher & Theme Toggle -->
+      <div class="flex items-center gap-3 pl-6 border-l border-[var(--border-app)]">
+        <!-- Language Switcher -->
+        <div class="flex items-center gap-1 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg p-1">
+          <button 
+            v-for="l in locales" 
+            :key="l.code"
+            @click="setLocale(l.code)"
+            class="text-[10px] font-bold px-3 py-1.5 rounded transition-all uppercase"
+            :class="locale === l.code ? 'bg-[var(--text-primary)] text-white shadow-sm' : 'text-[var(--text-app)] opacity-60 hover:opacity-100'"
+          >
+            {{ l.code }}
+          </button>
+        </div>
+
+        <!-- Theme Toggle -->
         <button 
-          v-for="l in locales" 
-          :key="l.code"
-          @click="setLocale(l.code)"
-          class="text-[10px] font-bold px-2 py-1 rounded transition-colors uppercase"
-          :class="locale === l.code ? 'bg-[var(--text-primary)] text-white' : 'text-[var(--text-app)] hover:bg-[var(--text-primary)] hover:text-white'"
+          @click="toggleTheme"
+          class="w-10 h-10 flex items-center justify-center bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg hover:border-[var(--text-primary)] transition-all group"
         >
-          {{ l.code }}
+          <Transition name="theme-switch" mode="out-in">
+            <Icon 
+              v-if="colorMode.value === 'dark'"
+              key="moon"
+              name="solar:moon-bold-duotone" 
+              class="w-5 h-5 text-[var(--text-primary)]"
+            />
+            <Icon 
+              v-else
+              key="sun"
+              name="solar:sun-bold-duotone" 
+              class="w-5 h-5 text-[var(--text-primary)]"
+            />
+          </Transition>
         </button>
       </div>
 
@@ -62,3 +90,22 @@ const formattedTime = computed(() => {
     </div>
   </header>
 </template>
+
+
+<style scoped>
+/* Theme switch animation */
+.theme-switch-enter-active,
+.theme-switch-leave-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-switch-enter-from {
+  opacity: 0;
+  transform: rotate(-180deg) scale(0.3);
+}
+
+.theme-switch-leave-to {
+  opacity: 0;
+  transform: rotate(180deg) scale(0.3);
+}
+</style>
