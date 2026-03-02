@@ -1,27 +1,32 @@
 @import "tailwindcss";
 
 @theme {
-  --color-app-bg: var(--bg-app);
-  --color-app-text: var(--text-app);
-  --color-app-border: var(--border-app);
-  --color-app-input: var(--input-bg);
+  --color-primary: #7367f0; /* Indigo/Purple from screenshot */
+  --color-brand-success: #28c76f;
+  --color-brand-warning: #ff9f43;
+  --color-brand-danger: #ea5455;
+  --color-brand-info: #00cfe8;
   
   --font-serif: "Playfair Display", serif;
   --font-sans: "Inter", system-ui, sans-serif;
 }
 
 :root {
-  --bg-app: #ffffff;
-  --text-app: #171717;
-  --border-app: #e5e5e5;
+  --bg-app: #f8f7fa; /* Light mode content background (light gray as in screen) */
+  --bg-sidebar: #ffffff; /* Sidebar background (pure white) */
+  --text-app: #5d596c; /* Muted text from screenshot */
+  --text-primary: #7367f0;
+  --border-app: #dbdade;
   --input-bg: #ffffff;
 }
 
 .dark {
-  --bg-app: #000000;
-  --text-app: #ffffff;
-  --border-app: #262626;
-  --input-bg: #0a0a0a;
+  --bg-app: #25293c;
+  --bg-sidebar: #2f3349;
+  --text-app: #cfd3ec;
+  --text-primary: #7367f0;
+  --border-app: #43496e;
+  --input-bg: #2f3349;
 }
 
 @layer base {
@@ -30,4 +35,15 @@
     color: var(--text-app);
     @apply font-sans transition-colors duration-200 antialiased;
   }
+}
+
+/* Nuxt Transition Styling */
+.page-enter-active,
+.page-leave-active {
+  transition: all 0.2s;
+}
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
 }
