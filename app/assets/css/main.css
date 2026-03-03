@@ -13,23 +13,23 @@
 }
 
 :root {
-  --bg-app: #f8f7fa;
+  --bg-app: #f8fafc;         /* Slate 50 */
   --bg-sidebar: #ffffff;
-  --text-app: #5d596c;
+  --text-app: #64748b;       /* Slate 500 */
   --text-primary: #1e40af;
   --text-secondary: #1e3a8a;
-  --border-app: #dbdade;
+  --border-app: #e2e8f0;     /* Slate 200 */
   --input-bg: #ffffff;
 }
 
 .dark {
-  --bg-app: #25293c;
-  --bg-sidebar: #2f3349;
-  --text-app: #cfd3ec;
-  --text-primary: #3b82f6;
-  --text-secondary: #2563eb;
-  --border-app: #43496e;
-  --input-bg: #2f3349;
+  --bg-app: #1e293b;         /* Slate 800 */
+  --bg-sidebar: #334155;     /* Slate 700 */
+  --text-app: #cbd5e1;       /* Slate 300 */
+  --text-primary: #60a5fa;   /* Blue 400 */
+  --text-secondary: #3b82f6;
+  --border-app: #475569;     /* Slate 600 */
+  --input-bg: #334155;
 }
 
 @layer base {
