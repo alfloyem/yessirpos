@@ -18,13 +18,15 @@ interface Props {
   selectable?: boolean
   actions?: boolean // show default action column
   searchable?: boolean
+  perPage?: number // items per page
 }
 
 const props = withDefaults(defineProps<Props>(), {
   searchable: true,
   loading: false,
   selectable: false,
-  actions: false
+  actions: false,
+  perPage: 10
 })
 
 const emit = defineEmits(['add', 'edit', 'delete', 'bulk-edit', 'bulk-delete', 'row-click'])
@@ -69,18 +71,19 @@ const sortBy = (key: string) => {
 // Selection
 const selectedIds = ref<Set<string | number>>(new Set())
 const isAllSelected = computed(() => {
-  return filteredAndSortedData.value.length > 0 && selectedIds.value.size === filteredAndSortedData.value.length
+  return paginatedData.value.length > 0 && paginatedData.value.every(item => selectedIds.value.has(item.id))
 })
 const isIndeterminate = computed(() => {
-  return selectedIds.value.size > 0 && selectedIds.value.size < filteredAndSortedData.value.length
+  const selectedCount = paginatedData.value.filter(item => selectedIds.value.has(item.id)).length
+  return selectedCount > 0 && selectedCount < paginatedData.value.length
 })
 
 const toggleAll = (e: Event) => {
   const checked = (e.target as HTMLInputElement).checked
   if (checked) {
-    selectedIds.value = new Set(filteredAndSortedData.value.map(item => item.id))
+    paginatedData.value.forEach(item => selectedIds.value.add(item.id))
   } else {
-    selectedIds.value.clear()
+    paginatedData.value.forEach(item => selectedIds.value.delete(item.id))
   }
 }
 
@@ -167,9 +170,48 @@ const handleExport = () => {
   exportToCSV(props.title || 'export', localColumns.value, filteredAndSortedData.value)
 }
 
+// Pagination
+const currentPage = ref(1)
+const perPageOptions = [5, 10, 20, 50, 100]
+
+const totalPages = computed(() => Math.ceil(filteredAndSortedData.value.length / props.perPage))
+const paginatedData = computed(() => {
+  const start = (currentPage.value - 1) * props.perPage
+  const end = start + props.perPage
+  return filteredAndSortedData.value.slice(start, end)
+})
+
+const goToPage = (page: number) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
+
+const pageNumbers = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let start = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let end = Math.min(totalPages.value, start + maxVisible - 1)
+  
+  if (end - start + 1 < maxVisible) {
+    start = Math.max(1, end - maxVisible + 1)
+  }
+  
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+  
+  return pages
+})
+
 watch(() => props.data, () => {
   selectedIds.value.clear()
+  currentPage.value = 1
 }, { deep: true })
+
+watch(searchQuery, () => {
+  currentPage.value = 1
+})
 </script>
 
 <template>
@@ -313,9 +355,9 @@ watch(() => props.data, () => {
           </thead>
           
           <tbody class="divide-y divide-[var(--border-app)] text-[var(--text-app)]">
-            <template v-if="filteredAndSortedData.length > 0">
+            <template v-if="paginatedData.length > 0">
               <tr 
-                v-for="row in filteredAndSortedData" 
+                v-for="row in paginatedData" 
                 :key="row.id"
                 class="hover:bg-[var(--bg-app)]/50 transition-colors group"
                 :class="{'bg-[var(--text-primary)]/5': selectedIds.has(row.id)}"
@@ -384,6 +426,72 @@ watch(() => props.data, () => {
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Pagination -->
+      <div v-if="filteredAndSortedData.length > 0" class="px-6 py-4 border-t border-[var(--border-app)] flex flex-col-reverse sm:flex-row items-center justify-between gap-4">
+        <!-- Pagination Controls -->
+        <div class="flex items-center gap-2">
+          <!-- First Page -->
+          <button
+            @click="goToPage(1)"
+            :disabled="currentPage === 1"
+            class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--border-app)] hover:border-[var(--text-primary)] hover:text-[var(--text-primary)] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+            :class="currentPage === 1 ? 'opacity-30' : ''"
+          >
+            <UiIcon name="lucide:chevrons-left" class="w-4 h-4" />
+          </button>
+
+          <!-- Previous Page -->
+          <button
+            @click="goToPage(currentPage - 1)"
+            :disabled="currentPage === 1"
+            class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--border-app)] hover:border-[var(--text-primary)] hover:text-[var(--text-primary)] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+            :class="currentPage === 1 ? 'opacity-30' : ''"
+          >
+            <UiIcon name="lucide:chevron-left" class="w-4 h-4" />
+          </button>
+
+          <!-- Page Numbers -->
+          <div class="flex items-center gap-1">
+            <button
+              v-for="page in pageNumbers"
+              :key="page"
+              @click="goToPage(page)"
+              class="min-w-8 h-8 px-2 flex items-center justify-center rounded-lg text-sm font-medium transition-all cursor-pointer"
+              :class="currentPage === page 
+                ? 'bg-[var(--text-primary)] text-white shadow-md' 
+                : 'border border-[var(--border-app)] hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]'"
+            >
+              {{ page }}
+            </button>
+          </div>
+
+          <!-- Next Page -->
+          <button
+            @click="goToPage(currentPage + 1)"
+            :disabled="currentPage === totalPages"
+            class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--border-app)] hover:border-[var(--text-primary)] hover:text-[var(--text-primary)] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+            :class="currentPage === totalPages ? 'opacity-30' : ''"
+          >
+            <UiIcon name="lucide:chevron-right" class="w-4 h-4" />
+          </button>
+
+          <!-- Last Page -->
+          <button
+            @click="goToPage(totalPages)"
+            :disabled="currentPage === totalPages"
+            class="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--border-app)] hover:border-[var(--text-primary)] hover:text-[var(--text-primary)] transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+            :class="currentPage === totalPages ? 'opacity-30' : ''"
+          >
+            <UiIcon name="lucide:chevrons-right" class="w-4 h-4" />
+          </button>
+        </div>
+
+        <!-- Info -->
+        <div class="text-sm text-[var(--text-app)] opacity-60">
+          {{ ((currentPage - 1) * perPage) + 1 }} - {{ Math.min(currentPage * perPage, filteredAndSortedData.length) }} / {{ filteredAndSortedData.length }} nəticə
+        </div>
       </div>
     </div>
   </div>
