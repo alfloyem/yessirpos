@@ -9,7 +9,7 @@ const stats = ref([
     value: '1,234', 
     subtitle: t('dashboard.thisMonth'),
     icon: 'solar:bag-check-bold-duotone',
-    color: '#8745f3'
+    color: '#1e40af'
   },
   { 
     label: t('dashboard.revenue'), 

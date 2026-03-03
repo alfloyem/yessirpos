@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #8745f3; /* Logo purple */
-  --color-secondary: #6b2dd9; /* Darker purple for hover */
+  --color-primary: #1e40af; /* Trust Navy - Blue 800 */
+  --color-secondary: #1e3a8a; /* Darker Navy - Blue 900 */
   --color-brand-success: #28c76f;
   --color-brand-warning: #ff9f43;
   --color-brand-danger: #ea5455;
@@ -16,8 +16,8 @@
   --bg-app: #f8f7fa;
   --bg-sidebar: #ffffff;
   --text-app: #5d596c;
-  --text-primary: #8745f3;
-  --text-secondary: #6b2dd9;
+  --text-primary: #1e40af;
+  --text-secondary: #1e3a8a;
   --border-app: #dbdade;
   --input-bg: #ffffff;
 }
@@ -26,8 +26,8 @@
   --bg-app: #25293c;
   --bg-sidebar: #2f3349;
   --text-app: #cfd3ec;
-  --text-primary: #8745f3;
-  --text-secondary: #6b2dd9;
+  --text-primary: #3b82f6;
+  --text-secondary: #2563eb;
   --border-app: #43496e;
   --input-bg: #2f3349;
 }
