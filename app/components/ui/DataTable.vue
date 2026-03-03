@@ -314,7 +314,7 @@ watch(searchQuery, () => {
         <UiIcon name="lucide:loader-2" class="w-3.5 h-3.5 text-[var(--text-primary)] animate-spin" />
       </div>
 
-      <div class="overflow-x-auto overflow-y-auto custom-scrollbar max-h-[calc(100vh-240px)]">
+      <div class="overflow-x-auto overflow-y-auto custom-scrollbar max-h-[calc(100vh-340px)]">
         <table class="w-full text-left text-sm whitespace-nowrap">
           <thead class="bg-[var(--bg-app)] text-[var(--text-app)] font-bold tracking-wider text-[11px] sticky top-0 z-20">
             <!-- Add a pseudo-element or border for sticky header to prevent transparent gaps -->
