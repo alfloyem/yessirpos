@@ -137,7 +137,11 @@ const lineChartOptions = computed(() => ({
       border: { display: false }
     }
   },
-  interaction: { intersect: false, mode: 'index' }
+  interaction: { intersect: false, mode: 'index' },
+  animation: {
+    duration: 2500,
+    easing: 'easeOutQuart'
+  }
 }))
 
 const lineChartData = computed(() => {
@@ -187,6 +191,12 @@ const donutChartOptions = computed(() => ({
       usePointStyle: true,
     }
   },
+  animation: {
+    animateScale: true,
+    animateRotate: true,
+    duration: 2000,
+    easing: 'easeOutQuart'
+  }
 }
 ))
 
@@ -229,6 +239,10 @@ const barChartOptions = computed(() => ({
     }
   },
   borderRadius: 4, // Barların köşelerini yuvarlar
+  animation: {
+    duration: 1500,
+    easing: 'easeOutQuart'
+  }
 }))
 
 const barChartData = computed(() => ({
@@ -249,6 +263,13 @@ const barChartData = computed(() => ({
 }))
 
 const selectedFilter = ref('today')
+const dateFilters = computed(() => [
+  { id: 'today', label: t('dashboard.today') || 'Bu gün' },
+  { id: 'yesterday', label: t('dashboard.yesterday') || 'Dünən' },
+  { id: 'week', label: t('dashboard.thisWeek') || 'Bu həftə' },
+  { id: 'month', label: t('dashboard.thisMonth') || 'Bu ay' },
+  { id: 'all', label: t('dashboard.allTime') || 'Bütün dövr' }
+])
 </script>
 
 <template>
@@ -263,22 +284,17 @@ const selectedFilter = ref('today')
           Bütün biznes fəaliyyətlərinizi tək yerdən idarə edin
         </p>
       </div>
-      <div class="flex items-center gap-2">
-        <!-- Date Filter Buttons -->
-        <div class="bg-[var(--input-bg)] p-1 rounded-xl border border-[var(--border-app)] flex shadow-sm">
+      <div class="flex items-center gap-2 max-w-full overflow-hidden">
+        <!-- Date Filter Buttons with expanded options -->
+        <div class="bg-[var(--input-bg)] p-1 rounded-xl border border-[var(--border-app)] flex shadow-sm overflow-x-auto custom-scrollbar">
           <button 
-            @click="selectedFilter = 'today'"
-            class="px-4 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all"
-            :class="selectedFilter === 'today' ? 'bg-[var(--text-primary)] text-white shadow-md' : 'text-[var(--text-app)] hover:bg-[var(--bg-app)]'"
+            v-for="filter in dateFilters"
+            :key="filter.id"
+            @click="selectedFilter = filter.id"
+            class="px-3 md:px-4 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all whitespace-nowrap"
+            :class="selectedFilter === filter.id ? 'bg-[var(--text-primary)] text-white shadow-md' : 'text-[var(--text-app)] hover:bg-[var(--bg-app)]'"
           >
-            {{ t('dashboard.today') || 'Bu gün' }}
-          </button>
-          <button 
-            @click="selectedFilter = 'month'"
-            class="px-4 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all"
-            :class="selectedFilter === 'month' ? 'bg-[var(--text-primary)] text-white shadow-md' : 'text-[var(--text-app)] hover:bg-[var(--bg-app)]'"
-          >
-            {{ t('dashboard.thisMonth') || 'Bu ay' }}
+            {{ filter.label }}
           </button>
         </div>
       </div>
@@ -291,11 +307,14 @@ const selectedFilter = ref('today')
         :key="index"
         class="bg-[var(--input-bg)] border border-[var(--border-app)] rounded-2xl p-6 hover:shadow-xl hover:shadow-[var(--text-primary)]/5 hover:border-[var(--text-primary)]/30 hover:-translate-y-1 transition-all duration-300 cursor-pointer relative overflow-hidden group"
       >
-        <!-- Background Decor Splash -->
-        <div 
-          class="absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-20 blur-2xl group-hover:scale-150 transition-transform duration-700"
-          :style="{ backgroundColor: stat.color }"
-        ></div>
+        <!-- Custom SVG Abstract Geometric Background -->
+        <div class="absolute -right-8 -top-8 w-40 h-40 opacity-[0.05] group-hover:scale-110 transition-transform duration-700 pointer-events-none rotate-12" :style="{ color: stat.color }">
+          <svg viewBox="0 0 100 100" fill="currentColor">
+            <path d="M50 0 L100 25 L100 75 L50 100 L0 75 L0 25 Z" opacity="0.5"/>
+            <path d="M50 15 L85 32 L85 68 L50 85 L15 68 L15 32 Z" opacity="0.8"/>
+            <circle cx="50" cy="50" r="10" />
+          </svg>
+        </div>
 
         <div class="flex items-start justify-between relative z-10">
           <div class="flex-1">
@@ -447,9 +466,23 @@ const selectedFilter = ref('today')
         <div class="relative overflow-hidden rounded-2xl p-6 border-0 group cursor-pointer shadow-lg hover:-translate-y-1 transition-all duration-300"
              :style="{ background: `linear-gradient(135deg, ${themeColors.primary}, #9B8CFF)` }"
         >
-          <!-- Decoration -->
-          <div class="absolute -right-6 -top-6 w-32 h-32 rounded-full border-4 border-white opacity-10 blur-sm group-hover:scale-110 transition-transform"></div>
-          <div class="absolute -bottom-8 -left-8 w-40 h-40 rounded-full border-4 border-white opacity-10 group-hover:scale-110 transition-transform"></div>
+          <!-- Custom Premium SVG Wave Decor -->
+          <div class="absolute top-0 right-0 w-full h-full opacity-20 pointer-events-none group-hover:scale-105 transition-transform duration-700">
+            <svg viewBox="0 0 800 500" preserveAspectRatio="none" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+              <path d="M0,100 C150,200 350,0 500,100 C650,200 800,50 800,50 L800,0 L0,0 Z" fill="url(#grad1)"></path>
+              <path d="M0,250 C200,350 400,150 600,250 C800,350 800,200 800,200 L800,0 L0,0 Z" fill="url(#grad2)" opacity="0.5"></path>
+              <defs>
+                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:white;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:white;stop-opacity:0" />
+                </linearGradient>
+                <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:white;stop-opacity:0.8" />
+                  <stop offset="100%" style="stop-color:white;stop-opacity:0" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
           
           <div class="relative z-10 text-white">
             <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center mb-4 text-white">
