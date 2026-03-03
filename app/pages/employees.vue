@@ -49,14 +49,14 @@ const generateUsername = (first?: string, last?: string, currentId?: any) => {
 const employeeSchema: (FormField & { inTable?: boolean, sortable?: boolean })[] = [
   { key: 'firstName', label: 'Ad', type: 'text', inTable: true, sortable: true, required: true },
   { key: 'lastName', label: 'Soyad', type: 'text', inTable: true, sortable: true, required: true },
-  { key: 'username', label: 'İstifadəçi adı', icon: 'solar:user-bold-duotone', type: 'text', inTable: true, sortable: true, required: true },
-  { key: 'email', label: 'E-poçt (Email)', icon: 'solar:letter-bold-duotone', type: 'email', inTable: true, sortable: true },
-  { key: 'phone', label: 'Telefon', icon: 'solar:phone-bold-duotone', type: 'tel', inTable: true, sortable: true },
+  { key: 'username', label: 'İstifadəçi adı', icon: 'lucide:user', type: 'text', inTable: true, sortable: true, required: true },
+  { key: 'email', label: 'E-poçt (Email)', icon: 'lucide:mail', type: 'email', inTable: true, sortable: true },
+  { key: 'phone', label: 'Telefon', icon: 'lucide:phone', type: 'tel', inTable: true, sortable: true },
   { key: 'gender', label: 'Cinsiyyət', type: 'select', inTable: true, sortable: true, options: [
     { label: 'Kişi', value: 'Kişi' },
     { label: 'Qadın', value: 'Qadın' }
   ]},
-  { key: 'password', label: 'Şifrə', icon: 'solar:lock-password-bold-duotone', type: 'password', inTable: false, required: true },
+  { key: 'password', label: 'Şifrə', icon: 'lucide:lock', type: 'password', inTable: false, required: true },
   { key: 'status', label: 'Durum', type: 'select', inTable: true, sortable: true, options: [
     { label: 'Aktif', value: 'Aktif' },
     { label: 'Pasif', value: 'Pasif' },

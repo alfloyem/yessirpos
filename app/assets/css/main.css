@@ -36,8 +36,8 @@
   --border-app: hsl(255, 20%, 15%);
   --input-bg: hsl(255, 15%, 8%);
   
-  --btn-primary-bg: hsl(255, 85%, 75%);
-  --btn-primary-text: hsl(255, 30%, 10%);
+  --btn-primary-bg: hsl(255, 75%, 50%);
+  --btn-primary-text: #ffffff;
 }
 
 @layer base {

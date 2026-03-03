@@ -55,13 +55,13 @@ const maxWidthClass = computed(() => {
         
         <!-- Backdrop -->
         <div 
-          class="absolute inset-0 bg-[#25293c]/50 backdrop-blur-sm transition-opacity"
+          class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
           @click="close"
         ></div>
 
         <!-- Dialog -->
         <div 
-          class="relative w-full bg-[var(--bg-app)] border-2 border-[var(--border-app)] rounded-2xl shadow-2xl flex flex-col max-h-[90vh] transition-all"
+          class="relative w-full bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] flex flex-col max-h-[90vh] transition-all"
           :class="maxWidthClass"
           @click.stop
         >
@@ -75,7 +75,7 @@ const maxWidthClass = computed(() => {
               class="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-app)] bg-[var(--input-bg)] bg-opacity-50 hover:bg-[var(--text-primary)] hover:text-white transition-all shadow-sm"
               title="Kapat"
             >
-              <UiIcon name="solar:close-bold" class="w-4 h-4" />
+              <UiIcon name="lucide:x" class="w-3.5 h-3.5" />
             </button>
           </div>
 

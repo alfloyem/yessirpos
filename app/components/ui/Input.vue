@@ -24,9 +24,9 @@ const computedType = computed(() => {
 const computedIcon = computed(() => {
   if (props.icon) return props.icon
   switch (props.type) {
-    case 'email': return 'solar:letter-bold-duotone'
-    case 'password': return 'solar:lock-password-bold-duotone'
-    case 'tel': return 'solar:phone-bold-duotone'
+    case 'email': return 'lucide:mail'
+    case 'password': return 'lucide:lock'
+    case 'tel': return 'lucide:phone'
     default: return ''
   }
 })
@@ -62,7 +62,7 @@ const togglePassword = () => {
     <UiIcon 
       v-if="computedIcon" 
       :name="computedIcon" 
-      class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-app)] opacity-40 group-focus-within:text-[var(--text-primary)] group-focus-within:opacity-100 transition-colors pointer-events-none z-10" 
+      class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-app)] opacity-40 group-focus-within:text-[var(--text-primary)] group-focus-within:opacity-100 transition-colors pointer-events-none z-10" 
     />
     
     <!-- Input Element -->
@@ -72,10 +72,10 @@ const togglePassword = () => {
       @input="handleInput"
       :placeholder="placeholder"
       :disabled="disabled"
-      class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] py-2 text-sm rounded-lg outline-none focus:border-[var(--text-primary)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+      class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] py-2.5 text-sm rounded-xl outline-none focus:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/10 hover:border-[var(--text-muted)] transition-all duration-300 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-[var(--border-app)]"
       :class="[
-        computedIcon ? 'pl-10' : 'pl-4', 
-        (clearable && modelValue) || type === 'password' ? 'pr-10' : 'pr-4'
+        computedIcon ? 'pl-9' : 'pl-4', 
+        (clearable && modelValue) || type === 'password' ? 'pr-9' : 'pr-4'
       ]"
     />
     
@@ -87,7 +87,7 @@ const togglePassword = () => {
         @click="clear"
         class="text-[var(--text-app)] opacity-40 hover:opacity-100 hover:text-[var(--text-primary)] transition-all flex items-center justify-center w-5 h-5 rounded-full"
       >
-        <UiIcon name="solar:close-circle-bold" class="w-4 h-4" />
+        <UiIcon name="lucide:x-circle" class="w-3.5 h-3.5" />
       </button>
 
       <!-- Toggle Password -->
@@ -96,7 +96,7 @@ const togglePassword = () => {
         @click="togglePassword"
         class="text-[var(--text-app)] opacity-40 hover:opacity-100 hover:text-[var(--text-primary)] transition-all flex items-center justify-center w-5 h-5 rounded-full"
       >
-        <UiIcon :name="showPassword ? 'solar:eye-closed-bold-duotone' : 'solar:eye-bold-duotone'" class="w-4 h-4" />
+        <UiIcon :name="showPassword ? 'lucide:eye-off' : 'lucide:eye'" class="w-3.5 h-3.5" />
       </button>
     </div>
   </div>

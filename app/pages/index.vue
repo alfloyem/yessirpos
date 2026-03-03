@@ -8,7 +8,7 @@ const stats = ref([
     label: t('dashboard.orders'), 
     value: '1,234', 
     subtitle: t('dashboard.thisMonth'),
-    icon: 'solar:bag-check-bold-duotone',
+    icon: 'lucide:shopping-bag',
     color: '#1e40af'
   },
   { 
@@ -16,7 +16,7 @@ const stats = ref([
     value: '45,678', 
     suffix: '₼',
     subtitle: t('dashboard.thisMonth'),
-    icon: 'solar:dollar-minimalistic-bold-duotone',
+    icon: 'lucide:dollar-sign',
     color: '#28c76f'
   },
   { 
@@ -24,14 +24,14 @@ const stats = ref([
     value: '12,345', 
     suffix: '₼',
     subtitle: t('dashboard.thisMonth'),
-    icon: 'solar:dollar-minimalistic-bold-duotone',
+    icon: 'lucide:dollar-sign',
     color: '#ea5455'
   },
   { 
     label: t('dashboard.stock'), 
     value: '8,567', 
     subtitle: t('dashboard.count'),
-    icon: 'solar:box-minimalistic-bold-duotone',
+    icon: 'lucide:package',
     color: '#00cfe8'
   }
 ])

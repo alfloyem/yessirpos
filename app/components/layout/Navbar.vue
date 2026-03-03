@@ -112,7 +112,7 @@ const selectLanguage = (code) => {
     <div class="flex items-center gap-6">
       <!-- Digital Clock -->
       <div class="hidden md:flex items-center gap-2 text-[var(--text-app)] opacity-80 text-xs font-medium bg-[var(--input-bg)] px-3 py-1.5 rounded-lg border border-[var(--border-app)] hover:border-[var(--text-primary)] transition-all">
-        <Icon name="solar:clock-circle-bold-duotone" class="w-4 h-4 text-[var(--text-primary)]" />
+        <Icon name="lucide:clock" class="w-3.5 h-3.5 text-[var(--text-primary)]" />
         <span>{{ formattedTime }}</span>
       </div>
 
@@ -149,14 +149,14 @@ const selectLanguage = (code) => {
             <Icon 
               v-if="colorMode.value === 'dark'"
               key="moon"
-              name="solar:moon-bold-duotone" 
-              class="w-4 h-4 md:w-5 md:h-5 text-[var(--text-primary)]"
+              name="lucide:moon" 
+              class="w-3.5 h-3.5 md:w-5 md:h-5 text-[var(--text-primary)]"
             />
             <Icon 
               v-else
               key="sun"
-              name="solar:sun-bold-duotone" 
-              class="w-4 h-4 md:w-5 md:h-5 text-[var(--text-primary)]"
+              name="lucide:sun" 
+              class="w-3.5 h-3.5 md:w-5 md:h-5 text-[var(--text-primary)]"
             />
           </Transition>
         </button>

@@ -26,19 +26,19 @@ const generateBarcode = () => {
 const customerSchema: (FormField & { inTable?: boolean, sortable?: boolean })[] = [
   { key: 'firstName', label: 'Ad', type: 'text', inTable: true, sortable: true, required: true },
   { key: 'lastName', label: 'Soyad', type: 'text', inTable: true, sortable: true, required: true },
-  { key: 'barcode', label: 'Barkod', icon: 'solar:qr-code-bold-duotone', type: 'text', inTable: true, sortable: true, required: true },
-  { key: 'bonus', label: 'Bonus (AZN)', icon: 'solar:wallet-money-bold-duotone', type: 'number', inTable: true, sortable: true },
+  { key: 'barcode', label: 'Barkod', icon: 'lucide:qr-code', type: 'text', inTable: true, sortable: true, required: true },
+  { key: 'bonus', label: 'Bonus (AZN)', icon: 'lucide:wallet', type: 'number', inTable: true, sortable: true },
   { key: 'gender', label: 'Cins', type: 'select', inTable: true, sortable: true, options: [
     { label: 'Kişi', value: 'Kişi' },
     { label: 'Qadın', value: 'Qadın' }
   ]},
-  { key: 'email', label: 'E-poçt', icon: 'solar:letter-bold-duotone', type: 'email', inTable: false, sortable: true },
-  { key: 'phone', label: 'Telefon', icon: 'solar:phone-bold-duotone', type: 'tel', inTable: true, sortable: true },
-  { key: 'address', label: 'Ünvan', icon: 'solar:map-point-bold-duotone', type: 'text', colSpan: 2, inTable: false },
+  { key: 'email', label: 'E-poçt', icon: 'lucide:mail', type: 'email', inTable: false, sortable: true },
+  { key: 'phone', label: 'Telefon', icon: 'lucide:phone', type: 'tel', inTable: true, sortable: true },
+  { key: 'address', label: 'Ünvan', icon: 'lucide:map-pin', type: 'text', colSpan: 2, inTable: false },
   { key: 'city', label: 'Şəhər/rayon', type: 'select', inTable: true, sortable: true, options: [
     { label: 'Bakı', value: 'Bakı' }
   ]},
-  { key: 'country', label: 'Ölkə', icon: 'solar:globe-bold-duotone', type: 'text', inTable: false },
+  { key: 'country', label: 'Ölkə', icon: 'lucide:globe', type: 'text', inTable: false },
   { key: 'notes', label: 'Xüsusi qeyd', type: 'textarea', colSpan: 2, inTable: false },
   // Tarix ve Əməkdaş sadece görüntü/otomatik olduğu için forma eklemiyoruz, tablo/arkaplan mantığında işliyoruz.
   { key: 'createdAt', label: 'Tarix', type: 'text', inTable: true, sortable: true },
@@ -181,7 +181,7 @@ const saveForm = () => {
     <!-- Modal: Add / Edit -->
     <Modal v-model="showAddModal" title="Yeni Müştəri Əlavə Et" max-width="xl">
       <div v-if="barcodeError" class="mb-4 p-3 bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)] rounded-lg text-sm font-medium flex items-center gap-2">
-        <UiIcon name="solar:danger-triangle-bold" class="w-5 h-5"/>
+        <UiIcon name="lucide:alert-triangle" class="w-3.5 h-3.5"/>
         {{ barcodeError }}
       </div>
       
@@ -198,7 +198,7 @@ const saveForm = () => {
     <!-- Modal: Edit specific -->
     <Modal v-model="showEditModal" :title="bulkSelectedIds.length > 0 ? 'Toplu Düzenleme' : 'Müştərini Düzenle'" max-width="xl">
       <div v-if="barcodeError" class="mb-4 p-3 bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)] rounded-lg text-sm font-medium flex items-center gap-2">
-        <UiIcon name="solar:danger-triangle-bold" class="w-5 h-5"/>
+        <UiIcon name="lucide:alert-triangle" class="w-3.5 h-3.5"/>
         {{ barcodeError }}
       </div>
 

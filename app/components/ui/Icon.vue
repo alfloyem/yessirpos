@@ -13,12 +13,12 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const sizeClasses = {
-  xs: 'w-4 h-4',      // 16px
-  sm: 'w-5 h-5',      // 20px
-  md: 'w-6 h-6',      // 24px
-  lg: 'w-8 h-8',      // 32px
-  xl: 'w-10 h-10',    // 40px
-  sidebar: 'w-[24px] h-[24px]' // 24px - sidebar menu icon size
+  xs: 'w-3.5 h-3.5',  // 14px
+  sm: 'w-4 h-4',      // 16px
+  md: 'w-5 h-5',      // 20px
+  lg: 'w-6 h-6',      // 24px
+  xl: 'w-8 h-8',      // 32px
+  sidebar: 'w-5 h-5'  // 20px
 }
 
 const iconClass = computed(() => {

@@ -99,7 +99,7 @@ const handleLogin = async () => {
               v-if="error" 
               class="bg-[var(--color-brand-danger)]/10 border border-[var(--color-brand-danger)]/30 rounded-xl p-4 flex items-center gap-3"
             >
-              <UiIcon name="solar:danger-circle-bold-duotone" size="lg" class="text-[var(--color-brand-danger)] flex-shrink-0" />
+              <UiIcon name="lucide:alert-circle" size="lg" class="text-[var(--color-brand-danger)] flex-shrink-0" />
               <p class="text-sm text-[var(--color-brand-danger)] font-medium">
                 {{ error }}
               </p>
@@ -115,7 +115,7 @@ const handleLogin = async () => {
               </label>
               <div class="relative">
                 <div class="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-app)] opacity-40">
-                  <UiIcon name="solar:user-bold-duotone" size="md" />
+                  <UiIcon name="lucide:user" size="md" />
                 </div>
                 <input 
                   v-model="email"
@@ -135,7 +135,7 @@ const handleLogin = async () => {
               </label>
               <div class="relative">
                 <div class="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-app)] opacity-40">
-                  <UiIcon name="solar:lock-password-bold-duotone" size="md" />
+                  <UiIcon name="lucide:lock" size="md" />
                 </div>
                 <input 
                   v-model="password"
@@ -164,14 +164,14 @@ const handleLogin = async () => {
                 <UiIcon 
                   v-if="loading"
                   key="loading"
-                  name="solar:refresh-bold-duotone" 
+                  name="lucide:refresh-cw" 
                   size="md" 
                   class="animate-spin"
                 />
                 <UiIcon 
                   v-else
                   key="login"
-                  name="solar:login-3-bold-duotone" 
+                  name="lucide:log-in" 
                   size="md"
                 />
               </Transition>

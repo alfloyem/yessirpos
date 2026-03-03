@@ -185,7 +185,7 @@ watch(() => props.data, () => {
             v-if="selectedIds.size > 0"
             variant="soft-danger"
             size="sm"
-            icon="solar:trash-bin-trash-bold-duotone"
+            icon="lucide:trash-2"
             @click="emit('bulk-delete', Array.from(selectedIds))"
           >
             {{ selectedIds.size }} Sil
@@ -198,7 +198,7 @@ watch(() => props.data, () => {
             v-if="selectedIds.size > 0"
             variant="soft-primary"
             size="sm"
-            icon="solar:pen-bold-duotone"
+            icon="lucide:edit-2"
             @click="emit('bulk-edit', Array.from(selectedIds))"
           >
             Toplu redaktə
@@ -211,7 +211,7 @@ watch(() => props.data, () => {
             <UiButton 
               variant="outline"
               size="sm"
-              icon="solar:list-bold-duotone"
+              icon="lucide:list"
             >
               <span class="hidden sm:inline">Sütunlar</span>
             </UiButton>
@@ -234,7 +234,7 @@ watch(() => props.data, () => {
         <UiButton 
           variant="outline"
           size="sm"
-          icon="solar:export-outline"
+          icon="lucide:download"
           @click="handleExport"
         >
           <span class="hidden sm:inline">İxrac et</span>
@@ -244,7 +244,7 @@ watch(() => props.data, () => {
         <UiButton 
           variant="primary"
           size="sm"
-          icon="solar:add-circle-bold-duotone"
+          icon="lucide:plus-circle"
           @click="emit('add')"
         >
           Yeni əlavə et
@@ -259,7 +259,7 @@ watch(() => props.data, () => {
         <UiInput 
           v-model="searchQuery" 
           placeholder="Cədvəldə axtar..." 
-          icon="solar:magnifer-bold-duotone" 
+          icon="lucide:search" 
           clearable 
         />
       </div>
@@ -269,7 +269,7 @@ watch(() => props.data, () => {
     <div class="bg-[var(--bg-sidebar)] border border-[var(--border-app)] rounded-xl overflow-hidden shadow-sm relative">
       <!-- Loading Overlay -->
       <div v-if="loading" class="absolute inset-0 bg-[var(--bg-sidebar)]/50 backdrop-blur-sm z-10 flex items-center justify-center">
-        <UiIcon name="solar:spinner-bold-duotone" class="w-8 h-8 text-[var(--text-primary)] animate-spin" />
+        <UiIcon name="lucide:loader-2" class="w-3.5 h-3.5 text-[var(--text-primary)] animate-spin" />
       </div>
 
       <div class="overflow-x-auto overflow-y-auto custom-scrollbar max-h-[calc(100vh-240px)]">
@@ -300,7 +300,7 @@ watch(() => props.data, () => {
                   <span>{{ col.label }}</span>
                   <UiIcon 
                     v-if="col.sortable"
-                    :name="sortKey === col.key ? (sortAsc ? 'solar:sort-from-bottom-to-top-bold-duotone' : 'solar:sort-from-top-to-bottom-bold-duotone') : 'solar:sort-vertical-bold-duotone'" 
+                    :name="sortKey === col.key ? (sortAsc ? 'lucide:arrow-down-up' : 'lucide:arrow-up-down') : 'lucide:arrow-up-down'" 
                     class="w-3.5 h-3.5"
                     :class="sortKey === col.key ? 'text-[var(--text-primary)] opacity-100' : 'opacity-30'"
                   />
@@ -349,7 +349,7 @@ watch(() => props.data, () => {
                       <UiButton 
                         variant="ghost"
                         size="icon"
-                        icon="solar:pen-bold-duotone"
+                        icon="lucide:edit-2"
                         @click="emit('edit', row)"
                         class="hover:text-[var(--text-primary)] hover:bg-[var(--text-primary)]/10 cursor-pointer"
                       />
@@ -361,7 +361,7 @@ watch(() => props.data, () => {
                       <UiButton 
                         variant="ghost"
                         size="icon"
-                        icon="solar:trash-bin-trash-bold-duotone"
+                        icon="lucide:trash-2"
                         @click="emit('delete', row)"
                         class="hover:text-[var(--color-brand-danger)] hover:bg-[var(--color-brand-danger)]/10 cursor-pointer"
                       />
@@ -377,7 +377,7 @@ watch(() => props.data, () => {
             <tr v-else>
               <td :colspan="(selectable ? 1 : 0) + visibleColumns.length + (actions ? 1 : 0)" class="px-6 py-12 text-center">
                 <div class="flex flex-col items-center gap-3 opacity-50">
-                  <UiIcon name="solar:ghost-bold-duotone" class="w-12 h-12" />
+                  <UiIcon name="lucide:ghost" class="w-10 h-10" />
                   <p class="text-sm">Veri bulunamadı.</p>
                 </div>
               </td>

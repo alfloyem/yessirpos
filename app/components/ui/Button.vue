@@ -12,42 +12,42 @@ const props = defineProps<{
   type?: 'button' | 'submit' | 'reset'
 }>()
 
-const baseClasses = "inline-flex items-center justify-center gap-2 font-bold transition-all outline-none disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] cursor-pointer"
+const baseClasses = "inline-flex items-center justify-center font-medium transition-colors duration-200 outline-none disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-[var(--text-primary)]/20"
 
 const sizeClasses = computed(() => {
   switch (props.size) {
-    case 'sm': return 'px-3 py-1.5 text-xs rounded-md'
-    case 'lg': return 'px-6 py-3 text-base rounded-xl'
-    case 'icon': return 'w-8 h-8 rounded-lg'
+    case 'sm': return 'h-8 px-3 text-xs rounded-md gap-1.5'
+    case 'lg': return 'h-11 px-8 text-base rounded-xl gap-2.5'
+    case 'icon': return 'h-10 w-10 rounded-lg'
     case 'md':
-    default: return 'px-4 py-2 text-sm rounded-lg'
+    default: return 'h-10 px-4 text-sm rounded-lg gap-2'
   }
 })
 
 const variantClasses = computed(() => {
   switch (props.variant) {
     case 'primary': 
-      return 'text-[var(--btn-primary-text)] bg-[var(--btn-primary-bg)] hover:opacity-90 shadow-sm'
+      return 'text-white bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] border border-transparent'
     case 'danger': 
-      return 'text-white bg-[var(--color-brand-danger)] hover:bg-[var(--color-brand-danger)]/90 shadow-sm'
+      return 'text-white bg-[var(--color-brand-danger)] hover:bg-[var(--color-brand-danger)]/80 border border-transparent'
     case 'warning': 
-      return 'text-white bg-[var(--color-brand-warning)] hover:bg-[var(--color-brand-warning)]/90 shadow-md shadow-[var(--color-brand-warning)]/30'
+      return 'text-white bg-[var(--color-brand-warning)] hover:bg-[var(--color-brand-warning)]/80 border border-transparent'
     case 'success': 
-      return 'text-white bg-[var(--color-brand-success)] hover:bg-[var(--color-brand-success)]/90 shadow-md shadow-[var(--color-brand-success)]/30'
+      return 'text-white bg-[var(--color-brand-success)] hover:bg-[var(--color-brand-success)]/80 border border-transparent'
     
     case 'soft-primary':
-      return 'text-[var(--text-primary)] bg-[var(--text-primary)]/10 border border-[var(--text-primary)]/20 hover:bg-[var(--text-primary)] hover:text-white shadow-sm'
+      return 'text-[var(--text-primary)] bg-[var(--text-primary)]/10 hover:bg-[var(--text-primary)]/20 border border-transparent'
     case 'soft-danger':
-      return 'text-[var(--color-brand-danger)] bg-[var(--color-brand-danger)]/10 border border-[var(--color-brand-danger)]/20 hover:bg-[var(--color-brand-danger)] hover:text-white shadow-sm'
+      return 'text-[var(--color-brand-danger)] bg-[var(--color-brand-danger)]/10 hover:bg-[var(--color-brand-danger)]/20 border border-transparent'
     
     case 'outline':
-      return 'text-[var(--text-app)] bg-[var(--input-bg)] border border-[var(--border-app)] hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]'
+      return 'text-[var(--text-app)] bg-transparent border border-[var(--border-app)] hover:bg-[var(--bg-app)] hover:text-[var(--text-primary)] hover:border-[var(--border-app)]'
     
     case 'ghost':
-      return 'text-[var(--text-app)] hover:bg-[var(--text-primary)]/10 hover:text-[var(--text-primary)] border border-transparent'
+      return 'text-[var(--text-app)] bg-transparent border border-transparent hover:bg-[var(--bg-app)] hover:text-[var(--text-primary)]'
       
     default: 
-      return 'text-[var(--text-app)] bg-[var(--input-bg)] border border-[var(--border-app)] hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]'
+      return 'text-[var(--text-app)] bg-[var(--input-bg)] border border-[var(--border-app)] hover:bg-[var(--bg-app)] hover:text-[var(--text-primary)]'
   }
 })
 </script>
@@ -59,17 +59,17 @@ const variantClasses = computed(() => {
     :class="[baseClasses, sizeClasses, variantClasses, block ? 'w-full' : '']"
   >
     <!-- Loading Spinner -->
-    <UiIcon v-if="loading" name="solar:spinner-bold-duotone" class="w-4 h-4 animate-spin" />
+    <UiIcon v-if="loading" name="lucide:loader-2" :size="size === 'sm' ? 'xs' : (size === 'lg' ? 'md' : 'sm')" class="animate-spin" />
     
     <!-- Left UiIcon -->
-    <UiIcon v-else-if="icon" :name="icon" :class="size === 'sm' ? 'w-3.5 h-3.5' : 'w-4 h-4'" />
+    <UiIcon v-else-if="icon" :name="icon" :size="size === 'sm' ? 'xs' : (size === 'lg' ? 'md' : 'sm')" />
     
     <!-- Slot Content -->
-    <span v-if="$slots.default && size !== 'icon'">
+    <span v-if="$slots.default && size !== 'icon'" class="truncate">
       <slot />
     </span>
 
     <!-- Right Icon -->
-    <UiIcon v-if="iconRight && !loading" :name="iconRight" :class="size === 'sm' ? 'w-3.5 h-3.5' : 'w-4 h-4'" />
+    <UiIcon v-if="iconRight && !loading" :name="iconRight" :size="size === 'sm' ? 'xs' : (size === 'lg' ? 'md' : 'sm')" />
   </button>
 </template>
