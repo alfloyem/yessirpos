@@ -201,7 +201,7 @@ watch(() => props.data, () => {
             icon="solar:pen-bold-duotone"
             @click="emit('bulk-edit', Array.from(selectedIds))"
           >
-            Toplu Düzenle
+            Toplu redaktə
           </UiButton>
         </Transition>
 
@@ -211,7 +211,7 @@ watch(() => props.data, () => {
             <UiButton 
               variant="outline"
               size="sm"
-              icon="solar:eye-bold-duotone"
+              icon="solar:list-bold-duotone"
             >
               <span class="hidden sm:inline">Sütunlar</span>
             </UiButton>
@@ -234,10 +234,10 @@ watch(() => props.data, () => {
         <UiButton 
           variant="outline"
           size="sm"
-          icon="solar:export-bold-duotone"
+          icon="solar:export-outline"
           @click="handleExport"
         >
-          <span class="hidden sm:inline">Dışa Aktar</span>
+          <span class="hidden sm:inline">İxrac et</span>
         </UiButton>
 
         <!-- Add New -->
@@ -247,7 +247,7 @@ watch(() => props.data, () => {
           icon="solar:add-circle-bold-duotone"
           @click="emit('add')"
         >
-          Yeni Ekle
+          Yeni əlavə et
         </UiButton>
       </div>
 
@@ -258,7 +258,7 @@ watch(() => props.data, () => {
       <div v-if="searchable !== false" class="w-full sm:w-72">
         <UiInput 
           v-model="searchQuery" 
-          placeholder="Tabloda ara..." 
+          placeholder="Cədvəldə axtar..." 
           icon="solar:magnifer-bold-duotone" 
           clearable 
         />
@@ -317,17 +317,15 @@ watch(() => props.data, () => {
               <tr 
                 v-for="row in filteredAndSortedData" 
                 :key="row.id"
-                class="hover:bg-[var(--bg-app)]/50 transition-colors group cursor-pointer"
+                class="hover:bg-[var(--bg-app)]/50 transition-colors group"
                 :class="{'bg-[var(--text-primary)]/5': selectedIds.has(row.id)}"
-                @click="emit('row-click', row)"
               >
                 <!-- Multi Select Cell -->
-                <td v-if="selectable" class="px-6 py-3 w-12" @click.stop>
+                <td v-if="selectable" class="px-6 py-3 w-12 cursor-pointer" @click.stop="toggleSelect(row.id)">
                   <input 
                     type="checkbox" 
-                    class="accent-[var(--text-primary)] w-4 h-4 cursor-pointer"
+                    class="accent-[var(--text-primary)] w-4 h-4 cursor-pointer pointer-events-none"
                     :checked="selectedIds.has(row.id)"
-                    @change="toggleSelect(row.id)"
                   />
                 </td>
 
@@ -335,7 +333,8 @@ watch(() => props.data, () => {
                 <td 
                   v-for="col in visibleColumns" 
                   :key="col.key" 
-                  class="px-6 py-3"
+                  class="px-6 py-3 cursor-pointer"
+                  @click="selectable ? toggleSelect(row.id) : emit('row-click', row)"
                 >
                   <!-- Custom Slot Check -->
                   <slot :name="`cell-${col.key}`" :row="row" :value="row[col.key]">
@@ -346,20 +345,30 @@ watch(() => props.data, () => {
                 <!-- Actions Cell -->
                 <td v-if="actions" class="px-6 py-3 text-right" @click.stop>
                   <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <UiButton 
-                      variant="ghost"
-                      size="icon"
-                      icon="solar:pen-bold-duotone"
-                      @click="emit('edit', row)"
-                      class="hover:text-[var(--text-primary)] hover:bg-[var(--text-primary)]/10"
-                    />
-                    <UiButton 
-                      variant="ghost"
-                      size="icon"
-                      icon="solar:trash-bin-trash-bold-duotone"
-                      @click="emit('delete', row)"
-                      class="hover:text-[var(--color-brand-danger)] hover:bg-[var(--color-brand-danger)]/10"
-                    />
+                    <div class="relative group/edit">
+                      <UiButton 
+                        variant="ghost"
+                        size="icon"
+                        icon="solar:pen-bold-duotone"
+                        @click="emit('edit', row)"
+                        class="hover:text-[var(--text-primary)] hover:bg-[var(--text-primary)]/10 cursor-pointer"
+                      />
+                      <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[var(--text-app)] text-white text-xs rounded whitespace-nowrap opacity-0 group-hover/edit:opacity-100 pointer-events-none transition-opacity z-50">
+                        Düzəliş et
+                      </div>
+                    </div>
+                    <div class="relative group/delete">
+                      <UiButton 
+                        variant="ghost"
+                        size="icon"
+                        icon="solar:trash-bin-trash-bold-duotone"
+                        @click="emit('delete', row)"
+                        class="hover:text-[var(--color-brand-danger)] hover:bg-[var(--color-brand-danger)]/10 cursor-pointer"
+                      />
+                      <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[var(--text-app)] text-white text-xs rounded whitespace-nowrap opacity-0 group-hover/delete:opacity-100 pointer-events-none transition-opacity z-50">
+                        Sil
+                      </div>
+                    </div>
                   </div>
                 </td>
               </tr>
