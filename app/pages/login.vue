@@ -12,6 +12,17 @@ const email = ref('')
 const password = ref('')
 const error = ref('')
 const loading = ref(false)
+const isPageLoaded = ref(false)
+const currentYear = ref(new Date().getFullYear())
+
+// Force light mode for login page
+const colorMode = useColorMode()
+onMounted(() => {
+  colorMode.preference = 'light'
+  setTimeout(() => {
+    isPageLoaded.value = true
+  }, 100)
+})
 
 const handleLogin = async () => {
   if (loading.value) return
@@ -32,7 +43,7 @@ const handleLogin = async () => {
       navigateTo(localePath('/'))
     }
   } catch (err: any) {
-    error.value = err.data?.statusMessage || 'Giriş Başarısız!'
+    error.value = err.data?.statusMessage || 'Giriş uğursuz oldu!'
   } finally {
     loading.value = false
   }
@@ -40,47 +51,159 @@ const handleLogin = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center p-8 bg-[var(--bg-app)] text-[var(--text-app)]">
-    <div class="w-full max-w-[320px] space-y-12">
-      <!-- Minimalist Brand -->
-      <div class="space-y-4">
-        <h1 class="text-2xl font-serif font-black tracking-tight">
-          YESSIR<span class="opacity-40">POS</span>
-        </h1>
-        <div class="h-[1px] w-8 bg-[var(--text-app)] opacity-20"></div>
-        <p v-if="error" class="text-[10px] text-[var(--color-brand-danger)] font-bold tracking-wider">
-          {{ error }}
-        </p>
-      </div>
-
-      <form @submit.prevent="handleLogin" class="space-y-4">
-        <div class="space-y-2">
-          <input 
-            v-model="email"
-            type="text" 
-            class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] px-4 py-3 text-sm outline-none focus:border-[var(--text-primary)] transition-all placeholder:opacity-30"
-            placeholder="Username (admin)"
-            required
-            :disabled="loading"
-          />
-          <input 
-            v-model="password"
-            type="password" 
-            class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] px-4 py-3 text-sm outline-none focus:border-[var(--text-primary)] transition-all placeholder:opacity-30"
-            placeholder="Password (admin)"
-            required
-            :disabled="loading"
-          />
-        </div>
-
-        <button 
-          type="submit"
-          class="w-full bg-[var(--text-primary)] text-white py-4 text-[10px] font-black tracking-[0.3em] hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
-          :disabled="loading"
-        >
-          {{ loading ? '...' : t('submit') }}
-        </button>
-      </form>
+  <div class="min-h-screen flex items-center justify-center p-4 md:p-8 bg-gradient-to-br from-[var(--bg-app)] via-[var(--bg-app)] to-[var(--input-bg)] relative overflow-hidden">
+    <!-- Animated Background Elements -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <div class="absolute top-20 left-10 w-72 h-72 bg-[var(--text-primary)] opacity-5 rounded-full blur-3xl animate-pulse"></div>
+      <div class="absolute bottom-20 right-10 w-96 h-96 bg-[var(--text-primary)] opacity-5 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
     </div>
+
+    <!-- Login Card -->
+    <Transition
+      enter-active-class="transition-all duration-700 ease-out"
+      enter-from-class="opacity-0 scale-95 translate-y-8"
+      enter-to-class="opacity-100 scale-100 translate-y-0"
+    >
+      <div 
+        v-if="isPageLoaded"
+        class="w-full max-w-md relative z-10"
+      >
+        <div class="bg-[var(--bg-sidebar)] border border-[var(--border-app)] rounded-2xl shadow-2xl p-8 md:p-12 space-y-8 backdrop-blur-sm">
+          <!-- Logo & Title -->
+          <div class="space-y-6 text-center">
+            <!-- Logo -->
+            <div class="flex justify-center">
+              <img 
+                src="~/assets/images/yessir_pos_all_logo.svg" 
+                alt="YESSIR POS" 
+                class="h-16 w-auto"
+              />
+            </div>
+
+            <!-- Divider -->
+            <div class="flex items-center gap-4">
+              <div class="flex-1 h-px bg-[var(--border-app)]"></div>
+              <span class="text-xs text-[var(--text-app)] opacity-40 font-medium">Giriş</span>
+              <div class="flex-1 h-px bg-[var(--border-app)]"></div>
+            </div>
+          </div>
+
+          <!-- Error Message -->
+          <Transition
+            enter-active-class="transition-all duration-300"
+            enter-from-class="opacity-0 -translate-y-2"
+            leave-active-class="transition-all duration-300"
+            leave-to-class="opacity-0 -translate-y-2"
+          >
+            <div 
+              v-if="error" 
+              class="bg-[var(--color-brand-danger)]/10 border border-[var(--color-brand-danger)]/30 rounded-xl p-4 flex items-center gap-3"
+            >
+              <UiIcon name="solar:danger-circle-bold-duotone" size="lg" class="text-[var(--color-brand-danger)] flex-shrink-0" />
+              <p class="text-sm text-[var(--color-brand-danger)] font-medium">
+                {{ error }}
+              </p>
+            </div>
+          </Transition>
+
+          <!-- Login Form -->
+          <form @submit.prevent="handleLogin" class="space-y-5">
+            <!-- Email Input -->
+            <div class="space-y-2">
+              <label class="text-sm font-medium text-[var(--text-app)] opacity-80">
+                İstifadəçi adı
+              </label>
+              <div class="relative">
+                <div class="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-app)] opacity-40">
+                  <UiIcon name="solar:user-bold-duotone" size="md" />
+                </div>
+                <input 
+                  v-model="email"
+                  type="text" 
+                  class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] rounded-xl pl-12 pr-4 py-3.5 text-sm outline-none focus:border-[var(--text-primary)] focus:ring-2 focus:ring-[var(--text-primary)]/20 transition-all placeholder:opacity-40 disabled:opacity-50 disabled:cursor-not-allowed"
+                  placeholder="admin"
+                  required
+                  :disabled="loading"
+                />
+              </div>
+            </div>
+
+            <!-- Password Input -->
+            <div class="space-y-2">
+              <label class="text-sm font-medium text-[var(--text-app)] opacity-80">
+                Şifrə
+              </label>
+              <div class="relative">
+                <div class="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-app)] opacity-40">
+                  <UiIcon name="solar:lock-password-bold-duotone" size="md" />
+                </div>
+                <input 
+                  v-model="password"
+                  type="password" 
+                  class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] rounded-xl pl-12 pr-4 py-3.5 text-sm outline-none focus:border-[var(--text-primary)] focus:ring-2 focus:ring-[var(--text-primary)]/20 transition-all placeholder:opacity-40 disabled:opacity-50 disabled:cursor-not-allowed"
+                  placeholder="••••••••"
+                  required
+                  :disabled="loading"
+                />
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button 
+              type="submit"
+              class="w-full bg-[var(--text-primary)] text-white rounded-xl py-4 text-sm font-semibold hover:bg-[var(--text-secondary)] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-lg shadow-[var(--text-primary)]/20 flex items-center justify-center gap-2"
+              :disabled="loading"
+            >
+              <Transition
+                mode="out-in"
+                enter-active-class="transition-all duration-200"
+                enter-from-class="opacity-0 scale-50"
+                leave-active-class="transition-all duration-200"
+                leave-to-class="opacity-0 scale-50"
+              >
+                <UiIcon 
+                  v-if="loading"
+                  key="loading"
+                  name="solar:refresh-bold-duotone" 
+                  size="md" 
+                  class="animate-spin"
+                />
+                <UiIcon 
+                  v-else
+                  key="login"
+                  name="solar:login-3-bold-duotone" 
+                  size="md"
+                />
+              </Transition>
+              <span>{{ loading ? 'Gözləyin...' : 'Daxil ol' }}</span>
+            </button>
+          </form>
+
+          <!-- Footer Info -->
+          <div class="pt-4 border-t border-[var(--border-app)]">
+            <p class="text-xs text-center text-[var(--text-app)] opacity-50">
+              © {{ currentYear }} YESSIR POS. Bütün hüquqlar qorunur.
+            </p>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
+
+<style scoped>
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.05;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.08;
+    transform: scale(1.05);
+  }
+}
+
+.animate-pulse {
+  animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+</style>
