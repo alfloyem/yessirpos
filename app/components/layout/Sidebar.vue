@@ -84,12 +84,12 @@ const menuItems = computed(() => [
         />
         <div 
           class="flex items-center overflow-hidden transition-all duration-300 ease-in-out"
-          :class="isSidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-[150px] opacity-100'"
+          :class="isSidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-[180px] opacity-100'"
         >
           <img 
             src="~/assets/images/yessir_pos_text_logo.svg" 
             alt="YESSIR POS" 
-            class="h-6 w-auto flex-shrink-0" 
+            class="h-8 w-auto flex-shrink-0 ml-1" 
           />
         </div>
       </NuxtLink>
