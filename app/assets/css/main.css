@@ -1,35 +1,43 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #1e40af; /* Trust Navy - Blue 800 */
-  --color-secondary: #1e3a8a; /* Darker Navy - Blue 900 */
-  --color-brand-success: #28c76f;
-  --color-brand-warning: #ff9f43;
-  --color-brand-danger: #ea5455;
-  --color-brand-info: #00cfe8;
+  --color-primary: hsl(255, 75%, 50%); /* Indigo/Purple Main */
+  --color-secondary: hsl(255, 80%, 40%); /* Darker Indigo/Purple */
+  --color-brand-success: #10b981;
+  --color-brand-warning: #f59e0b;
+  --color-brand-danger: #ef4444;
+  --color-brand-info: #0ea5e9;
   
   --font-serif: "Playfair Display", serif;
-  --font-sans: "Inter", system-ui, sans-serif;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 :root {
-  --bg-app: #f8fafc;         /* Slate 50 */
-  --bg-sidebar: #ffffff;
-  --text-app: #64748b;       /* Slate 500 */
-  --text-primary: #1e40af;
-  --text-secondary: #1e3a8a;
-  --border-app: #e2e8f0;     /* Slate 200 */
-  --input-bg: #ffffff;
+  --bg-app: hsl(255, 8%, 97%);
+  --bg-sidebar: hsl(255, 12%, 99%);
+  --text-app: hsl(255, 20%, 15%);
+  --text-muted: hsl(255, 15%, 45%);
+  --text-primary: hsl(255, 75%, 50%);
+  --text-secondary: hsl(255, 80%, 40%);
+  --border-app: hsl(255, 15%, 90%);
+  --input-bg: hsl(255, 12%, 99%);
+  
+  --btn-primary-bg: hsl(255, 75%, 50%);
+  --btn-primary-text: #ffffff;
 }
 
 .dark {
-  --bg-app: #1e293b;         /* Slate 800 */
-  --bg-sidebar: #334155;     /* Slate 700 */
-  --text-app: #cbd5e1;       /* Slate 300 */
-  --text-primary: #60a5fa;   /* Blue 400 */
-  --text-secondary: #3b82f6;
-  --border-app: #475569;     /* Slate 600 */
-  --input-bg: #334155;
+  --bg-app: hsl(255, 12%, 6%);
+  --bg-sidebar: hsl(255, 15%, 8%);
+  --text-app: hsl(255, 10%, 95%);
+  --text-muted: hsl(255, 15%, 65%);
+  --text-primary: hsl(255, 85%, 75%);
+  --text-secondary: hsl(255, 85%, 65%);
+  --border-app: hsl(255, 20%, 15%);
+  --input-bg: hsl(255, 15%, 8%);
+  
+  --btn-primary-bg: hsl(255, 85%, 75%);
+  --btn-primary-text: hsl(255, 30%, 10%);
 }
 
 @layer base {

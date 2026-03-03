@@ -27,9 +27,9 @@ const sizeClasses = computed(() => {
 const variantClasses = computed(() => {
   switch (props.variant) {
     case 'primary': 
-      return 'text-white bg-[var(--text-primary)] hover:bg-[var(--text-secondary)] shadow-md shadow-[var(--text-primary)]/30'
+      return 'text-[var(--btn-primary-text)] bg-[var(--btn-primary-bg)] hover:opacity-90 shadow-sm'
     case 'danger': 
-      return 'text-white bg-[var(--color-brand-danger)] hover:bg-[var(--color-brand-danger)]/90 shadow-md shadow-[var(--color-brand-danger)]/30'
+      return 'text-white bg-[var(--color-brand-danger)] hover:bg-[var(--color-brand-danger)]/90 shadow-sm'
     case 'warning': 
       return 'text-white bg-[var(--color-brand-warning)] hover:bg-[var(--color-brand-warning)]/90 shadow-md shadow-[var(--color-brand-warning)]/30'
     case 'success': 

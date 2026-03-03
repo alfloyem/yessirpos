@@ -168,7 +168,7 @@ const selectLanguage = (code) => {
           <span class="text-xs font-bold text-[var(--text-app)]">{{ t('user.name') }}</span>
           <span class="text-[10px] text-[var(--text-app)] opacity-60">{{ t('user.role') }}</span>
         </div>
-        <div class="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-[var(--text-primary)] text-white flex items-center justify-center font-bold text-xs md:text-sm border hover:opacity-80 transition-all cursor-pointer">
+        <div class="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] flex items-center justify-center font-bold text-xs md:text-sm border hover:opacity-80 transition-all cursor-pointer">
           {{ t('user.initials') }}
         </div>
       </div>
