@@ -34,7 +34,7 @@ const giftCardSchema: (FormField & { inTable?: boolean, sortable?: boolean })[] 
   { 
     key: 'customer', 
     label: 'Müştəri adını axtar', 
-    type: 'autocomplete', 
+    type: 'select', 
     inTable: false, // We will map it manually for the table to show full name
     required: true,
     icon: 'lucide:user',
@@ -85,7 +85,6 @@ const handleAdd = () => {
 
 const handleEdit = (row: any) => {
   formData.value = { ...row }
-  // Populate the autocomplete search field
   const foundCustomer = mockCustomers.find(c => c.value === row.customer)
   if (foundCustomer) {
     formData.value['customer_search'] = foundCustomer.label

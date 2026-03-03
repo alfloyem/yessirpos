@@ -437,6 +437,11 @@ watch(searchQuery, () => {
               </td>
             </tr>
           </tbody>
+
+          <!-- Footer Slot for Custom Summary Row -->
+          <tfoot v-if="$slots.footer">
+            <slot name="footer" :columns="visibleColumns" :selectable="selectable" :actions="actions" />
+          </tfoot>
         </table>
       </div>
 

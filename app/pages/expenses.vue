@@ -12,31 +12,78 @@ useHead({
   title: t('menu.expenses') || 'Xərclər'
 })
 
-// Fetch employees for autocomplete
-const employees = ref<string[]>([])
-const fetchEmployees = async () => {
-  // In real app, this would be an API call to /api/employees
-  // For now, we'll use mock data
-  employees.value = [
-    'Rəşad Məmmədov',
-    'Leyla Əliyeva',
-    'Elvin Quliyev',
-    'Nigar Həsənova',
-    'Məhəmməd Şükürov',
-    'Ayşə Kaya',
-    'Sistem İdarəçisi'
-  ]
+// --- Centralized Schema ---
+const dateFilter = ref('all')
+const dateFilterOptions = [
+  { label: 'Hamısı', value: 'all' },
+  { label: 'Bu gün', value: 'today' },
+  { label: 'Dünən', value: 'yesterday' },
+  { label: 'Bu həftə', value: 'thisWeek' },
+  { label: 'Son 2 həftə', value: 'last2Weeks' },
+  { label: 'Bu ay', value: 'thisMonth' },
+  { label: 'Son 3 ay', value: 'last3Months' },
+  { label: 'Bu il', value: 'thisYear' }
+]
+
+// Parse date from dd.mm.yyyy HH:mm format
+const parseDate = (dateStr: string) => {
+  const [datePart] = dateStr.split(' ')
+  const [day, month, year] = datePart.split('.')
+  return new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
 }
 
-onMounted(() => {
-  fetchEmployees()
+// Filter data by date
+const filteredData = computed(() => {
+  if (dateFilter.value === 'all') return mockData.value
+
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  
+  return mockData.value.filter(item => {
+    const itemDate = parseDate(item.date)
+    
+    switch (dateFilter.value) {
+      case 'today':
+        return itemDate >= today
+      
+      case 'yesterday':
+        const yesterday = new Date(today)
+        yesterday.setDate(yesterday.getDate() - 1)
+        return itemDate >= yesterday && itemDate < today
+      
+      case 'thisWeek':
+        const weekStart = new Date(today)
+        weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1) // Monday
+        return itemDate >= weekStart
+      
+      case 'last2Weeks':
+        const twoWeeksAgo = new Date(today)
+        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14)
+        return itemDate >= twoWeeksAgo
+      
+      case 'thisMonth':
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+        return itemDate >= monthStart
+      
+      case 'last3Months':
+        const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1)
+        return itemDate >= threeMonthsAgo
+      
+      case 'thisYear':
+        const yearStart = new Date(now.getFullYear(), 0, 1)
+        return itemDate >= yearStart
+      
+      default:
+        return true
+    }
+  })
 })
 
 // --- Centralized Schema ---
 const expenseSchema: (FormField & { inTable?: boolean, sortable?: boolean })[] = [
   { key: 'rowNumber', label: 'Sıra sayı', type: 'text', inTable: true, sortable: false },
-  { key: 'date', label: 'Tarix', icon: 'lucide:calendar', type: 'date', inTable: true, sortable: true, required: true },
-  { key: 'employee', label: 'Əməkdaş', icon: 'lucide:user', type: 'autocomplete', inTable: true, sortable: true, suggestions: employees },
+  { key: 'date', label: 'Tarix', icon: 'lucide:calendar', type: 'datetime', inTable: true, sortable: true, required: true },
+  { key: 'employee', label: 'Əməkdaş', icon: 'lucide:user', type: 'text', inTable: true, sortable: true },
   { key: 'amount', label: 'Xərc (₼)', icon: 'lucide:wallet', type: 'number', inTable: true, sortable: true, required: true },
   { key: 'category', label: 'Kateqoriya', icon: 'lucide:folder', type: 'select', inTable: true, sortable: true, required: true, options: [
     { label: 'Obyekt xərcləri', value: 'office' },
@@ -88,7 +135,7 @@ const mockData = ref<any[]>([
   { 
     id: 1, 
     rowNumber: 1,
-    date: '2026-03-03',
+    date: '03.03.2026 10:15',
     employee: 'Rəşad Məmmədov',
     amount: 500,
     category: 'office',
@@ -101,7 +148,7 @@ const mockData = ref<any[]>([
   { 
     id: 2, 
     rowNumber: 2,
-    date: '2026-03-02',
+    date: '02.03.2026 14:30',
     employee: 'Leyla Əliyeva',
     amount: 3500,
     category: 'salary',
@@ -114,7 +161,7 @@ const mockData = ref<any[]>([
   { 
     id: 3, 
     rowNumber: 3,
-    date: '2026-03-01',
+    date: '01.03.2026 09:20',
     employee: 'Elvin Quliyev',
     amount: 1200,
     category: 'rent',
@@ -127,7 +174,7 @@ const mockData = ref<any[]>([
   { 
     id: 4, 
     rowNumber: 4,
-    date: '2026-02-28',
+    date: '28.02.2026 16:45',
     employee: 'Nigar Həsənova',
     amount: 250,
     category: 'utilities',
@@ -140,7 +187,7 @@ const mockData = ref<any[]>([
   { 
     id: 5, 
     rowNumber: 5,
-    date: '2026-02-27',
+    date: '27.02.2026 11:30',
     employee: 'Məhəmməd Şükürov',
     amount: 800,
     category: 'marketing',
@@ -152,9 +199,85 @@ const mockData = ref<any[]>([
   },
 ])
 
-// Calculate total expenses
+// Calculate total expenses based on filtered data
 const totalExpenses = computed(() => {
-  return mockData.value.reduce((sum, item) => sum + (item.amount || 0), 0)
+  return filteredData.value.reduce((sum, item) => sum + (item.amount || 0), 0)
+})
+
+// Calculate previous period total for comparison
+const previousPeriodTotal = computed(() => {
+  if (dateFilter.value === 'all') return 0
+  
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  
+  let startDate: Date
+  let endDate: Date
+  
+  switch (dateFilter.value) {
+    case 'today':
+      startDate = new Date(today)
+      startDate.setDate(startDate.getDate() - 1)
+      endDate = today
+      break
+    
+    case 'yesterday':
+      startDate = new Date(today)
+      startDate.setDate(startDate.getDate() - 2)
+      endDate = new Date(today)
+      endDate.setDate(endDate.getDate() - 1)
+      break
+    
+    case 'thisWeek':
+      const weekStart = new Date(today)
+      weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1)
+      startDate = new Date(weekStart)
+      startDate.setDate(startDate.getDate() - 7)
+      endDate = weekStart
+      break
+    
+    case 'last2Weeks':
+      const twoWeeksAgo = new Date(today)
+      twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14)
+      startDate = new Date(twoWeeksAgo)
+      startDate.setDate(startDate.getDate() - 14)
+      endDate = twoWeeksAgo
+      break
+    
+    case 'thisMonth':
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+      startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+      endDate = monthStart
+      break
+    
+    case 'last3Months':
+      const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1)
+      startDate = new Date(now.getFullYear(), now.getMonth() - 6, 1)
+      endDate = threeMonthsAgo
+      break
+    
+    case 'thisYear':
+      const yearStart = new Date(now.getFullYear(), 0, 1)
+      startDate = new Date(now.getFullYear() - 1, 0, 1)
+      endDate = yearStart
+      break
+    
+    default:
+      return 0
+  }
+  
+  return mockData.value
+    .filter(item => {
+      const itemDate = parseDate(item.date)
+      return itemDate >= startDate && itemDate < endDate
+    })
+    .reduce((sum, item) => sum + (item.amount || 0), 0)
+})
+
+// Calculate percentage change
+const percentageChange = computed(() => {
+  if (previousPeriodTotal.value === 0) return 0
+  return ((totalExpenses.value - previousPeriodTotal.value) / previousPeriodTotal.value) * 100
 })
 
 // --- Modals State ---
@@ -200,9 +323,16 @@ const addNewCategory = () => {
 
 // --- Handlers ---
 const handleAdd = () => {
-  const today = new Date().toISOString().split('T')[0]
+  const d = new Date()
+  const day = String(d.getDate()).padStart(2, '0')
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const year = d.getFullYear()
+  const hours = String(d.getHours()).padStart(2, '0')
+  const minutes = String(d.getMinutes()).padStart(2, '0')
+  const formattedDateTime = `${day}.${month}.${year} ${hours}:${minutes}`
+  
   formData.value = {
-    date: today,
+    date: formattedDateTime,
     employee: '',
     paymentMethod: 'cash',
     category: 'office'
@@ -227,7 +357,12 @@ const handleDelete = (row: any) => {
 
 const handleDuplicate = (row: any) => {
   const d = new Date()
-  const formattedDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+  const day = String(d.getDate()).padStart(2, '0')
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const year = d.getFullYear()
+  const hours = String(d.getHours()).padStart(2, '0')
+  const minutes = String(d.getMinutes()).padStart(2, '0')
+  const formattedDateTime = `${day}.${month}.${year} ${hours}:${minutes}`
   
   const newId = Date.now()
   const newRowNumber = mockData.value.length + 1
@@ -236,8 +371,8 @@ const handleDuplicate = (row: any) => {
     ...row,
     id: newId,
     rowNumber: newRowNumber,
-    date: new Date().toISOString().split('T')[0], // Today's date
-    createdAt: formattedDate,
+    date: formattedDateTime,
+    createdAt: formattedDateTime,
     createdBy: 'Sistem İdarəçisi'
   }
   
@@ -263,7 +398,12 @@ const handleBulkEdit = (ids: any[]) => {
 const saveForm = () => {
   if (showAddModal.value) {
     const d = new Date()
-    const formattedDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+    const day = String(d.getDate()).padStart(2, '0')
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const year = d.getFullYear()
+    const hours = String(d.getHours()).padStart(2, '0')
+    const minutes = String(d.getMinutes()).padStart(2, '0')
+    const formattedDateTime = `${day}.${month}.${year} ${hours}:${minutes}`
     
     const newId = Date.now()
     const newRowNumber = mockData.value.length + 1
@@ -272,7 +412,7 @@ const saveForm = () => {
       id: newId,
       rowNumber: newRowNumber,
       ...formData.value,
-      createdAt: formattedDate,
+      createdAt: formattedDateTime,
       createdBy: 'Sistem İdarəçisi'
     })
     showAddModal.value = false
@@ -298,23 +438,12 @@ const saveForm = () => {
       <h1 class="text-2xl font-bold text-[var(--text-app)]">
         Xərclər
       </h1>
-      
-      <!-- Total Expenses Card -->
-      <div class="bg-[var(--color-brand-danger)]/10 border border-[var(--color-brand-danger)]/30 rounded-xl px-6 py-3">
-        <div class="flex items-center gap-3">
-          <UiIcon name="lucide:trending-down" class="w-6 h-6 text-[var(--color-brand-danger)]" />
-          <div>
-            <p class="text-xs text-[var(--text-app)] opacity-60">Cəmi xərc</p>
-            <p class="text-xl font-bold text-[var(--color-brand-danger)]">{{ totalExpenses.toLocaleString() }} ₼</p>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- Smart Data Table -->
     <DataTable 
       title="Xerc_Listesi"
-      :data="mockData" 
+      :data="filteredData" 
       :columns="columns"
       :selectable="true"
       :actions="true"
@@ -335,7 +464,7 @@ const saveForm = () => {
       <!-- Date Custom Format -->
       <template #cell-date="{ value }">
         <span class="font-medium text-[var(--text-app)]">
-          {{ new Date(value).toLocaleDateString('az-AZ') }}
+          {{ value }}
         </span>
       </template>
 
@@ -352,7 +481,91 @@ const saveForm = () => {
           {{ categoryLabels[value] || value }}
         </span>
       </template>
+
+      <!-- Footer: Total Row -->
+      <template #footer="{ columns, selectable, actions }">
+        <tr class="bg-gradient-to-r from-[var(--color-brand-danger)]/5 to-[var(--color-brand-danger)]/10 border-t-2 border-[var(--color-brand-danger)]/30">
+          <!-- Checkbox column if selectable -->
+          <td v-if="selectable" class="px-6 py-4"></td>
+          
+          <!-- Row Number Column -->
+          <td class="px-6 py-4">
+            <div class="flex items-center gap-2">
+              <UiIcon name="lucide:calculator" class="w-5 h-5 text-[var(--color-brand-danger)]" />
+            </div>
+          </td>
+          
+          <!-- Date Column -->
+          <td class="px-6 py-4">
+            <span class="text-sm font-semibold text-[var(--text-app)]">
+              {{ dateFilterOptions.find(o => o.value === dateFilter)?.label || 'Hamısı' }}
+            </span>
+          </td>
+          
+          <!-- Employee Column -->
+          <td class="px-6 py-4">
+            <span class="text-sm font-bold text-[var(--text-app)]">CƏMİ XƏRC</span>
+          </td>
+          
+          <!-- Amount Column -->
+          <td class="px-6 py-4">
+            <div class="flex items-center gap-2">
+              <span class="text-lg font-bold text-[var(--color-brand-danger)]">
+                {{ totalExpenses.toLocaleString() }} ₼
+              </span>
+              <UiIcon 
+                v-if="dateFilter !== 'all'"
+                :name="percentageChange >= 0 ? 'lucide:trending-up' : 'lucide:trending-down'" 
+                class="w-4 h-4"
+                :class="percentageChange >= 0 ? 'text-red-500' : 'text-green-500'"
+              />
+              <span 
+                v-if="dateFilter !== 'all'"
+                class="text-xs font-medium"
+                :class="percentageChange >= 0 ? 'text-red-500' : 'text-green-500'"
+              >
+                {{ Math.abs(percentageChange).toFixed(1) }}%
+              </span>
+            </div>
+          </td>
+          
+          <!-- Category Column -->
+          <td class="px-6 py-4">
+            <div class="flex flex-wrap gap-1">
+              <button
+                v-for="option in dateFilterOptions.slice(0, 4)"
+                :key="option.value"
+                @click="dateFilter = option.value"
+                class="px-2 py-1 rounded-md text-xs font-medium transition-all duration-300 cursor-pointer"
+                :class="dateFilter === option.value 
+                  ? 'bg-[var(--color-brand-danger)] text-white' 
+                  : 'bg-[var(--input-bg)] text-[var(--text-app)] hover:bg-[var(--color-brand-danger)]/10 border border-[var(--border-app)]'"
+              >
+                {{ option.label }}
+              </button>
+            </div>
+          </td>
+          
+          <!-- Actions column if present -->
+          <td v-if="actions" class="px-6 py-4"></td>
+        </tr>
+      </template>
     </DataTable>
+
+    <!-- Filter Buttons (Below Table) -->
+    <div class="flex flex-wrap gap-2 justify-end">
+      <button
+        v-for="option in dateFilterOptions"
+        :key="option.value"
+        @click="dateFilter = option.value"
+        class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 cursor-pointer"
+        :class="dateFilter === option.value 
+          ? 'bg-[var(--color-brand-danger)] text-white shadow-md shadow-[var(--color-brand-danger)]/30' 
+          : 'bg-[var(--input-bg)] text-[var(--text-app)] hover:bg-[var(--color-brand-danger)]/10 border border-[var(--border-app)]'"
+      >
+        {{ option.label }}
+      </button>
+    </div>
 
     <!-- Modal: Add -->
     <Modal v-model="showAddModal" title="Yeni Xərc Əlavə Et" max-width="xl">

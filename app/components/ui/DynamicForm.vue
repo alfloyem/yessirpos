@@ -2,14 +2,12 @@
 import { computed } from 'vue'
 import UiInput from '~/components/ui/Input.vue'
 import UiSelect from '~/components/ui/Select.vue'
-import AutocompleteInput from '~/components/ui/AutocompleteInput.vue'
 
 export interface FormField {
   key: string
   label: string
-  type: 'text' | 'email' | 'password' | 'tel' | 'textarea' | 'select' | 'number' | 'date' | 'autocomplete'
+  type: 'text' | 'email' | 'password' | 'tel' | 'textarea' | 'select' | 'number' | 'date' | 'datetime'
   options?: { label: string, value: any }[] // For select
-  suggestions?: string[] // For autocomplete
   required?: boolean
   colSpan?: 1 | 2
   icon?: string // Optional icon
@@ -25,6 +23,38 @@ const emit = defineEmits(['update:modelValue'])
 
 const updateField = (key: string, value: any) => {
   emit('update:modelValue', { ...props.modelValue, [key]: value })
+}
+
+// Convert datetime-local format to dd.mm.yyyy HH:mm
+const formatDateTimeForDisplay = (value: string) => {
+  if (!value) return ''
+  // If already in dd.mm.yyyy HH:mm format, return as is
+  if (value.match(/^\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}$/)) return value
+  
+  // Parse from yyyy-MM-dd HH:mm format
+  const parts = value.split(' ')
+  if (parts.length === 2) {
+    const [datePart, timePart] = parts
+    const [year, month, day] = datePart.split('-')
+    return `${day}.${month}.${year} ${timePart}`
+  }
+  return value
+}
+
+// Convert dd.mm.yyyy HH:mm to yyyy-MM-dd HH:mm for storage
+const parseDateTimeFromDisplay = (value: string) => {
+  if (!value) return ''
+  // If already in yyyy-MM-dd HH:mm format, return as is
+  if (value.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/)) return value
+  
+  // Parse from dd.mm.yyyy HH:mm format
+  const parts = value.split(' ')
+  if (parts.length === 2) {
+    const [datePart, timePart] = parts
+    const [day, month, year] = datePart.split('.')
+    return `${year}-${month}-${day} ${timePart}`
+  }
+  return value
 }
 
 // Automatically create a confirm field for any password field and inject it into the fields list.
@@ -92,16 +122,17 @@ const isPasswordMismatch = (field: any) => {
         class="hover:border-[var(--text-primary)]"
       />
       
-      <!-- Autocomplete -->
-      <AutocompleteInput 
-        v-else-if="field.type === 'autocomplete'"
-        :modelValue="modelValue[field.key] || ''"
-        @update:modelValue="val => updateField(field.key, val)"
-        :suggestions="field.suggestions || []"
-        :disabled="isLoading"
-        :icon="field.icon"
-        :placeholder="field.label"
-      />
+      <!-- DateTime Input (dd.mm.yyyy HH:mm) -->
+      <div v-else-if="field.type === 'datetime'" class="relative">
+        <UiInput 
+          type="text"
+          :modelValue="formatDateTimeForDisplay(modelValue[field.key] || '')"
+          @update:modelValue="val => updateField(field.key, parseDateTimeFromDisplay(val))"
+          :disabled="isLoading"
+          :icon="field.icon"
+          placeholder="dd.mm.yyyy HH:mm"
+        />
+      </div>
       
       <!-- Input -->
       <div v-else class="relative">
