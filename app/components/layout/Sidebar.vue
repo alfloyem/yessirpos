@@ -164,21 +164,21 @@ onUnmounted(() => {
         :class="isSidebarCollapsed && !isMobileMenuOpen ? 'justify-center' : 'justify-between'"
       >
         <div 
-          class="flex items-center overflow-hidden h-full transition-all duration-300" 
+          class="h-full flex items-center overflow-hidden h-full transition-all duration-300" 
           :class="isSidebarCollapsed && !isMobileMenuOpen ? 'gap-0 w-auto justify-center' : 'gap-[10px] w-full'"
         >
           <!-- Emblem Always Visible -->
           <img 
             :src="yessirIcon" 
             alt="Logo Icon" 
-            class="h-[40px] w-[40px] min-w-[40px] object-contain transition-all duration-300"
+            class="h-full w-fit object-contain transition-all duration-300"
           />
           <!-- Text Smoothly Hides without Scale -->
           <img 
             :src="yessirTextLogo" 
             alt="Logo Text" 
             class="h-full flex-shrink-0 transition-all duration-300 ease-in-out object-contain"
-            :class="isSidebarCollapsed && !isMobileMenuOpen ? 'w-0 opacity-0 invisible ml-0' : 'w-[120px] opacity-100 visible ml-1'"
+            :class="isSidebarCollapsed && !isMobileMenuOpen ? 'w-0 opacity-0 invisible ml-0' : 'w-[120px] opacity-100 visible'"
           />
         </div>
 

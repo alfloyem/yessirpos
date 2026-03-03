@@ -53,38 +53,9 @@ const selectLanguage = (code) => {
       <!-- Desktop Toggle Button -->
       <button 
         @click="toggleSidebar"
-        class="hidden md:block text-[var(--text-app)] opacity-60 hover:opacity-100 hover:text-[var(--text-primary)] hover:scale-105 transition-all duration-500 cursor-pointer"
+        class="hidden md:block text-[var(--text-app)] opacity-60 hover:opacity-100 hover:text-[var(--text-primary)] hover:scale-105 transition-all duration-300 cursor-pointer p-1"
       >
-        <!-- Hamburger Menu Icon (Collapsed) -->
-        <svg 
-          v-if="isSidebarCollapsed"
-          xmlns="http://www.w3.org/2000/svg" 
-          width="36" 
-          height="36" 
-          viewBox="0 0 24 24"
-          class="transition-all duration-500"
-        >
-          <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5">
-            <path d="M20 7H4"/>
-            <path d="M20 12H4" opacity="0.5"/>
-            <path d="M20 17H4"/>
-          </g>
-        </svg>
-        
-        <!-- X Icon (Open) -->
-        <svg 
-          v-else
-          xmlns="http://www.w3.org/2000/svg" 
-          width="36" 
-          height="36" 
-          viewBox="0 0 24 24"
-          class="transition-all duration-500"
-        >
-          <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5">
-            <path d="M18 6L6 18"/>
-            <path d="M6 6l12 12" opacity="0.5"/>
-          </g>
-        </svg>
+        <Icon name="lucide:align-left" class="w-7 h-7" />
       </button>
 
       <!-- Mobile Toggle Button -->
@@ -92,16 +63,7 @@ const selectLanguage = (code) => {
         @click="toggleMobileMenu"
         class="md:hidden text-[var(--text-app)] hover:text-[var(--text-primary)] transition-all cursor-pointer p-1"
       >
-        <svg 
-          xmlns="http://www.w3.org/2000/svg" 
-          width="28" 
-          height="28" 
-          viewBox="0 0 24 24"
-        >
-          <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2">
-            <path d="M4 6h16M4 12h16M4 18h16"/>
-          </g>
-        </svg>
+        <Icon name="lucide:menu" class="w-7 h-7" />
       </button>
 
       <!-- Mobile Logo Placeholder (Only visible on mobile) -->
@@ -111,32 +73,34 @@ const selectLanguage = (code) => {
     <!-- Navbar Right (Actions) -->
     <div class="flex items-center gap-6">
       <!-- Digital Clock -->
-      <div class="hidden md:flex items-center gap-2 text-[var(--text-app)] opacity-80 text-xs font-medium bg-[var(--input-bg)] px-3 py-1.5 rounded-lg border border-[var(--border-app)] hover:border-[var(--text-primary)] transition-all">
-        <Icon name="lucide:clock" class="w-3.5 h-3.5 text-[var(--text-primary)]" />
+      <div class="hidden md:flex items-center gap-2 text-[var(--text-app)] opacity-70 text-[13px] font-medium tracking-wide">
+        <Icon name="lucide:clock" class="w-4 h-4 text-[var(--text-primary)] opacity-80" />
         <span>{{ formattedTime }}</span>
       </div>
 
       <!-- Language Switcher & Theme Toggle -->
       <div class="flex items-center gap-2 md:gap-3 md:pl-6 md:border-l border-[var(--border-app)]">
         <!-- Language Dropdown -->
-        <UiDropdown menuClass="absolute top-12 right-0 bg-[var(--input-bg)] z-[200] min-w-[150px]">
+        <UiDropdown menuClass="absolute top-12 right-0 bg-[var(--bg-app)] border border-[var(--border-app)] z-[200] min-w-[140px] rounded-[16px] drop-shadow-xl overflow-hidden py-1">
           <template #trigger>
-            <button class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg hover:border-[var(--text-primary)] hover:scale-105 transition-all cursor-pointer overflow-hidden">
-              <img :src="currentFlag" :alt="locale" class="w-5 h-5 md:w-6 md:h-6 object-cover rounded" />
+            <button class="w-9 h-9 flex items-center justify-center bg-transparent hover:bg-[var(--text-primary)]/10 rounded-full transition-all cursor-pointer overflow-hidden border border-transparent hover:border-[var(--text-primary)]/20">
+              <img :src="currentFlag" :alt="locale" class="w-5 h-5 object-cover rounded-full" />
             </button>
           </template>
 
           <template #menu="{ close }">
-            <button
-              v-for="l in locales"
-              :key="l.code"
-              @click="selectLanguage(l.code); close()"
-              class="w-full flex items-center gap-3 px-4 py-3.5 text-sm font-medium transition-all hover:bg-[var(--text-primary)]/10 hover:text-[var(--text-primary)] whitespace-nowrap cursor-pointer"
-              :class="locale === l.code ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)]' : 'text-[var(--text-app)]'"
-            >
-              <img :src="languageFlags[l.code]" :alt="l.name" class="w-5 h-5 object-cover rounded flex-shrink-0" />
-              <span class="leading-none">{{ l.name }}</span>
-            </button>
+            <div class="px-2">
+              <button
+                v-for="l in locales"
+                :key="l.code"
+                @click="selectLanguage(l.code); close()"
+                class="w-full flex items-center gap-3 px-3 py-2.5 my-1 text-[13px] font-medium transition-all rounded-[10px] hover:bg-[var(--text-primary)]/10 hover:text-[var(--text-primary)] whitespace-nowrap cursor-pointer"
+                :class="locale === l.code ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)]' : 'text-[var(--text-app)] opacity-80'"
+              >
+                <img :src="languageFlags[l.code]" :alt="l.name" class="w-5 h-5 object-cover rounded-full flex-shrink-0" />
+                <span class="leading-none">{{ l.name }}</span>
+              </button>
+            </div>
           </template>
         </UiDropdown>
 
@@ -162,17 +126,7 @@ const selectLanguage = (code) => {
         </button>
       </div>
 
-      <!-- User Info -->
-      <div class="flex items-center gap-3 pl-2 md:pl-4 border-l border-[var(--border-app)]">
-        <div class="hidden md:flex flex-col text-right">
-          <span class="text-xs font-bold text-[var(--text-app)]">{{ t('user.name') }}</span>
-          <span class="text-[10px] text-[var(--text-app)] opacity-60">{{ t('user.role') }}</span>
-        </div>
-        <div class="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] flex items-center justify-center font-bold text-xs md:text-sm border hover:opacity-80 transition-all cursor-pointer">
-          {{ t('user.initials') }}
-        </div>
       </div>
-    </div>
   </header>
 </template>
 
