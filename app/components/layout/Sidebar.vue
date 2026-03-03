@@ -15,7 +15,7 @@ const isMobileMenuOpen = useState<boolean>('mobileMenuOpen', () => false)
 const menu = ref([
   {
     title: 'Əsas',
-    titleKey: 'menu.main',
+    titleKey: 'menu.main_category',
     icon: 'lucide:calendar',
     isOpen: false,
     children: [
@@ -26,17 +26,17 @@ const menu = ref([
   },
   {
     title: 'Müştərilər',
-    titleKey: 'menu.customers',
+    titleKey: 'menu.customers_category',
     icon: 'lucide:users',
     isOpen: false,
     children: [
-      { title: 'Müştərilər', titleKey: 'menu.customers_sub', to: '/customers' }, 
+      { title: 'Müştərilər', titleKey: 'menu.customers', to: '/customers' }, 
       { title: 'Hədiyyə Kartı', titleKey: 'menu.giftCard', to: '/gift-cards' }
     ]
   },
   {
     title: 'Anbar',
-    titleKey: 'menu.warehouse',
+    titleKey: 'menu.inventory_category',
     icon: 'lucide:package',
     isOpen: false,
     children: [
@@ -46,7 +46,7 @@ const menu = ref([
   },
   {
     title: 'Təchizat',
-    titleKey: 'menu.supply',
+    titleKey: 'menu.suppliers_category',
     icon: 'lucide:truck',
     isOpen: false,
     children: [
@@ -56,7 +56,7 @@ const menu = ref([
   },
   {
     title: 'Maliyyə',
-    titleKey: 'menu.finance',
+    titleKey: 'menu.finance_category',
     icon: 'lucide:pie-chart',
     isOpen: false,
     children: [
@@ -75,8 +75,15 @@ const isActiveMenu = (item: any) => {
 // On mount, open the menu that contains the active route
 onMounted(() => {
   const activeIndex = menu.value.findIndex(item => isActiveMenu(item))
-  if (activeIndex !== -1 && !isSidebarCollapsed.value) {
+  if (activeIndex !== -1 && !isSidebarCollapsed.value && menu.value[activeIndex]) {
     menu.value[activeIndex].isOpen = true
+  }
+})
+
+// Auto-close categories when sidebar collapses for smooth animation
+watch(isSidebarCollapsed, (collapsed) => {
+  if (collapsed) {
+    menu.value.forEach(m => m.isOpen = false)
   }
 })
 
@@ -84,7 +91,7 @@ onMounted(() => {
 watch(() => route.path, () => {
   if (!isSidebarCollapsed.value) {
     const activeIndex = menu.value.findIndex(item => isActiveMenu(item))
-    if (activeIndex !== -1) {
+    if (activeIndex !== -1 && menu.value[activeIndex]) {
       menu.value[activeIndex].isOpen = true
     }
   }
@@ -97,13 +104,16 @@ const toggleMenu = (index: number) => {
     isSidebarCollapsed.value = false;
   }
   
-  const isCurrentlyOpen = menu.value[index].isOpen;
+  const targetMenu = menu.value[index];
+  if (!targetMenu) return; // Fix TS undefined error
+  
+  const isCurrentlyOpen = targetMenu.isOpen;
   
   // Close all submenus
   menu.value.forEach(m => m.isOpen = false);
   
   // Toggle the clicked one
-  menu.value[index].isOpen = !isCurrentlyOpen;
+  targetMenu.isOpen = !isCurrentlyOpen;
 }
 
 const toggleSidebarMobileContext = () => {
@@ -149,24 +159,42 @@ onUnmounted(() => {
       style="font-family: 'Inter', sans-serif;"
     >
       <!-- Logo Area -->
-      <div class="h-16 flex items-center justify-center shrink-0 transition-opacity duration-300 relative mx-4 border-b border-[var(--border-app)] mb-4">
-        <img 
-          v-if="!isSidebarCollapsed || isMobileMenuOpen"
-          :src="yessirTextLogo" 
-          alt="Logo Text" 
-          class="h-6 w-auto transition-all duration-300 filter dark:invert"
-        />
-        <img 
-          v-else
-          :src="yessirIcon" 
-          alt="Logo Icon" 
-          class="h-10 w-10 transition-all duration-300"
-        />
+      <div 
+        class="flex items-center shrink-0 border-b border-[var(--border-app)] h-[64px] py-3 w-full transition-all duration-300 px-5"
+        :class="isSidebarCollapsed && !isMobileMenuOpen ? 'justify-center' : 'justify-between'"
+      >
+        <div 
+          class="flex items-center overflow-hidden h-full transition-all duration-300" 
+          :class="isSidebarCollapsed && !isMobileMenuOpen ? 'gap-0 w-auto justify-center' : 'gap-[10px] w-full'"
+        >
+          <!-- Emblem Always Visible -->
+          <img 
+            :src="yessirIcon" 
+            alt="Logo Icon" 
+            class="h-[40px] w-[40px] min-w-[40px] object-contain transition-all duration-300"
+          />
+          <!-- Text Smoothly Hides without Scale -->
+          <img 
+            :src="yessirTextLogo" 
+            alt="Logo Text" 
+            class="h-full flex-shrink-0 transition-all duration-300 ease-in-out object-contain"
+            :class="isSidebarCollapsed && !isMobileMenuOpen ? 'w-0 opacity-0 invisible ml-0' : 'w-[120px] opacity-100 visible ml-1'"
+          />
+        </div>
+
+        <!-- Mobile X Close Button -->
+        <button 
+          v-if="isMobileMenuOpen" 
+          @click="toggleSidebarMobileContext"
+          class="md:hidden flex items-center justify-center p-1 text-[var(--text-app)] hover:text-[var(--text-primary)] transition-colors duration-300 shrink-0 absolute right-3"
+        >
+          <Icon name="lucide:x" class="w-6 h-6" />
+        </button>
       </div>
 
       <!-- Navigation List Container -->
       <div 
-        class="flex-1 flex flex-col pb-4 px-3 custom-scrollbar"
+        class="flex-1 flex flex-col p-3 custom-scrollbar"
         :class="isSidebarCollapsed && !isMobileMenuOpen ? 'overflow-visible' : 'overflow-y-auto overflow-x-hidden'"
       >
         <div class="flex flex-col gap-2">
@@ -175,39 +203,48 @@ onUnmounted(() => {
             <!-- Parent Category Button -->
             <button 
               @click="toggleMenu(index)"
-              class="w-full flex items-center px-4 py-3 gap-3 rounded-[12px] text-[var(--text-app)] bg-transparent hover:bg-[var(--text-primary)]/10 hover:text-[var(--text-primary)] transition-all duration-300 cursor-pointer outline-none"
+              class="flex items-center rounded-[12px] text-[var(--text-app)] bg-transparent hover:bg-[var(--text-primary)]/10 hover:text-[var(--text-primary)] transition-all duration-300 ease-in-out cursor-pointer outline-none overflow-hidden"
               :class="[
                 (item.isOpen || isActiveMenu(item)) && !isSidebarCollapsed ? 'text-[var(--text-primary)] font-medium' : 'opacity-80',
-                isSidebarCollapsed && !isMobileMenuOpen ? 'justify-center !px-0' : 'justify-between'
+                'w-full h-[48px] px-4',
+                isSidebarCollapsed && !isMobileMenuOpen ? 'justify-center' : 'justify-between'
               ]"
             >
               <div 
-                class="flex items-center" 
-                :class="(isSidebarCollapsed && !isMobileMenuOpen) ? 'justify-center w-full' : 'gap-[10px] overflow-hidden'"
+                class="flex items-center overflow-visible" 
+                :class="(isSidebarCollapsed && !isMobileMenuOpen) ? 'justify-center' : ''"
               >
                 <Icon 
                   :name="item.icon" 
-                  class="flex-shrink-0 transition-transform duration-300 group-hover/sidebaritem:scale-110"
+                  class="flex-shrink-0 transition-all duration-300 group-hover/sidebaritem:scale-110"
                   :class="[
-                    isSidebarCollapsed && !isMobileMenuOpen ? 'w-6 h-6' : 'w-5 h-5',
+                    isSidebarCollapsed && !isMobileMenuOpen ? 'w-[26px] h-[26px]' : 'w-6 h-6',
                     (item.isOpen || isActiveMenu(item)) && !isSidebarCollapsed ? 'text-[var(--text-primary)]' : 'opacity-80 group-hover/sidebaritem:opacity-100'
                   ]"
                 />
                 <span 
-                  v-if="!isSidebarCollapsed || isMobileMenuOpen"
-                  class="text-[14px] text-left truncate block flex-grow"
+                  class="font-semibold text-[15px] text-left whitespace-nowrap overflow-hidden transition-all duration-300 ease-in-out flex-grow"
+                  :style="{ transitionProperty: 'width, opacity, margin, transform' }"
+                  :class="isSidebarCollapsed && !isMobileMenuOpen ? 'w-0 opacity-0 ml-0 translate-x-[-10px]' : 'w-[124px] opacity-100 ml-3 translate-x-0'"
                 >
                   {{ getTitle(item) }}
                 </span>
               </div>
               
               <!-- Arrow Icon -->
-              <Icon 
-                v-if="!isSidebarCollapsed || isMobileMenuOpen"
-                name="lucide:chevron-down" 
-                class="w-4 h-4 flex-shrink-0 transition-transform duration-300 ease-in-out opacity-60"
-                :class="item.isOpen ? 'rotate-180 text-[var(--text-primary)] opacity-100' : 'rotate-0'"
-              />
+              <div 
+                class="transition-all duration-300 ease-in-out flex items-center justify-center overflow-hidden"
+                :class="isSidebarCollapsed && !isMobileMenuOpen ? 'w-0 opacity-0 -translate-x-4' : 'w-4 opacity-100'"
+              >
+                <Icon 
+                  name="lucide:chevron-down" 
+                  class="flex-shrink-0 transition-transform duration-300 ease-in-out w-4 h-4"
+                  :class="[
+                    !isSidebarCollapsed && !isMobileMenuOpen ? 'opacity-60' : 'opacity-0',
+                    item.isOpen ? 'rotate-180 text-[var(--text-primary)] opacity-100' : 'rotate-0'
+                  ]"
+                />
+              </div>
             </button>
 
             <!-- Floating Submenu Hitbox (Just to keep hover active) -->
@@ -279,16 +316,13 @@ onUnmounted(() => {
         </div>
       </div>
       
-      <!-- Divider -->
-      <div class="h-[2px] mx-4 rounded-full bg-[var(--border-app)] shrink-0 my-2"></div>
-      
       <!-- Exit Account -->
-      <div class="px-4 pb-4 shrink-0">
+      <div class="p-3 shrink-0">
         <NuxtLink 
           to="/login"
           draggable="false"
-          class="flex items-center w-full rounded-[12px] text-red-500 bg-transparent hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 transition-all duration-300 cursor-pointer p-3"
-          :class="isSidebarCollapsed && !isMobileMenuOpen ? 'justify-center' : 'justify-start gap-[10px]'"
+          class="flex items-center rounded-[12px] text-red-500 bg-transparent hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 transition-all duration-300 cursor-pointer mx-auto w-full h-[48px]"
+          :class="isSidebarCollapsed && !isMobileMenuOpen ? 'justify-center px-4' : 'justify-start gap-[10px] px-3'"
         >
           <Icon 
             name="material-symbols:logout-rounded" 
@@ -296,8 +330,8 @@ onUnmounted(() => {
             :class="isSidebarCollapsed && !isMobileMenuOpen ? 'w-6 h-6' : 'w-5 h-5'"
           />
           <span 
-            v-if="!isSidebarCollapsed || isMobileMenuOpen"
-            class="truncate font-medium text-[14px] block"
+            class="font-medium text-[14px] transition-all duration-300 ease-in-out"
+            :class="isSidebarCollapsed && !isMobileMenuOpen ? 'w-0 opacity-0 -translate-x-2 hidden md:block' : 'w-auto opacity-100 translate-x-0 truncate'"
           >
             {{ t('logout') || 'Hesabdan Çıx' }}
           </span>
@@ -319,8 +353,8 @@ onUnmounted(() => {
   scrollbar-width: none; /* Firefox */
 }
 
-/* Ensure smooth grid expansion */
+/* Ensure ultra-smooth grid expansion */
 .grid {
-  transition: grid-template-rows 0.3s ease-in-out;
+  transition: grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 </style>

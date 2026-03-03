@@ -25,7 +25,11 @@
     "expenseCategory": "Expense Category",
     "earnings": "Earnings",
     "office": "Office",
-    "settings": "Settings"
+    "settings": "Settings",
+    "main": "Main",
+    "warehouse": "Warehouse",
+    "supply": "Supply",
+    "finance": "Finance"
   },
   "user": {
     "name": "MR Musa",

@@ -25,7 +25,11 @@
     "expenseCategory": "Категория расходов",
     "earnings": "Доходы",
     "office": "Офис",
-    "settings": "Настройки"
+    "settings": "Настройки",
+    "main": "Главная",
+    "warehouse": "Склад",
+    "supply": "Снабжение",
+    "finance": "Финансы"
   },
   "user": {
     "name": "MR Musa",
