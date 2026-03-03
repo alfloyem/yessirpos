@@ -25,7 +25,13 @@
     "expenseCategory": "Категория расходов",
     "earnings": "Доходы",
     "office": "Офис",
-    "settings": "Настройки"
+    "settings": "Настройки",
+    "main_category": "Главная",
+    "customers_category": "Клиенты",
+    "inventory_category": "Склад",
+    "suppliers_category": "Поставщики",
+    "finance_category": "Финансы",
+    "system_category": "Система"
   },
   "user": {
     "name": "MR Musa",

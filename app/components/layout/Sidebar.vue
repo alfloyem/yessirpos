@@ -1,204 +1,144 @@
 <script setup>
-import { useI18n, useLocalePath } from '#i18n'
-const { t } = useI18n()
-const localePath = useLocalePath()
-const { logout } = useAuth()
+import { ref } from 'vue'
+
 const isSidebarCollapsed = useState('sidebarCollapsed', () => false)
-const isMobileMenuOpen = useState('mobileMenuOpen', () => false)
 
-const closeMobileMenu = () => {
-  isMobileMenuOpen.value = false
-}
-
-// Close mobile menu on route change
-const route = useRoute()
-watch(() => route.path, () => {
-  closeMobileMenu()
-})
-
-const activeTooltip = ref({ label: '', type: 'default' })
-const isTooltipVisible = ref(false)
-const tooltipStyles = ref({})
-
-const showTooltip = (event, label, type = 'default') => {
-  if (!isSidebarCollapsed.value) return
-  const rect = event.currentTarget.getBoundingClientRect()
-  activeTooltip.value = { label, type }
-  isTooltipVisible.value = true
-  tooltipStyles.value = {
-    top: `${rect.top + rect.height / 2}px`,
-    left: `${rect.right + 12}px`
+// Menu items according to the requested structure
+const menu = ref([
+  {
+    title: 'Əsas',
+    icon: 'lucide:calendar',
+    isOpen: true,
+    children: [
+      { title: 'Ana Səhifə', to: '/' },
+      { title: 'Satışlar', to: '/sales' },
+      { title: 'Əməkdaşlar', to: '/employees' }
+    ]
+  },
+  {
+    title: 'Müştərilər',
+    icon: 'lucide:users',
+    isOpen: false,
+    children: [
+      { title: 'Müştərilər', to: '/customers' },
+      { title: 'Hədiyyə Kartı', to: '/gift-cards' }
+    ]
+  },
+  {
+    title: 'Anbar',
+    icon: 'lucide:package',
+    isOpen: false,
+    children: [
+      { title: 'Mallar', to: '/goods' },
+      { title: 'Kitlər', to: '/kits' }
+    ]
+  },
+  {
+    title: 'Təchizat',
+    icon: 'lucide:truck',
+    isOpen: false,
+    children: [
+      { title: 'Tədarükçülər', to: '/suppliers' },
+      { title: 'Qəbul Edilənlər', to: '/received' }
+    ]
+  },
+  {
+    title: 'Maliyyə',
+    icon: 'lucide:pie-chart',
+    isOpen: false,
+    children: [
+      { title: 'Xərclər', to: '/expenses' },
+      { title: 'Xərclər Bölməsi', to: '/expense-division' },
+      { title: 'Qazanclar', to: '/earnings' },
+      { title: 'Hesabatlar', to: '/reports' }
+    ]
   }
-}
-
-const hideTooltip = () => {
-  isTooltipVisible.value = false
-}
-
-// Using Solar Duotone icons which match the professional look
-const menuItems = computed(() => [
-  { label: t('menu.home'), icon: 'solar:home-2-bold-duotone', to: '/' },
-  { label: t('menu.customers'), icon: 'solar:users-group-rounded-bold-duotone', to: '/customers' },
-  { label: t('menu.products'), icon: 'solar:box-bold-duotone', to: '/products' },
-  { label: t('menu.bundles'), icon: 'solar:box-minimalistic-bold-duotone', to: '/bundles' },
-  { label: t('menu.suppliers'), icon: 'solar:buildings-2-bold-duotone', to: '/suppliers' },
-  { label: t('menu.reports'), icon: 'solar:chart-2-bold-duotone', to: '/reports' },
-  { label: t('menu.intake'), icon: 'solar:delivery-bold-duotone', to: '/intake' },
-  { label: t('menu.sales'), icon: 'solar:cart-large-2-bold-duotone', to: '/sales' },
-  { label: t('menu.employees'), icon: 'solar:user-id-bold-duotone', to: '/employees' },
-  { label: t('menu.giftCard'), icon: 'solar:gift-bold-duotone', to: '/gift-card' },
-  { label: t('menu.messages'), icon: 'solar:letter-bold-duotone', to: '/messages' },
-  { label: t('menu.tax'), icon: 'solar:bill-bold-duotone', to: '/tax' },
-  { label: t('menu.attributes'), icon: 'solar:checklist-bold-duotone', to: '/attributes' },
-  { label: t('menu.expenses'), icon: 'solar:wallet-money-bold-duotone', to: '/expenses' },
-  { label: t('menu.expenseCategory'), icon: 'solar:notes-bold-duotone', to: '/expense-category' },
-  { label: t('menu.earnings'), icon: 'solar:banknote-bold-duotone', to: '/earnings' },
-  { label: t('menu.office'), icon: 'solar:buildings-bold-duotone', to: '/office' },
-  { label: t('menu.settings'), icon: 'solar:settings-bold-duotone', to: '/settings' },
 ])
+
+const toggleMenu = (index) => {
+  menu.value[index].isOpen = !menu.value[index].isOpen
+}
 </script>
 
 <template>
-  <!-- Backdrop for Mobile -->
-  <div 
-    v-if="isMobileMenuOpen"
-    @click="closeMobileMenu"
-    class="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[45] transition-opacity duration-300"
-  ></div>
-
   <aside 
-    class="h-screen bg-[var(--bg-sidebar)] border-r border-[var(--border-app)] flex flex-col z-50 transition-all duration-300 ease-in-out overflow-hidden fixed md:relative top-0 left-0"
-    :class="[
-      isSidebarCollapsed ? 'md:w-20' : 'md:w-64',
-      isMobileMenuOpen ? 'w-64 translate-x-0 shadow-2xl' : 'w-64 -translate-x-full md:translate-x-0'
-    ]"
+    class="bg-white border-r border-[#eaeff4] flex flex-col h-full transition-all duration-300 ease-in-out shrink-0"
+    :class="isSidebarCollapsed ? 'w[80px]' : 'w-[260px]'"
+    style="font-family: 'Inter', sans-serif;"
   >
-    <!-- Logo Section -->
-    <div class="h-20 px-4 flex items-center flex-shrink-0">
-      <NuxtLink :to="localePath('/')" class="flex items-center gap-3 w-full px-1">
-        <img 
-          src="~/assets/images/yessir_icon.svg" 
-          alt="Y" 
-          class="h-10 w-10 flex-shrink-0 transition-transform duration-300 ease-in-out"
-          :class="isSidebarCollapsed ? 'scale-90' : 'scale-100'"
-        />
-        <div 
-          class="flex items-center overflow-hidden transition-all duration-300 ease-in-out"
-          :class="isSidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-[180px] opacity-100'"
-        >
-          <img 
-            src="~/assets/images/yessir_pos_text_logo.svg" 
-            alt="YESSIR POS" 
-            class="h-8 w-auto flex-shrink-0 ml-1" 
-          />
-        </div>
-      </NuxtLink>
-      <!-- Mobile Close Button -->
-      <button 
-        @click="closeMobileMenu"
-        class="md:hidden ml-auto p-1 text-[var(--text-app)] hover:bg-[var(--bg-app)] hover:text-[var(--text-primary)] rounded-lg transition-colors"
-      >
-        <UiIcon name="solar:close-circle-bold-duotone" size="lg" />
-      </button>
+    <!-- Logo placeholder -->
+    <div class="h-[73px] flex items-center px-6 border-b border-[#eaeff4] shrink-0">
+      <span v-if="!isSidebarCollapsed" class="font-bold text-[18px] text-[#425b76]">Logo</span>
+      <span v-else class="font-bold text-[18px] text-[#425b76] mx-auto">L</span>
     </div>
 
-    <!-- Navigation -->
-    <nav class="flex-1 px-3 py-4 flex flex-col gap-1 overflow-y-auto no-scrollbar">
-      <NuxtLink 
-        v-for="item in menuItems" 
-        :key="item.label"
-        :to="localePath(item.to)"
-        @mouseenter="showTooltip($event, item.label)"
-        @mouseleave="hideTooltip"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[15px] font-medium transition-all duration-300 group relative"
-        :class="[
-          $route.path === localePath(item.to) 
-            ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)]' 
-            : 'text-[var(--text-app)] hover:bg-[var(--bg-app)] hover:text-[var(--text-primary)]'
-        ]"
-      >
-        <!-- Left vertical bar for active item -->
-        <span 
-          class="absolute left-0 top-1/2 -translate-y-1/2 h-1/2 w-1 rounded-r-full transition-transform duration-300 ease-out origin-center"
-          :class="$route.path === localePath(item.to) ? 'bg-[var(--text-primary)] scale-y-100' : 'bg-transparent scale-y-0'"
-        ></span>
+    <!-- Navigation List -->
+    <div class="flex-1 overflow-y-auto py-5 px-3 space-y-1 custom-scrollbar">
+      <div v-for="(item, index) in menu" :key="index" class="mb-2">
         
-        <!-- Icon -->
-        <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 transition-transform duration-300 group-hover:scale-110">
-          <UiIcon :name="item.icon" size="sidebar" />
-        </div>
-        
-        <!-- Text -->
-        <div 
-          class="flex-1 whitespace-nowrap overflow-hidden transition-all duration-300 ease-in-out"
-          :class="isSidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-[200px] opacity-100'"
+        <!-- Parent Category -->
+        <button 
+          @click="toggleMenu(index)"
+          class="w-full flex items-center justify-between px-3 py-[10px] rounded-lg text-[#6085a6] hover:bg-[#f8fafd] hover:text-[#425b76] transition-all duration-200 group"
         >
-          {{ item.label }}
-        </div>
-
-      </NuxtLink>
-    </nav>
-
-    <!-- Footer of Sidebar -->
-    <div class="p-4 border-t border-[var(--border-app)] flex-shrink-0">
-      <button 
-        @click="logout"
-        @mouseenter="showTooltip($event, t('logout'), 'danger')"
-        @mouseleave="hideTooltip"
-        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[var(--color-brand-danger)] hover:bg-[var(--color-brand-danger)]/10 transition-all duration-300 group relative"
-      >
-        <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 transition-transform duration-300 group-hover:scale-110">
-          <UiIcon name="solar:logout-bold-duotone" size="lg" />
-        </div>
-        
-        <!-- Text -->
-        <div 
-          class="flex-1 text-left whitespace-nowrap overflow-hidden transition-all duration-300 ease-in-out"
-          :class="isSidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-[200px] opacity-100'"
-        >
-          {{ t('logout') }}
-        </div>
-
-      </button>
-    </div>
-
-    <ClientOnly>
-      <Teleport to="body">
-        <Transition
-          enter-active-class="transition-opacity duration-200"
-          leave-active-class="transition-opacity duration-200"
-          enter-from-class="opacity-0"
-          leave-to-class="opacity-0"
-        >
-          <div 
-            v-if="isTooltipVisible"
-            class="fixed px-3 py-1.5 text-white text-sm font-medium rounded-lg whitespace-nowrap z-[100000] shadow-md pointer-events-none"
-            :class="activeTooltip.type === 'danger' ? 'bg-[var(--color-brand-danger)]' : 'bg-[var(--text-primary)]'"
-            :style="{
-              top: tooltipStyles.top,
-              left: tooltipStyles.left,
-              transform: 'translateY(-50%)'
-            }"
-          >
-            {{ activeTooltip.label }}
-            <div 
-              class="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent"
-              :class="activeTooltip.type === 'danger' ? 'border-r-[var(--color-brand-danger)]' : 'border-r-[var(--text-primary)]'"
-            ></div>
+          <div class="flex items-center gap-[14px]">
+            <Icon 
+              :name="item.icon" 
+              class="w-[22px] h-[22px] text-[#8eaecf] group-hover:text-[#6a90b8] transition-colors" 
+            />
+            <span v-if="!isSidebarCollapsed" class="font-medium text-[15px] tracking-wide">{{ item.title }}</span>
           </div>
-        </Transition>
-      </Teleport>
-    </ClientOnly>
+          <Icon 
+            v-if="!isSidebarCollapsed"
+            :name="item.isOpen ? 'lucide:chevron-up' : 'lucide:chevron-down'" 
+            class="w-4 h-4 text-[#aebdd0] group-hover:text-[#8eaecf] transition-transform" 
+          />
+        </button>
+
+        <!-- Children Tree Wrapper -->
+        <div v-show="item.isOpen && !isSidebarCollapsed" class="mt-[2px] relative flex flex-col">
+          <NuxtLink 
+            v-for="(child, childIndex) in item.children" 
+            :key="childIndex"
+            :to="child.to"
+            class="relative flex items-center group py-[11px] pl-[52px]"
+            active-class="!text-[#3b82f6] font-medium"
+          >
+            <!-- L-shape connector (Top to Middle -> Right) -->
+            <div 
+              class="absolute left-[23px] top-[-11px] bottom-1/2 w-[16px] border-l border-b border-[#c8d6e5] rounded-bl-[10px]"
+              style="border-width: 0px 0px 1px 1px"
+            ></div>
+            
+            <!-- Straight connector line (Middle to Bottom), omitting for last child so it doesn't continue down -->
+            <div 
+              v-if="childIndex !== item.children.length - 1" 
+              class="absolute left-[23px] top-1/2 bottom-[-11px] border-l border-[#c8d6e5]"
+              style="border-width: 0px 0px 0px 1px"
+            ></div>
+
+            <span class="text-[14px] text-[#7fa1cc] group-hover:text-[#557ba8] transition-colors whitespace-nowrap">{{ child.title }}</span>
+          </NuxtLink>
+        </div>
+
+      </div>
+    </div>
   </aside>
 </template>
 
 <style scoped>
-/* Hidden scrollbar but keeps functionality */
-.no-scrollbar {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
+/* Scoped minimal scrollbar to keep it clean */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
 }
-.no-scrollbar::-webkit-scrollbar {
-  display: none; /* Chrome, Safari and Opera */
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #d1d9e2;
+  border-radius: 10px;
+}
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background-color: #b0c4d9;
 }
 </style>

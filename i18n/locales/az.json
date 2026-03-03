@@ -25,7 +25,13 @@
     "expenseCategory": "Xərclər Bölməsi",
     "earnings": "Qazanclar",
     "office": "Ofis",
-    "settings": "Parametrlər"
+    "settings": "Parametrlər",
+    "main_category": "Əsas",
+    "customers_category": "Müştərilər",
+    "inventory_category": "Anbar",
+    "suppliers_category": "Təchizat",
+    "finance_category": "Maliyyə",
+    "system_category": "Sistem"
   },
   "user": {
     "name": "MR Musa",

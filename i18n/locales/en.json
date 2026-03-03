@@ -25,7 +25,13 @@
     "expenseCategory": "Expense Category",
     "earnings": "Earnings",
     "office": "Office",
-    "settings": "Settings"
+    "settings": "Settings",
+    "main_category": "Main",
+    "customers_category": "Customers",
+    "inventory_category": "Inventory",
+    "suppliers_category": "Suppliers",
+    "finance_category": "Finance",
+    "system_category": "System"
   },
   "user": {
     "name": "MR Musa",
