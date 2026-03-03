@@ -7,6 +7,8 @@ const isSidebarCollapsed = useState('sidebarCollapsed', () => false)
 
 <template>
   <div class="h-screen max-w-screen bg-[var(--bg-app)] text-[var(--text-app)] flex transition-colors duration-200">
+        <!-- Fixed Sidebar -->
+    <Sidebar/>
     <!-- Main Right Content Container -->
     <div 
       class="min-w-0 flex-1 flex flex-col h-full transition-all duration-200 ease-in-out"
