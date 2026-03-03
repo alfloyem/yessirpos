@@ -61,7 +61,6 @@ const menu = ref([
     isOpen: false,
     children: [
       { title: 'Xərclər', titleKey: 'menu.expenses', to: '/expenses' },
-      { title: 'Xərclər Bölməsi', titleKey: 'menu.expenseCategory', to: '/expense-division' },
       { title: 'Qazanclar', titleKey: 'menu.earnings', to: '/earnings' },
       { title: 'Hesabatlar', titleKey: 'menu.reports', to: '/reports' }
     ]

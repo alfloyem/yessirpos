@@ -2,12 +2,14 @@
 import { computed } from 'vue'
 import UiInput from '~/components/ui/Input.vue'
 import UiSelect from '~/components/ui/Select.vue'
+import AutocompleteInput from '~/components/ui/AutocompleteInput.vue'
 
 export interface FormField {
   key: string
   label: string
-  type: 'text' | 'email' | 'password' | 'tel' | 'textarea' | 'select' | 'number' | 'autocomplete'
+  type: 'text' | 'email' | 'password' | 'tel' | 'textarea' | 'select' | 'number' | 'date' | 'autocomplete'
   options?: { label: string, value: any }[] // For select
+  suggestions?: string[] // For autocomplete
   required?: boolean
   colSpan?: 1 | 2
   icon?: string // Optional icon
@@ -90,43 +92,16 @@ const isPasswordMismatch = (field: any) => {
         class="hover:border-[var(--text-primary)]"
       />
       
-      <!-- Autocomplete / Searchable -->
-      <div v-else-if="field.type === 'autocomplete'" class="relative group w-full">
-        <UiInput 
-          type="text"
-          :modelValue="modelValue[field.key + '_search'] || ''"
-          @update:modelValue="val => {
-            updateField(field.key + '_search', val);
-            if (!val) updateField(field.key, null); // Clear selected if empty
-          }"
-          :disabled="isLoading"
-          :icon="field.icon"
-          :placeholder="'Axtar...'"
-        />
-        <!-- Filtered Dropdown -->
-        <div 
-          v-if="modelValue[field.key + '_search'] && !modelValue[field.key]"
-          class="absolute z-[100] mt-1 w-full bg-[var(--input-bg)] border border-[var(--border-app)] rounded-xl shadow-lg max-h-48 overflow-y-auto custom-scrollbar"
-        >
-          <div 
-            v-for="opt in (field.options || []).filter(o => o.label.toLowerCase().includes(modelValue[field.key + '_search'].toLowerCase()))" 
-            :key="opt.value"
-            @click="() => {
-              updateField(field.key, opt.value);
-              updateField(field.key + '_search', opt.label);
-            }"
-            class="px-4 py-2 text-sm hover:bg-[var(--text-primary)]/10 cursor-pointer transition-colors text-[var(--text-app)]"
-          >
-            {{ opt.label }}
-          </div>
-          <div 
-            v-if="(field.options || []).filter(o => o.label.toLowerCase().includes(modelValue[field.key + '_search'].toLowerCase())).length === 0"
-            class="px-4 py-2 text-sm opacity-50"
-          >
-            Nəticə tapılmadı
-          </div>
-        </div>
-      </div>
+      <!-- Autocomplete -->
+      <AutocompleteInput 
+        v-else-if="field.type === 'autocomplete'"
+        :modelValue="modelValue[field.key] || ''"
+        @update:modelValue="val => updateField(field.key, val)"
+        :suggestions="field.suggestions || []"
+        :disabled="isLoading"
+        :icon="field.icon"
+        :placeholder="field.label"
+      />
       
       <!-- Input -->
       <div v-else class="relative">
