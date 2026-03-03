@@ -29,7 +29,7 @@ const props = withDefaults(defineProps<Props>(), {
   perPage: 10
 })
 
-const emit = defineEmits(['add', 'edit', 'delete', 'bulk-edit', 'bulk-delete', 'row-click'])
+const emit = defineEmits(['add', 'edit', 'delete', 'duplicate', 'bulk-edit', 'bulk-delete', 'row-click'])
 
 const { t } = useI18n()
 
@@ -387,6 +387,18 @@ watch(searchQuery, () => {
                 <!-- Actions Cell -->
                 <td v-if="actions" class="px-6 py-3 text-right" @click.stop>
                   <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div class="relative group/duplicate">
+                      <UiButton 
+                        variant="ghost"
+                        size="icon"
+                        icon="lucide:copy"
+                        @click="emit('duplicate', row)"
+                        class="hover:text-[var(--color-brand-info)] hover:bg-[var(--color-brand-info)]/10 cursor-pointer"
+                      />
+                      <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[var(--text-app)] text-white text-xs rounded whitespace-nowrap opacity-0 group-hover/duplicate:opacity-100 pointer-events-none transition-opacity z-50">
+                        Kopyala
+                      </div>
+                    </div>
                     <div class="relative group/edit">
                       <UiButton 
                         variant="ghost"
