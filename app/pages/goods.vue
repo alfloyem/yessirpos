@@ -44,9 +44,9 @@ const goodsSchema: (FormField & { inTable?: boolean, sortable?: boolean })[] = [
   { key: 'createdBy', label: 'Yaradan', type: 'text', inTable: false, sortable: true },
 ]
 
-// Modal'da gösterilecek form alanları (createdAt, createdBy və rowNumber Hariç)
+// Modal'da gösterilecek form alanları (createdAt, createdBy, rowNumber və image Hariç)
 const formFields = computed(() => {
-  return goodsSchema.filter(f => !['createdAt', 'createdBy', 'rowNumber'].includes(f.key))
+  return goodsSchema.filter(f => !['createdAt', 'createdBy', 'rowNumber', 'image'].includes(f.key))
 })
 
 // Extract table columns dynamically
@@ -283,10 +283,28 @@ const saveForm = () => {
       </template>
 
       <!-- Image Custom Format -->
-      <template #cell-image="{ value }">
-        <div class="flex items-center justify-center w-12 h-12 bg-[var(--input-bg)] rounded-lg overflow-hidden border border-[var(--border-app)]">
-          <img v-if="value && value.startsWith('data:')" :src="value" alt="Product" class="w-full h-full object-cover" />
-          <span v-else class="text-2xl">{{ value || '📦' }}</span>
+      <template #cell-image="{ row }">
+        <div class="flex items-center -space-x-3">
+          <template v-if="row.images && row.images.length > 0">
+            <div 
+              v-for="(img, idx) in row.images.slice(0, 3)" 
+              :key="idx" 
+              class="w-10 h-10 rounded-lg overflow-hidden border-2 border-[var(--bg-app)] bg-[var(--input-bg)] shrink-0 shadow-sm"
+              :style="{ zIndex: 10 - Number(idx) }"
+            >
+              <img :src="img" alt="Product" class="w-full h-full object-cover" />
+            </div>
+            <div 
+              v-if="row.images.length > 3" 
+              class="w-10 h-10 rounded-lg flex items-center justify-center border-2 border-[var(--bg-app)] bg-[var(--text-primary)]/10 text-[var(--text-primary)] text-xs font-bold shrink-0 shadow-sm"
+              style="z-index: 1;"
+            >
+              +{{ row.images.length - 3 }}
+            </div>
+          </template>
+          <div v-else class="flex items-center justify-center w-10 h-10 bg-[var(--text-primary)]/5 rounded-lg border-2 border-[var(--bg-app)] text-[var(--text-app)] opacity-40 shrink-0 shadow-sm">
+            <UiIcon name="lucide:image" class="w-4 h-4" />
+          </div>
         </div>
       </template>
 
@@ -318,9 +336,8 @@ const saveForm = () => {
         {{ barcodeError }}
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- Left: Image Carousel -->
-        <div>
+      <div class="flex flex-col lg:flex-row gap-8 items-start relative">
+        <div class="w-full lg:w-[45%] lg:sticky lg:top-0 lg:left-0 z-10 pb-2 bg-[var(--bg-app)]">
           <label class="block text-xs font-bold text-[var(--text-app)] tracking-wider mb-3">
             Məhsulun şəkilləri
           </label>
@@ -331,10 +348,11 @@ const saveForm = () => {
         </div>
 
         <!-- Right: Form Fields -->
-        <div>
+        <div class="w-full lg:w-[55%]">
           <DynamicForm 
             :fields="formFields"
             v-model="formData" 
+            :gridCols="1"
           />
         </div>
       </div>
@@ -356,9 +374,9 @@ const saveForm = () => {
         Xəbərdarlıq: Toplu redaktə rejimindəsiniz. Burada doldurduğunuz sahələr, seçdiyiniz <span class="font-bold">{{ bulkSelectedIds.length }}</span> qeydin məlumatının üzərinə yazılacaq.
       </div>
 
-      <div v-if="bulkSelectedIds.length === 0" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- Left: Image Carousel -->
-        <div>
+      <div v-if="bulkSelectedIds.length === 0" class="flex flex-col lg:flex-row gap-8 items-start relative">
+        <!-- Left: Image Carousel (Sticky) -->
+        <div class="w-full lg:w-[45%] lg:sticky lg:top-0 lg:left-0 z-10 pb-2 bg-[var(--bg-app)]">
           <label class="block text-xs font-bold text-[var(--text-app)] tracking-wider mb-3">
             Məhsulun şəkilləri
           </label>
@@ -369,10 +387,11 @@ const saveForm = () => {
         </div>
 
         <!-- Right: Form Fields -->
-        <div>
+        <div class="w-full lg:w-[55%]">
           <DynamicForm 
             :fields="formFields"
-            v-model="formData" 
+            v-model="formData"
+            :gridCols="1" 
           />
         </div>
       </div>
@@ -381,6 +400,7 @@ const saveForm = () => {
         <DynamicForm 
           :fields="formFields"
           v-model="formData" 
+          :gridCols="1"
         />
       </div>
 

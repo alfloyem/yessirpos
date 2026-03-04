@@ -19,6 +19,7 @@ const props = defineProps<{
   fields: FormField[]
   modelValue: Record<string, any>
   isLoading?: boolean
+  gridCols?: 1 | 2
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -85,12 +86,15 @@ const isPasswordMismatch = (field: any) => {
 </script>
 
 <template>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div 
+    class="grid gap-4" 
+    :class="gridCols === 1 ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'"
+  >
     <div 
       v-for="field in enhancedFields" 
       :key="field.key" 
       class="space-y-1"
-      :class="field.colSpan === 2 ? 'md:col-span-2' : 'md:col-span-1'"
+      :class="(field.colSpan === 2 || gridCols === 1) ? 'col-span-1 md:col-span-2' : 'col-span-1'"
     >
       <label class="text-xs font-bold text-[var(--text-app)] tracking-wider">
         {{ field.label }} 

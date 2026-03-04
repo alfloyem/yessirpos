@@ -10,21 +10,41 @@ const emit = defineEmits(['update:images', 'remove'])
 
 const currentIndex = ref(0)
 const fileInputRef = ref<HTMLInputElement | null>(null)
+const inputId = ref(`image-upload-${Math.random().toString(36).substring(2, 9)}`)
 
 const maxImagesCount = computed(() => props.maxImages || Infinity)
 
 const canAddMore = computed(() => props.maxImages ? props.images.length < props.maxImages : true)
 
-const handleImageUpload = (event: Event) => {
+const processFile = (file: File): Promise<string | null> => {
+  return new Promise((resolve) => {
+    if (!file.type.startsWith('image/')) {
+      alert(`${file.name} - Yalnız şəkil faylları yükləyə bilərsiniz!`)
+      resolve(null)
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert(`${file.name} - Şəkil ölçüsü 5MB-dan çox ola bilməz!`)
+      resolve(null)
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const result = e.target?.result
+      if (result && typeof result === 'string') resolve(result)
+      else resolve(null)
+    }
+    reader.onerror = () => resolve(null)
+    reader.readAsDataURL(file)
+  })
+}
+
+const handleImageUpload = async (event: Event) => {
   const target = event.target as HTMLInputElement
   const files = target.files
   
   if (!files || files.length === 0) return
   
-  const newImages: string[] = []
-  let processedCount = 0
-  
-  // Calculate how many files we can process
   const remainingSlots = props.maxImages ? props.maxImages - props.images.length : Infinity
   const filesToProcess = props.maxImages ? Math.min(files.length, remainingSlots) : files.length
   
@@ -34,50 +54,15 @@ const handleImageUpload = (event: Event) => {
     return
   }
   
-  Array.from(files).slice(0, filesToProcess).forEach((file) => {
-    // Check file type
-    if (!file.type.startsWith('image/')) {
-      alert('Yalnız şəkil faylları yükləyə bilərsiniz!')
-      processedCount++
-      return
-    }
-    
-    // Check file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert(`${file.name} - Şəkil ölçüsü 5MB-dan çox ola bilməz!`)
-      processedCount++
-      return
-    }
-    
-    // Create preview
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const result = e.target?.result
-      if (result && typeof result === 'string') {
-        newImages.push(result)
-      }
-      processedCount++
-      
-      // When all files are processed, emit update
-      if (processedCount === filesToProcess) {
-        if (newImages.length > 0) {
-          emit('update:images', [...props.images, ...newImages])
-        }
-        // Reset input
-        target.value = ''
-      }
-    }
-    reader.onerror = () => {
-      processedCount++
-      if (processedCount === filesToProcess) {
-        if (newImages.length > 0) {
-          emit('update:images', [...props.images, ...newImages])
-        }
-        target.value = ''
-      }
-    }
-    reader.readAsDataURL(file)
-  })
+  const filesArray = Array.from(files).slice(0, filesToProcess)
+  const results = await Promise.all(filesArray.map(f => processFile(f)))
+  const validImages = results.filter(r => r !== null) as string[]
+
+  if (validImages.length > 0) {
+    emit('update:images', [...props.images, ...validImages])
+  }
+  
+  target.value = ''
 }
 
 const removeImage = (index: number, e?: Event) => {
@@ -193,11 +178,11 @@ const triggerUpload = () => {
           @change="handleImageUpload"
           class="hidden"
           ref="fileInputRef"
-          :id="`image-upload-carousel-${Date.now()}`"
+          :id="inputId"
         />
         <label
           v-if="images.length > 0"
-          :for="`image-upload-carousel-${Date.now()}`"
+          :for="inputId"
           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold tracking-wide uppercase transition-all cursor-pointer"
           :class="canAddMore 
             ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)] hover:bg-[var(--text-primary)]/20' 
