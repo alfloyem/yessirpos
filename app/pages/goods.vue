@@ -142,12 +142,15 @@ const mockData = ref<any[]>([
   },
 ])
 
-// --- Modals State ---
+// Pagination & Selection
+const selectedIds = ref([])
 const showAddModal = ref(false)
 const showEditModal = ref(false)
 const showVariantModal = ref(false)
-const formData = ref<Record<string, any>>({})
-const variantFormData = ref<Record<string, any>>({})
+const showDeleteConfirmModal = ref(false)
+const deleteTarget = ref<{ type: 'single' | 'bulk', id?: any, ids?: any[] } | null>(null)
+const formData = ref<any>({})
+const variantFormData = ref<any>({})
 const bulkSelectedIds = ref<any[]>([])
 const selectedVariantProductId = ref<any>(null)
 const barcodeError = ref('')
@@ -208,13 +211,26 @@ const handleEdit = (row: any) => {
 }
 
 const handleDelete = (row: any) => {
-  if (confirm(`"${row.productName}" məhsulunu silmək istəyirsiniz?`)) {
-    mockData.value = mockData.value.filter(m => m.id !== row.id)
-    // Recalculate row numbers
-    mockData.value.forEach((item, index) => {
-      item.rowNumber = index + 1
-    })
+  deleteTarget.value = { type: 'single', id: row.id }
+  showDeleteConfirmModal.value = true
+}
+
+const performDelete = () => {
+  if (!deleteTarget.value) return
+
+  if (deleteTarget.value.type === 'single') {
+    mockData.value = mockData.value.filter(m => m.id !== deleteTarget.value!.id)
+  } else if (deleteTarget.value.type === 'bulk') {
+    mockData.value = mockData.value.filter(m => !deleteTarget.value!.ids!.includes(m.id))
   }
+  
+  // Recalculate row numbers
+  mockData.value.forEach((item, index) => {
+    item.rowNumber = index + 1
+  })
+  
+  showDeleteConfirmModal.value = false
+  deleteTarget.value = null
 }
 
 const handleDuplicate = (row: any) => {
@@ -260,13 +276,8 @@ const handleDuplicate = (row: any) => {
 }
 
 const handleBulkDelete = (ids: any[]) => {
-  if (confirm(`${ids.length} məhsulu silmək istəyirsiniz?`)) {
-    mockData.value = mockData.value.filter(m => !ids.includes(m.id))
-    // Recalculate row numbers
-    mockData.value.forEach((item, index) => {
-      item.rowNumber = index + 1
-    })
-  }
+  deleteTarget.value = { type: 'bulk', ids }
+  showDeleteConfirmModal.value = true
 }
 
 const handleBulkEdit = (ids: any[]) => {
@@ -526,7 +537,7 @@ const saveForm = () => {
       </template>
     </Modal>
 
-    <!-- Modal: Variant Add -->
+    <!-- Variant Əlavə Et / Modal -->
     <Modal v-model="showVariantModal" title="Variant Əlavə Et" max-width="4xl" min-height="700px">
       <div v-if="barcodeError" class="mb-4 p-3 bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)] rounded-lg text-sm font-medium flex items-center gap-2">
         <UiIcon name="lucide:alert-triangle" class="w-3.5 h-3.5"/>
@@ -561,5 +572,27 @@ const saveForm = () => {
       </template>
     </Modal>
 
+    <!-- Silmə Təsdiq Modalı -->
+    <Modal v-model="showDeleteConfirmModal" title="Diggət!" max-width="sm">
+      <div class="flex flex-col items-center justify-center p-6 text-center space-y-4">
+        <div class="w-16 h-16 bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)] rounded-full flex items-center justify-center mb-2">
+          <UiIcon name="lucide:alert-triangle" class="w-8 h-8" />
+        </div>
+        <h3 class="text-xl font-bold text-[var(--text-primary)]">Silmək istədiyinizə əminsiniz?</h3>
+        <p class="text-[var(--text-app)] opacity-70 text-[15px]">
+          Bu əməliyyat geri qaytarıla bilməz. 
+          <span v-if="deleteTarget?.type === 'bulk'" class="font-bold text-[var(--text-primary)] block mt-2">
+            Seçilmiş {{ deleteTarget.ids?.length }} maddə silinəcək.
+          </span>
+        </p>
+      </div>
+      
+      <template #footer>
+        <UiButton variant="ghost" @click="showDeleteConfirmModal = false" class="!px-6">Ləğv et</UiButton>
+        <UiButton variant="danger" icon="lucide:trash-2" @click="performDelete" class="!px-8 min-w-[120px]">
+          Bəli, Sil
+        </UiButton>
+      </template>
+    </Modal>
   </div>
 </template>

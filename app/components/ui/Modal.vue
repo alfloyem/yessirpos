@@ -52,11 +52,11 @@ const maxWidthClass = computed(() => {
 <template>
   <Teleport to="body">
     <Transition name="modal">
-      <div v-show="modelValue" class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6" style="margin: 0;">
+      <div v-show="modelValue" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6" style="margin: 0;">
         
-        <!-- Backdrop -->
+        <!-- Backdrop without blur transition to prevent lag, only opacity, or keep blur static -->
         <div 
-          class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+          class="absolute inset-0 bg-[var(--text-app)]/5 backdrop-blur-md"
           @click="close"
         ></div>
 

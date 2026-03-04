@@ -46,34 +46,34 @@ const generateUsername = (first?: string, last?: string, currentId?: any) => {
 }
 
 // --- Centralized Schema ---
-const employeeSchema: (FormField & { inTable?: boolean, sortable?: boolean })[] = [
-  { key: 'firstName', label: 'Ad', type: 'text', inTable: true, sortable: true, required: true },
-  { key: 'lastName', label: 'Soyad', type: 'text', inTable: true, sortable: true, required: true },
-  { key: 'username', label: 'İstifadəçi adı', icon: 'lucide:user', type: 'text', inTable: true, sortable: true, required: true },
-  { key: 'email', label: 'E-poçt (Email)', icon: 'lucide:mail', type: 'email', inTable: true, sortable: true },
-  { key: 'phone', label: 'Telefon', icon: 'lucide:phone', type: 'tel', inTable: true, sortable: true },
-  { key: 'gender', label: 'Cinsiyyət', type: 'select', inTable: true, sortable: true, options: [
-    { label: 'Kişi', value: 'Kişi' },
-    { label: 'Qadın', value: 'Qadın' }
+const employeeSchema = computed< (FormField & { inTable?: boolean, sortable?: boolean })[] >(() => [
+  { key: 'firstName', label: t('employees.firstName', 'Ad'), type: 'text', inTable: true, sortable: true, required: true },
+  { key: 'lastName', label: t('employees.lastName', 'Soyad'), type: 'text', inTable: true, sortable: true, required: true },
+  { key: 'username', label: t('employees.username', 'İstifadəçi adı'), icon: 'lucide:user', type: 'text', inTable: true, sortable: true, required: true },
+  { key: 'email', label: t('employees.email', 'E-poçt (Email)'), icon: 'lucide:mail', type: 'email', inTable: true, sortable: true },
+  { key: 'phone', label: t('employees.phone', 'Telefon'), icon: 'lucide:phone', type: 'tel', inTable: true, sortable: true },
+  { key: 'gender', label: t('employees.gender', 'Cinsiyyət'), type: 'select', inTable: true, sortable: true, options: [
+    { label: t('employees.male', 'Kişi'), value: 'Kişi' },
+    { label: t('employees.female', 'Qadın'), value: 'Qadın' }
   ]},
-  { key: 'password', label: 'Şifrə', icon: 'lucide:lock', type: 'password', inTable: false, required: true },
-  { key: 'status', label: 'Durum', type: 'select', inTable: true, sortable: true, options: [
-    { label: 'Aktif', value: 'Aktif' },
-    { label: 'Pasif', value: 'Pasif' },
-    { label: 'İzinde', value: 'İzinde' }
+  { key: 'password', label: t('employees.password', 'Şifrə'), icon: 'lucide:lock', type: 'password', inTable: false, required: true },
+  { key: 'status', label: t('employees.status', 'Durum'), type: 'select', inTable: true, sortable: true, options: [
+    { label: t('employees.statusActive', 'Aktif'), value: 'Aktif' },
+    { label: t('employees.statusPassive', 'Pasif'), value: 'Pasif' },
+    { label: t('employees.statusOnLeave', 'İzinde'), value: 'İzinde' }
   ]},
-  { key: 'notes', label: 'Xüsusi qeyd', type: 'textarea', colSpan: 2, inTable: false },
-]
+  { key: 'notes', label: t('employees.notes', 'Xüsusi qeyd'), type: 'textarea', colSpan: 2, inTable: false },
+])
 
 // Extract table columns dynamically
 const columns = computed(() => 
-  employeeSchema
+  employeeSchema.value
     .filter(f => f.inTable)
     .map(f => ({ key: f.key, label: f.label, sortable: f.sortable }))
 )
 
 // The fields structure for DynamicForm
-const formFields = employeeSchema
+const formFields = computed(() => employeeSchema.value)
 
 // --- Data ---
 const mockData = ref<any[]>([
@@ -84,7 +84,8 @@ const mockData = ref<any[]>([
 // --- Modals State ---
 const showAddModal = ref(false)
 const showEditModal = ref(false)
-const showDeleteModal = ref(false)
+const showDeleteConfirmModal = ref(false)
+const deleteTarget = ref<{ type: 'single' | 'bulk', id?: any, ids?: any[] } | null>(null)
 const formData = ref<Record<string, any>>({})
 const bulkSelectedIds = ref<any[]>([])
 
@@ -131,14 +132,26 @@ const handleEdit = (row: any) => {
 }
 
 const handleDelete = (row: any) => {
-  formData.value = { ...row }
-  showDeleteModal.value = true
+  deleteTarget.value = { type: 'single', id: row.id }
+  showDeleteConfirmModal.value = true
 }
 
 const handleBulkDelete = (ids: any[]) => {
-  if (confirm(`${ids.length} personeli silmek istediğinize emin misiniz?`)) {
-    mockData.value = mockData.value.filter(m => !ids.includes(m.id))
+  deleteTarget.value = { type: 'bulk', ids }
+  showDeleteConfirmModal.value = true
+}
+
+const performDelete = () => {
+  if (!deleteTarget.value) return
+
+  if (deleteTarget.value.type === 'single') {
+    mockData.value = mockData.value.filter(m => m.id !== deleteTarget.value!.id)
+  } else if (deleteTarget.value.type === 'bulk') {
+    mockData.value = mockData.value.filter(m => !deleteTarget.value!.ids!.includes(m.id))
   }
+  
+  showDeleteConfirmModal.value = false
+  deleteTarget.value = null
 }
 
 const handleBulkEdit = (ids: any[]) => {
@@ -205,21 +218,21 @@ const saveForm = () => {
     </DataTable>
 
     <!-- Modal: Add / Edit -->
-    <Modal v-model="showAddModal" title="Yeni Personel Ekle" max-width="xl">
+    <Modal v-model="showAddModal" :title="t('employees.addNew', 'Yeni Personel Ekle')" max-width="xl">
       <DynamicForm 
         :fields="formFields"
         v-model="formData" 
       />
       <template #footer>
-        <UiButton variant="ghost" @click="showAddModal = false">İptal</UiButton>
-        <UiButton variant="primary" @click="saveForm">Kaydet</UiButton>
+        <UiButton variant="ghost" @click="showAddModal = false" class="!px-6">{{ t('common.cancel', 'İptal') }}</UiButton>
+        <UiButton variant="primary" icon="lucide:check" @click="saveForm" class="!px-8 min-w-[120px]">{{ t('common.save', 'Kaydet') }}</UiButton>
       </template>
     </Modal>
 
     <!-- Modal: Edit specific -->
-    <Modal v-model="showEditModal" :title="bulkSelectedIds.length > 0 ? 'Toplu Düzenleme' : 'Personeli Düzenle'" max-width="xl">
+    <Modal v-model="showEditModal" :title="bulkSelectedIds.length > 0 ? t('employees.bulkEdit', 'Toplu Düzenleme') : t('employees.edit', 'Personeli Düzenle')" max-width="xl">
       <div v-if="bulkSelectedIds.length > 0" class="mb-4 p-3 bg-[var(--color-brand-warning)]/10 text-[var(--color-brand-warning)] rounded-lg text-sm font-medium">
-        Uyarı: Toplu düzenleme modundasınız. Burada dolduracağınız alanlar, seçtiğiniz <span class="font-bold">{{ bulkSelectedIds.length }}</span> personelin verisinin üzerine yazılacaktır. Boş bıraktığınız alanlar değişmeyecektir.
+        {{ t('employees.bulkEditWarning', { count: bulkSelectedIds.length }) }}
       </div>
 
       <!-- We omit password from edit/bulk-edit via computed or in-template filtering to make it more realistic -->
@@ -228,8 +241,31 @@ const saveForm = () => {
         v-model="formData" 
       />
       <template #footer>
-        <UiButton variant="ghost" @click="showEditModal = false; bulkSelectedIds = []">İptal</UiButton>
-        <UiButton variant="primary" @click="saveForm">Güncelle</UiButton>
+        <UiButton variant="ghost" @click="showEditModal = false; bulkSelectedIds = []" class="!px-6">{{ t('common.cancel', 'İptal') }}</UiButton>
+        <UiButton variant="primary" icon="lucide:check" @click="saveForm" class="!px-8 min-w-[120px]">{{ t('common.update', 'Güncelle') }}</UiButton>
+      </template>
+    </Modal>
+
+    <!-- Silmə Təsdiq Modalı -->
+    <Modal v-model="showDeleteConfirmModal" :title="t('common.attention', 'Diggət!')" max-width="sm">
+      <div class="flex flex-col items-center justify-center p-6 text-center space-y-4">
+        <div class="w-16 h-16 bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)] rounded-full flex items-center justify-center mb-2">
+          <UiIcon name="lucide:alert-triangle" class="w-8 h-8" />
+        </div>
+        <h3 class="text-xl font-bold text-[var(--text-primary)]">{{ t('employees.confirmDelete', 'Silmək istədiyinizə əminsiniz?') }}</h3>
+        <p class="text-[var(--text-app)] opacity-70 text-[15px]">
+          {{ t('common.cannotBeUndone', 'Bu əməliyyat geri qaytarıla bilməz.') }}
+          <span v-if="deleteTarget?.type === 'bulk'" class="font-bold text-[var(--text-primary)] block mt-2">
+            {{ t('employees.bulkDeleteCount', { count: deleteTarget.ids?.length }) }}
+          </span>
+        </p>
+      </div>
+      
+      <template #footer>
+        <UiButton variant="ghost" @click="showDeleteConfirmModal = false" class="!px-6">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
+        <UiButton variant="danger" icon="lucide:trash-2" @click="performDelete" class="!px-8 min-w-[120px]">
+          {{ t('common.yesDelete', 'Bəli, Sil') }}
+        </UiButton>
       </template>
     </Modal>
 

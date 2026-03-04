@@ -165,9 +165,26 @@ const highlightText = (text: any) => {
   }
 }
 
-// Export
-const handleExport = () => {
-  exportToCSV(props.title || 'export', localColumns.value, filteredAndSortedData.value)
+// Exporters
+const handleExport = (format: 'json' | 'xml' | 'csv' | 'pdf') => {
+  const title = props.title || 'export'
+  const columns = localColumns.value
+  const data = filteredAndSortedData.value
+
+  switch (format) {
+    case 'json':
+      exportToJSON(title, columns, data)
+      break
+    case 'xml':
+      exportToXML(title, columns, data)
+      break
+    case 'csv':
+      exportToCSV(title, columns, data)
+      break
+    case 'pdf':
+      exportToPDF(title, columns, data)
+      break
+  }
 }
 
 // Pagination
@@ -228,9 +245,8 @@ watch(searchQuery, () => {
               variant="outline"
               size="sm"
               icon="lucide:list"
-            >
-              <span class="hidden sm:inline">Sütunlar</span>
-            </UiButton>
+              title="Sütunlar"
+            />
           </template>
 
           <template #menu>
@@ -246,15 +262,36 @@ watch(searchQuery, () => {
           </template>
         </UiDropdown>
 
-        <!-- Export -->
-        <UiButton 
-          variant="outline"
-          size="sm"
-          icon="lucide:download"
-          @click="handleExport"
-        >
-          <span class="hidden sm:inline">İxrac et</span>
-        </UiButton>
+        <!-- Export Dropdown -->
+        <UiDropdown menuClass="absolute left-0 top-full mt-2 w-48 p-2 z-[60]">
+          <template #trigger>
+            <UiButton 
+              variant="outline"
+              size="sm"
+              icon="lucide:download"
+              title="İxrac et"
+            />
+          </template>
+
+          <template #menu>
+            <div @click.stop="handleExport('csv')" class="flex items-center gap-3 px-3 py-2 text-sm cursor-pointer rounded-lg hover:bg-[var(--bg-app)] transition-colors">
+              <UiIcon name="lucide:file-spreadsheet" class="w-4 h-4 text-[var(--color-brand-success)]" />
+              <span>Excel (CSV)</span>
+            </div>
+            <div @click.stop="handleExport('pdf')" class="flex items-center gap-3 px-3 py-2 text-sm cursor-pointer rounded-lg hover:bg-[var(--bg-app)] transition-colors">
+              <UiIcon name="lucide:file-text" class="w-4 h-4 text-[var(--color-brand-danger)]" />
+              <span>PDF</span>
+            </div>
+            <div @click.stop="handleExport('json')" class="flex items-center gap-3 px-3 py-2 text-sm cursor-pointer rounded-lg hover:bg-[var(--bg-app)] transition-colors">
+              <UiIcon name="lucide:file-json" class="w-4 h-4 text-[var(--color-brand-warning)]" />
+              <span>JSON</span>
+            </div>
+            <div @click.stop="handleExport('xml')" class="flex items-center gap-3 px-3 py-2 text-sm cursor-pointer rounded-lg hover:bg-[var(--bg-app)] transition-colors">
+              <UiIcon name="lucide:code" class="w-4 h-4 text-[var(--text-primary)]" />
+              <span>XML</span>
+            </div>
+          </template>
+        </UiDropdown>
 
         <!-- Add New -->
         <UiButton 
@@ -263,7 +300,7 @@ watch(searchQuery, () => {
           icon="gravity-ui:plus"
           @click="emit('add')"
         >
-          Yeni əlavə et
+          Yeni
         </UiButton>
 
         <slot name="extra-actions" />
