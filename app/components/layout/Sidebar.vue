@@ -41,7 +41,6 @@ const menu = ref([
     isOpen: false,
     children: [
       { title: 'Mallar', titleKey: 'menu.products', to: '/goods' },
-      { title: 'Kitlər', titleKey: 'menu.bundles', to: '/kits' },
       { title: 'Atributlar', titleKey: 'menu.attributes', to: '/attributes' }
     ]
   },
