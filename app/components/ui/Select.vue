@@ -27,25 +27,25 @@ const selectOption = (value: any) => {
       type="button"
       @click="isOpen = !isOpen"
       :disabled="disabled"
-      class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] py-2.5 text-sm rounded-xl outline-none focus:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/10 hover:border-[var(--text-primary)]/50 transition-all duration-300 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-left flex items-center justify-between"
-      :class="[icon ? 'pl-9' : 'pl-4', 'pr-9']"
+      class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] py-3 text-[15px] font-medium rounded-[14px] outline-none focus:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/10 hover:border-[var(--text-primary)]/50 transition-all duration-300 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-left flex items-center justify-between"
+      :class="[icon ? 'pl-11' : 'pl-5', 'pr-11']"
     >
       <!-- Left Icon (Optional) -->
       <UiIcon 
         v-if="icon" 
         :name="icon" 
-        class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-app)] opacity-40 transition-colors pointer-events-none" 
+        class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-app)] opacity-40 transition-colors pointer-events-none" 
         :class="isOpen ? 'text-[var(--text-primary)] opacity-100' : ''"
       />
 
-      <span class="truncate" :class="modelValue ? 'text-[var(--text-app)]' : 'text-[var(--text-app)] opacity-40'">
+      <span class="truncate" :class="modelValue ? 'text-[var(--text-app)]' : 'text-[var(--text-app)] opacity-40 font-normal'">
         {{ selectedLabel }}
       </span>
 
       <!-- Right Caret Icon -->
       <UiIcon 
         name="lucide:chevron-down" 
-        class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-app)] pointer-events-none opacity-50 transition-transform duration-200" 
+        class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-app)] pointer-events-none opacity-50 transition-transform duration-200" 
         :class="isOpen ? 'rotate-180' : ''"
       />
     </button>
@@ -62,7 +62,7 @@ const selectOption = (value: any) => {
       <div 
         v-if="isOpen"
         v-click-outside="() => isOpen = false"
-        class="absolute z-50 w-full mt-2 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-xl shadow-xl overflow-hidden"
+        class="absolute z-50 w-full mt-2 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-[14px] shadow-xl overflow-hidden"
       >
         <div class="max-h-60 overflow-y-auto overflow-x-hidden custom-scrollbar">
           <button
@@ -70,8 +70,8 @@ const selectOption = (value: any) => {
             :key="opt.value"
             type="button"
             @click="selectOption(opt.value)"
-            class="w-full px-4 py-3 text-sm text-left hover:bg-[var(--text-primary)]/10 transition-colors cursor-pointer flex items-center gap-3"
-            :class="modelValue === opt.value ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)] font-medium' : 'text-[var(--text-app)]'"
+            class="w-full px-5 py-3.5 text-[15px] font-medium text-left hover:bg-[var(--text-primary)]/10 transition-colors cursor-pointer flex items-center gap-3"
+            :class="modelValue === opt.value ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)] font-semibold' : 'text-[var(--text-app)]'"
           >
             <!-- Icon for selected item -->
             <UiIcon 

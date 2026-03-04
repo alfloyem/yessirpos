@@ -98,16 +98,6 @@ button,
   @apply transition-all duration-200 ease-in-out;
 }
 
-button:hover:not(:disabled),
-.btn:hover:not(:disabled) {
-  @apply transform scale-[1.02];
-}
-
-button:active:not(:disabled),
-.btn:active:not(:disabled) {
-  @apply transform scale-[0.98];
-}
-
 button:disabled,
 .btn:disabled {
   @apply opacity-50 cursor-not-allowed;

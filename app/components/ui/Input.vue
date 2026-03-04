@@ -62,7 +62,7 @@ const togglePassword = () => {
     <UiIcon 
       v-if="computedIcon" 
       :name="computedIcon" 
-      class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-app)] opacity-40 group-focus-within:text-[var(--text-primary)] group-focus-within:opacity-100 transition-colors pointer-events-none z-10" 
+      class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-app)] opacity-40 group-focus-within:text-[var(--text-primary)] group-focus-within:opacity-100 transition-colors pointer-events-none z-10" 
     />
     
     <!-- Input Element -->
@@ -72,31 +72,31 @@ const togglePassword = () => {
       @input="handleInput"
       :placeholder="placeholder"
       :disabled="disabled"
-      class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] py-2.5 text-sm rounded-xl outline-none focus:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/10 hover:border-[var(--text-muted)] transition-all duration-300 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-[var(--border-app)]"
+      class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] py-3 text-[15px] font-medium rounded-[14px] outline-none focus:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/10 hover:border-[var(--text-muted)] transition-all duration-300 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-[var(--border-app)] placeholder:font-normal"
       :class="[
-        computedIcon ? 'pl-9' : 'pl-4', 
-        (clearable && modelValue) || type === 'password' ? 'pr-9' : 'pr-4'
+        computedIcon ? 'pl-11' : 'pl-5', 
+        (clearable && modelValue) || type === 'password' ? 'pr-11' : 'pr-5'
       ]"
     />
     
     <!-- Right Actions (Clear / Show Password) -->
-    <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
+    <div class="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 z-10">
       <!-- Clear Button -->
       <button 
         v-if="clearable && modelValue && type !== 'password'"
         @click="clear"
-        class="text-[var(--text-app)] opacity-40 hover:opacity-100 hover:text-[var(--text-primary)] transition-all flex items-center justify-center w-5 h-5 rounded-full"
+        class="text-[var(--text-app)] opacity-40 hover:opacity-100 hover:text-[var(--text-primary)] transition-all flex items-center justify-center w-6 h-6 rounded-full"
       >
-        <UiIcon name="lucide:x-circle" class="w-3.5 h-3.5" />
+        <UiIcon name="lucide:x-circle" class="w-4 h-4" />
       </button>
 
       <!-- Toggle Password -->
       <button 
         v-if="type === 'password'"
         @click="togglePassword"
-        class="text-[var(--text-app)] opacity-40 hover:opacity-100 hover:text-[var(--text-primary)] transition-all flex items-center justify-center w-5 h-5 rounded-full"
+        class="text-[var(--text-app)] opacity-40 hover:opacity-100 hover:text-[var(--text-primary)] transition-all flex items-center justify-center w-6 h-6 rounded-full"
       >
-        <UiIcon :name="showPassword ? 'lucide:eye-off' : 'lucide:eye'" class="w-3.5 h-3.5" />
+        <UiIcon :name="showPassword ? 'lucide:eye-off' : 'lucide:eye'" class="w-4 h-4" />
       </button>
     </div>
   </div>

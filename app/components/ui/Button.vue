@@ -16,38 +16,38 @@ const baseClasses = "inline-flex items-center justify-center font-medium transit
 
 const sizeClasses = computed(() => {
   switch (props.size) {
-    case 'sm': return 'h-8 px-3 text-xs rounded-md gap-1.5'
-    case 'lg': return 'h-11 px-8 text-base rounded-xl gap-2.5'
-    case 'icon': return 'h-10 w-10 rounded-lg'
+    case 'sm': return 'h-10 px-5 text-[14px] rounded-2xl gap-2 font-bold tracking-wide'
+    case 'lg': return 'h-14 px-10 text-[18px] rounded-[24px] gap-3 font-bold tracking-wide'
+    case 'icon': return 'h-12 w-12 rounded-[20px]'
     case 'md':
-    default: return 'h-10 px-4 text-sm rounded-lg gap-2'
+    default: return 'h-12 px-7 text-[16px] rounded-[20px] gap-2.5 font-bold tracking-wide shadow-sm'
   }
 })
 
 const variantClasses = computed(() => {
   switch (props.variant) {
     case 'primary': 
-      return 'text-white bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] border border-transparent'
-    case 'danger': 
-      return 'text-white bg-[var(--color-brand-danger)] hover:bg-[var(--color-brand-danger)]/80 border border-transparent'
-    case 'warning': 
-      return 'text-white bg-[var(--color-brand-warning)] hover:bg-[var(--color-brand-warning)]/80 border border-transparent'
-    case 'success': 
-      return 'text-white bg-[var(--color-brand-success)] hover:bg-[var(--color-brand-success)]/80 border border-transparent'
-    
     case 'soft-primary':
-      return 'text-[var(--text-primary)] bg-[var(--text-primary)]/10 hover:bg-[var(--text-primary)]/20 border border-transparent'
+      return 'text-[var(--text-primary)] bg-[var(--text-primary)]/10 border border-[var(--text-primary)]/20 hover:bg-[var(--text-primary)]/20 hover:border-[var(--text-primary)]/30'
+      
+    case 'danger': 
     case 'soft-danger':
-      return 'text-[var(--color-brand-danger)] bg-[var(--color-brand-danger)]/10 hover:bg-[var(--color-brand-danger)]/20 border border-transparent'
+      return 'text-[var(--color-brand-danger)] bg-[var(--color-brand-danger)]/10 hover:bg-[var(--color-brand-danger)]/20 border border-[var(--color-brand-danger)]/20 hover:border-[var(--color-brand-danger)]/30'
+      
+    case 'warning': 
+      return 'text-[var(--color-brand-warning)] bg-[var(--color-brand-warning)]/10 hover:bg-[var(--color-brand-warning)]/20 border border-[var(--color-brand-warning)]/20 hover:border-[var(--color-brand-warning)]/30'
+      
+    case 'success': 
+      return 'text-[var(--color-brand-success)] bg-[var(--color-brand-success)]/10 hover:bg-[var(--color-brand-success)]/20 border border-[var(--color-brand-success)]/20 hover:border-[var(--color-brand-success)]/30'
     
     case 'outline':
-      return 'text-[var(--text-app)] bg-transparent border border-[var(--border-app)] hover:bg-[var(--bg-app)] hover:text-[var(--text-primary)] hover:border-[var(--border-app)]'
+      return 'text-[var(--text-app)] bg-transparent border border-[var(--border-app)] hover:bg-[var(--text-primary)]/5 hover:text-[var(--text-primary)] hover:border-[var(--text-primary)]/20'
     
     case 'ghost':
-      return 'text-[var(--text-app)] bg-transparent border border-transparent hover:bg-[var(--bg-app)] hover:text-[var(--text-primary)]'
+      return 'text-[var(--text-app)] bg-transparent border border-transparent hover:bg-[var(--text-primary)]/5 hover:text-[var(--text-primary)]'
       
     default: 
-      return 'text-[var(--text-app)] bg-[var(--input-bg)] border border-[var(--border-app)] hover:bg-[var(--bg-app)] hover:text-[var(--text-primary)]'
+      return 'text-[var(--text-app)] bg-[var(--input-bg)] border border-[var(--border-app)] hover:bg-[var(--text-primary)]/5 hover:text-[var(--text-primary)] hover:border-[var(--text-primary)]/20'
   }
 })
 </script>
@@ -59,10 +59,10 @@ const variantClasses = computed(() => {
     :class="[baseClasses, sizeClasses, variantClasses, block ? 'w-full' : '']"
   >
     <!-- Loading Spinner -->
-    <UiIcon v-if="loading" name="lucide:loader-2" :size="size === 'sm' ? 'xs' : (size === 'lg' ? 'md' : 'sm')" class="animate-spin" />
+    <UiIcon v-if="loading" name="lucide:loader-2" :size="size === 'sm' ? 'sm' : (size === 'lg' ? 'lg' : 'md')" class="animate-spin" />
     
     <!-- Left UiIcon -->
-    <UiIcon v-else-if="icon" :name="icon" :size="size === 'sm' ? 'xs' : (size === 'lg' ? 'md' : 'sm')" />
+    <UiIcon v-else-if="icon" :name="icon" :size="size === 'sm' ? 'sm' : (size === 'lg' ? 'lg' : 'md')" />
     
     <!-- Slot Content -->
     <span v-if="$slots.default && size !== 'icon'" class="truncate">
@@ -70,6 +70,6 @@ const variantClasses = computed(() => {
     </span>
 
     <!-- Right Icon -->
-    <UiIcon v-if="iconRight && !loading" :name="iconRight" :size="size === 'sm' ? 'xs' : (size === 'lg' ? 'md' : 'sm')" />
+    <UiIcon v-if="iconRight && !loading" :name="iconRight" :size="size === 'sm' ? 'sm' : (size === 'lg' ? 'lg' : 'md')" />
   </button>
 </template>

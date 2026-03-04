@@ -107,7 +107,7 @@ const isPasswordMismatch = (field: any) => {
           :value="modelValue[field.key]"
           @input="e => updateField(field.key, (e.target as HTMLTextAreaElement).value)"
           :disabled="isLoading"
-          class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] px-4 py-2 text-sm rounded-lg outline-none focus:border-[var(--text-primary)] transition-all min-h-[100px] resize-y disabled:opacity-50 disabled:cursor-not-allowed leading-relaxed hover:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/10"
+          class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] px-5 py-3 text-[15px] font-medium rounded-[14px] outline-none focus:border-[var(--text-primary)] transition-all min-h-[120px] resize-y disabled:opacity-50 disabled:cursor-not-allowed leading-relaxed hover:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/10 placeholder:font-normal"
         />
       </div>
       

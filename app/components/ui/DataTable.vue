@@ -221,32 +221,6 @@ watch(searchQuery, () => {
       
       <!-- Actions Left -->
       <div class="flex items-center gap-2">
-        <!-- Delete Selected -->
-         <Transition name="fade">
-          <UiButton 
-            v-if="selectedIds.size > 0"
-            variant="soft-danger"
-            size="sm"
-            icon="lucide:trash-2"
-            @click="emit('bulk-delete', Array.from(selectedIds))"
-          >
-            {{ selectedIds.size }} Sil
-          </UiButton>
-        </Transition>
-
-        <!-- Edit Selected -->
-        <Transition name="fade">
-          <UiButton 
-            v-if="selectedIds.size > 0"
-            variant="soft-primary"
-            size="sm"
-            icon="lucide:edit-2"
-            @click="emit('bulk-edit', Array.from(selectedIds))"
-          >
-            Toplu redaktə
-          </UiButton>
-        </Transition>
-
         <!-- Column Visibility -->
         <UiDropdown menuClass="absolute left-0 top-full mt-2 w-48 p-2 z-[60]">
           <template #trigger>
@@ -272,13 +246,6 @@ watch(searchQuery, () => {
           </template>
         </UiDropdown>
 
-        <!-- Custom Bulk Actions -->
-        <Transition name="fade">
-          <div v-if="selectedIds.size > 0" class="flex items-center gap-2">
-            <slot name="bulk-actions" :selected-ids="Array.from(selectedIds)" />
-          </div>
-        </Transition>
-
         <!-- Export -->
         <UiButton 
           variant="outline"
@@ -293,13 +260,37 @@ watch(searchQuery, () => {
         <UiButton 
           variant="primary"
           size="sm"
-          icon="lucide:plus-circle"
+          icon="gravity-ui:plus"
           @click="emit('add')"
         >
           Yeni əlavə et
         </UiButton>
 
         <slot name="extra-actions" />
+
+        <!-- Bulk Actions: Moved to the end of Actions Left to prevent layout shifting -->
+        <TransitionGroup name="slide-fade" class="flex items-center gap-2">
+          <UiButton 
+            v-if="selectedIds.size > 0"
+            key="edit"
+            variant="soft-primary"
+            size="sm"
+            icon="lucide:edit-2"
+            @click="emit('bulk-edit', Array.from(selectedIds))"
+          >
+            <span class="hidden sm:inline">Toplu redaktə</span>
+          </UiButton>
+          <UiButton 
+            v-if="selectedIds.size > 0"
+            key="delete"
+            variant="soft-danger"
+            size="sm"
+            icon="lucide:trash-2"
+            @click="emit('bulk-delete', Array.from(selectedIds))"
+          >
+            {{ selectedIds.size }} <span class="hidden sm:inline">Sil</span>
+          </UiButton>
+        </TransitionGroup>
       </div>
 
       <!-- Spacer -->
@@ -522,6 +513,22 @@ watch(searchQuery, () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Base transition settings for the slide-fade */
+.slide-fade-enter-active {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.slide-fade-leave-active {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateX(10px);
+  opacity: 0;
+  filter: blur(2px);
+}
+</style>
 
 <style scoped>
 .fade-enter-active,

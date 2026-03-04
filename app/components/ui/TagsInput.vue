@@ -74,15 +74,15 @@ const handleBlur = () => {
 <template>
   <div class="relative w-full">
     <div 
-      class="min-h-[42px] w-full bg-[var(--input-bg)] border rounded-lg transition-all flex flex-wrap gap-1.5 p-1.5 items-center"
+      class="min-h-[48px] w-full bg-[var(--input-bg)] border rounded-[14px] transition-all flex flex-wrap gap-2 p-2 items-center"
       :class="isFocused ? 'border-[var(--text-primary)] ring-4 ring-[var(--text-primary)]/10' : 'border-[var(--border-app)] hover:border-[var(--text-primary)]'"
     >
-      <UiIcon v-if="icon" :name="icon" class="w-4 h-4 text-[var(--text-app)] opacity-50 ml-1.5 mr-1" />
+      <UiIcon v-if="icon" :name="icon" class="w-4 h-4 text-[var(--text-app)] opacity-50 ml-2 mr-1" />
       
       <div 
         v-for="(tag, index) in modelValue" 
         :key="index"
-        class="flex items-center gap-1.5 bg-[var(--text-primary)]/10 text-[var(--text-primary)] px-2.5 py-1 rounded-md text-[13px] font-semibold tracking-wide"
+        class="flex items-center gap-1.5 bg-[var(--text-primary)]/10 text-[var(--text-primary)] px-3 py-1.5 rounded-lg text-[14px] font-semibold tracking-wide"
       >
         {{ tag }}
         <UiIcon 
@@ -99,7 +99,7 @@ const handleBlur = () => {
         @blur="handleBlur"
         @keydown="handleKeydown"
         :placeholder="modelValue.length === 0 ? (placeholder || 'Yazın və Enter basın...') : ''"
-        class="flex-1 min-w-[120px] ml-1 bg-transparent outline-none text-[14px] text-[var(--text-app)] placeholder:text-[var(--text-app)] placeholder:opacity-40"
+        class="flex-1 min-w-[120px] ml-1 bg-transparent outline-none text-[15px] font-medium text-[var(--text-app)] placeholder:text-[var(--text-app)] placeholder:opacity-40 placeholder:font-normal"
       />
     </div>
 

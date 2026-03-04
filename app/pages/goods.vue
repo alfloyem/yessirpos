@@ -382,25 +382,10 @@ const saveForm = () => {
     >
       <template #extra-actions>
         <UiButton 
-          variant="primary" 
+          variant="soft-primary" 
           size="sm" 
           icon="lucide:layers" 
           @click="handleStandaloneVariantAdd"
-          class="!bg-[var(--color-brand-info)] hover:!bg-[var(--color-brand-info)]/80 text-white border-0"
-        >
-          Variant Əlavə Et
-        </UiButton>
-      </template>
-
-      <!-- Custom Bulk Actions -->
-      <template #bulk-actions="{ selectedIds }">
-        <UiButton 
-          v-if="selectedIds.length === 1"
-          variant="outline"
-          size="sm"
-          icon="lucide:layers"
-          @click="handleVariantAdd(selectedIds)"
-          class="border-[var(--text-primary)] text-[var(--text-primary)] hover:bg-[var(--text-primary)] hover:text-white"
         >
           Variant Əlavə Et
         </UiButton>
