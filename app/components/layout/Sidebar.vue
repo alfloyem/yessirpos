@@ -131,11 +131,54 @@ const handleResize = () => {
   }
 }
 
+// Easter egg: Triple click on logo to play music
+const clickCount = ref(0)
+let clickTimer: NodeJS.Timeout | null = null
+const audio = ref<HTMLAudioElement | null>(null)
+
+const handleLogoClick = () => {
+  clickCount.value++
+  
+  // Reset click count after 1 second
+  if (clickTimer) clearTimeout(clickTimer)
+  clickTimer = setTimeout(() => {
+    clickCount.value = 0
+  }, 1000)
+  
+  // If triple clicked
+  if (clickCount.value === 3) {
+    clickCount.value = 0
+    playEasterEgg()
+  }
+}
+
+const playEasterEgg = () => {
+  try {
+    if (!audio.value) {
+      audio.value = new Audio('/nefes_easter_egg.mp3')
+    }
+    
+    if (audio.value.paused) {
+      audio.value.play()
+    } else {
+      audio.value.pause()
+      audio.value.currentTime = 0
+    }
+  } catch (error) {
+    console.error('Easter egg audio error:', error)
+  }
+}
+
 onMounted(() => {
   window.addEventListener('resize', handleResize)
 })
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
+  if (clickTimer) clearTimeout(clickTimer)
+  if (audio.value) {
+    audio.value.pause()
+    audio.value = null
+  }
 })
 
 </script>
@@ -170,7 +213,8 @@ onUnmounted(() => {
           <img 
             :src="yessirIcon" 
             alt="Logo Icon" 
-            class="h-full w-fit object-contain transition-all duration-300"
+            class="h-full w-fit object-contain transition-all duration-300 cursor-pointer select-none"
+            @click="handleLogoClick"
           />
           <!-- Text Smoothly Hides without Scale -->
           <img 
