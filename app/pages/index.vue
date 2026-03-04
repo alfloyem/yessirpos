@@ -37,7 +37,7 @@ const colorMode = useColorMode()
 
 // Add head title for the page
 useHead({
-  title: t('menu.main') || 'Dashboard'
+  title: computed(() => t('dashboard.statistics'))
 })
 
 // --- THEME COLOR SYNC HELPER ---
@@ -69,26 +69,26 @@ const themeColors = computed(() => ({
 
 // --- 1. MOCK DATA BOARDS ---
 const stats = computed(() => [
-  { label: t('dashboard.orders'), value: '2,856', subtitle: '+16.5% ötən aydan', icon: 'lucide:shopping-bag', color: themeColors.value.primary, bg: themeColors.value.primaryLight },
-  { label: t('dashboard.revenue'), value: '145,678', suffix: '₼', subtitle: '+28.2% ötən aydan', icon: 'lucide:dollar-sign', color: themeColors.value.success, bg: themeColors.value.successLight },
-  { label: t('dashboard.expenses'), value: '32,345', suffix: '₼', subtitle: '-5.4% ötən aydan', icon: 'lucide:trending-down', color: themeColors.value.danger, bg: themeColors.value.dangerLight },
-  { label: t('dashboard.stock'), value: '8,567', subtitle: 'Stabil vəziyyət', icon: 'lucide:package', color: themeColors.value.info, bg: themeColors.value.infoLight }
+  { label: t('dashboard.orders'), value: '2,856', subtitle: `+16.5% ${t('dashboard.fromLastMonth')}`, icon: 'lucide:shopping-bag', color: themeColors.value.primary, bg: themeColors.value.primaryLight },
+  { label: t('dashboard.revenue'), value: '145,678', suffix: '₼', subtitle: `+28.2% ${t('dashboard.fromLastMonth')}`, icon: 'lucide:dollar-sign', color: themeColors.value.success, bg: themeColors.value.successLight },
+  { label: t('dashboard.expenses'), value: '32,345', suffix: '₼', subtitle: `-5.4% ${t('dashboard.fromLastMonth')}`, icon: 'lucide:trending-down', color: themeColors.value.danger, bg: themeColors.value.dangerLight },
+  { label: t('dashboard.stock'), value: '8,567', subtitle: t('dashboard.stableStatus'), icon: 'lucide:package', color: themeColors.value.info, bg: themeColors.value.infoLight }
 ])
 
 const topProducts = computed(() => [
-  { name: 'Kişi Köynəyi - Ağ', sales: 234, revenue: '11,700', suffix: '₼', progress: 85, color: themeColors.value.primary },
-  { name: 'Qadın Paltar - Qara', sales: 189, revenue: '18,900', suffix: '₼', progress: 75, color: themeColors.value.success },
-  { name: 'Kişi Şalvar - Göy', sales: 156, revenue: '9,360', suffix: '₼', progress: 60, color: themeColors.value.info },
-  { name: 'Qadın Bluz - Bənövşəyi', sales: 145, revenue: '8,700', suffix: '₼', progress: 50, color: themeColors.value.warning },
-  { name: 'Kişi Pencək - Qəhvəyi', sales: 123, revenue: '14,760', suffix: '₼', progress: 40, color: themeColors.value.danger }
+  { name: t('dashboard.products.mensShirtWhite'), sales: 234, revenue: '11,700', suffix: '₼', progress: 85, color: themeColors.value.primary },
+  { name: t('dashboard.products.womensDressBlack'), sales: 189, revenue: '18,900', suffix: '₼', progress: 75, color: themeColors.value.success },
+  { name: t('dashboard.products.mensPantsBlue'), sales: 156, revenue: '9,360', suffix: '₼', progress: 60, color: themeColors.value.info },
+  { name: t('dashboard.products.womensBlousePurple'), sales: 145, revenue: '8,700', suffix: '₼', progress: 50, color: themeColors.value.warning },
+  { name: t('dashboard.products.mensJacketBrown'), sales: 123, revenue: '14,760', suffix: '₼', progress: 40, color: themeColors.value.danger }
 ])
 
-const recentOrders = ref([
-  { id: '#12345', customer: 'Əli Məmmədov', amount: '234', suffix: '₼', status: 'completed', date: '10 dəq əvvəl' },
-  { id: '#12344', customer: 'Leyla Həsənova', amount: '567', suffix: '₼', status: 'pending', date: '25 dəq əvvəl' },
-  { id: '#12343', customer: 'Rəşad Quliyev', amount: '890', suffix: '₼', status: 'completed', date: '1 saat əvvəl' },
-  { id: '#12342', customer: 'Nigar Əliyeva', amount: '445', suffix: '₼', status: 'cancelled', date: '2 saat əvvəl' },
-  { id: '#12341', customer: 'Elvin Məhərrəmov', amount: '678', suffix: '₼', status: 'completed', date: '3 saat əvvəl' }
+const recentOrders = computed(() => [
+  { id: '#12345', customer: t('dashboard.customers.customer1'), amount: '234', suffix: '₼', status: 'completed', date: `10 ${t('dashboard.timeAgo.minutesAgo')}` },
+  { id: '#12344', customer: t('dashboard.customers.customer2'), amount: '567', suffix: '₼', status: 'pending', date: `25 ${t('dashboard.timeAgo.minutesAgo')}` },
+  { id: '#12343', customer: t('dashboard.customers.customer3'), amount: '890', suffix: '₼', status: 'completed', date: `1 ${t('dashboard.timeAgo.hourAgo')}` },
+  { id: '#12342', customer: t('dashboard.customers.customer4'), amount: '445', suffix: '₼', status: 'cancelled', date: `2 ${t('dashboard.timeAgo.hoursAgo')}` },
+  { id: '#12341', customer: t('dashboard.customers.customer5'), amount: '678', suffix: '₼', status: 'completed', date: `3 ${t('dashboard.timeAgo.hoursAgo')}` }
 ])
 
 
@@ -109,7 +109,7 @@ const lineChartOptions = computed(() => ({
       boxPadding: 4,
       usePointStyle: true,
       callbacks: {
-        label: (context) => `Gəlir: ${context.parsed.y.toLocaleString()} ₼`
+        label: (context) => `${t('dashboard.revenue')}: ${context.parsed.y.toLocaleString()} ₼`
       }
     }
   },
@@ -146,10 +146,23 @@ const lineChartOptions = computed(() => ({
 
 const lineChartData = computed(() => {
   return {
-    labels: ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'İyn', 'İyl', 'Avq', 'Sen', 'Okt', 'Noy', 'Dek'],
+    labels: [
+      t('dashboard.months.jan'), 
+      t('dashboard.months.feb'), 
+      t('dashboard.months.mar'), 
+      t('dashboard.months.apr'), 
+      t('dashboard.months.may'), 
+      t('dashboard.months.jun'), 
+      t('dashboard.months.jul'), 
+      t('dashboard.months.aug'), 
+      t('dashboard.months.sep'), 
+      t('dashboard.months.oct'), 
+      t('dashboard.months.nov'), 
+      t('dashboard.months.dec')
+    ],
     datasets: [
       {
-        label: 'Gəlir',
+        label: t('dashboard.revenue'),
         data: [12000, 19000, 15000, 32000, 22000, 41000, 28000, 48000, 32000, 60000, 52000, 85000],
         borderColor: themeColors.value.primary,
         backgroundColor: (context) => {
@@ -201,7 +214,7 @@ const donutChartOptions = computed(() => ({
 ))
 
 const donutChartData = computed(() => ({
-  labels: [t('dashboard.completed') || 'Tamamlanmış', t('dashboard.pending') || 'Gözləmədə', t('dashboard.cancelled') || 'Ləğv edildi'],
+  labels: [t('dashboard.completed'), t('dashboard.pending'), t('dashboard.cancelled')],
   datasets: [
     {
       data: [65, 25, 10], // Yüzdelikler
@@ -246,10 +259,18 @@ const barChartOptions = computed(() => ({
 }))
 
 const barChartData = computed(() => ({
-  labels: ['B.e', 'Ç.a', 'Çər', 'C.a', 'Cüm', 'Şən', 'Baz'],
+  labels: [
+    t('dashboard.weekDays.mon'), 
+    t('dashboard.weekDays.tue'), 
+    t('dashboard.weekDays.wed'), 
+    t('dashboard.weekDays.thu'), 
+    t('dashboard.weekDays.fri'), 
+    t('dashboard.weekDays.sat'), 
+    t('dashboard.weekDays.sun')
+  ],
   datasets: [
     {
-      label: 'Sifariş sayı',
+      label: t('dashboard.orderCount'),
       data: [35, 60, 45, 80, 55, 95, 70],
       backgroundColor: (context) => {
         // En yüksek olana primary rengi ver
@@ -264,11 +285,11 @@ const barChartData = computed(() => ({
 
 const selectedFilter = ref('today')
 const dateFilters = computed(() => [
-  { id: 'today', label: t('dashboard.today') || 'Bu gün' },
-  { id: 'yesterday', label: t('dashboard.yesterday') || 'Dünən' },
-  { id: 'week', label: t('dashboard.thisWeek') || 'Bu həftə' },
-  { id: 'month', label: t('dashboard.thisMonth') || 'Bu ay' },
-  { id: 'all', label: t('dashboard.allTime') || 'Bütün dövr' }
+  { id: 'today', label: t('dashboard.today') },
+  { id: 'yesterday', label: t('dashboard.yesterday') },
+  { id: 'week', label: t('dashboard.thisWeek') },
+  { id: 'month', label: t('dashboard.thisMonth') },
+  { id: 'all', label: t('dashboard.allTime') }
 ])
 </script>
 
@@ -278,10 +299,10 @@ const dateFilters = computed(() => [
     <div class="flex items-end justify-between">
       <div>
         <h1 class="text-3xl font-bold text-[var(--text-app)] tracking-tight">
-          {{ t('dashboard.statistics') || 'Statistika Paneli' }}
+          {{ t('dashboard.statistics') }}
         </h1>
         <p class="text-[var(--text-app)] opacity-60 mt-1 text-sm font-medium tracking-wide">
-          Bütün biznes fəaliyyətlərinizi tək yerdən idarə edin
+          {{ t('dashboard.subtitle') }}
         </p>
       </div>
       <div class="flex items-center gap-2 max-w-full overflow-hidden">
@@ -330,7 +351,7 @@ const dateFilters = computed(() => [
               >
                 {{ stat.subtitle.split(' ')[0] }}
               </span>
-              <span class="text-[11px] text-[var(--text-app)] opacity-50 font-medium">ötən aydan</span>
+              <span class="text-[11px] text-[var(--text-app)] opacity-50 font-medium">{{ t('dashboard.fromLastMonth') }}</span>
             </div>
           </div>
           <!-- Icon Container -->
@@ -351,11 +372,11 @@ const dateFilters = computed(() => [
       <div class="xl:col-span-2 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-2xl p-6 hover:shadow-lg hover:border-[var(--text-primary)]/20 transition-all">
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8">
           <div>
-            <h3 class="text-lg font-bold text-[var(--text-app)] tracking-tight">Gəlir Analitikası</h3>
-            <p class="text-sm text-[var(--text-app)] opacity-60 mt-1">2026-cı il üçün aylıq ümumi dövriyyə qrafiki</p>
+            <h3 class="text-lg font-bold text-[var(--text-app)] tracking-tight">{{ t('dashboard.revenueAnalytics') }}</h3>
+            <p class="text-sm text-[var(--text-app)] opacity-60 mt-1">{{ t('dashboard.revenueSubtitle') }}</p>
           </div>
           <div class="mt-4 sm:mt-0 px-4 py-2 bg-[var(--text-primary)]/10 text-[var(--text-primary)] rounded-lg font-bold">
-            <span class="text-xs opacity-80 mr-1">CƏMİ:</span> 375,000 ₼
+            <span class="text-xs opacity-80 mr-1">{{ t('dashboard.total') }}:</span> 375,000 ₼
           </div>
         </div>
         <!-- Vue Chart.js Line -->
@@ -366,8 +387,8 @@ const dateFilters = computed(() => [
 
       <!-- Satış İcmalı (Donut & Progress) -->
       <div class="xl:col-span-1 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-2xl p-6 flex flex-col hover:shadow-lg hover:border-[var(--text-primary)]/20 transition-all">
-        <h3 class="text-lg font-bold text-[var(--text-app)] tracking-tight mb-1">Satış İcmalı</h3>
-        <p class="text-sm text-[var(--text-app)] opacity-60 mb-6 font-medium">Cari ayın ümumi həcmi üzrə bölünmə</p>
+        <h3 class="text-lg font-bold text-[var(--text-app)] tracking-tight mb-1">{{ t('dashboard.salesSummary') }}</h3>
+        <p class="text-sm text-[var(--text-app)] opacity-60 mb-6 font-medium">{{ t('dashboard.salesSubtitle') }}</p>
         
         <!-- Donut Chart -->
         <div class="relative flex-1 flex items-center justify-center min-h-[220px]">
@@ -379,7 +400,7 @@ const dateFilters = computed(() => [
             <span 
               class="text-xs font-bold mt-1 px-2 py-0.5 rounded"
               :style="{ color: themeColors.success, backgroundColor: themeColors.successLight }"
-            >Böyümə</span>
+            >{{ t('dashboard.growth') }}</span>
           </div>
         </div>
 
@@ -388,17 +409,17 @@ const dateFilters = computed(() => [
           <div class="text-center p-2 rounded-xl border border-[var(--border-app)] hover:bg-[var(--bg-app)] transition-colors">
             <div class="w-full flex justify-center mb-1.5"><div class="w-2.5 h-2.5 rounded-full" :style="{ backgroundColor: themeColors.success }"></div></div>
             <div class="text-[15px] font-extrabold text-[var(--text-app)]">65%</div>
-            <div class="text-[10px] uppercase font-bold text-[var(--text-app)] opacity-50 mt-1 tracking-wider">Tamam </div>
+            <div class="text-[10px] uppercase font-bold text-[var(--text-app)] opacity-50 mt-1 tracking-wider">{{ t('dashboard.complete') }}</div>
           </div>
           <div class="text-center p-2 rounded-xl border border-[var(--border-app)] hover:bg-[var(--bg-app)] transition-colors">
             <div class="w-full flex justify-center mb-1.5"><div class="w-2.5 h-2.5 rounded-full" :style="{ backgroundColor: themeColors.warning }"></div></div>
             <div class="text-[15px] font-extrabold text-[var(--text-app)]">25%</div>
-            <div class="text-[10px] uppercase font-bold text-[var(--text-app)] opacity-50 mt-1 tracking-wider">Gözləyir</div>
+            <div class="text-[10px] uppercase font-bold text-[var(--text-app)] opacity-50 mt-1 tracking-wider">{{ t('dashboard.waiting') }}</div>
           </div>
           <div class="text-center p-2 rounded-xl border border-[var(--border-app)] hover:bg-[var(--bg-app)] transition-colors">
             <div class="w-full flex justify-center mb-1.5"><div class="w-2.5 h-2.5 rounded-full" :style="{ backgroundColor: themeColors.danger }"></div></div>
             <div class="text-[15px] font-extrabold text-[var(--text-app)]">10%</div>
-            <div class="text-[10px] uppercase font-bold text-[var(--text-app)] opacity-50 mt-1 tracking-wider">Ləğv</div>
+            <div class="text-[10px] uppercase font-bold text-[var(--text-app)] opacity-50 mt-1 tracking-wider">{{ t('dashboard.cancel') }}</div>
           </div>
         </div>
       </div>
@@ -411,10 +432,10 @@ const dateFilters = computed(() => [
       <div class="xl:col-span-2 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-2xl p-6 hover:shadow-lg hover:border-[var(--text-primary)]/20 transition-all flex flex-col">
         <div class="flex items-center justify-between mb-6">
           <div>
-            <h3 class="text-lg font-bold text-[var(--text-app)] tracking-tight">Ən Çox Satılan Məhsullar</h3>
-            <p class="text-sm text-[var(--text-app)] opacity-60">Gəlir performansı ən yüksək olan 5 məhsul</p>
+            <h3 class="text-lg font-bold text-[var(--text-app)] tracking-tight">{{ t('dashboard.topProducts') }}</h3>
+            <p class="text-sm text-[var(--text-app)] opacity-60">{{ t('dashboard.topProductsSubtitle') }}</p>
           </div>
-          <UiButton variant="outline" size="sm" class="hidden sm:flex">Hesabatı Çıxar</UiButton>
+          <UiButton variant="outline" size="sm" class="hidden sm:flex">{{ t('dashboard.exportReport') }}</UiButton>
         </div>
         
         <div class="flex-1 flex flex-col justify-between space-y-5">
@@ -443,8 +464,8 @@ const dateFilters = computed(() => [
             </div>
             
             <div class="hidden sm:block text-right w-16">
-              <div class="text-xs font-bold text-[var(--text-app)] opacity-50">Satış</div>
-              <div class="text-sm font-bold text-[var(--text-app)]">{{ product.sales }} əd.</div>
+              <div class="text-xs font-bold text-[var(--text-app)] opacity-50">{{ t('dashboard.sales') }}</div>
+              <div class="text-sm font-bold text-[var(--text-app)]">{{ product.sales }} {{ t('dashboard.pieces') }}</div>
             </div>
           </div>
         </div>
@@ -454,8 +475,8 @@ const dateFilters = computed(() => [
       <div class="xl:col-span-1 flex flex-col gap-6">
         <!-- Mini Bar Chart Card -->
         <div class="bg-[var(--input-bg)] border border-[var(--border-app)] rounded-2xl p-6 hover:shadow-lg transition-all">
-          <h3 class="text-lg font-bold text-[var(--text-app)] tracking-tight mb-2">Həftəlik Sifarişlər</h3>
-          <p class="text-sm text-[var(--text-app)] opacity-60 mb-4 font-medium">Bazar ertəsi - Bazar</p>
+          <h3 class="text-lg font-bold text-[var(--text-app)] tracking-tight mb-2">{{ t('dashboard.weeklyOrders') }}</h3>
+          <p class="text-sm text-[var(--text-app)] opacity-60 mb-4 font-medium">{{ t('dashboard.weeklySubtitle') }}</p>
           <!-- Vue Chart.js Bar -->
           <div class="h-32">
              <Bar :data="barChartData" :options="barChartOptions" />
@@ -488,12 +509,12 @@ const dateFilters = computed(() => [
             <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center mb-4 text-white">
               <UiIcon name="lucide:zap" class="w-5 h-5 fill-current" />
             </div>
-            <h3 class="text-xl font-bold mb-1 tracking-tight drop-shadow-sm">Günün Raporu Hazırdır</h3>
+            <h3 class="text-xl font-bold mb-1 tracking-tight drop-shadow-sm">{{ t('dashboard.dailyReportReady') }}</h3>
             <p class="text-sm text-white/80 max-w-[200px] mb-6 leading-relaxed">
-              Bugünkü satışların təsdiqlənməsi üçün raportu dərhal yükləyin.
+              {{ t('dashboard.dailyReportText') }}
             </p>
             <button class="bg-white text-[var(--text-primary)] px-6 py-2.5 rounded-lg text-sm font-bold shadow-md hover:shadow-xl hover:scale-105 transition-all w-full">
-              Raportu Yüklə
+              {{ t('dashboard.downloadReport') }}
             </button>
           </div>
         </div>
