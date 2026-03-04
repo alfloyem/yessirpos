@@ -9,6 +9,7 @@ const props = defineProps<{
 const emit = defineEmits(['update:images', 'remove'])
 
 const currentIndex = ref(0)
+const fileInputRef = ref<HTMLInputElement | null>(null)
 
 const maxImagesCount = computed(() => props.maxImages || Infinity)
 
@@ -79,11 +80,11 @@ const handleImageUpload = (event: Event) => {
   })
 }
 
-const removeImage = (index: number) => {
+const removeImage = (index: number, e?: Event) => {
+  e?.stopPropagation()
   const newImages = props.images.filter((_, i) => i !== index)
   emit('update:images', newImages)
   
-  // Adjust current index if needed
   if (currentIndex.value >= newImages.length && newImages.length > 0) {
     currentIndex.value = newImages.length - 1
   } else if (newImages.length === 0) {
@@ -91,7 +92,8 @@ const removeImage = (index: number) => {
   }
 }
 
-const goToPrevious = () => {
+const goToPrevious = (e?: Event) => {
+  e?.stopPropagation()
   if (currentIndex.value > 0) {
     currentIndex.value--
   } else {
@@ -99,7 +101,8 @@ const goToPrevious = () => {
   }
 }
 
-const goToNext = () => {
+const goToNext = (e?: Event) => {
+  e?.stopPropagation()
   if (currentIndex.value < props.images.length - 1) {
     currentIndex.value++
   } else {
@@ -107,107 +110,109 @@ const goToNext = () => {
   }
 }
 
-const goToIndex = (index: number) => {
+const goToIndex = (index: number, e?: Event) => {
+  e?.stopPropagation()
   currentIndex.value = index
+}
+
+const triggerUpload = () => {
+  if (fileInputRef.value) fileInputRef.value.click()
 }
 </script>
 
 <template>
   <div class="space-y-4">
     <!-- Main Image Display -->
-    <div class="relative w-full aspect-square bg-[var(--input-bg)] border-2 border-dashed border-[var(--border-app)] rounded-xl overflow-hidden group">
+    <div 
+      class="relative w-full aspect-square bg-[var(--input-bg)] border border-[var(--border-app)] rounded-2xl overflow-hidden group transition-all duration-300"
+      :class="!images.length && canAddMore ? 'hover:border-[var(--text-primary)] border-dashed border-2 cursor-pointer hover:bg-[var(--bg-app)]' : ''"
+      @click="!images.length && canAddMore ? triggerUpload() : null"
+    >
       <div v-if="images.length === 0" class="absolute inset-0 flex flex-col items-center justify-center p-8">
-        <UiIcon name="lucide:image" class="w-16 h-16 mb-4 text-[var(--text-app)] opacity-40" />
-        <p class="text-sm text-[var(--text-app)] opacity-60 text-center">Şəkil yoxdur</p>
-        <p class="text-xs text-[var(--text-app)] opacity-40 text-center mt-2">
-          Şəkil əlavə etmək üçün aşağıdakı düyməni istifadə edin
-        </p>
+        <UiIcon name="lucide:image-plus" class="w-10 h-10 mb-3 text-[var(--text-primary)] opacity-40 group-hover:opacity-100 transition-opacity duration-300 group-hover:scale-110" />
+        <span class="text-sm font-semibold text-[var(--text-app)] opacity-60 group-hover:opacity-100 group-hover:text-[var(--text-primary)] transition-all">Şəkil əlavə et</span>
       </div>
 
-      <div v-else class="relative w-full h-full">
+      <div v-else class="relative w-full h-full bg-white/5 flex items-center justify-center">
         <!-- Current Image -->
         <img 
           :src="images[currentIndex]" 
           alt="Product" 
-          class="w-full h-full object-contain"
+          class="w-full h-full object-contain mix-blend-normal p-2"
         />
 
         <!-- Navigation Arrows - Left -->
         <button
           v-if="images.length > 1"
           @click="goToPrevious"
-          class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-[var(--text-primary)] hover:bg-[var(--text-primary)]/90 text-white rounded-full flex items-center justify-center transition-all duration-700 ease-in-out shadow-lg hover:scale-110 cursor-pointer z-10"
+          class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/40 hover:bg-black/80 backdrop-blur-md text-white rounded-full flex items-center justify-center transition-all duration-300 shadow-xl cursor-pointer z-10 opacity-0 group-hover:opacity-100 hover:scale-110"
         >
-          <UiIcon name="lucide:chevron-left" class="w-6 h-6" />
+          <UiIcon name="lucide:chevron-left" class="w-5 h-5" />
         </button>
 
         <!-- Navigation Arrows - Right -->
         <button
           v-if="images.length > 1"
           @click="goToNext"
-          class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-[var(--text-primary)] hover:bg-[var(--text-primary)]/90 text-white rounded-full flex items-center justify-center transition-all duration-700 ease-in-out shadow-lg hover:scale-110 cursor-pointer z-10"
+          class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/40 hover:bg-black/80 backdrop-blur-md text-white rounded-full flex items-center justify-center transition-all duration-300 shadow-xl cursor-pointer z-10 opacity-0 group-hover:opacity-100 hover:scale-110"
         >
-          <UiIcon name="lucide:chevron-right" class="w-6 h-6" />
+          <UiIcon name="lucide:chevron-right" class="w-5 h-5" />
         </button>
-
-        <!-- Image Counter -->
-        <div class="absolute top-4 right-4 px-3 py-1.5 bg-black/60 backdrop-blur-sm text-white text-sm font-medium rounded-full">
-          {{ currentIndex + 1 }} / {{ images.length }}
-        </div>
 
         <!-- Remove Button -->
         <button
           @click="removeImage(currentIndex)"
-          class="absolute top-4 left-4 w-10 h-10 bg-[var(--color-brand-danger)] hover:bg-[var(--color-brand-danger)]/80 text-white rounded-full flex items-center justify-center transition-all duration-700 ease-in-out shadow-lg hover:scale-110 cursor-pointer z-10"
+          class="absolute top-3 right-3 w-8 h-8 bg-[var(--color-brand-danger)]/80 hover:bg-[var(--color-brand-danger)] backdrop-blur-md text-white rounded-full flex items-center justify-center transition-all duration-300 shadow-xl cursor-pointer z-10 opacity-0 group-hover:opacity-100 hover:scale-110"
+          title="Şəkli sil"
         >
           <UiIcon name="lucide:trash-2" class="w-4 h-4" />
         </button>
       </div>
     </div>
 
-    <!-- Thumbnails - Hidden, only show counter -->
-    <div v-if="images.length > 1" class="flex items-center justify-center gap-2 py-2">
-      <div
-        v-for="(_, index) in images"
-        :key="index"
-        @click="goToIndex(index)"
-        class="w-2 h-2 rounded-full transition-all cursor-pointer"
-        :class="currentIndex === index 
-          ? 'bg-[var(--text-primary)] w-6' 
-          : 'bg-[var(--border-app)] hover:bg-[var(--text-primary)]/50'"
-      ></div>
-    </div>
+    <!-- Thumbnails & Upload Controls -->
+    <div class="flex items-center justify-between px-1 mt-3">
+      <div class="flex items-center gap-2">
+        <!-- Custom indicator dots -->
+        <div v-if="images.length > 1" class="flex items-center gap-1.5 mr-2">
+          <div
+            v-for="(_, index) in images"
+            :key="index"
+            @click="goToIndex(index)"
+            class="h-1.5 rounded-full transition-all duration-300 cursor-pointer"
+            :class="currentIndex === index 
+              ? 'bg-[var(--text-primary)] w-5' 
+              : 'bg-[var(--border-app)] hover:bg-[var(--text-primary)]/50 w-1.5'"
+          ></div>
+        </div>
 
-    <!-- Upload Controls -->
-    <div class="flex items-center gap-3">
-      <input
-        type="file"
-        accept="image/*"
-        multiple
-        @change="handleImageUpload"
-        class="hidden"
-        :id="`image-upload-carousel-${Date.now()}`"
-      />
-      <label
-        :for="`image-upload-carousel-${Date.now()}`"
-        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer"
-        :class="canAddMore 
-          ? 'bg-[var(--text-primary)] text-white hover:opacity-90' 
-          : 'bg-[var(--input-bg)] text-[var(--text-app)] opacity-50 cursor-not-allowed'"
-      >
-        <UiIcon name="lucide:upload" class="w-4 h-4" />
-        Şəkil əlavə et
-      </label>
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          @change="handleImageUpload"
+          class="hidden"
+          ref="fileInputRef"
+          :id="`image-upload-carousel-${Date.now()}`"
+        />
+        <label
+          v-if="images.length > 0"
+          :for="`image-upload-carousel-${Date.now()}`"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold tracking-wide uppercase transition-all cursor-pointer"
+          :class="canAddMore 
+            ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)] hover:bg-[var(--text-primary)]/20' 
+            : 'bg-[var(--input-bg)] text-[var(--text-app)] opacity-50 cursor-not-allowed pointer-events-none'"
+        >
+          <UiIcon name="lucide:plus" class="w-3.5 h-3.5" />
+          YENİ ŞƏKİL
+        </label>
+      </div>
       
-      <div class="text-xs text-[var(--text-app)] opacity-60">
-        <span v-if="props.maxImages">{{ images.length }} / {{ maxImagesCount }} şəkil</span>
-        <span v-else>{{ images.length }} şəkil</span>
+      <!-- Counter indicator -->
+      <div v-if="images.length > 0" class="text-[11px] font-bold tracking-widest text-[var(--text-app)] bg-[var(--input-bg)]/50 px-2.5 py-1 rounded-md opacity-70">
+        {{ currentIndex + 1 }} / {{ images.length }}
       </div>
     </div>
-
-    <p class="text-xs text-[var(--text-app)] opacity-60">
-      Maksimum fayl ölçüsü: 5MB. Dəstəklənən formatlar: JPG, PNG, GIF
-    </p>
   </div>
 </template>
 

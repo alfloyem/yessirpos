@@ -39,13 +39,6 @@ const brands = [
   { label: 'Mango', value: 'mango' }
 ]
 
-// Mock attributes (from /attributes page)
-const availableAttributes = ref([
-  { id: 1, name: 'Rəng', values: ['Qırmızı', 'Mavi', 'Yaşıl', 'Qara', 'Ağ'] },
-  { id: 2, name: 'Ölçü', values: ['XS', 'S', 'M', 'L', 'XL', 'XXL'] },
-  { id: 3, name: 'Material', values: ['Pambıq', 'Polyester', 'Yun', 'İpək'] }
-])
-
 // --- Centralized Schema ---
 const goodsSchema: (FormField & { inTable?: boolean, sortable?: boolean })[] = [
   { key: 'rowNumber', label: 'Sıra sayı', type: 'text', inTable: true, sortable: false },
@@ -54,16 +47,14 @@ const goodsSchema: (FormField & { inTable?: boolean, sortable?: boolean })[] = [
   { key: 'productName', label: 'Məhsulun adı', icon: 'lucide:package', type: 'text', inTable: true, sortable: true, required: true },
   { key: 'category', label: 'Kateqoriyası', icon: 'lucide:folder', type: 'select', inTable: true, sortable: true, required: true, options: categories },
   { key: 'barcode', label: 'Barkod', icon: 'lucide:qr-code', type: 'text', inTable: true, sortable: true, required: true },
-  { key: 'price', label: 'Qiymət (₼)', icon: 'lucide:wallet', type: 'number', inTable: false, sortable: true },
-  { key: 'stock', label: 'Stok', icon: 'lucide:package-check', type: 'number', inTable: false, sortable: true },
   { key: 'description', label: 'Açıqlama', icon: 'lucide:file-text', type: 'textarea', colSpan: 2, inTable: false },
   { key: 'createdAt', label: 'Yaradılma tarixi', type: 'text', inTable: false, sortable: true },
   { key: 'createdBy', label: 'Yaradan', type: 'text', inTable: false, sortable: true },
 ]
 
-// Modal'da gösterilecek form alanları (createdAt, createdBy, rowNumber və image Hariç)
+// Modal'da gösterilecek form alanları (createdAt, createdBy və rowNumber Hariç)
 const formFields = computed(() => {
-  return goodsSchema.filter(f => !['createdAt', 'createdBy', 'rowNumber', 'image'].includes(f.key))
+  return goodsSchema.filter(f => !['createdAt', 'createdBy', 'rowNumber'].includes(f.key))
 })
 
 // Extract table columns dynamically
@@ -95,17 +86,10 @@ const mockData = ref<any[]>([
   { 
     id: 1, 
     rowNumber: 1,
-    image: '👕',
     brandName: 'nike',
     productName: 'Nike Air Max T-Shirt',
     category: 'clothing',
     barcode: '123456789012',
-    price: 89.99,
-    stock: 45,
-    attributes: [
-      { attributeId: 1, attributeName: 'Rəng', value: 'Qara' },
-      { attributeId: 2, attributeName: 'Ölçü', value: 'L' }
-    ],
     description: 'Rahat və keyfiyyətli idman köynəyi',
     createdAt: '2026-03-03 10:15', 
     createdBy: 'Admin'
@@ -113,17 +97,10 @@ const mockData = ref<any[]>([
   { 
     id: 2, 
     rowNumber: 2,
-    image: '👟',
     brandName: 'adidas',
     productName: 'Adidas Ultraboost',
     category: 'shoes',
     barcode: '987654321098',
-    price: 299.99,
-    stock: 20,
-    attributes: [
-      { attributeId: 1, attributeName: 'Rəng', value: 'Ağ' },
-      { attributeId: 2, attributeName: 'Ölçü', value: '42' }
-    ],
     description: 'Yüksək performanslı qaçış ayaqqabısı',
     createdAt: '2026-03-02 14:30', 
     createdBy: 'Admin'
@@ -131,17 +108,10 @@ const mockData = ref<any[]>([
   { 
     id: 3, 
     rowNumber: 3,
-    image: '👗',
     brandName: 'zara',
     productName: 'Zara Yay Paltarı',
     category: 'clothing',
     barcode: '456789123456',
-    price: 129.99,
-    stock: 15,
-    attributes: [
-      { attributeId: 1, attributeName: 'Rəng', value: 'Mavi' },
-      { attributeId: 2, attributeName: 'Ölçü', value: 'M' }
-    ],
     description: 'Yüngül və rahat yay paltarı',
     createdAt: '2026-03-01 09:20', 
     createdBy: 'Admin'
@@ -151,16 +121,10 @@ const mockData = ref<any[]>([
 // --- Modals State ---
 const showAddModal = ref(false)
 const showEditModal = ref(false)
-const showAttributesModal = ref(false)
 const formData = ref<Record<string, any>>({})
 const bulkSelectedIds = ref<any[]>([])
 const barcodeError = ref('')
-
-// Images management
 const productImages = ref<string[]>([])
-
-// Attributes management
-const selectedAttributes = ref<any[]>([])
 
 // --- Handlers ---
 const handleAdd = () => {
@@ -168,11 +132,8 @@ const handleAdd = () => {
     barcode: generateBarcode(),
     brandName: 'nike',
     category: 'clothing',
-    price: 0,
-    stock: 0,
     images: []
   }
-  selectedAttributes.value = []
   productImages.value = []
   barcodeError.value = ''
   showAddModal.value = true
@@ -180,7 +141,6 @@ const handleAdd = () => {
 
 const handleEdit = (row: any) => {
   formData.value = { ...row }
-  selectedAttributes.value = [...(row.attributes || [])]
   productImages.value = [...(row.images || [])]
   barcodeError.value = ''
   showEditModal.value = true
@@ -194,6 +154,48 @@ const handleDelete = (row: any) => {
       item.rowNumber = index + 1
     })
   }
+}
+
+const handleDuplicate = (row: any) => {
+  const d = new Date()
+  const formattedDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+  
+  const newId = Date.now()
+  
+  // Find next number for name
+  const baseProductName = row.productName.replace(/\s*\(\d+\)$/, '')
+  const existingNumbers = mockData.value
+    .filter(item => item.productName.startsWith(baseProductName))
+    .map(item => {
+      const match = item.productName.match(/\((\d+)\)$/)
+      return match ? parseInt(match[1]) : 0
+    })
+  
+  const nextNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1
+  const newProductName = `${baseProductName} (${nextNumber})`
+  
+  const duplicatedData = {
+    ...row,
+    id: newId,
+    barcode: generateBarcode(), // Yeni məhsul üçün fərqli barkod yaradaq
+    productName: newProductName,
+    images: [...(row.images || [])],
+    image: row.image,
+    createdAt: formattedDate,
+    createdBy: 'Sistem İdarəçisi'
+  }
+  
+  const index = mockData.value.findIndex(m => m.id === row.id)
+  if (index !== -1) {
+    mockData.value.splice(index + 1, 0, duplicatedData)
+  } else {
+    mockData.value.push(duplicatedData)
+  }
+  
+  // Recalculate row numbers
+  mockData.value.forEach((item, idx) => {
+    item.rowNumber = idx + 1
+  })
 }
 
 const handleBulkDelete = (ids: any[]) => {
@@ -211,41 +213,6 @@ const handleBulkEdit = (ids: any[]) => {
   formData.value = {}
   barcodeError.value = ''
   showEditModal.value = true
-}
-
-const handleManageAttributes = (row: any) => {
-  formData.value = { ...row }
-  selectedAttributes.value = [...(row.attributes || [])]
-  showAttributesModal.value = true
-}
-
-const addAttribute = () => {
-  selectedAttributes.value.push({
-    attributeId: null,
-    attributeName: '',
-    value: ''
-  })
-}
-
-const removeAttribute = (index: number) => {
-  selectedAttributes.value.splice(index, 1)
-}
-
-const updateAttributeName = (index: number, attrId: number) => {
-  const attr = availableAttributes.value.find(a => a.id === attrId)
-  if (attr) {
-    selectedAttributes.value[index].attributeId = attr.id
-    selectedAttributes.value[index].attributeName = attr.name
-    selectedAttributes.value[index].value = ''
-  }
-}
-
-const saveAttributes = () => {
-  const index = mockData.value.findIndex(m => m.id === formData.value.id)
-  if (index !== -1) {
-    mockData.value[index].attributes = [...selectedAttributes.value]
-  }
-  showAttributesModal.value = false
 }
 
 // Barkod kontrolü
@@ -275,7 +242,6 @@ const saveForm = () => {
       images: [...productImages.value],
       image: productImages.value[0] || '📦',
       ...formData.value,
-      attributes: [...selectedAttributes.value],
       createdAt: formattedDate,
       createdBy: 'Sistem İdarəçisi'
     })
@@ -294,8 +260,7 @@ const saveForm = () => {
           ...mockData.value[index], 
           ...formData.value,
           images: [...productImages.value],
-          image: productImages.value[0] || mockData.value[index].image,
-          attributes: [...selectedAttributes.value]
+          image: productImages.value[0] || mockData.value[index].image || '📦'
         }
       }
     }
@@ -322,6 +287,7 @@ const saveForm = () => {
       @add="handleAdd"
       @edit="handleEdit"
       @delete="handleDelete"
+      @duplicate="handleDuplicate"
       @bulk-delete="handleBulkDelete"
       @bulk-edit="handleBulkEdit"
     >
@@ -341,18 +307,10 @@ const saveForm = () => {
       </template>
 
       <!-- Brand Name Custom Format -->
-      <template #cell-brandName="{ value, row }">
-        <div class="flex items-center gap-2">
-          <span class="font-semibold text-[var(--text-primary)]">
-            {{ brandLabels[value] || value }}
-          </span>
-          <button
-            @click="handleManageAttributes(row)"
-            class="px-2 py-1 rounded-lg text-xs font-medium bg-[var(--color-brand-success)]/10 text-[var(--color-brand-success)] hover:bg-[var(--color-brand-success)]/20 transition-colors cursor-pointer"
-          >
-            Atributlar ({{ row.attributes?.length || 0 }})
-          </button>
-        </div>
+      <template #cell-brandName="{ value }">
+        <span class="font-semibold text-[var(--text-primary)]">
+          {{ brandLabels[value] || value }}
+        </span>
       </template>
 
       <!-- Category Custom Format -->
@@ -388,19 +346,6 @@ const saveForm = () => {
             :fields="formFields"
             v-model="formData" 
           />
-        </div>
-      </div>
-
-      <!-- Attributes Section -->
-      <div class="mt-6 space-y-4 col-span-2">
-        <div class="flex items-center justify-between">
-          <label class="block text-xs font-bold text-[var(--text-app)] tracking-wider">
-            Atributlar
-          </label>
-        </div>
-
-        <div class="text-center py-8 text-[var(--text-app)] opacity-50 text-sm">
-          Atributları redaktə etmək üçün məhsulu yadda saxlayın və sonra "Atributlar" düyməsinə klikləyin
         </div>
       </div>
 
@@ -444,55 +389,9 @@ const saveForm = () => {
 
       <div v-else>
         <DynamicForm 
-          :fields="formFields.filter(f => f.key !== 'barcode')"
+          :fields="formFields"
           v-model="formData" 
         />
-      </div>
-
-      <!-- Attributes Section (only for single edit) -->
-      <div v-if="bulkSelectedIds.length === 0" class="mt-6 space-y-4">
-        <div class="flex items-center justify-between">
-          <label class="block text-xs font-bold text-[var(--text-app)] tracking-wider">
-            Atributlar
-          </label>
-          <UiButton variant="primary" size="sm" @click="addAttribute">
-            <UiIcon name="lucide:plus" class="w-4 h-4 mr-1" />
-            Atribut əlavə et
-          </UiButton>
-        </div>
-
-        <div class="space-y-3">
-          <div 
-            v-for="(attr, index) in selectedAttributes" 
-            :key="index"
-            class="flex gap-2 items-start p-3 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg"
-          >
-            <div class="flex-1 grid grid-cols-2 gap-2">
-              <UiSelect
-                :modelValue="attr.attributeId"
-                @update:modelValue="val => updateAttributeName(index, val)"
-                :options="availableAttributes.map(a => ({ label: a.name, value: a.id }))"
-                placeholder="Atribut seçin"
-              />
-              <UiSelect
-                v-if="attr.attributeId"
-                :modelValue="attr.value"
-                @update:modelValue="val => attr.value = val"
-                :options="availableAttributes.find(a => a.id === attr.attributeId)?.values.map(v => ({ label: v, value: v })) || []"
-                placeholder="Dəyər seçin"
-              />
-            </div>
-            <button
-              @click="removeAttribute(index)"
-              class="text-[var(--color-brand-danger)] hover:bg-[var(--color-brand-danger)]/10 p-2 rounded transition-colors cursor-pointer"
-            >
-              <UiIcon name="lucide:trash-2" class="w-4 h-4" />
-            </button>
-          </div>
-          <div v-if="selectedAttributes.length === 0" class="text-center py-6 text-[var(--text-app)] opacity-50 text-sm">
-            Hələ atribut əlavə edilməyib
-          </div>
-        </div>
       </div>
 
       <template #footer>
@@ -501,79 +400,5 @@ const saveForm = () => {
       </template>
     </Modal>
 
-    <!-- Modal: Manage Attributes -->
-    <Modal v-model="showAttributesModal" title="Atributları İdarə Et" max-width="lg">
-      <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-[var(--text-app)] mb-2">
-            Məhsul: <span class="text-[var(--text-primary)]">{{ formData.productName }}</span>
-          </label>
-        </div>
-
-        <div class="flex items-center justify-between">
-          <label class="block text-xs font-bold text-[var(--text-app)] tracking-wider">
-            Atributlar
-          </label>
-          <UiButton variant="primary" size="sm" @click="addAttribute">
-            <UiIcon name="lucide:plus" class="w-4 h-4 mr-1" />
-            Atribut əlavə et
-          </UiButton>
-        </div>
-
-        <div class="space-y-3 max-h-96 overflow-y-auto custom-scrollbar">
-          <div 
-            v-for="(attr, index) in selectedAttributes" 
-            :key="index"
-            class="flex gap-2 items-start p-3 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg"
-          >
-            <div class="flex-1 grid grid-cols-2 gap-2">
-              <UiSelect
-                :modelValue="attr.attributeId"
-                @update:modelValue="val => updateAttributeName(index, val)"
-                :options="availableAttributes.map(a => ({ label: a.name, value: a.id }))"
-                placeholder="Atribut seçin"
-              />
-              <UiSelect
-                v-if="attr.attributeId"
-                :modelValue="attr.value"
-                @update:modelValue="val => attr.value = val"
-                :options="availableAttributes.find(a => a.id === attr.attributeId)?.values.map(v => ({ label: v, value: v })) || []"
-                placeholder="Dəyər seçin"
-              />
-            </div>
-            <button
-              @click="removeAttribute(index)"
-              class="text-[var(--color-brand-danger)] hover:bg-[var(--color-brand-danger)]/10 p-2 rounded transition-colors cursor-pointer"
-            >
-              <UiIcon name="lucide:trash-2" class="w-4 h-4" />
-            </button>
-          </div>
-          <div v-if="selectedAttributes.length === 0" class="text-center py-8 text-[var(--text-app)] opacity-50 text-sm">
-            Hələ atribut əlavə edilməyib
-          </div>
-        </div>
-      </div>
-      <template #footer>
-        <UiButton variant="ghost" @click="showAttributesModal = false">İmtina</UiButton>
-        <UiButton variant="primary" @click="saveAttributes">Yadda saxla</UiButton>
-      </template>
-    </Modal>
-
   </div>
 </template>
-
-<style scoped>
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: var(--bg-app);
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--border-app);
-  border-radius: 3px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--text-primary);
-}
-</style>

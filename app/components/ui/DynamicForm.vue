@@ -25,39 +25,34 @@ const updateField = (key: string, value: any) => {
   emit('update:modelValue', { ...props.modelValue, [key]: value })
 }
 
-// Convert datetime-local format to dd.mm.yyyy HH:mm
 const formatDateTimeForDisplay = (value: string) => {
   if (!value) return ''
-  // If already in dd.mm.yyyy HH:mm format, return as is
   if (value.match(/^\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}$/)) return value
   
-  // Parse from yyyy-MM-dd HH:mm format
   const parts = value.split(' ')
-  if (parts.length === 2) {
-    const [datePart, timePart] = parts
+  if (parts.length === 2 && parts[0] && parts[1]) {
+    const datePart = parts[0]
+    const timePart = parts[1]
     const [year, month, day] = datePart.split('-')
     return `${day}.${month}.${year} ${timePart}`
   }
   return value
 }
 
-// Convert dd.mm.yyyy HH:mm to yyyy-MM-dd HH:mm for storage
 const parseDateTimeFromDisplay = (value: string) => {
   if (!value) return ''
-  // If already in yyyy-MM-dd HH:mm format, return as is
   if (value.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/)) return value
   
-  // Parse from dd.mm.yyyy HH:mm format
   const parts = value.split(' ')
-  if (parts.length === 2) {
-    const [datePart, timePart] = parts
+  if (parts.length === 2 && parts[0] && parts[1]) {
+    const datePart = parts[0]
+    const timePart = parts[1]
     const [day, month, year] = datePart.split('.')
     return `${year}-${month}-${day} ${timePart}`
   }
   return value
 }
 
-// Automatically create a confirm field for any password field and inject it into the fields list.
 const enhancedFields = computed(() => {
   const result: (FormField & { isConfirm?: boolean, originalKey?: string })[] = []
   for (const field of props.fields) {
@@ -77,7 +72,6 @@ const enhancedFields = computed(() => {
   return result
 })
 
-// Validation handling
 const isPasswordMismatch = (field: any) => {
   if (field.isConfirm && field.originalKey) {
     const originalValue = props.modelValue[field.originalKey]
