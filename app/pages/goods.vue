@@ -22,14 +22,6 @@ const generateBarcode = () => {
   return barcode
 }
 
-// Mock categories
-const categories = [
-  { label: 'Geyim', value: 'clothing' },
-  { label: 'Ayaqqabı', value: 'shoes' },
-  { label: 'Aksesuar', value: 'accessories' },
-  { label: 'Çanta', value: 'bags' }
-]
-
 // Mock brands
 const brands = [
   { label: 'Nike', value: 'nike' },
@@ -45,7 +37,7 @@ const goodsSchema: (FormField & { inTable?: boolean, sortable?: boolean })[] = [
   { key: 'image', label: 'Məhsulun şəkli', type: 'text', inTable: true, sortable: false },
   { key: 'brandName', label: 'Brendin adı', icon: 'lucide:award', type: 'select', inTable: true, sortable: true, required: true, options: brands },
   { key: 'productName', label: 'Məhsulun adı', icon: 'lucide:package', type: 'text', inTable: true, sortable: true, required: true },
-  { key: 'category', label: 'Kateqoriyası', icon: 'lucide:folder', type: 'select', inTable: true, sortable: true, required: true, options: categories },
+  { key: 'category', label: 'Kateqoriyası', icon: 'lucide:folder', type: 'tags', inTable: true, sortable: true, required: true, historyKey: 'goods_category' },
   { key: 'barcode', label: 'Barkod', icon: 'lucide:qr-code', type: 'text', inTable: true, sortable: true, required: true },
   { key: 'description', label: 'Açıqlama', icon: 'lucide:file-text', type: 'textarea', colSpan: 2, inTable: false },
   { key: 'createdAt', label: 'Yaradılma tarixi', type: 'text', inTable: false, sortable: true },
@@ -64,14 +56,6 @@ const columns = computed(() =>
     .map(f => ({ key: f.key, label: f.label, sortable: f.sortable }))
 )
 
-// Category labels for display
-const categoryLabels: Record<string, string> = {
-  clothing: 'Geyim',
-  shoes: 'Ayaqqabı',
-  accessories: 'Aksesuar',
-  bags: 'Çanta'
-}
-
 // Brand labels for display
 const brandLabels: Record<string, string> = {
   nike: 'Nike',
@@ -88,7 +72,7 @@ const mockData = ref<any[]>([
     rowNumber: 1,
     brandName: 'nike',
     productName: 'Nike Air Max T-Shirt',
-    category: 'clothing',
+    category: ['Geyim', 'İdman'],
     barcode: '123456789012',
     description: 'Rahat və keyfiyyətli idman köynəyi',
     createdAt: '2026-03-03 10:15', 
@@ -99,7 +83,7 @@ const mockData = ref<any[]>([
     rowNumber: 2,
     brandName: 'adidas',
     productName: 'Adidas Ultraboost',
-    category: 'shoes',
+    category: ['Ayaqqabı', 'İdman'],
     barcode: '987654321098',
     description: 'Yüksək performanslı qaçış ayaqqabısı',
     createdAt: '2026-03-02 14:30', 
@@ -110,7 +94,7 @@ const mockData = ref<any[]>([
     rowNumber: 3,
     brandName: 'zara',
     productName: 'Zara Yay Paltarı',
-    category: 'clothing',
+    category: ['Geyim', 'Gündəlik'],
     barcode: '456789123456',
     description: 'Yüngül və rahat yay paltarı',
     createdAt: '2026-03-01 09:20', 
@@ -131,7 +115,7 @@ const handleAdd = () => {
   formData.value = {
     barcode: generateBarcode(),
     brandName: 'nike',
-    category: 'clothing',
+    category: [],
     images: []
   }
   productImages.value = []
@@ -315,9 +299,15 @@ const saveForm = () => {
 
       <!-- Category Custom Format -->
       <template #cell-category="{ value }">
-        <span class="px-2 py-1 rounded-lg text-xs font-medium bg-[var(--text-primary)]/10 text-[var(--text-primary)]">
-          {{ categoryLabels[value] || value }}
-        </span>
+        <div class="flex flex-wrap gap-1">
+          <span 
+            v-for="(cat, idx) in (Array.isArray(value) ? value : [value])" 
+            :key="idx" 
+            class="px-2 py-1 rounded-lg text-[10px] font-bold tracking-wide uppercase bg-[var(--text-primary)]/10 text-[var(--text-primary)] shrink-0"
+          >
+            {{ cat }}
+          </span>
+        </div>
       </template>
     </DataTable>
 

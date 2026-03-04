@@ -2,15 +2,17 @@
 import { computed } from 'vue'
 import UiInput from '~/components/ui/Input.vue'
 import UiSelect from '~/components/ui/Select.vue'
+import TagsInput from '~/components/ui/TagsInput.vue'
 
 export interface FormField {
   key: string
   label: string
-  type: 'text' | 'email' | 'password' | 'tel' | 'textarea' | 'select' | 'number' | 'date' | 'datetime'
+  type: 'text' | 'email' | 'password' | 'tel' | 'textarea' | 'select' | 'number' | 'date' | 'datetime' | 'tags'
   options?: { label: string, value: any }[] // For select
   required?: boolean
   colSpan?: 1 | 2
   icon?: string // Optional icon
+  historyKey?: string // For tags
 }
 
 const props = defineProps<{
@@ -105,6 +107,17 @@ const isPasswordMismatch = (field: any) => {
         />
       </div>
       
+      <!-- Tags Input -->
+      <div v-else-if="field.type === 'tags'" class="relative w-full">
+        <TagsInput
+          :modelValue="modelValue[field.key] || []"
+          @update:modelValue="val => updateField(field.key, val)"
+          :historyKey="field.historyKey || field.key"
+          :icon="field.icon"
+          :placeholder="`${field.label} yazın...`"
+        />
+      </div>
+
       <!-- Select -->
       <UiSelect 
         v-else-if="field.type === 'select'"
