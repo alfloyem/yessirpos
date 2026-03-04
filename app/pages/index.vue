@@ -312,7 +312,7 @@ const dateFilters = computed(() => [
             v-for="filter in dateFilters"
             :key="filter.id"
             @click="selectedFilter = filter.id"
-            class="px-3 md:px-4 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all whitespace-nowrap"
+            class="px-3 md:px-4 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all whitespace-nowrap cursor-pointer"
             :class="selectedFilter === filter.id ? 'bg-[var(--text-primary)] text-white shadow-md' : 'text-[var(--text-app)] hover:bg-[var(--bg-app)]'"
           >
             {{ filter.label }}
@@ -399,7 +399,7 @@ const dateFilters = computed(() => [
             <span class="text-3xl font-black text-[var(--text-app)]">85%</span>
             <span 
               class="text-xs font-bold mt-1 px-2 py-0.5 rounded"
-              :style="{ color: themeColors.success, backgroundColor: themeColors.successLight }"
+              :style="{ color: themeColors.success, backgroundColor: themeColors.successLight}"
             >{{ t('dashboard.growth') }}</span>
           </div>
         </div>
