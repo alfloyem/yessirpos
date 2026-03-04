@@ -5,6 +5,7 @@ const props = defineProps<{
   modelValue: boolean
   title?: string
   maxWidth?: string // e.g. 'sm', 'md', 'lg', 'xl', '2xl'
+  minHeight?: string // e.g. '400px', '500px'
 }>()
 
 const emit = defineEmits(['update:modelValue', 'close'])
@@ -63,6 +64,7 @@ const maxWidthClass = computed(() => {
         <div 
           class="relative w-full bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] flex flex-col max-h-[90vh] transition-all"
           :class="maxWidthClass"
+          :style="minHeight ? { minHeight } : {}"
           @click.stop
         >
           <!-- Header -->
