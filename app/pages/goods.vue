@@ -35,18 +35,41 @@ const brands = [
 const goodsSchema: (FormField & { inTable?: boolean, sortable?: boolean })[] = [
   { key: 'rowNumber', label: 'Sıra sayı', type: 'text', inTable: true, sortable: false },
   { key: 'image', label: 'Məhsulun şəkli', type: 'text', inTable: true, sortable: false },
-  { key: 'brandName', label: 'Brendin adı', icon: 'lucide:award', type: 'select', inTable: true, sortable: true, required: true, options: brands },
+  { key: 'parentProductName', label: 'Bağlı olduğu məhsul', type: 'text', inTable: true, sortable: true },
   { key: 'productName', label: 'Məhsulun adı', icon: 'lucide:package', type: 'text', inTable: true, sortable: true, required: true },
+  { key: 'brandName', label: 'Brendin adı', icon: 'lucide:award', type: 'select', inTable: true, sortable: true, required: true, options: brands },
   { key: 'category', label: 'Kateqoriyası', icon: 'lucide:folder', type: 'tags', inTable: true, sortable: true, required: true, historyKey: 'goods_category' },
+  { key: 'attribute', label: 'Atributlar', icon: 'lucide:tag', type: 'tags', inTable: true, sortable: true },
   { key: 'barcode', label: 'Barkod', icon: 'lucide:qr-code', type: 'text', inTable: true, sortable: true, required: true },
+  { key: 'wholesalePrice', label: 'Top. qiymət (₼)', type: 'number', inTable: true, sortable: true },
+  { key: 'retailPrice', label: 'Pər. qiymət (₼)', type: 'number', inTable: true, sortable: true },
+  { key: 'stock', label: 'Stok', type: 'number', inTable: true, sortable: true },
   { key: 'description', label: 'Açıqlama', icon: 'lucide:file-text', type: 'textarea', colSpan: 2, inTable: false },
   { key: 'createdAt', label: 'Yaradılma tarixi', type: 'text', inTable: false, sortable: true },
   { key: 'createdBy', label: 'Yaradan', type: 'text', inTable: false, sortable: true },
 ]
 
-// Modal'da gösterilecek form alanları (createdAt, createdBy, rowNumber və image Hariç)
+// Modal'da gösterilecek form alanları (Base Product)
 const formFields = computed(() => {
-  return goodsSchema.filter(f => !['createdAt', 'createdBy', 'rowNumber', 'image'].includes(f.key))
+  return goodsSchema.filter(f => ['productName', 'brandName', 'category', 'description'].includes(f.key))
+})
+
+// --- Variant Schema ---
+const variantSchema = computed<FormField[]>(() => {
+  // Seçilə biləcək Base Productlar
+  const productOptions = mockData.value
+    .filter(m => !m.parentProductId) // Yalnız əsas məhsullar
+    .map(p => ({ label: p.productName, value: p.id }))
+
+  return [
+    { key: 'parentProductId', label: 'Asılı olduğu məhsul', icon: 'lucide:box', type: 'select', required: true, options: productOptions },
+    { key: 'barcode', label: 'Barkod', icon: 'lucide:qr-code', type: 'text', required: true },
+    { key: 'attribute', label: 'Atribut (Məs: Ölçü: M, Rəng: Qırmızı)', icon: 'lucide:tag', type: 'tags', required: true, historyKey: 'variant_attr' },
+    { key: 'wholesalePrice', label: 'Topdansatış qiyməti (₼)', icon: 'lucide:coins', type: 'number', required: true },
+    { key: 'retailPrice', label: 'Pərakəndə qiyməti (₼)', icon: 'lucide:banknote', type: 'number', required: true },
+    { key: 'stock', label: 'Stok (Say)', icon: 'lucide:package-check', type: 'number', required: true },
+    { key: 'reorderLevel', label: 'Yenidən sifariş limiti', icon: 'lucide:alert-circle', type: 'number', required: true },
+  ]
 })
 
 // Extract table columns dynamically
@@ -79,8 +102,25 @@ const mockData = ref<any[]>([
     createdBy: 'Admin'
   },
   { 
-    id: 2, 
+    id: 101, // Bu bir variantdır (id: 1-ə bağlıdır)
     rowNumber: 2,
+    parentProductId: 1,
+    parentProductName: 'Nike Air Max T-Shirt',
+    brandName: 'nike',
+    productName: 'Nike Air Max T-Shirt',
+    category: ['Geyim', 'İdman'],
+    attribute: ['Ölçü: M', 'Rəng: Qırmızı'],
+    barcode: '111122223333',
+    wholesalePrice: 40,
+    retailPrice: 85,
+    stock: 25,
+    reorderLevel: 5,
+    createdAt: '2026-03-03 10:20', 
+    createdBy: 'Admin'
+  },
+  { 
+    id: 2, 
+    rowNumber: 3,
     brandName: 'adidas',
     productName: 'Adidas Ultraboost',
     category: ['Ayaqqabı', 'İdman'],
@@ -105,22 +145,59 @@ const mockData = ref<any[]>([
 // --- Modals State ---
 const showAddModal = ref(false)
 const showEditModal = ref(false)
+const showVariantModal = ref(false)
 const formData = ref<Record<string, any>>({})
+const variantFormData = ref<Record<string, any>>({})
 const bulkSelectedIds = ref<any[]>([])
+const selectedVariantProductId = ref<any>(null)
 const barcodeError = ref('')
 const productImages = ref<string[]>([])
+const variantImages = ref<string[]>([])
 
 // --- Handlers ---
 const handleAdd = () => {
   formData.value = {
-    barcode: generateBarcode(),
     brandName: 'nike',
-    category: [],
-    images: []
+    category: []
   }
   productImages.value = []
   barcodeError.value = ''
   showAddModal.value = true
+}
+
+const handleStandaloneVariantAdd = () => {
+  variantFormData.value = {
+    parentProductId: null,
+    barcode: generateBarcode(),
+    attribute: [],
+    wholesalePrice: 0,
+    retailPrice: 0,
+    stock: 0,
+    reorderLevel: 0
+  }
+  variantImages.value = []
+  barcodeError.value = ''
+  showVariantModal.value = true
+}
+
+const handleVariantAdd = (selectedIds: any[]) => {
+  if (selectedIds.length !== 1) {
+    alert('Bunu cədvəldən əlavə etmək üçün yalnız 1 məhsul seçilməlidir!')
+    return
+  }
+  const parentProduct = mockData.value.find(m => m.id === selectedIds[0])
+  variantFormData.value = {
+    parentProductId: parentProduct?.parentProductId || parentProduct?.id, // Əgər variant seçilibsə onun valideyninə bağla
+    barcode: generateBarcode(),
+    attribute: [],
+    wholesalePrice: 0,
+    retailPrice: 0,
+    stock: 0,
+    reorderLevel: 0
+  }
+  variantImages.value = []
+  barcodeError.value = ''
+  showVariantModal.value = true
 }
 
 const handleEdit = (row: any) => {
@@ -213,9 +290,10 @@ const saveForm = () => {
     return 
   }
 
+  const d = new Date()
+  const formattedDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+
   if (showAddModal.value) {
-    const d = new Date()
-    const formattedDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
     
     const newId = Date.now()
     const newRowNumber = mockData.value.length + 1
@@ -249,6 +327,33 @@ const saveForm = () => {
       }
     }
     showEditModal.value = false
+  } else if (showVariantModal.value) {
+    const parentProduct = mockData.value.find(m => m.id === variantFormData.value.parentProductId)
+    
+    if (!parentProduct) {
+      alert("Asılı olduğu məhsulu seçmək məcburidir!")
+      return
+    }
+
+    const newId = Date.now()
+    const newRowNumber = mockData.value.length + 1
+    
+    mockData.value.push({
+      id: newId,
+      rowNumber: newRowNumber,
+      parentProductId: parentProduct.id,
+      parentProductName: parentProduct.productName,
+      brandName: parentProduct.brandName,
+      productName: parentProduct.productName,
+      category: parentProduct.category,
+      ...variantFormData.value,
+      images: [...variantImages.value],
+      image: variantImages.value[0] || '📦',
+      createdAt: formattedDate,
+      createdBy: 'Sistem İdarəçisi'
+    })
+    
+    showVariantModal.value = false
   }
 }
 </script>
@@ -275,6 +380,32 @@ const saveForm = () => {
       @bulk-delete="handleBulkDelete"
       @bulk-edit="handleBulkEdit"
     >
+      <template #extra-actions>
+        <UiButton 
+          variant="primary" 
+          size="sm" 
+          icon="lucide:layers" 
+          @click="handleStandaloneVariantAdd"
+          class="!bg-[var(--color-brand-info)] hover:!bg-[var(--color-brand-info)]/80 text-white border-0"
+        >
+          Variant Əlavə Et
+        </UiButton>
+      </template>
+
+      <!-- Custom Bulk Actions -->
+      <template #bulk-actions="{ selectedIds }">
+        <UiButton 
+          v-if="selectedIds.length === 1"
+          variant="outline"
+          size="sm"
+          icon="lucide:layers"
+          @click="handleVariantAdd(selectedIds)"
+          class="border-[var(--text-primary)] text-[var(--text-primary)] hover:bg-[var(--text-primary)] hover:text-white"
+        >
+          Variant Əlavə Et
+        </UiButton>
+      </template>
+
       <!-- Row Number Custom Format -->
       <template #cell-rowNumber="{ value }">
         <span class="font-medium text-[var(--text-app)] opacity-60">
@@ -407,6 +538,41 @@ const saveForm = () => {
       <template #footer>
         <UiButton variant="ghost" @click="showEditModal = false; bulkSelectedIds = []">İmtina</UiButton>
         <UiButton variant="primary" @click="saveForm">Yenilə</UiButton>
+      </template>
+    </Modal>
+
+    <!-- Modal: Variant Add -->
+    <Modal v-model="showVariantModal" title="Variant Əlavə Et" max-width="4xl" min-height="700px">
+      <div v-if="barcodeError" class="mb-4 p-3 bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)] rounded-lg text-sm font-medium flex items-center gap-2">
+        <UiIcon name="lucide:alert-triangle" class="w-3.5 h-3.5"/>
+        {{ barcodeError }}
+      </div>
+
+      <div class="flex flex-col lg:flex-row gap-8 items-start relative max-h-[70vh] overflow-y-auto custom-scrollbar pr-2">
+        <!-- Left: Image Carousel (Sticky) -->
+        <div class="w-full lg:w-[45%] lg:sticky lg:top-0 lg:left-0 z-10 bg-[var(--bg-app)] pb-2">
+          <label class="block text-xs font-bold text-[var(--text-app)] tracking-wider mb-3">
+            Variant Şəkilləri
+          </label>
+          <ImageCarousel 
+            :images="variantImages"
+            @update:images="val => variantImages = val"
+          />
+        </div>
+
+        <!-- Right: Form Fields -->
+        <div class="w-full lg:w-[55%]">
+          <DynamicForm 
+            :fields="variantSchema"
+            v-model="variantFormData"
+            :gridCols="1" 
+          />
+        </div>
+      </div>
+
+      <template #footer>
+        <UiButton variant="ghost" @click="showVariantModal = false">İmtina</UiButton>
+        <UiButton variant="primary" @click="saveForm">Variantı Yadda Saxla</UiButton>
       </template>
     </Modal>
 

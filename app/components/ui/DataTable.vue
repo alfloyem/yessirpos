@@ -272,6 +272,13 @@ watch(searchQuery, () => {
           </template>
         </UiDropdown>
 
+        <!-- Custom Bulk Actions -->
+        <Transition name="fade">
+          <div v-if="selectedIds.size > 0" class="flex items-center gap-2">
+            <slot name="bulk-actions" :selected-ids="Array.from(selectedIds)" />
+          </div>
+        </Transition>
+
         <!-- Export -->
         <UiButton 
           variant="outline"
@@ -291,6 +298,8 @@ watch(searchQuery, () => {
         >
           Yeni əlavə et
         </UiButton>
+
+        <slot name="extra-actions" />
       </div>
 
       <!-- Spacer -->
