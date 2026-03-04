@@ -10,9 +10,9 @@ const emit = defineEmits(['update:images', 'remove'])
 
 const currentIndex = ref(0)
 
-const maxImagesCount = computed(() => props.maxImages || 5)
+const maxImagesCount = computed(() => props.maxImages || Infinity)
 
-const canAddMore = computed(() => props.images.length < maxImagesCount.value)
+const canAddMore = computed(() => props.maxImages ? props.images.length < props.maxImages : true)
 
 const handleImageUpload = (event: Event) => {
   const target = event.target as HTMLInputElement
@@ -22,10 +22,13 @@ const handleImageUpload = (event: Event) => {
   
   const newImages: string[] = []
   let processedCount = 0
-  const filesToProcess = Math.min(files.length, maxImagesCount.value - props.images.length)
   
-  if (filesToProcess === 0) {
-    alert(`Maksimum ${maxImagesCount.value} şəkil əlavə edə bilərsiniz!`)
+  // Calculate how many files we can process
+  const remainingSlots = props.maxImages ? props.maxImages - props.images.length : Infinity
+  const filesToProcess = props.maxImages ? Math.min(files.length, remainingSlots) : files.length
+  
+  if (props.maxImages && filesToProcess === 0) {
+    alert(`Maksimum ${props.maxImages} şəkil əlavə edə bilərsiniz!`)
     target.value = ''
     return
   }
@@ -197,7 +200,8 @@ const goToIndex = (index: number) => {
       </label>
       
       <div class="text-xs text-[var(--text-app)] opacity-60">
-        {{ images.length }} / {{ maxImagesCount }} şəkil
+        <span v-if="props.maxImages">{{ images.length }} / {{ maxImagesCount }} şəkil</span>
+        <span v-else>{{ images.length }} şəkil</span>
       </div>
     </div>
 

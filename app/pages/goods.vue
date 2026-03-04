@@ -379,7 +379,6 @@ const saveForm = () => {
           <ImageCarousel 
             :images="productImages"
             @update:images="val => productImages = val"
-            :max-images="5"
           />
         </div>
 
@@ -431,7 +430,6 @@ const saveForm = () => {
           <ImageCarousel 
             :images="productImages"
             @update:images="val => productImages = val"
-            :max-images="5"
           />
         </div>
 
