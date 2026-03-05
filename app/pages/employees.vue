@@ -219,6 +219,35 @@ const handleBulkEdit = (ids: any[]) => {
   showEditModal.value = true
 }
 
+// Custom search function for i18n support
+const customSearch = (item: any, query: string) => {
+  const normalizeText = (text: any) => {
+    if (text === null || text === undefined) return ''
+    return String(text)
+      .toLocaleLowerCase('tr-TR')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, "")
+  }
+
+  const q = normalizeText(query)
+  
+  // Search in all fields
+  const searchableFields = [
+    item.firstName,
+    item.lastName,
+    item.username,
+    item.email,
+    item.phone,
+    item.notes,
+    // Translated gender
+    item.gender === 'Kişi' ? t('employees.male') : item.gender === 'Qadın' ? t('employees.female') : item.gender,
+    // Translated status
+    item.status === 'Aktif' ? t('employees.statusActive') : item.status === 'Pasif' ? t('employees.statusPassive') : item.status === 'İzində' ? t('employees.statusOnLeave') : item.status
+  ]
+  
+  return searchableFields.some(field => normalizeText(field).includes(q))
+}
+
 const handleDuplicate = async (row: any) => {
   loading.value = true
   const toast = useToast()
@@ -349,6 +378,7 @@ const saveForm = async () => {
       :columns="columns"
       :selectable="true"
       :actions="true"
+      :custom-search="customSearch"
       @add="handleAdd"
       @edit="handleEdit"
       @delete="handleDelete"

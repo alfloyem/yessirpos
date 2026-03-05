@@ -19,6 +19,7 @@ interface Props {
   actions?: boolean // show default action column
   searchable?: boolean
   perPage?: number // items per page
+  customSearch?: (item: any, query: string) => boolean // custom search function
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -121,7 +122,12 @@ const filteredAndSortedData = computed(() => {
   if (searchQuery.value) {
     const q = normalizeText(searchQuery.value)
     result = result.filter(item => {
-      // Dynamic: search all keys in the object, independent of column visibility
+      // Use custom search if provided
+      if (props.customSearch) {
+        return props.customSearch(item, searchQuery.value)
+      }
+      
+      // Default search: search all keys in the object
       const keys = Object.keys(item)
       return keys.some(key => {
         const val = item[key]
