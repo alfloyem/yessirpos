@@ -20,7 +20,7 @@ const computedType = computed(() => {
   if (props.type === 'password') {
     return isPasswordVisible.value ? 'text' : 'password'
   }
-  if (props.type === 'barcode') {
+  if (props.type === 'barcode' || props.type === 'number') {
     return 'text'
   }
   return props.type || 'text'
@@ -58,7 +58,31 @@ const handleInput = (e: Event) => {
     }
   }
 
+  // Bonus/Number specific formatting
+  if (props.type === 'number') {
+    val = val.replace(/[^\d\.]/g, '')
+    if ((e.target as HTMLInputElement).value !== val) {
+      (e.target as HTMLInputElement).value = val
+    }
+  }
+
   emit('update:modelValue', val)
+}
+
+const handleBlur = (e: Event) => {
+  if (props.type === 'number') {
+    let val = (e.target as HTMLInputElement).value
+    if (val !== '') {
+      const num = parseFloat(val)
+      if (!isNaN(num)) {
+        val = num.toFixed(2)
+        emit('update:modelValue', val)
+        if ((e.target as HTMLInputElement).value !== val) {
+          (e.target as HTMLInputElement).value = val
+        }
+      }
+    }
+  }
 }
 
 const clear = () => {
@@ -86,6 +110,7 @@ const togglePassword = () => {
       :type="computedType" 
       :value="modelValue"
       @input="handleInput"
+      @blur="handleBlur"
       :placeholder="placeholder"
       :disabled="disabled"
       class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] py-3 text-[15px] font-medium rounded-[14px] outline-none focus:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/10 hover:border-[var(--text-muted)] transition-all duration-300 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-[var(--border-app)] placeholder:font-normal"

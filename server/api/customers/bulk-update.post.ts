@@ -22,12 +22,12 @@ export default defineEventHandler(async (event) => {
     const updateData: any = {}
     if (updates.firstName) updateData.firstName = updates.firstName
     if (updates.lastName) updateData.lastName = updates.lastName
-    if (updates.bonus !== undefined) updateData.bonus = updates.bonus
+    if (updates.bonus !== undefined) updateData.bonus = typeof updates.bonus === 'number' ? updates.bonus : parseFloat(updates.bonus || 0)
     if (updates.gender !== undefined) updateData.gender = updates.gender
     if (updates.email !== undefined) updateData.email = updates.email
     if (updates.phone !== undefined) updateData.phone = updates.phone
     if (updates.address !== undefined) updateData.address = updates.address
-    if (updates.city !== undefined) updateData.city = updates.city
+    if (updates.city !== undefined) updateData.city = Array.isArray(updates.city) ? JSON.stringify(updates.city) : updates.city
     if (updates.country !== undefined) updateData.country = updates.country
     if (updates.notes !== undefined) updateData.notes = updates.notes
 
