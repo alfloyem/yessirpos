@@ -60,12 +60,10 @@ const maxWidthClass = computed(() => {
           @click="close"
         ></div>
 
-        <!-- Dialog -->
         <div 
           class="relative w-full bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] flex flex-col max-h-[90vh] transition-all"
           :class="maxWidthClass"
           :style="minHeight ? { minHeight } : {}"
-          @click.stop
         >
           <!-- Header -->
           <div class="flex items-center justify-between px-8 py-5 border-b border-[var(--border-app)]">
