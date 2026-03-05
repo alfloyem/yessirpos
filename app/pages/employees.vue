@@ -45,6 +45,19 @@ const generateUsername = (first?: string, last?: string, currentId?: any) => {
   return finalUsername
 }
 
+const duplicateUsername = (existing: string) => {
+  const base = existing.replace(/\d+$/, '') || existing
+  let finalUsername = existing
+  let counter = 2
+  
+  while (mockData.value.some(m => m.username === finalUsername)) {
+    finalUsername = `${base}${counter}`
+    counter++
+  }
+  
+  return finalUsername
+}
+
 // --- Centralized Schema ---
 const employeeSchema = computed< (FormField & { inTable?: boolean, sortable?: boolean })[] >(() => [
   { key: 'firstName', label: t('employees.firstName', 'Ad'), type: 'text', inTable: true, sortable: true, required: true, colSpan: 1 },
@@ -168,7 +181,7 @@ const handleDuplicate = (row: any) => {
   const index = mockData.value.findIndex(m => m.id === row.id)
   if (index !== -1) {
     const newId = Date.now()
-    const newUsername = generateUsername(row.username, String(newId))
+    const newUsername = duplicateUsername(row.username)
     const newRow = { ...row, id: newId, username: newUsername }
 
     // Insert right below the duplicated item
@@ -326,27 +339,22 @@ const saveForm = () => {
     </Modal>
 
     <!-- Silmə Təsdiq Modalı -->
-    <Modal v-model="showDeleteConfirmModal" :title="t('common.attention', 'Diggət!')" max-width="sm">
-      <div class="flex flex-col items-center justify-center p-6 text-center space-y-4">
-        <div class="w-16 h-16 bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)] rounded-full flex items-center justify-center mb-2">
-          <UiIcon name="lucide:alert-triangle" class="w-8 h-8" />
-        </div>
-        <h3 class="text-xl font-bold text-[var(--text-primary)]">{{ t('employees.confirmDelete', 'Silmək istədiyinizə əminsiniz?') }}</h3>
-        <p class="text-[var(--text-app)] opacity-70 text-[15px]">
+    <Modal v-model="showDeleteConfirmModal" :title="t('employees.confirmDelete', 'Silmək istədiyinizə əminsiniz?')" max-width="sm">
+      <div class="py-2">
+        <p class="text-[var(--text-app)] opacity-80 text-[15px] leading-relaxed">
           {{ t('common.cannotBeUndone', 'Bu əməliyyat geri qaytarıla bilməz.') }}
-          <span v-if="deleteTarget?.type === 'bulk'" class="font-bold text-[var(--text-primary)] block mt-2">
+          <span v-if="deleteTarget?.type === 'bulk'" class="font-bold text-[var(--color-brand-danger)] block mt-2">
             {{ t('employees.bulkDeleteCount', { count: deleteTarget.ids?.length }) }}
           </span>
         </p>
       </div>
       
       <template #footer>
-        <UiButton variant="ghost" @click="showDeleteConfirmModal = false" class="!px-6">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
-        <UiButton variant="danger" icon="lucide:trash-2" @click="performDelete" class="!px-8 min-w-[120px]">
+        <UiButton variant="ghost" @click="showDeleteConfirmModal = false">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
+        <UiButton variant="danger" @click="performDelete">
           {{ t('common.yesDelete', 'Bəli, Sil') }}
         </UiButton>
       </template>
     </Modal>
-
   </div>
 </template>

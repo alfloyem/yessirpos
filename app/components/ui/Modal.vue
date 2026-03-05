@@ -6,6 +6,7 @@ const props = defineProps<{
   title?: string
   maxWidth?: string // e.g. 'sm', 'md', 'lg', 'xl', '2xl'
   minHeight?: string // e.g. '400px', '500px'
+  hideHeader?: boolean
 }>()
 
 const emit = defineEmits(['update:modelValue', 'close'])
@@ -66,7 +67,7 @@ const maxWidthClass = computed(() => {
           :style="minHeight ? { minHeight } : {}"
         >
           <!-- Header -->
-          <div class="flex items-center justify-between px-8 py-5 border-b border-[var(--border-app)]">
+          <div v-if="!hideHeader" class="flex items-center justify-between px-8 py-5 border-b border-[var(--border-app)]">
             <h3 class="text-xl font-bold text-[var(--text-primary)]">
               <slot name="title">{{ title }}</slot>
             </h3>
