@@ -151,7 +151,8 @@
     "delete": "Sil",
     "fieldRequired": "Bu xana mütləq doldurulmalıdır",
     "passwordsMismatch": "Şifrələr uyğun deyil!",
-    "passwordsMinLength": "Şifrə minimum {count} simvol olmalıdır"
+    "passwordsMinLength": "Şifrə minimum {count} simvol olmalıdır",
+    "noData": "Axtarışınıza uyğun nəticə tapılmadı"
   },
   "user": {
     "name": "MR Musa",

@@ -151,7 +151,8 @@
     "delete": "Delete",
     "fieldRequired": "This field is required",
     "passwordsMismatch": "Passwords do not match!",
-    "passwordsMinLength": "Password must be at least {count} characters"
+    "passwordsMinLength": "Password must be at least {count} characters",
+    "noData": "No results found for your search"
   },
   "user": {
     "name": "MR Musa",

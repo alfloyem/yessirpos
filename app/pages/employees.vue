@@ -164,6 +164,18 @@ const handleBulkEdit = (ids: any[]) => {
   showEditModal.value = true
 }
 
+const handleDuplicate = (row: any) => {
+  const index = mockData.value.findIndex(m => m.id === row.id)
+  if (index !== -1) {
+    const newId = Date.now()
+    const newUsername = generateUsername(row.username, String(newId))
+    const newRow = { ...row, id: newId, username: newUsername }
+
+    // Insert right below the duplicated item
+    mockData.value.splice(index + 1, 0, newRow)
+  }
+}
+
 const saveForm = () => {
   formErrors.value = {}
   let hasError = false
@@ -236,14 +248,39 @@ const saveForm = () => {
       @delete="handleDelete"
       @bulk-delete="handleBulkDelete"
       @bulk-edit="handleBulkEdit"
+      @duplicate="handleDuplicate"
     >
-      <!-- Customizing the Gender column using slots -->
-      <template #cell-gender="{ value }">
-        <span>{{ value === 'Kişi' ? t('employees.male', 'Kişi') : value === 'Qadın' ? t('employees.female', 'Qadın') : value }}</span>
+      <!-- Contact links with Highlighting -->
+      <template #cell-email="{ value, highlight }">
+        <a 
+          v-if="value" 
+          :href="`mailto:${value}`" 
+          class="text-[var(--text-app)] hover:text-blue-500 hover:underline transition-colors" 
+          @click.stop
+          v-html="highlight(value)"
+        ></a>
+        <span v-else>-</span>
       </template>
 
-      <!-- Customizing the Status column using slots -->
-      <template #cell-status="{ value }">
+      <template #cell-phone="{ value, highlight }">
+        <a 
+          v-if="value" 
+          :href="`https://wa.me/${String(value).replace(/[^0-9]/g, '')}`" 
+          target="_blank"
+          class="text-[var(--text-app)] hover:text-green-500 hover:underline transition-colors" 
+          @click.stop
+          v-html="highlight(value)"
+        ></a>
+        <span v-else>-</span>
+      </template>
+
+      <!-- Customizing the Gender column using slots with Highlight support -->
+      <template #cell-gender="{ value, highlight }">
+        <span v-html="highlight(value === 'Kişi' ? t('employees.male', 'Kişi') : value === 'Qadın' ? t('employees.female', 'Qadın') : value)"></span>
+      </template>
+
+      <!-- Customizing the Status column using slots with Highlight support -->
+      <template #cell-status="{ value, highlight }">
         <span 
           class="px-2 py-1 text-xs font-bold rounded-full"
           :class="{
@@ -251,8 +288,8 @@ const saveForm = () => {
             'bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)]': value === 'Pasif',
             'bg-[var(--color-brand-warning)]/10 text-[var(--color-brand-warning)]': value === 'İzinde'
           }"
+          v-html="highlight(value === 'Aktif' ? t('employees.statusActive', 'Aktif') : value === 'Pasif' ? t('employees.statusPassive', 'Pasif') : t('employees.statusOnLeave', 'İzinde'))"
         >
-          {{ value === 'Aktif' ? t('employees.statusActive', 'Aktif') : value === 'Pasif' ? t('employees.statusPassive', 'Pasif') : t('employees.statusOnLeave', 'İzinde') }}
         </span>
       </template>
     </DataTable>

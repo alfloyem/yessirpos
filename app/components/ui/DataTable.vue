@@ -426,7 +426,7 @@ watch(searchQuery, () => {
                   @click="selectable ? toggleSelect(row.id) : emit('row-click', row)"
                 >
                   <!-- Custom Slot Check -->
-                  <slot :name="`cell-${col.key}`" :row="row" :value="row[col.key]">
+                  <slot :name="`cell-${col.key}`" :row="row" :value="row[col.key]" :highlight="highlightText">
                     <span v-html="highlightText(row[col.key])"></span>
                   </slot>
                 </td>
@@ -476,10 +476,15 @@ watch(searchQuery, () => {
             </template>
             <!-- Empty State -->
             <tr v-else>
-              <td :colspan="(selectable ? 1 : 0) + visibleColumns.length + (actions ? 1 : 0)" class="px-6 py-12 text-center">
-                <div class="flex flex-col items-center gap-3 opacity-50">
-                  <UiIcon name="lucide:ghost" class="w-10 h-10" />
-                  <p class="text-sm">Veri bulunamadı.</p>
+              <td :colspan="(selectable ? 1 : 0) + visibleColumns.length + (actions ? 1 : 0)" class="px-6 py-16 text-center">
+                <div class="flex flex-col items-center justify-center gap-4 opacity-50">
+                  <svg class="w-20 h-20 text-[var(--text-app)] opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    <line x1="11" y1="8" x2="11" y2="14"></line>
+                    <line x1="8" y1="11" x2="14" y2="11"></line>
+                  </svg>
+                  <p class="text-[14px] font-medium tracking-wide">{{ t('common.noData', 'Axtarışınıza uyğun nəticə tapılmadı') }}</p>
                 </div>
               </td>
             </tr>
