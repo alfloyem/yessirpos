@@ -8,7 +8,7 @@ import { useI18n } from '#i18n'
 export interface FormField {
   key: string
   label: string
-  type: 'text' | 'email' | 'password' | 'tel' | 'textarea' | 'select' | 'number' | 'date' | 'datetime' | 'tags'
+  type: 'text' | 'email' | 'password' | 'tel' | 'textarea' | 'select' | 'number' | 'date' | 'datetime' | 'tags' | 'barcode'
   options?: { label: string, value: any }[] // For select
   required?: boolean
   colSpan?: 1 | 2

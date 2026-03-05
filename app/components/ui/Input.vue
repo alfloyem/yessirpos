@@ -20,6 +20,9 @@ const computedType = computed(() => {
   if (props.type === 'password') {
     return isPasswordVisible.value ? 'text' : 'password'
   }
+  if (props.type === 'barcode') {
+    return 'text'
+  }
   return props.type || 'text'
 })
 
@@ -29,6 +32,7 @@ const computedIcon = computed(() => {
     case 'email': return 'lucide:mail'
     case 'password': return 'lucide:lock'
     case 'tel': return 'lucide:phone'
+    case 'barcode': return 'lucide:barcode'
     default: return ''
   }
 })
@@ -40,6 +44,15 @@ const handleInput = (e: Event) => {
   if (props.type === 'tel') {
     val = val.replace(/[^\d\s\-\+]/g, '')
     // Ekranda da değerin değişmesi için DOM'u güncelle
+    if ((e.target as HTMLInputElement).value !== val) {
+      (e.target as HTMLInputElement).value = val
+    }
+  }
+
+  // Barcode specific formatting: C + 7 digits max
+  if (props.type === 'barcode') {
+    let digits = val.replace(/[^\d]/g, '').slice(0, 7)
+    val = `C${digits}`
     if ((e.target as HTMLInputElement).value !== val) {
       (e.target as HTMLInputElement).value = val
     }
