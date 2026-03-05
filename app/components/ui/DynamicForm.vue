@@ -14,6 +14,7 @@ export interface FormField {
   colSpan?: 1 | 2
   icon?: string // Optional icon
   historyKey?: string // For tags
+  isCountry?: boolean // For country select
 }
 
 const props = defineProps<{
@@ -137,6 +138,7 @@ const isPasswordMismatch = (field: any) => {
         :options="field.options || []"
         :disabled="isLoading"
         :icon="field.icon"
+        :isCountry="field.isCountry"
         class="hover:border-[var(--text-primary)] transition-colors"
         :class="{ '!border-[var(--color-brand-danger)]': errors?.[field.key] }"
       />

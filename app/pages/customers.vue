@@ -49,7 +49,7 @@ const customerSchema = computed< (FormField & { inTable?: boolean, sortable?: bo
   { key: 'email', label: t('employees.email', 'E-poçt (Email)'), icon: 'lucide:mail', type: 'email', inTable: true, sortable: true, colSpan: 1 },
   { key: 'phone', label: t('employees.phone', 'Telefon'), icon: 'lucide:phone', type: 'tel', inTable: true, sortable: true, colSpan: 1 },
   { key: 'city', label: t('customers.city', 'Şəhər/rayon'), type: 'tags', inTable: true, sortable: true, colSpan: 1 },
-  { key: 'country', label: t('customers.country', 'Ölkə'), icon: 'lucide:globe', type: 'text', inTable: false, colSpan: 1 },
+  { key: 'country', label: t('customers.country', 'Ölkə'), icon: 'lucide:globe', type: 'select', isCountry: true, colSpan: 1, inTable: false },
   { key: 'address', label: t('customers.address', 'Ünvan'), icon: 'lucide:map-pin', type: 'text', colSpan: 2, inTable: false },
   { key: 'notes', label: t('employees.notes', 'Xüsusi qeyd'), type: 'textarea', colSpan: 2, inTable: false },
   // Tarix ve Əməkdaş sadece görüntü/otomatik olduğu için forma eklemiyoruz, tablo/arkaplan mantığında işliyoruz.
@@ -117,7 +117,7 @@ const handleAdd = () => {
     barcode: generateBarcode(),
     bonus: '0.00',
     city: [],
-    country: 'Azərbaycan'
+    country: 'AZ'
   }
   formErrors.value = {}
   showAddModal.value = true
