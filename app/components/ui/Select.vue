@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from '#i18n'
+import countryList from '~/utils/countries.json'
 
 const props = defineProps<{
   modelValue: any
-  options: { label: string, value: any }[]
+  options?: { label: string, value: any, flag?: string }[]
   disabled?: boolean
   icon?: string
+  isCountry?: boolean
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -24,9 +26,19 @@ onMounted(() => document.addEventListener('click', handleClickOutside))
 onUnmounted(() => document.removeEventListener('click', handleClickOutside))
 
 const isOpen = ref(false)
+
+const currentOptions = computed(() => {
+  return props.isCountry ? countryList : (props.options || [])
+})
+
 const selectedLabel = computed(() => {
-  const selected = props.options.find(opt => opt.value === props.modelValue)
+  const selected = currentOptions.value.find(opt => opt.value === props.modelValue)
   return selected ? selected.label : t('common.select', 'Seç')
+})
+
+const selectedFlag = computed(() => {
+  const selected = currentOptions.value.find(opt => opt.value === props.modelValue)
+  return selected ? (selected as any).flag : null
 })
 
 const selectOption = (value: any) => {
@@ -53,7 +65,8 @@ const selectOption = (value: any) => {
         :class="isOpen ? 'text-[var(--text-primary)] opacity-100' : ''"
       />
 
-      <span class="truncate" :class="modelValue ? 'text-[var(--text-app)]' : 'text-[var(--text-app)] opacity-40 font-normal'">
+      <span class="truncate flex items-center gap-2" :class="modelValue ? 'text-[var(--text-app)]' : 'text-[var(--text-app)] opacity-40 font-normal'">
+        <span v-if="selectedFlag">{{ selectedFlag }}</span>
         {{ selectedLabel }}
       </span>
 
@@ -80,7 +93,7 @@ const selectOption = (value: any) => {
       >
         <div class="max-h-60 overflow-y-auto overflow-x-hidden custom-scrollbar">
           <button
-            v-for="opt in options"
+            v-for="opt in currentOptions"
             :key="opt.value"
             type="button"
             @click="selectOption(opt.value)"
@@ -93,7 +106,10 @@ const selectOption = (value: any) => {
               name="lucide:check" 
               class="w-4 h-4 text-[var(--text-primary)] flex-shrink-0"
             />
-            <span class="flex-1 truncate" :class="modelValue === opt.value ? '' : 'ml-7'">{{ opt.label }}</span>
+            <span class="flex-1 truncate" :class="modelValue === opt.value ? '' : 'ml-7'">
+              <span v-if="(opt as any).flag" class="mr-2">{{ (opt as any).flag }}</span>
+              {{ opt.label }}
+            </span>
           </button>
         </div>
       </div>
