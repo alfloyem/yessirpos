@@ -1,5 +1,5 @@
-br<script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+<script setup lang="ts">
+import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from '#i18n'
 import DataTable from '~/components/ui/DataTable.vue'
 import Modal from '~/components/ui/Modal.vue'
@@ -9,67 +9,107 @@ import DynamicForm, { type FormField } from '~/components/ui/DynamicForm.vue'
 const { t } = useI18n()
 
 useHead({
-  title: t('menu.customers') || 'Müştərilər'
+  title: t('menu.customers', 'Müştərilər')
 })
 
 // --- Helper for Barcode Generation ---
 const generateBarcode = () => {
-  // 12 Haneli rastgele bir barkod üretir
-  let barcode = ''
-  for (let i = 0; i < 12; i++) {
-    barcode += Math.floor(Math.random() * 10).toString()
+  const cBarcodes = mockData.value
+    .map(m => m.barcode)
+    .filter(b => typeof b === 'string' && /^C\d{7}$/.test(b))
+    .map(b => parseInt(b.substring(1), 10))
+  
+  let nextNum = 1
+  if (cBarcodes.length > 0) {
+    nextNum = Math.max(...cBarcodes) + 1
   }
+  
+  let barcode = `C${String(nextNum).padStart(7, '0')}`
+  
+  const existingSet = new Set(mockData.value.map(m => m.barcode))
+  while (existingSet.has(barcode)) {
+    nextNum++
+    barcode = `C${String(nextNum).padStart(7, '0')}`
+  }
+  
   return barcode
 }
 
 // --- Centralized Schema ---
-const customerSchema: (FormField & { inTable?: boolean, sortable?: boolean })[] = [
-  { key: 'firstName', label: 'Ad', type: 'text', inTable: true, sortable: true, required: true },
-  { key: 'lastName', label: 'Soyad', type: 'text', inTable: true, sortable: true, required: true },
-  { key: 'barcode', label: 'Barkod', icon: 'lucide:qr-code', type: 'text', inTable: true, sortable: true, required: true },
-  { key: 'bonus', label: 'Bonus (AZN)', icon: 'lucide:wallet', type: 'number', inTable: true, sortable: true },
-  { key: 'gender', label: 'Cins', type: 'select', inTable: true, sortable: true, options: [
-    { label: 'Kişi', value: 'Kişi' },
-    { label: 'Qadın', value: 'Qadın' }
-  ]},
-  { key: 'email', label: 'E-poçt', icon: 'lucide:mail', type: 'email', inTable: false, sortable: true },
-  { key: 'phone', label: 'Telefon', icon: 'lucide:phone', type: 'tel', inTable: true, sortable: true },
-  { key: 'address', label: 'Ünvan', icon: 'lucide:map-pin', type: 'text', colSpan: 2, inTable: false },
-  { key: 'city', label: 'Şəhər/rayon', type: 'select', inTable: true, sortable: true, options: [
-    { label: 'Bakı', value: 'Bakı' }
-  ]},
-  { key: 'country', label: 'Ölkə', icon: 'lucide:globe', type: 'text', inTable: false },
-  { key: 'notes', label: 'Xüsusi qeyd', type: 'textarea', colSpan: 2, inTable: false },
+const customerSchema = computed< (FormField & { inTable?: boolean, sortable?: boolean })[] >(() => [
+  { key: 'firstName', label: t('customers.firstName', 'Ad'), type: 'text', inTable: true, sortable: true, required: true, colSpan: 1 },
+  { key: 'lastName', label: t('customers.lastName', 'Soyad'), type: 'text', inTable: true, sortable: true, required: true, colSpan: 1 },
+  { key: 'barcode', label: t('customers.barcode', 'Barkod'), icon: 'lucide:qr-code', type: 'barcode', inTable: true, sortable: true, required: true, colSpan: 2 },
+  { key: 'gender', label: t('customers.gender', 'Cinsiyyət'), type: 'select', inTable: true, sortable: true, options: [
+    { label: t('customers.male', 'Kişi'), value: 'Kişi' },
+    { label: t('customers.female', 'Qadın'), value: 'Qadın' }
+  ], colSpan: 1 },
+  { key: 'bonus', label: t('customers.bonus', 'Bonus (AZN)'), icon: 'lucide:wallet', type: 'number', inTable: true, sortable: true, colSpan: 1 },
+  { key: 'email', label: t('employees.email', 'E-poçt (Email)'), icon: 'lucide:mail', type: 'email', inTable: false, sortable: true, colSpan: 1 },
+  { key: 'phone', label: t('employees.phone', 'Telefon'), icon: 'lucide:phone', type: 'tel', inTable: true, sortable: true, colSpan: 1 },
+  { key: 'city', label: t('customers.city', 'Şəhər/rayon'), type: 'select', inTable: true, sortable: true, options: [
+    { label: t('customers.baku', 'Bakı'), value: 'Bakı' }
+  ], colSpan: 1 },
+  { key: 'country', label: t('customers.country', 'Ölkə'), icon: 'lucide:globe', type: 'text', inTable: false, colSpan: 1 },
+  { key: 'address', label: t('customers.address', 'Ünvan'), icon: 'lucide:map-pin', type: 'text', colSpan: 2, inTable: false },
+  { key: 'notes', label: t('employees.notes', 'Xüsusi qeyd'), type: 'textarea', colSpan: 2, inTable: false },
   // Tarix ve Əməkdaş sadece görüntü/otomatik olduğu için forma eklemiyoruz, tablo/arkaplan mantığında işliyoruz.
-  { key: 'createdAt', label: 'Tarix', type: 'text', inTable: true, sortable: true },
-  { key: 'createdBy', label: 'Əməkdaş', type: 'text', inTable: true, sortable: true },
-]
+  { key: 'createdAt', label: t('customers.createdAt', 'Tarix'), type: 'text', inTable: true, sortable: true },
+  { key: 'createdBy', label: t('customers.createdBy', 'Əməkdaş'), type: 'text', inTable: true, sortable: true },
+])
 
 // Modal'da gösterilecek form alanları (Tarix ve Əməkdaş Hariç)
 const formFields = computed(() => {
-  return customerSchema.filter(f => !['createdAt', 'createdBy'].includes(f.key))
+  return customerSchema.value.filter(f => !['createdAt', 'createdBy'].includes(f.key))
 })
 
 // Extract table columns dynamically
 const columns = computed(() => 
-  customerSchema
+  customerSchema.value
     .filter(f => f.inTable)
     .map(f => ({ key: f.key, label: f.label, sortable: f.sortable }))
 )
 
 // --- Data ---
-const mockData = ref<any[]>([
-  { id: 1, firstName: 'Məhəmməd', lastName: 'Şükürov', barcode: '123456789012', bonus: 50.5, gender: 'Kişi', email: 'mhmmd@test.com', phone: '+994 50 123 45 67', address: 'Nizami küçəsi 12', city: 'Bakı', country: 'Azərbaycan', notes: 'VIP Müştəri', createdAt: '2026-03-03 10:15', createdBy: 'Ahmet Yılmaz' },
-  { id: 2, firstName: 'Leyla', lastName: 'Əliyeva', barcode: '987654321098', bonus: 15.0, gender: 'Qadın', email: 'leyla@test.com', phone: '+994 55 987 65 43', address: 'Gənclik', city: 'Bakı', country: 'Azərbaycan', notes: '', createdAt: '2026-03-02 14:30', createdBy: 'Ayşe Kaya' },
-])
+const mockData = ref<any[]>([])
+const loading = ref(false)
+const error = ref<string | null>(null)
+
+const loadCustomers = async () => {
+  loading.value = true
+  error.value = null
+  const toast = useToast()
+  
+  try {
+    const data = await $fetch('/api/customers')
+    mockData.value = (data as any[]).map(d => ({
+      ...d,
+      createdAt: new Date(d.createdAt).toLocaleString('tr-TR', {
+        year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+      })
+    }))
+  } catch (err: any) {
+    const errorMsg = err.message || t('toast.loadingError', 'Məlumatlar yüklənərkən xəta baş verdi')
+    error.value = errorMsg
+    toast.error(errorMsg)
+    console.error('Load customers error:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  loadCustomers()
+})
 
 // --- Modals State ---
 const showAddModal = ref(false)
 const showEditModal = ref(false)
-const showDeleteModal = ref(false)
+const showDeleteConfirmModal = ref(false)
+const deleteTarget = ref<{ type: 'single' | 'bulk', id?: any, ids?: any[] } | null>(null)
 const formData = ref<Record<string, any>>({})
+const formErrors = ref<Record<string, string>>({})
 const bulkSelectedIds = ref<any[]>([])
-const barcodeError = ref('')
 
 // --- Handlers ---
 const handleAdd = () => {
@@ -79,72 +119,195 @@ const handleAdd = () => {
     city: 'Bakı',
     country: 'Azərbaycan'
   }
-  barcodeError.value = ''
+  formErrors.value = {}
   showAddModal.value = true
 }
 
 const handleEdit = (row: any) => {
   formData.value = { ...row }
-  barcodeError.value = ''
+  formErrors.value = {}
   showEditModal.value = true
 }
 
 const handleDelete = (row: any) => {
-  formData.value = { ...row }
-  showDeleteModal.value = true
+  deleteTarget.value = { type: 'single', id: row.id }
+  showDeleteConfirmModal.value = true
 }
 
 const handleBulkDelete = (ids: any[]) => {
-  if (confirm(`${ids.length} müştərini silmek isteyirsiniz?`)) {
-    mockData.value = mockData.value.filter(m => !ids.includes(m.id))
+  deleteTarget.value = { type: 'bulk', ids }
+  showDeleteConfirmModal.value = true
+}
+
+const performDelete = async () => {
+  if (!deleteTarget.value) return
+
+  loading.value = true
+  const toast = useToast()
+  
+  try {
+    if (deleteTarget.value.type === 'single') {
+      await $fetch(`/api/customers/${deleteTarget.value.id}`, { method: 'DELETE' })
+      toast.success(t('toast.customerDeleted', 'Müştəri uğurla silindi'))
+    } else if (deleteTarget.value.type === 'bulk') {
+      const count = deleteTarget.value.ids?.length || 0
+      await $fetch('/api/customers/bulk-delete', {
+        method: 'POST',
+        body: { ids: deleteTarget.value.ids }
+      })
+      toast.success(t('toast.customersDeleted', { count, default: `${count} müştəri uğurla silindi` }))
+    }
+    
+    await loadCustomers()
+    showDeleteConfirmModal.value = false
+    deleteTarget.value = null
+  } catch (err: any) {
+    const errorMsg = err.message || t('toast.operationFailed', 'Əməliyyat zamanı xəta baş verdi')
+    toast.error(errorMsg)
+    console.error('Delete error:', err)
+  } finally {
+    loading.value = false
   }
 }
 
 const handleBulkEdit = (ids: any[]) => {
   bulkSelectedIds.value = ids
   formData.value = {}
-  barcodeError.value = ''
+  formErrors.value = {}
   showEditModal.value = true
 }
 
-// Barkod kontrolü sadece "Kaydet" anında yapılır
-const checkBarcodeUnique = (barcode: string, currentId?: any) => {
-  return !mockData.value.some(m => m.barcode === barcode && m.id !== currentId)
+const handleDuplicate = async (row: any) => {
+  loading.value = true
+  const toast = useToast()
+  
+  try {
+    const newBarcode = generateBarcode()
+    
+    await $fetch('/api/customers', {
+      method: 'POST',
+      body: {
+        ...row,
+        id: undefined,
+        barcode: newBarcode
+      }
+    })
+    
+    toast.success(t('toast.customerDuplicated', 'Müştəri kopyalandı'))
+    
+    await loadCustomers()
+  } catch (err: any) {
+    const errorMsg = err.message || t('toast.operationFailed', 'Əməliyyat zamanı xəta baş verdi')
+    toast.error(errorMsg)
+    console.error('Duplicate error:', err)
+  } finally {
+    loading.value = false
+  }
 }
 
-const saveForm = () => {
-  barcodeError.value = ''
-  
-  // Barkod özel validasyonu
-  if (formData.value.barcode && !checkBarcodeUnique(formData.value.barcode, formData.value.id)) {
-    barcodeError.value = 'Bu barkod artıq mövcuddur! Fərqli barkod daxil edin.'
-    return 
+const customSearch = (item: any, query: string) => {
+  const normalizeText = (text: any) => {
+    if (text === null || text === undefined) return ''
+    return String(text)
+      .toLocaleLowerCase('tr-TR')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, "")
   }
 
-  if (showAddModal.value) {
-    const d = new Date()
-    const formattedDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-    
-    // Geçici olarak ekleyen kişi Ahmet Yılmaz olsun
-    mockData.value.push({ 
-      id: Date.now(), 
-      ...formData.value,
-      createdAt: formattedDate,
-      createdBy: 'Sistem Yöneticisi' // İleride gerçek auth bağlandığında burası değişecek
-    })
-    showAddModal.value = false
-  } else if (showEditModal.value) {
-    if (bulkSelectedIds.value.length > 0) {
-      const updates = Object.fromEntries(Object.entries(formData.value).filter(([_, v]) => v !== undefined && v !== ''))
-      mockData.value = mockData.value.map(item => 
-        bulkSelectedIds.value.includes(item.id) ? { ...item, ...updates } : item
-      )
-      bulkSelectedIds.value = []
-    } else {
-      const index = mockData.value.findIndex(m => m.id === formData.value.id)
-      if (index !== -1) mockData.value[index] = { ...mockData.value[index], ...formData.value }
+  const q = normalizeText(query)
+  
+  const searchableFields = [
+    item.firstName,
+    item.lastName,
+    item.barcode,
+    item.phone,
+    item.email,
+    item.address,
+    item.notes,
+    item.createdBy,
+    item.gender === 'Kişi' ? t('customers.male', 'Kişi') : item.gender === 'Qadın' ? t('customers.female', 'Qadın') : item.gender,
+    item.city === 'Bakı' ? t('customers.baku', 'Bakı') : item.city
+  ]
+  
+  return searchableFields.some(field => normalizeText(field).includes(q))
+}
+
+const saveForm = async () => {
+  formErrors.value = {}
+  let hasError = false
+  
+  const isBulkEditMode = showEditModal.value && bulkSelectedIds.value.length > 0
+  const activeFields = isBulkEditMode
+    ? formFields.value.filter(f => f.key !== 'barcode')
+    : formFields.value
+
+  for (const field of activeFields) {
+    if (field.required && !formData.value[field.key]) {
+      if (!isBulkEditMode) {
+        formErrors.value[field.key] = t('common.fieldRequired', 'Bu xəna mütləq doldurulmalıdır')
+        hasError = true
+      }
     }
-    showEditModal.value = false
+  }
+
+  if (hasError) return
+
+  loading.value = true
+  const toast = useToast()
+  const { token, logout } = useAuth()
+  
+  try {
+    const headers = { Authorization: `Bearer ${token.value}` }
+    
+    if (showAddModal.value) {
+      // Create new customer
+      await $fetch('/api/customers', {
+        method: 'POST',
+        body: formData.value,
+        headers
+      })
+      toast.success(t('toast.customerAdded', 'Müştəri uğurla əlavə edildi'))
+      showAddModal.value = false
+    } else if (showEditModal.value) {
+      if (bulkSelectedIds.value.length > 0) {
+        // Bulk update
+        const updates = Object.fromEntries(
+          Object.entries(formData.value).filter(([_, v]) => v !== undefined && v !== '')
+        )
+        await $fetch('/api/customers/bulk-update', {
+          method: 'POST',
+          body: { ids: bulkSelectedIds.value, updates },
+          headers
+        })
+        toast.success(t('toast.customersUpdated', { count: bulkSelectedIds.value.length, default: `${bulkSelectedIds.value.length} müştəri yeniləndi` }))
+        bulkSelectedIds.value = []
+      } else {
+        // Single update
+        await $fetch(`/api/customers/${formData.value.id}`, {
+          method: 'PUT',
+          body: formData.value,
+          headers
+        })
+        toast.success(t('toast.customerUpdated', 'Müştəri uğurla yeniləndi'))
+      }
+      showEditModal.value = false
+    }
+    
+    await loadCustomers()
+  } catch (err: any) {
+    const errorMsg = err.data?.statusMessage || err.message || t('toast.operationFailed', 'Əməliyyat zamanı xəta baş verdi')
+    toast.error(errorMsg)
+    console.error('Save error:', err)
+    
+    if (err.statusCode === 401) {
+      logout()
+    }
+    
+    if (err.data?.statusMessage?.includes('barkod')) {
+      formErrors.value.barcode = err.data.statusMessage
+    }
+  } finally {
+    loading.value = false
   }
 }
 </script>
@@ -153,69 +316,124 @@ const saveForm = () => {
   <div class="space-y-6">
     <div class="flex items-center justify-between">
       <h1 class="text-2xl font-bold text-[var(--text-app)]">
-        Müştərilər
+        {{ t('menu.customers', 'Müştərilər') }}
       </h1>
     </div>
 
     <!-- Smart Data Table -->
     <DataTable 
-      title="Musteri_Listesi"
+      :title="t('menu.customers', 'Müştərilər')"
       :data="mockData" 
       :columns="columns"
       :selectable="true"
       :actions="true"
+      :custom-search="customSearch"
       @add="handleAdd"
       @edit="handleEdit"
       @delete="handleDelete"
       @bulk-delete="handleBulkDelete"
       @bulk-edit="handleBulkEdit"
+      @duplicate="handleDuplicate"
     >
-      <!-- Bonus Custom Format -->
-      <template #cell-bonus="{ value }">
-        <span class="font-medium text-[var(--color-brand-success)]">
-          {{ value || 0 }} ₼
+      <!-- Contact links with Highlighting -->
+      <template #cell-email="{ value, highlight }">
+        <a 
+          v-if="value" 
+          :href="`mailto:${value}`" 
+          class="text-[var(--text-app)] hover:text-blue-500 hover:underline transition-colors" 
+          @click.stop
+          v-html="highlight(value)"
+        ></a>
+        <span v-else>-</span>
+      </template>
+
+      <template #cell-phone="{ value, highlight }">
+        <a 
+          v-if="value" 
+          :href="`https://wa.me/${String(value).replace(/[^0-9]/g, '')}`" 
+          target="_blank"
+          class="text-[var(--text-app)] hover:text-green-500 hover:underline transition-colors" 
+          @click.stop
+          v-html="highlight(value)"
+        ></a>
+        <span v-else>-</span>
+      </template>
+
+      <!-- Bonus Custom Format with Highlight -->
+      <template #cell-bonus="{ value, highlight }">
+        <span 
+          class="font-medium text-[var(--color-brand-success)]"
+          v-html="highlight(value || 0) + ' ₼'"
+        >
         </span>
+      </template>
+
+      <!-- Customizing the Gender column using slots with Highlight support -->
+      <template #cell-gender="{ value, highlight }">
+        <span v-html="highlight(value === 'Kişi' ? t('customers.male', 'Kişi') : value === 'Qadın' ? t('customers.female', 'Qadın') : value)"></span>
+      </template>
+      
+      <!-- Customizing the City column using slots with Highlight support -->
+      <template #cell-city="{ value, highlight }">
+        <span v-html="highlight(value === 'Bakı' ? t('customers.baku', 'Bakı') : value)"></span>
       </template>
     </DataTable>
 
     <!-- Modal: Add / Edit -->
-    <Modal v-model="showAddModal" title="Yeni Müştəri Əlavə Et" max-width="xl">
-      <div v-if="barcodeError" class="mb-4 p-3 bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)] rounded-lg text-sm font-medium flex items-center gap-2">
-        <UiIcon name="lucide:alert-triangle" class="w-3.5 h-3.5"/>
-        {{ barcodeError }}
-      </div>
-      
+    <Modal v-model="showAddModal" :title="t('customers.addNew', 'Yeni Müştəri Əlavə Et')" max-width="xl">
       <DynamicForm 
         :fields="formFields"
         v-model="formData" 
+        :errors="formErrors"
+        :grid-cols="2"
       />
       <template #footer>
-        <UiButton variant="ghost" @click="showAddModal = false">İptal</UiButton>
-        <UiButton variant="primary" @click="saveForm">Kaydet</UiButton>
+        <UiButton variant="ghost" @click="showAddModal = false" class="!px-6">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
+        <UiButton variant="primary" icon="lucide:check" @click="saveForm" class="!px-8 min-w-[120px]">{{ t('common.save', 'Yadda saxla') }}</UiButton>
       </template>
     </Modal>
 
     <!-- Modal: Edit specific -->
-    <Modal v-model="showEditModal" :title="bulkSelectedIds.length > 0 ? 'Toplu Düzenleme' : 'Müştərini Düzenle'" max-width="xl">
-      <div v-if="barcodeError" class="mb-4 p-3 bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)] rounded-lg text-sm font-medium flex items-center gap-2">
-        <UiIcon name="lucide:alert-triangle" class="w-3.5 h-3.5"/>
-        {{ barcodeError }}
-      </div>
-
+    <Modal 
+      v-model="showEditModal" 
+      :title="bulkSelectedIds.length > 0 ? t('common.bulkEdit', 'Toplu Redaktə') : t('customers.edit', 'Müştərini Redaktə Et')" 
+      max-width="xl"
+      @update:model-value="(val) => { if (!val) bulkSelectedIds = [] }"
+    >
       <div v-if="bulkSelectedIds.length > 0" class="mb-4 p-3 bg-[var(--color-brand-warning)]/10 text-[var(--color-brand-warning)] rounded-lg text-sm font-medium">
-        Uyarı: Toplu düzenleme modundasınız. Burada dolduracağınız alanlar, seçtiğiniz <span class="font-bold">{{ bulkSelectedIds.length }}</span> kaydın verisinin üzerine yazılacaktır.
+        {{ t('employees.bulkEditWarning', { count: bulkSelectedIds.length, default: `Diqqət: Seçilmiş ${bulkSelectedIds.length} qeydin üzərinə yazılacaq.` }) }}
       </div>
 
       <!-- We omit barcode in bulk edit to avoid conflicts (they should be unique) -->
       <DynamicForm 
         :fields="showEditModal && bulkSelectedIds.length > 0 ? formFields.filter(f => f.key !== 'barcode') : formFields"
         v-model="formData" 
+        :errors="formErrors"
+        :grid-cols="2"
       />
       <template #footer>
-        <UiButton variant="ghost" @click="showEditModal = false; bulkSelectedIds = []">İptal</UiButton>
-        <UiButton variant="primary" @click="saveForm">Güncelle</UiButton>
+        <UiButton variant="ghost" @click="showEditModal = false; bulkSelectedIds = []" class="!px-6">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
+        <UiButton variant="primary" icon="lucide:check" @click="saveForm" class="!px-8 min-w-[120px]">{{ t('common.update', 'Yenilə') }}</UiButton>
       </template>
     </Modal>
 
+    <!-- Silmə Təsdiq Modalı -->
+    <Modal v-model="showDeleteConfirmModal" :title="t('common.confirmDelete', 'Silmək istədiyinizə əminsiniz?')" max-width="sm">
+      <div class="py-2">
+        <p class="text-[var(--text-app)] opacity-80 text-[15px] leading-relaxed">
+          {{ t('common.cannotBeUndone', 'Bu əməliyyat geri qaytarıla bilməz.') }}
+          <span v-if="deleteTarget?.type === 'bulk'" class="font-bold text-[var(--color-brand-danger)] block mt-2">
+            {{ t('customers.bulkDeleteCount', { count: deleteTarget.ids?.length, default: `${deleteTarget.ids?.length} müştəri silinəcək` }) }}
+          </span>
+        </p>
+      </div>
+      
+      <template #footer>
+        <UiButton variant="ghost" @click="showDeleteConfirmModal = false">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
+        <UiButton variant="danger" @click="performDelete">
+          {{ t('common.yesDelete', 'Bəli, Sil') }}
+        </UiButton>
+      </template>
+    </Modal>
   </div>
 </template>
