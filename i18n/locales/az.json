@@ -148,7 +148,9 @@
     "actions": "Əməliyyatlar",
     "searchInTable": "Cədvəldə axtar...",
     "bulkEdit": "Toplu redaktə",
-    "delete": "Sil"
+    "delete": "Sil",
+    "fieldRequired": "Bu xana mütləq doldurulmalıdır",
+    "passwordsMismatch": "Şifrələr uyğun deyil!"
   },
   "user": {
     "name": "MR Musa",

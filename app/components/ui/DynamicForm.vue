@@ -21,6 +21,7 @@ const props = defineProps<{
   modelValue: Record<string, any>
   isLoading?: boolean
   gridCols?: 1 | 2
+  errors?: Record<string, string>
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -71,7 +72,8 @@ const enhancedFields = computed(() => {
         icon: field.icon,
         required: field.required,
         isConfirm: true,
-        originalKey: field.key
+        originalKey: field.key,
+        colSpan: field.colSpan
       })
     }
   }
@@ -111,6 +113,7 @@ const isPasswordMismatch = (field: any) => {
           @input="e => updateField(field.key, (e.target as HTMLTextAreaElement).value)"
           :disabled="isLoading"
           class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] px-5 py-3 text-[15px] font-medium rounded-[14px] outline-none focus:border-[var(--text-primary)] transition-all min-h-[120px] resize-y disabled:opacity-50 disabled:cursor-not-allowed leading-relaxed hover:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/10 placeholder:font-normal"
+          :class="{ '!border-[var(--color-brand-danger)]': errors?.[field.key] }"
         />
       </div>
       
@@ -133,7 +136,8 @@ const isPasswordMismatch = (field: any) => {
         :options="field.options || []"
         :disabled="isLoading"
         :icon="field.icon"
-        class="hover:border-[var(--text-primary)]"
+        class="hover:border-[var(--text-primary)] transition-colors"
+        :class="{ '!border-[var(--color-brand-danger)]': errors?.[field.key] }"
       />
       
       <!-- DateTime Input (dd.mm.yyyy HH:mm) -->
@@ -156,10 +160,13 @@ const isPasswordMismatch = (field: any) => {
           @update:modelValue="val => updateField(field.key, val)"
           :disabled="isLoading"
           :icon="field.icon"
-          :class="{ 'border-[var(--color-brand-danger)] focus:border-[var(--color-brand-danger)]' : isPasswordMismatch(field) }"
+          :class="errors?.[field.key] || isPasswordMismatch(field) ? '!border-[var(--color-brand-danger)] !ring-[var(--color-brand-danger)]/20' : ''"
         />
-        <span v-if="isPasswordMismatch(field)" class="absolute -bottom-5 left-0 text-[10px] text-[var(--color-brand-danger)] font-medium">Şifrələr uyğun deyil!</span>
       </div>
+
+      <!-- General Error Rendering -->
+      <span v-if="errors?.[field.key]" class="text-[11px] text-[var(--color-brand-danger)] font-medium inline-block pl-2 mt-0.5">{{ errors[field.key] }}</span>
+      <span v-else-if="isPasswordMismatch(field)" class="text-[11px] text-[var(--color-brand-danger)] font-medium inline-block pl-2 mt-0.5">{{ t('common.passwordsMismatch', 'Şifrələr uyğun deyil!') }}</span>
     </div>
   </div>
 </template>

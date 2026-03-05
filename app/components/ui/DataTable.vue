@@ -441,8 +441,8 @@ watch(searchQuery, () => {
                         @click="emit('duplicate', row)"
                         class="hover:text-[var(--color-brand-info)] hover:bg-[var(--color-brand-info)]/10 cursor-pointer"
                       />
-                      <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[var(--text-app)] text-white text-xs rounded whitespace-nowrap opacity-0 group-hover/duplicate:opacity-100 pointer-events-none transition-opacity z-50">
-                        Kopyala
+                      <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-[var(--text-primary)] text-[var(--bg-app)] text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover/duplicate:opacity-100 pointer-events-none transition-all z-50">
+                        {{ t('common.duplicate', 'Kopyala') }}
                       </div>
                     </div>
                     <div class="relative group/edit">
@@ -453,8 +453,8 @@ watch(searchQuery, () => {
                         @click="emit('edit', row)"
                         class="hover:text-[var(--text-primary)] hover:bg-[var(--text-primary)]/10 cursor-pointer"
                       />
-                      <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[var(--text-app)] text-white text-xs rounded whitespace-nowrap opacity-0 group-hover/edit:opacity-100 pointer-events-none transition-opacity z-50">
-                        Düzəliş et
+                      <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-[var(--text-primary)] text-[var(--bg-app)] text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover/edit:opacity-100 pointer-events-none transition-all z-50">
+                        {{ t('common.edit', 'Düzəliş et') }}
                       </div>
                     </div>
                     <div class="relative group/delete">
@@ -465,8 +465,8 @@ watch(searchQuery, () => {
                         @click="emit('delete', row)"
                         class="hover:text-[var(--color-brand-danger)] hover:bg-[var(--color-brand-danger)]/10 cursor-pointer"
                       />
-                      <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[var(--text-app)] text-white text-xs rounded whitespace-nowrap opacity-0 group-hover/delete:opacity-100 pointer-events-none transition-opacity z-50">
-                        Sil
+                      <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-[var(--text-primary)] text-[var(--bg-app)] text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover/delete:opacity-100 pointer-events-none transition-all z-50">
+                        {{ t('common.delete', 'Sil') }}
                       </div>
                     </div>
                   </div>

@@ -148,7 +148,9 @@
     "actions": "Actions",
     "searchInTable": "Search in table...",
     "bulkEdit": "Bulk edit",
-    "delete": "Delete"
+    "delete": "Delete",
+    "fieldRequired": "This field is required",
+    "passwordsMismatch": "Passwords do not match!"
   },
   "user": {
     "name": "MR Musa",

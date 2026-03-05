@@ -47,21 +47,21 @@ const generateUsername = (first?: string, last?: string, currentId?: any) => {
 
 // --- Centralized Schema ---
 const employeeSchema = computed< (FormField & { inTable?: boolean, sortable?: boolean })[] >(() => [
-  { key: 'firstName', label: t('employees.firstName', 'Ad'), type: 'text', inTable: true, sortable: true, required: true },
-  { key: 'lastName', label: t('employees.lastName', 'Soyad'), type: 'text', inTable: true, sortable: true, required: true },
-  { key: 'username', label: t('employees.username', 'İstifadəçi adı'), icon: 'lucide:user', type: 'text', inTable: true, sortable: true, required: true },
-  { key: 'email', label: t('employees.email', 'E-poçt (Email)'), icon: 'lucide:mail', type: 'email', inTable: true, sortable: true },
-  { key: 'phone', label: t('employees.phone', 'Telefon'), icon: 'lucide:phone', type: 'tel', inTable: true, sortable: true },
+  { key: 'firstName', label: t('employees.firstName', 'Ad'), type: 'text', inTable: true, sortable: true, required: true, colSpan: 1 },
+  { key: 'lastName', label: t('employees.lastName', 'Soyad'), type: 'text', inTable: true, sortable: true, required: true, colSpan: 1 },
+  { key: 'email', label: t('employees.email', 'E-poçt (Email)'), icon: 'lucide:mail', type: 'email', inTable: true, sortable: true, colSpan: 2 },
+  { key: 'phone', label: t('employees.phone', 'Telefon'), icon: 'lucide:phone', type: 'tel', inTable: true, sortable: true, colSpan: 1 },
   { key: 'gender', label: t('employees.gender', 'Cinsiyyət'), type: 'select', inTable: true, sortable: true, options: [
     { label: t('employees.male', 'Kişi'), value: 'Kişi' },
     { label: t('employees.female', 'Qadın'), value: 'Qadın' }
-  ]},
-  { key: 'password', label: t('employees.password', 'Şifrə'), icon: 'lucide:lock', type: 'password', inTable: false, required: true },
+  ], colSpan: 1 },
+  { key: 'username', label: t('employees.username', 'İstifadəçi adı'), icon: 'lucide:user', type: 'text', inTable: true, sortable: true, required: true, colSpan: 1 },
   { key: 'status', label: t('employees.status', 'Durum'), type: 'select', inTable: true, sortable: true, options: [
     { label: t('employees.statusActive', 'Aktif'), value: 'Aktif' },
     { label: t('employees.statusPassive', 'Pasif'), value: 'Pasif' },
     { label: t('employees.statusOnLeave', 'İzinde'), value: 'İzinde' }
-  ]},
+  ], colSpan: 1 },
+  { key: 'password', label: t('employees.password', 'Şifrə'), icon: 'lucide:lock', type: 'password', inTable: false, required: true, colSpan: 1 },
   { key: 'notes', label: t('employees.notes', 'Xüsusi qeyd'), type: 'textarea', colSpan: 2, inTable: false },
 ])
 
@@ -87,6 +87,7 @@ const showEditModal = ref(false)
 const showDeleteConfirmModal = ref(false)
 const deleteTarget = ref<{ type: 'single' | 'bulk', id?: any, ids?: any[] } | null>(null)
 const formData = ref<Record<string, any>>({})
+const formErrors = ref<Record<string, string>>({})
 const bulkSelectedIds = ref<any[]>([])
 
 // --- Auto-Username Logic ---
@@ -121,6 +122,7 @@ watch(() => formData.value.username, (newVal) => {
 // --- Handlers ---
 const handleAdd = () => {
   formData.value = {} // Empty form
+  formErrors.value = {}
   isUsernameManuallyEdited.value = false
   lastGeneratedUsername.value = ''
   showAddModal.value = true
@@ -128,6 +130,7 @@ const handleAdd = () => {
 
 const handleEdit = (row: any) => {
   formData.value = { ...row } // Pre-fill form
+  formErrors.value = {}
   showEditModal.value = true
 }
 
@@ -157,10 +160,36 @@ const performDelete = () => {
 const handleBulkEdit = (ids: any[]) => {
   bulkSelectedIds.value = ids
   formData.value = {} // Reset it
+  formErrors.value = {}
   showEditModal.value = true
 }
 
 const saveForm = () => {
+  formErrors.value = {}
+  let hasError = false
+  
+  // Validation
+  const isBulkEditMode = showEditModal.value && bulkSelectedIds.value.length > 0
+  const activeFields = isBulkEditMode
+    ? formFields.value.filter(f => !f.key.includes('password'))
+    : formFields.value
+
+  for (const field of activeFields) {
+    if (field.required && !formData.value[field.key]) {
+      // Allow empty required fields in bulk edit, meaning "don't update"
+      if (!isBulkEditMode) {
+        formErrors.value[field.key] = t('common.fieldRequired', 'Bu xana mütləq doldurulmalıdır')
+        hasError = true
+      }
+    }
+  }
+
+  if (!isBulkEditMode && formData.value.password !== formData.value.passwordConfirm) {
+    hasError = true
+  }
+
+  if (hasError) return
+
   if (showAddModal.value) {
     mockData.value.push({ id: Date.now(), ...formData.value })
     showAddModal.value = false
@@ -227,6 +256,7 @@ const saveForm = () => {
       <DynamicForm 
         :fields="formFields"
         v-model="formData" 
+        :errors="formErrors"
       />
       <template #footer>
         <UiButton variant="ghost" @click="showAddModal = false" class="!px-6">{{ t('common.cancel', 'İptal') }}</UiButton>
@@ -244,6 +274,7 @@ const saveForm = () => {
       <DynamicForm 
         :fields="showEditModal && bulkSelectedIds.length > 0 ? formFields.filter(f => !f.key.includes('password')) : formFields"
         v-model="formData" 
+        :errors="formErrors"
       />
       <template #footer>
         <UiButton variant="ghost" @click="showEditModal = false; bulkSelectedIds = []" class="!px-6">{{ t('common.cancel', 'İptal') }}</UiButton>

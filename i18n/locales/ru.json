@@ -148,7 +148,9 @@
     "actions": "Действия",
     "searchInTable": "Поиск в таблице...",
     "bulkEdit": "Массовое редактирование",
-    "delete": "Удалить"
+    "delete": "Удалить",
+    "fieldRequired": "Это поле обязательно для заполнения",
+    "passwordsMismatch": "Пароли не совпадают!"
   },
   "user": {
     "name": "MR Musa",
