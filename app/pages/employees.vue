@@ -85,8 +85,16 @@ const columns = computed(() =>
     .map(f => ({ key: f.key, label: f.label, sortable: f.sortable }))
 )
 
-// The fields structure for DynamicForm
-const formFields = computed(() => employeeSchema.value)
+// The fields structure for DynamicForm - şifre edit modunda opsiyonel
+const formFields = computed(() => {
+  return employeeSchema.value.map(field => {
+    // Edit modunda şifre opsiyonel yap
+    if (field.key === 'password' && showEditModal.value && !bulkSelectedIds.value.length) {
+      return { ...field, required: false }
+    }
+    return field
+  })
+})
 
 // --- Data ---
 const mockData = ref<any[]>([])
@@ -285,6 +293,7 @@ const saveForm = async () => {
   
   // Validation
   const isBulkEditMode = showEditModal.value && bulkSelectedIds.value.length > 0
+  const isEditMode = showEditModal.value && !isBulkEditMode
   const activeFields = isBulkEditMode
     ? formFields.value.filter(f => !f.key.includes('password'))
     : formFields.value
@@ -299,12 +308,22 @@ const saveForm = async () => {
     }
   }
 
+  // Şifre validasyonu
   if (!isBulkEditMode) {
+    // Add modunda şifre zorunlu
+    if (showAddModal.value && !formData.value.password) {
+      formErrors.value.password = t('common.fieldRequired', 'Bu xana mütləq doldurulmalıdır')
+      hasError = true
+    }
+    
+    // Şifre girilmişse minimum uzunluk kontrolü
     if (formData.value.password && formData.value.password.length < 8) {
       formErrors.value.password = t('common.passwordsMinLength', { count: 8 })
       hasError = true
     }
-    if (formData.value.password !== formData.value.passwordConfirm) {
+    
+    // Şifre onayı kontrolü (sadece şifre girilmişse)
+    if (formData.value.password && formData.value.password !== formData.value.passwordConfirm) {
       hasError = true
     }
   }
@@ -313,13 +332,17 @@ const saveForm = async () => {
 
   loading.value = true
   const toast = useToast()
+  const { token, logout } = useAuth()
   
   try {
+    const headers = { Authorization: `Bearer ${token.value}` }
+    
     if (showAddModal.value) {
       // Yeni çalışan ekle
       await $fetch('/api/employees', {
         method: 'POST',
-        body: formData.value
+        body: formData.value,
+        headers
       })
       toast.success(t('toast.employeeAdded'))
       showAddModal.value = false
@@ -331,7 +354,8 @@ const saveForm = async () => {
         )
         await $fetch('/api/employees/bulk-update', {
           method: 'POST',
-          body: { ids: bulkSelectedIds.value, updates }
+          body: { ids: bulkSelectedIds.value, updates },
+          headers
         })
         toast.success(t('toast.employeesUpdated', { count: bulkSelectedIds.value.length }))
         bulkSelectedIds.value = []
@@ -339,7 +363,8 @@ const saveForm = async () => {
         // Tekli güncelleme
         await $fetch(`/api/employees/${formData.value.id}`, {
           method: 'PUT',
-          body: formData.value
+          body: formData.value,
+          headers
         })
         toast.success(t('toast.employeeUpdated'))
       }
@@ -352,6 +377,11 @@ const saveForm = async () => {
     const errorMsg = err.data?.statusMessage || err.message || t('toast.operationFailed')
     toast.error(errorMsg)
     console.error('Save error:', err)
+    
+    // 401 hatası alırsak logout yap
+    if (err.statusCode === 401) {
+      logout()
+    }
     
     // Hata mesajını form hatalarına ekle
     if (err.data?.statusMessage?.includes('kullanıcı adı') || err.data?.statusMessage?.includes('username')) {
@@ -444,7 +474,12 @@ const saveForm = async () => {
     </Modal>
 
     <!-- Modal: Edit specific -->
-    <Modal v-model="showEditModal" :title="bulkSelectedIds.length > 0 ? t('employees.bulkEdit', 'Toplu Düzenleme') : t('employees.edit', 'Personeli Düzenle')" max-width="xl">
+    <Modal 
+      v-model="showEditModal" 
+      :title="bulkSelectedIds.length > 0 ? t('employees.bulkEdit', 'Toplu Düzenleme') : t('employees.edit', 'Personeli Düzenle')" 
+      max-width="xl"
+      @update:model-value="(val) => { if (!val) bulkSelectedIds = [] }"
+    >
       <div v-if="bulkSelectedIds.length > 0" class="mb-4 p-3 bg-[var(--color-brand-warning)]/10 text-[var(--color-brand-warning)] rounded-lg text-sm font-medium">
         {{ t('employees.bulkEditWarning', { count: bulkSelectedIds.length }) }}
       </div>

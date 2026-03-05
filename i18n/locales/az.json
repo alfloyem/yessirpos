@@ -120,6 +120,7 @@
     "male": "Kişi",
     "female": "Qadın",
     "password": "Şifrə",
+    "passwordOptional": "Şifrə (boş buraxsanız dəyişməz)",
     "status": "Durum",
     "statusActive": "Aktif",
     "statusPassive": "Pasif",
