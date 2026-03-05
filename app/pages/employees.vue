@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from '#i18n'
 import DataTable from '~/components/ui/DataTable.vue'
 import Modal from '~/components/ui/Modal.vue'
@@ -89,10 +89,33 @@ const columns = computed(() =>
 const formFields = computed(() => employeeSchema.value)
 
 // --- Data ---
-const mockData = ref<any[]>([
-  { id: 1, firstName: 'Ahmet', lastName: 'Yılmaz', username: 'ahmet_yilmaz', email: 'ahmet@yessirpos.com', phone: '+90 555 123 4567', gender: 'Kişi', status: 'Aktif', notes: 'Hızlı çalışan' },
-  { id: 2, firstName: 'Ayşe', lastName: 'Kaya', username: 'aysekaya', email: 'ayse@yessirpos.com', phone: '+90 555 987 6543', gender: 'Qadın', status: 'Aktif', notes: '' },
-])
+const mockData = ref<any[]>([])
+const loading = ref(false)
+const error = ref<string | null>(null)
+
+// Verileri yükle
+const loadEmployees = async () => {
+  loading.value = true
+  error.value = null
+  const toast = useToast()
+  
+  try {
+    const data = await $fetch('/api/employees')
+    mockData.value = data as any[]
+  } catch (err: any) {
+    const errorMsg = err.message || t('toast.loadingError')
+    error.value = errorMsg
+    toast.error(errorMsg)
+    console.error('Load employees error:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+// Sayfa yüklendiğinde verileri çek
+onMounted(() => {
+  loadEmployees()
+})
 
 // --- Modals State ---
 const showAddModal = ref(false)
@@ -157,17 +180,36 @@ const handleBulkDelete = (ids: any[]) => {
   showDeleteConfirmModal.value = true
 }
 
-const performDelete = () => {
+const performDelete = async () => {
   if (!deleteTarget.value) return
 
-  if (deleteTarget.value.type === 'single') {
-    mockData.value = mockData.value.filter(m => m.id !== deleteTarget.value!.id)
-  } else if (deleteTarget.value.type === 'bulk') {
-    mockData.value = mockData.value.filter(m => !deleteTarget.value!.ids!.includes(m.id))
-  }
+  loading.value = true
+  const toast = useToast()
   
-  showDeleteConfirmModal.value = false
-  deleteTarget.value = null
+  try {
+    if (deleteTarget.value.type === 'single') {
+      await $fetch(`/api/employees/${deleteTarget.value.id}`, { method: 'DELETE' })
+      toast.success(t('toast.employeeDeleted'))
+    } else if (deleteTarget.value.type === 'bulk') {
+      const count = deleteTarget.value.ids?.length || 0
+      await $fetch('/api/employees/bulk-delete', {
+        method: 'POST',
+        body: { ids: deleteTarget.value.ids }
+      })
+      toast.success(t('toast.employeesDeleted', { count }))
+    }
+    
+    // Verileri yeniden yükle
+    await loadEmployees()
+    showDeleteConfirmModal.value = false
+    deleteTarget.value = null
+  } catch (err: any) {
+    const errorMsg = err.message || t('toast.operationFailed')
+    toast.error(errorMsg)
+    console.error('Delete error:', err)
+  } finally {
+    loading.value = false
+  }
 }
 
 const handleBulkEdit = (ids: any[]) => {
@@ -177,19 +219,38 @@ const handleBulkEdit = (ids: any[]) => {
   showEditModal.value = true
 }
 
-const handleDuplicate = (row: any) => {
-  const index = mockData.value.findIndex(m => m.id === row.id)
-  if (index !== -1) {
-    const newId = Date.now()
+const handleDuplicate = async (row: any) => {
+  loading.value = true
+  const toast = useToast()
+  
+  try {
     const newUsername = duplicateUsername(row.username)
-    const newRow = { ...row, id: newId, username: newUsername }
-
-    // Insert right below the duplicated item
-    mockData.value.splice(index + 1, 0, newRow)
+    
+    // Yeni çalışan oluştur (şifre varsayılan olarak "12345678" olsun)
+    await $fetch('/api/employees', {
+      method: 'POST',
+      body: {
+        ...row,
+        id: undefined, // ID'yi kaldır
+        username: newUsername,
+        password: '12345678' // Varsayılan şifre
+      }
+    })
+    
+    toast.success(t('toast.employeeDuplicated'))
+    
+    // Verileri yeniden yükle
+    await loadEmployees()
+  } catch (err: any) {
+    const errorMsg = err.message || t('toast.operationFailed')
+    toast.error(errorMsg)
+    console.error('Duplicate error:', err)
+  } finally {
+    loading.value = false
   }
 }
 
-const saveForm = () => {
+const saveForm = async () => {
   formErrors.value = {}
   let hasError = false
   
@@ -221,22 +282,54 @@ const saveForm = () => {
 
   if (hasError) return
 
-  if (showAddModal.value) {
-    mockData.value.push({ id: Date.now(), ...formData.value })
-    showAddModal.value = false
-  } else if (showEditModal.value) {
-    if (bulkSelectedIds.value.length > 0) {
-      // Apply the filled fields to all selected items
-      const updates = Object.fromEntries(Object.entries(formData.value).filter(([_, v]) => v !== undefined && v !== ''))
-      mockData.value = mockData.value.map(item => 
-        bulkSelectedIds.value.includes(item.id) ? { ...item, ...updates } : item
-      )
-      bulkSelectedIds.value = []
-    } else {
-      const index = mockData.value.findIndex(m => m.id === formData.value.id)
-      if (index !== -1) mockData.value[index] = { ...formData.value }
+  loading.value = true
+  const toast = useToast()
+  
+  try {
+    if (showAddModal.value) {
+      // Yeni çalışan ekle
+      await $fetch('/api/employees', {
+        method: 'POST',
+        body: formData.value
+      })
+      toast.success(t('toast.employeeAdded'))
+      showAddModal.value = false
+    } else if (showEditModal.value) {
+      if (bulkSelectedIds.value.length > 0) {
+        // Toplu güncelleme
+        const updates = Object.fromEntries(
+          Object.entries(formData.value).filter(([_, v]) => v !== undefined && v !== '')
+        )
+        await $fetch('/api/employees/bulk-update', {
+          method: 'POST',
+          body: { ids: bulkSelectedIds.value, updates }
+        })
+        toast.success(t('toast.employeesUpdated', { count: bulkSelectedIds.value.length }))
+        bulkSelectedIds.value = []
+      } else {
+        // Tekli güncelleme
+        await $fetch(`/api/employees/${formData.value.id}`, {
+          method: 'PUT',
+          body: formData.value
+        })
+        toast.success(t('toast.employeeUpdated'))
+      }
+      showEditModal.value = false
     }
-    showEditModal.value = false
+    
+    // Verileri yeniden yükle
+    await loadEmployees()
+  } catch (err: any) {
+    const errorMsg = err.data?.statusMessage || err.message || t('toast.operationFailed')
+    toast.error(errorMsg)
+    console.error('Save error:', err)
+    
+    // Hata mesajını form hatalarına ekle
+    if (err.data?.statusMessage?.includes('kullanıcı adı') || err.data?.statusMessage?.includes('username')) {
+      formErrors.value.username = err.data.statusMessage
+    }
+  } finally {
+    loading.value = false
   }
 }
 </script>
