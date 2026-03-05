@@ -11,85 +11,31 @@ const prisma = new PrismaClient({ adapter })
 async function main() {
   console.log('🌱 Veritabanı seed işlemi başlıyor...')
 
-  // Test şifresi: 12345678
-  const hashedPassword = await bcrypt.hash('12345678', 10)
+  // Admin kullanıcısı - username: admin, password: admin
+  const hashedPassword = await bcrypt.hash('admin', 10)
 
-  // Çalışanları ekle
-  const employees = await Promise.all([
-    prisma.employee.upsert({
-      where: { username: 'admin' },
-      update: {},
-      create: {
-        firstName: 'Admin',
-        lastName: 'User',
-        username: 'admin',
-        email: 'admin@yessirpos.com',
-        phone: '+90 555 000 0000',
-        gender: 'Kişi',
-        status: 'Aktif',
-        password: hashedPassword,
-        notes: 'Sistem yöneticisi'
-      }
-    }),
-    prisma.employee.upsert({
-      where: { username: 'ahmet_yilmaz' },
-      update: {},
-      create: {
-        firstName: 'Ahmet',
-        lastName: 'Yılmaz',
-        username: 'ahmet_yilmaz',
-        email: 'ahmet@yessirpos.com',
-        phone: '+90 555 123 4567',
-        gender: 'Kişi',
-        status: 'Aktif',
-        password: hashedPassword,
-        notes: 'Hızlı çalışan'
-      }
-    }),
-    prisma.employee.upsert({
-      where: { username: 'ayse_kaya' },
-      update: {},
-      create: {
-        firstName: 'Ayşe',
-        lastName: 'Kaya',
-        username: 'ayse_kaya',
-        email: 'ayse@yessirpos.com',
-        phone: '+90 555 987 6543',
-        gender: 'Qadın',
-        status: 'Aktif',
-        password: hashedPassword,
-        notes: ''
-      }
-    })
-  ])
+  const admin = await prisma.employee.upsert({
+    where: { username: 'admin' },
+    update: {},
+    create: {
+      firstName: 'Admin',
+      lastName: 'User',
+      username: 'admin',
+      email: 'admin@yessirpos.com',
+      phone: '+90 555 000 0000',
+      gender: 'Kişi',
+      status: 'Aktif',
+      password: hashedPassword,
+      notes: 'Sistem yöneticisi'
+    }
+  })
 
-  console.log('✅ Çalışanlar eklendi:', employees.length)
-
-  // Ürünleri ekle
-  const products = await Promise.all([
-    prisma.product.upsert({
-      where: { id: 1 },
-      update: {},
-      create: {
-        name: 'Çay',
-        price: 5.0,
-        stock: 100
-      }
-    }),
-    prisma.product.upsert({
-      where: { id: 2 },
-      update: {},
-      create: {
-        name: 'Kahve',
-        price: 15.0,
-        stock: 50
-      }
-    })
-  ])
-
-  console.log('✅ Ürünler eklendi:', products.length)
-
+  console.log('✅ Admin kullanıcısı oluşturuldu:', admin.username)
   console.log('🎉 Seed işlemi tamamlandı!')
+  console.log('')
+  console.log('Giriş bilgileri:')
+  console.log('  Kullanıcı adı: admin')
+  console.log('  Şifre: admin')
 }
 
 main()
