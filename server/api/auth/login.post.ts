@@ -1,31 +1,48 @@
 import prisma from '../../utils/prisma'
+import bcrypt from 'bcryptjs'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-  const { email, password } = body
+  const { username, password } = body
 
-  // DB'de kullanıcıyı ara
-  const user = await prisma.user.findFirst({
-    where: {
-      email,
-      password // Not: Normalde password hash kontrolü yapılır (bcrypt vb.)
-    },
-  })
-
-  if (!user) {
+  if (!username || !password) {
     throw createError({
-      statusCode: 401,
-      statusMessage: 'Invalid credentials',
+      statusCode: 400,
+      statusMessage: 'Kullanıcı adı ve şifre gerekli'
     })
   }
 
-  // Token dön (Sizin durumunuzda basit bir mock token dönüyoruz)
+  // DB'de çalışanı ara
+  const employee = await prisma.employee.findUnique({
+    where: { username }
+  })
+
+  if (!employee) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Kullanıcı adı veya şifre hatalı'
+    })
+  }
+
+  // Şifreyi kontrol et
+  const isPasswordValid = await bcrypt.compare(password, employee.password)
+
+  if (!isPasswordValid) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Kullanıcı adı veya şifre hatalı'
+    })
+  }
+
+  // Token dön
   return {
-    token: 'mock-jwt-token-for-' + user.id,
+    token: 'mock-jwt-token-for-' + employee.id,
     user: {
-      id: user.id,
-      email: user.email,
-      name: user.name
+      id: employee.id,
+      username: employee.username,
+      firstName: employee.firstName,
+      lastName: employee.lastName,
+      email: employee.email
     }
   }
 })
