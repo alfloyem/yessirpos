@@ -14,6 +14,7 @@ export default defineEventHandler(async (event) => {
         email: true,
         phone: true,
         gender: true,
+        role: true,
         status: true,
         notes: true,
         createdAt: true,
@@ -22,7 +23,10 @@ export default defineEventHandler(async (event) => {
       }
     })
 
-    return employees
+    return employees.map((e: any) => ({
+      ...e,
+      role: e.role ? JSON.parse(e.role) : []
+    }))
   } catch (error) {
     throw createError({
       statusCode: 500,

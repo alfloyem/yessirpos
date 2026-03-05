@@ -114,6 +114,7 @@
     "firstName": "First Name",
     "lastName": "Last Name",
     "username": "Username",
+    "role": "Role",
     "email": "Email Address",
     "phone": "Phone",
     "gender": "Gender",

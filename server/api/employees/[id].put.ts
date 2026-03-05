@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
   try {
     const id = parseInt(getRouterParam(event, 'id') || '0')
     const body = await readBody(event)
-    const { firstName, lastName, username, email, phone, gender, status, password, notes } = body
+    const { firstName, lastName, username, email, phone, gender, role, status, password, notes } = body
 
     if (!id) {
       throw createError({
@@ -48,6 +48,7 @@ export default defineEventHandler(async (event) => {
     if (email !== undefined) updateData.email = email
     if (phone !== undefined) updateData.phone = phone
     if (gender !== undefined) updateData.gender = gender
+    if (role !== undefined) updateData.role = JSON.stringify(role)
     if (status !== undefined) updateData.status = status
     if (notes !== undefined) updateData.notes = notes
 
@@ -74,6 +75,7 @@ export default defineEventHandler(async (event) => {
         email: true,
         phone: true,
         gender: true,
+        role: true,
         status: true,
         notes: true,
         createdAt: true,
@@ -81,7 +83,10 @@ export default defineEventHandler(async (event) => {
       }
     })
 
-    return employee
+    return {
+      ...employee,
+      role: employee.role ? JSON.parse(employee.role) : []
+    }
   } catch (error: any) {
     if (error.statusCode) throw error
     

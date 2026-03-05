@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs'
 export default defineEventHandler(async (event) => {
   try {
     const body = await readBody(event)
-    const { firstName, lastName, username, email, phone, gender, status, password, notes } = body
+    const { firstName, lastName, username, email, phone, gender, role, status, password, notes } = body
 
     // Validasyon
     if (!firstName || !lastName || !username || !password) {
@@ -45,6 +45,7 @@ export default defineEventHandler(async (event) => {
         email,
         phone,
         gender,
+        role: role ? JSON.stringify(role) : null,
         status: status || 'Aktif',
         password: hashedPassword,
         notes
@@ -57,6 +58,7 @@ export default defineEventHandler(async (event) => {
         email: true,
         phone: true,
         gender: true,
+        role: true,
         status: true,
         notes: true,
         createdAt: true,
@@ -64,7 +66,10 @@ export default defineEventHandler(async (event) => {
       }
     })
 
-    return employee
+    return {
+      ...employee,
+      role: employee.role ? JSON.parse(employee.role) : []
+    }
   } catch (error: any) {
     if (error.statusCode) throw error
     
