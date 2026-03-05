@@ -28,10 +28,42 @@ export const useAuth = () => {
     navigateTo(localePath('/login'), { replace: true })
   }
 
+  // Kullanıcının hala geçerli olup olmadığını kontrol et
+  const verifyUser = async () => {
+    if (!token.value) return false
+
+    try {
+      await $fetch('/api/auth/verify', {
+        headers: {
+          Authorization: `Bearer ${token.value}`
+        }
+      })
+      return true
+    } catch (error) {
+      // Token geçersiz veya kullanıcı silinmiş
+      logout()
+      return false
+    }
+  }
+
+  // Client-side'da periyodik kontrol
+  if (process.client && token.value) {
+    // Sayfa yüklendiğinde kontrol et
+    verifyUser()
+
+    // Her 5 dakikada bir kontrol et
+    setInterval(() => {
+      if (token.value) {
+        verifyUser()
+      }
+    }, 5 * 60 * 1000) // 5 dakika
+  }
+
   return {
     token,
     isAuthenticated,
     login,
-    logout
+    logout,
+    verifyUser
   }
 }

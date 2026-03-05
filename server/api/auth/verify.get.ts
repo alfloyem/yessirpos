@@ -1,24 +1,20 @@
 export default defineEventHandler(async (event) => {
-  const authHeader = getHeader(event, 'authorization')
-  const token = authHeader?.replace('Bearer ', '')
+  // Server middleware zaten user'ı doğruladı ve context'e ekledi
+  const user = event.context.user
 
-  if (!token) {
+  if (!user) {
     throw createError({
       statusCode: 401,
-      statusMessage: 'Token bulunamadı'
-    })
-  }
-
-  // Basit token kontrolü (gerçek uygulamada JWT verify kullanılmalı)
-  if (!token.startsWith('mock-jwt-token-for-')) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: 'Geçersiz token'
+      statusMessage: 'Kullanıcı doğrulanamadı'
     })
   }
 
   return {
     valid: true,
-    message: 'Token geçerli'
+    user: {
+      id: user.id,
+      username: user.username,
+      status: user.status
+    }
   }
 })
