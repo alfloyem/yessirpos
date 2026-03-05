@@ -29,21 +29,26 @@ const handleLogin = async () => {
   
   loading.value = true
   error.value = ''
+  const toast = useToast()
+  
   try {
     const response = await $fetch<any>('/api/auth/login', {
       method: 'POST',
       body: { 
-        email: email.value, 
+        username: email.value, 
         password: password.value 
       }
     })
     
     if (response?.token) {
       login(response.token)
+      toast.success(t('toast.loginSuccess'))
       navigateTo(localePath('/'))
     }
   } catch (err: any) {
-    error.value = err.data?.statusMessage || 'Giriş uğursuz oldu!'
+    const errorMsg = err.data?.statusMessage || t('toast.loginFailed')
+    error.value = errorMsg
+    toast.error(errorMsg)
   } finally {
     loading.value = false
   }
