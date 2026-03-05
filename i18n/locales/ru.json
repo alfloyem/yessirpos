@@ -168,7 +168,13 @@
     "loginSuccess": "Добро пожаловать!",
     "loginFailed": "Ошибка входа",
     "usernameExists": "Это имя пользователя уже существует",
-    "invalidCredentials": "Неверное имя пользователя или пароль"
+    "invalidCredentials": "Неверное имя пользователя или пароль",
+    "customerAdded": "Клиент успешно добавлен",
+    "customerUpdated": "Клиент успешно обновлен",
+    "customersUpdated": "{count} клиентов обновлено",
+    "customerDeleted": "Клиент успешно удален",
+    "customersDeleted": "{count} клиентов успешно удалены",
+    "customerDuplicated": "Клиент скопирован"
   },
   "user": {
     "name": "MR Musa",
@@ -178,5 +184,23 @@
   "footer": {
     "terms": "Условия",
     "privacy": "Конфиденциальность"
+  },
+  "customers": {
+    "firstName": "Имя",
+    "lastName": "Фамилия",
+    "barcode": "Штрих-код",
+    "bonus": "Бонус",
+    "gender": "Пол",
+    "male": "Мужской",
+    "female": "Женский",
+    "address": "Адрес",
+    "city": "Город",
+    "baku": "Баку",
+    "country": "Страна",
+    "createdAt": "Дата",
+    "createdBy": "Сотрудник",
+    "addNew": "Добавить нового клиента",
+    "edit": "Редактировать клиента",
+    "bulkDeleteCount": "Выбранные {count} клиентов будут удалены."
   }
 }

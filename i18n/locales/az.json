@@ -169,7 +169,13 @@
     "loginSuccess": "Xoş gəldiniz!",
     "loginFailed": "Giriş uğursuz oldu",
     "usernameExists": "Bu istifadəçi adı artıq mövcuddur",
-    "invalidCredentials": "İstifadəçi adı və ya şifrə yanlışdır"
+    "invalidCredentials": "İstifadəçi adı və ya şifrə yanlışdır",
+    "customerAdded": "Müştəri uğurla əlavə edildi",
+    "customerUpdated": "Müştəri uğurla yeniləndi",
+    "customersUpdated": "{count} müştəri yeniləndi",
+    "customerDeleted": "Müştəri uğurla silindi",
+    "customersDeleted": "{count} müştəri uğurla silindi",
+    "customerDuplicated": "Müştəri kopyalandı"
   },
   "user": {
     "name": "MR Musa",
@@ -179,5 +185,23 @@
   "footer": {
     "terms": "Şərtlər",
     "privacy": "Məxfilik"
+  },
+  "customers": {
+    "firstName": "Ad",
+    "lastName": "Soyad",
+    "barcode": "Barkod",
+    "bonus": "Bonus (AZN)",
+    "gender": "Cinsiyyət",
+    "male": "Kişi",
+    "female": "Qadın",
+    "address": "Ünvan",
+    "city": "Şəhər/rayon",
+    "baku": "Bakı",
+    "country": "Ölkə",
+    "createdAt": "Tarix",
+    "createdBy": "Əməkdaş",
+    "addNew": "Yeni Müştəri Əlavə Et",
+    "edit": "Müştərini Redaktə Et",
+    "bulkDeleteCount": "Seçilmiş {count} müştəri silinəcək."
   }
 }

@@ -168,7 +168,13 @@
     "loginSuccess": "Welcome!",
     "loginFailed": "Login failed",
     "usernameExists": "This username already exists",
-    "invalidCredentials": "Invalid username or password"
+    "invalidCredentials": "Invalid username or password",
+    "customerAdded": "Customer successfully added",
+    "customerUpdated": "Customer successfully updated",
+    "customersUpdated": "{count} customers updated",
+    "customerDeleted": "Customer successfully deleted",
+    "customersDeleted": "{count} customers successfully deleted",
+    "customerDuplicated": "Customer duplicated"
   },
   "user": {
     "name": "MR Musa",
@@ -178,5 +184,23 @@
   "footer": {
     "terms": "Terms",
     "privacy": "Privacy"
+  },
+  "customers": {
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "barcode": "Barcode",
+    "bonus": "Bonus",
+    "gender": "Gender",
+    "male": "Male",
+    "female": "Female",
+    "address": "Address",
+    "city": "City",
+    "baku": "Baku",
+    "country": "Country",
+    "createdAt": "Date",
+    "createdBy": "Employee",
+    "addNew": "Add New Customer",
+    "edit": "Edit Customer",
+    "bulkDeleteCount": "Selected {count} customers will be deleted."
   }
 }
