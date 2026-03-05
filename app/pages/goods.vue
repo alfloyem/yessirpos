@@ -457,7 +457,7 @@ const saveForm = () => {
     </DataTable>
 
     <!-- Modal: Add -->
-    <Modal v-model="showAddModal" title="Yeni Mal Əlavə Et" max-width="4xl" min-height="700px">
+    <Modal v-model="showAddModal" title="Yeni Mal Əlavə Et" max-width="3xl" min-height="700px">
       <div v-if="barcodeError" class="mb-4 p-3 bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)] rounded-lg text-sm font-medium flex items-center gap-2">
         <UiIcon name="lucide:alert-triangle" class="w-3.5 h-3.5"/>
         {{ barcodeError }}
@@ -491,7 +491,7 @@ const saveForm = () => {
     </Modal>
 
     <!-- Modal: Edit -->
-    <Modal v-model="showEditModal" :title="bulkSelectedIds.length > 0 ? 'Toplu Redaktə' : 'Malı Redaktə Et'" max-width="4xl" min-height="700px">
+    <Modal v-model="showEditModal" :title="bulkSelectedIds.length > 0 ? 'Toplu Redaktə' : 'Malı Redaktə Et'" max-width="2xl" min-height="400px">
       <div v-if="barcodeError" class="mb-4 p-3 bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)] rounded-lg text-sm font-medium flex items-center gap-2">
         <UiIcon name="lucide:alert-triangle" class="w-3.5 h-3.5"/>
         {{ barcodeError }}
@@ -538,7 +538,7 @@ const saveForm = () => {
     </Modal>
 
     <!-- Variant Əlavə Et / Modal -->
-    <Modal v-model="showVariantModal" title="Variant Əlavə Et" max-width="4xl" min-height="700px">
+    <Modal v-model="showVariantModal" title="Variant Əlavə Et" max-width="3xl" min-height="700px">
       <div v-if="barcodeError" class="mb-4 p-3 bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)] rounded-lg text-sm font-medium flex items-center gap-2">
         <UiIcon name="lucide:alert-triangle" class="w-3.5 h-3.5"/>
         {{ barcodeError }}

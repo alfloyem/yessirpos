@@ -27,8 +27,9 @@ const dateFilterOptions = [
 
 // Parse date from dd.mm.yyyy HH:mm format
 const parseDate = (dateStr: string) => {
-  const [datePart] = dateStr.split(' ')
-  const [day, month, year] = datePart.split('.')
+  const [datePart] = (dateStr || '').split(' ')
+  const [day, month, year] = (datePart || '').split('.')
+  if (!day || !month || !year) return new Date()
   return new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
 }
 
@@ -568,7 +569,7 @@ const saveForm = () => {
     </div>
 
     <!-- Modal: Add -->
-    <Modal v-model="showAddModal" title="Yeni Xərc Əlavə Et" max-width="xl">
+    <Modal v-model="showAddModal" title="Yeni Xərc Əlavə Et" max-width="3xl">
       <DynamicForm 
         :fields="formFields"
         v-model="formData" 
@@ -580,7 +581,7 @@ const saveForm = () => {
     </Modal>
 
     <!-- Modal: Edit -->
-    <Modal v-model="showEditModal" :title="bulkSelectedIds.length > 0 ? 'Toplu Redaktə' : 'Xərci Redaktə Et'" max-width="xl">
+    <Modal v-model="showEditModal" :title="bulkSelectedIds.length > 0 ? 'Toplu Redaktə' : 'Xərci Redaktə Et'" max-width="3xl">
       <div v-if="bulkSelectedIds.length > 0" class="mb-4 p-3 bg-[var(--color-brand-warning)]/10 text-[var(--color-brand-warning)] rounded-lg text-sm font-medium">
         Xəbərdarlıq: Toplu redaktə rejimindəsiniz. Burada doldurduğunuz sahələr, seçdiyiniz <span class="font-bold">{{ bulkSelectedIds.length }}</span> qeydin məlumatının üzərinə yazılacaq.
       </div>

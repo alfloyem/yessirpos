@@ -253,7 +253,7 @@ const saveForm = () => {
     </DataTable>
 
     <!-- Modal: Add -->
-    <Modal v-model="showAddModal" title="Yeni Atribut Əlavə Et" max-width="xl" min-height="500px">
+    <Modal v-model="showAddModal" title="Yeni Atribut Əlavə Et" max-width="3xl" min-height="500px">
       <DynamicForm 
         :fields="formFields"
         v-model="formData" 
@@ -307,7 +307,7 @@ const saveForm = () => {
     </Modal>
 
     <!-- Modal: Edit -->
-    <Modal v-model="showEditModal" :title="bulkSelectedIds.length > 0 ? 'Toplu Redaktə' : 'Atributu Redaktə Et'" max-width="xl" min-height="500px">
+    <Modal v-model="showEditModal" :title="bulkSelectedIds.length > 0 ? 'Toplu Redaktə' : 'Atributu Redaktə Et'" max-width="3xl" min-height="500px">
       <div v-if="bulkSelectedIds.length > 0" class="mb-4 p-3 bg-[var(--color-brand-warning)]/10 text-[var(--color-brand-warning)] rounded-lg text-sm font-medium">
         Xəbərdarlıq: Toplu redaktə rejimindəsiniz. Burada doldurduğunuz sahələr, seçdiyiniz <span class="font-bold">{{ bulkSelectedIds.length }}</span> qeydin məlumatının üzərinə yazılacaq.
       </div>

@@ -461,7 +461,7 @@ const saveForm = async () => {
     </DataTable>
 
     <!-- Modal: Add / Edit -->
-    <Modal v-model="showAddModal" :title="t('employees.addNew', 'Yeni Personel Ekle')" max-width="xl">
+    <Modal v-model="showAddModal" :title="t('employees.addNew', 'Yeni Personel Ekle')" max-width="3xl">
       <DynamicForm 
         :fields="formFields"
         v-model="formData" 
@@ -477,7 +477,7 @@ const saveForm = async () => {
     <Modal 
       v-model="showEditModal" 
       :title="bulkSelectedIds.length > 0 ? t('employees.bulkEdit', 'Toplu Düzenleme') : t('employees.edit', 'Personeli Düzenle')" 
-      max-width="xl"
+      max-width="3xl"
       @update:model-value="(val) => { if (!val) bulkSelectedIds = [] }"
     >
       <div v-if="bulkSelectedIds.length > 0" class="mb-4 p-3 bg-[var(--color-brand-warning)]/10 text-[var(--color-brand-warning)] rounded-lg text-sm font-medium">

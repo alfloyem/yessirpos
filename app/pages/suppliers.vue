@@ -273,7 +273,7 @@ const saveForm = () => {
     </DataTable>
 
     <!-- Modal: Add -->
-    <Modal v-model="showAddModal" title="Yeni Tədarükçü Əlavə Et" max-width="xl">
+    <Modal v-model="showAddModal" title="Yeni Tədarükçü Əlavə Et" max-width="3xl">
       <div v-if="voenError" class="mb-4 p-3 bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)] rounded-lg text-sm font-medium flex items-center gap-2">
         <UiIcon name="lucide:alert-triangle" class="w-5 h-5"/>
         {{ voenError }}
@@ -290,7 +290,7 @@ const saveForm = () => {
     </Modal>
 
     <!-- Modal: Edit -->
-    <Modal v-model="showEditModal" :title="bulkSelectedIds.length > 0 ? 'Toplu Redaktə' : 'Tədarükçünü Redaktə Et'" max-width="xl">
+    <Modal v-model="showEditModal" :title="bulkSelectedIds.length > 0 ? 'Toplu Redaktə' : 'Tədarükçünü Redaktə Et'" max-width="3xl">
       <div v-if="voenError" class="mb-4 p-3 bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)] rounded-lg text-sm font-medium flex items-center gap-2">
         <UiIcon name="lucide:alert-triangle" class="w-5 h-5"/>
         {{ voenError }}

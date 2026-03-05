@@ -14,7 +14,7 @@ useHead({
 
 // --- Centralized Schema ---
 const earningsSchema: (FormField & { inTable?: boolean, sortable?: boolean })[] = [
-  { key: 'date', label: 'Tarix', type: 'datetime-local', inTable: true, sortable: true, required: true },
+  { key: 'date', label: 'Tarix', type: 'datetime', inTable: true, sortable: true, required: true },
   { key: 'employee', label: 'Əməkdaş', type: 'text', inTable: true, sortable: true, required: true },
   { key: 'product', label: 'Satılan məhsul', type: 'text', inTable: true, sortable: true, required: true },
   { key: 'amount', label: 'Qazanılan məbləğ (AZN)', icon: 'lucide:wallet', type: 'number', inTable: true, sortable: true, required: true },
@@ -166,7 +166,7 @@ const confirmDelete = () => {
     </DataTable>
 
     <!-- Modal: Add -->
-    <Modal v-model="showAddModal" title="Yeni Qazanc Əlavə Et" max-width="xl">
+    <Modal v-model="showAddModal" title="Yeni Qazanc Əlavə Et" max-width="3xl">
       <DynamicForm 
         :fields="formFields"
         v-model="formData" 
@@ -178,7 +178,7 @@ const confirmDelete = () => {
     </Modal>
 
     <!-- Modal: Edit -->
-    <Modal v-model="showEditModal" :title="bulkSelectedIds.length > 0 ? 'Toplu Düzənləmə' : 'Qazancı Düzənlə'" max-width="xl">
+    <Modal v-model="showEditModal" :title="bulkSelectedIds.length > 0 ? 'Toplu Düzənləmə' : 'Qazancı Düzənlə'" max-width="3xl">
       <div v-if="bulkSelectedIds.length > 0" class="mb-4 p-3 bg-[var(--color-brand-warning)]/10 text-[var(--color-brand-warning)] rounded-lg text-sm font-medium">
         Diqqət: Toplu düzənləmə rejimindəsiniz. Burada doldurduğunuz sahələr seçilmiş <span class="font-bold">{{ bulkSelectedIds.length }}</span> qeydin məlumatlarının üzərinə yazılacaq.
       </div>
