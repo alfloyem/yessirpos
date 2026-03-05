@@ -191,7 +191,7 @@ const saveForm = () => {
 
     <!-- Smart Data Table -->
     <DataTable 
-      title="Personel_Listesi"
+      :title="t('menu.employees', 'Personel_Listesi')"
       :data="mockData" 
       :columns="columns"
       :selectable="true"
@@ -202,6 +202,11 @@ const saveForm = () => {
       @bulk-delete="handleBulkDelete"
       @bulk-edit="handleBulkEdit"
     >
+      <!-- Customizing the Gender column using slots -->
+      <template #cell-gender="{ value }">
+        <span>{{ value === 'Kişi' ? t('employees.male', 'Kişi') : value === 'Qadın' ? t('employees.female', 'Qadın') : value }}</span>
+      </template>
+
       <!-- Customizing the Status column using slots -->
       <template #cell-status="{ value }">
         <span 
@@ -212,7 +217,7 @@ const saveForm = () => {
             'bg-[var(--color-brand-warning)]/10 text-[var(--color-brand-warning)]': value === 'İzinde'
           }"
         >
-          {{ value }}
+          {{ value === 'Aktif' ? t('employees.statusActive', 'Aktif') : value === 'Pasif' ? t('employees.statusPassive', 'Pasif') : t('employees.statusOnLeave', 'İzinde') }}
         </span>
       </template>
     </DataTable>

@@ -45,6 +45,15 @@ const localColumns = ref(
   }))
 )
 
+watch(() => props.columns, (newCols) => {
+  const visMap = new Map()
+  localColumns.value.forEach(c => visMap.set(c.key, c.visible))
+  localColumns.value = newCols.map(c => ({
+    ...c,
+    visible: visMap.has(c.key) ? visMap.get(c.key) : (c.visible !== false)
+  }))
+}, { deep: true })
+
 const visibleColumns = computed(() => localColumns.value.filter(c => c.visible))
 
 const toggleColumn = (col: Column) => {
@@ -245,7 +254,7 @@ watch(searchQuery, () => {
               variant="outline"
               size="sm"
               icon="lucide:list"
-              title="Sütunlar"
+              :title="t('common.columns', 'Sütunlar')"
             />
           </template>
 
@@ -269,7 +278,7 @@ watch(searchQuery, () => {
               variant="outline"
               size="sm"
               icon="lucide:download"
-              title="İxrac et"
+              :title="t('common.export', 'İxrac et')"
             />
           </template>
 
@@ -300,7 +309,7 @@ watch(searchQuery, () => {
           icon="gravity-ui:plus"
           @click="emit('add')"
         >
-          Yeni
+          {{ t('common.new', 'Yeni') }}
         </UiButton>
 
         <slot name="extra-actions" />
@@ -315,7 +324,7 @@ watch(searchQuery, () => {
             icon="lucide:edit-2"
             @click="emit('bulk-edit', Array.from(selectedIds))"
           >
-            <span class="hidden sm:inline">Toplu redaktə</span>
+            <span class="hidden sm:inline">{{ t('common.bulkEdit', 'Toplu redaktə') }}</span>
           </UiButton>
           <UiButton 
             v-if="selectedIds.size > 0"
@@ -325,7 +334,7 @@ watch(searchQuery, () => {
             icon="lucide:trash-2"
             @click="emit('bulk-delete', Array.from(selectedIds))"
           >
-            {{ selectedIds.size }} <span class="hidden sm:inline">Sil</span>
+            {{ selectedIds.size }} <span class="hidden sm:inline">{{ t('common.delete', 'Sil') }}</span>
           </UiButton>
         </TransitionGroup>
       </div>
@@ -337,7 +346,7 @@ watch(searchQuery, () => {
       <div v-if="searchable !== false" class="w-full sm:w-72">
         <UiInput 
           v-model="searchQuery" 
-          placeholder="Cədvəldə axtar..." 
+          :placeholder="t('common.searchInTable', 'Cədvəldə axtar...')" 
           icon="lucide:search" 
           clearable 
         />
@@ -387,7 +396,7 @@ watch(searchQuery, () => {
               </th>
 
               <!-- Actions Header -->
-              <th v-if="actions" class="px-6 py-4 text-right">Aksiyonlar</th>
+              <th v-if="actions" class="px-6 py-4 text-right">{{ t('common.actions', 'Aksiyonlar') }}</th>
             </tr>
           </thead>
           

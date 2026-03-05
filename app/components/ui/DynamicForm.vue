@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import UiInput from '~/components/ui/Input.vue'
 import UiSelect from '~/components/ui/Select.vue'
 import TagsInput from '~/components/ui/TagsInput.vue'
+import { useI18n } from '#i18n'
 
 export interface FormField {
   key: string
@@ -23,6 +24,8 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits(['update:modelValue'])
+
+const { t } = useI18n()
 
 const updateField = (key: string, value: any) => {
   emit('update:modelValue', { ...props.modelValue, [key]: value })
@@ -63,7 +66,7 @@ const enhancedFields = computed(() => {
     if (field.type === 'password') {
       result.push({
         key: `${field.key}Confirm`,
-        label: `${field.label} Təkrar`,
+        label: `${field.label} ${t('common.confirm', 'Təkrarı')}`,
         type: 'password',
         icon: field.icon,
         required: field.required,
@@ -118,7 +121,7 @@ const isPasswordMismatch = (field: any) => {
           @update:modelValue="val => updateField(field.key, val)"
           :historyKey="field.historyKey || field.key"
           :icon="field.icon"
-          :placeholder="`${field.label} yazın...`"
+          :placeholder="`${field.label} ${t('common.typeHere', 'yazın...')}`"
         />
       </div>
 

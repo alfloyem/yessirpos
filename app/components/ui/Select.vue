@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { useI18n } from '#i18n'
+
 const props = defineProps<{
   modelValue: any
   options: { label: string, value: any }[]
@@ -8,10 +11,12 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
+const { t } = useI18n()
+
 const isOpen = ref(false)
 const selectedLabel = computed(() => {
   const selected = props.options.find(opt => opt.value === props.modelValue)
-  return selected ? selected.label : 'Seç'
+  return selected ? selected.label : t('common.select', 'Seç')
 })
 
 const selectOption = (value: any) => {

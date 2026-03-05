@@ -54,9 +54,9 @@ const maxWidthClass = computed(() => {
     <Transition name="modal">
       <div v-show="modelValue" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6" style="margin: 0;">
         
-        <!-- Backdrop without blur transition to prevent lag, only opacity, or keep blur static -->
+        <!-- Backdrop -->
         <div 
-          class="absolute inset-0 bg-[var(--text-app)]/5 backdrop-blur-md"
+          class="modal-backdrop absolute inset-0 bg-black/20"
           @click="close"
         ></div>
 
@@ -99,12 +99,24 @@ const maxWidthClass = computed(() => {
 <style scoped>
 .modal-enter-active,
 .modal-leave-active {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.2s ease-out;
+}
+
+.modal-enter-active .modal-backdrop,
+.modal-leave-active .modal-backdrop {
+  transition: backdrop-filter 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease;
+  backdrop-filter: blur(12px);
 }
 
 .modal-enter-from,
 .modal-leave-to {
   opacity: 0;
+}
+
+.modal-enter-from .modal-backdrop,
+.modal-leave-to .modal-backdrop {
+  backdrop-filter: blur(0px);
+  background-color: transparent;
 }
 
 .modal-enter-from .relative,
