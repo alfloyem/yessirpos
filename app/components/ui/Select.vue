@@ -13,6 +13,16 @@ const emit = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
 
+const selectRef = ref<HTMLElement | null>(null)
+const handleClickOutside = (e: MouseEvent) => {
+  if (selectRef.value && !selectRef.value.contains(e.target as Node)) {
+    isOpen.value = false
+  }
+}
+
+onMounted(() => document.addEventListener('click', handleClickOutside))
+onUnmounted(() => document.removeEventListener('click', handleClickOutside))
+
 const isOpen = ref(false)
 const selectedLabel = computed(() => {
   const selected = props.options.find(opt => opt.value === props.modelValue)
@@ -26,7 +36,7 @@ const selectOption = (value: any) => {
 </script>
 
 <template>
-  <div class="relative w-full">
+  <div class="relative w-full" ref="selectRef">
     <!-- Custom Select Button -->
     <button
       type="button"
@@ -66,7 +76,6 @@ const selectOption = (value: any) => {
     >
       <div 
         v-if="isOpen"
-        v-click-outside="() => isOpen = false"
         class="absolute z-50 w-full mt-2 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-[14px] shadow-xl overflow-hidden"
       >
         <div class="max-h-60 overflow-y-auto overflow-x-hidden custom-scrollbar">

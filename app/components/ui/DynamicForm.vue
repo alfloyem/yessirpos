@@ -27,6 +27,7 @@ const props = defineProps<{
 const emit = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
+const passwordVisibility = ref<Record<string, boolean>>({})
 
 const updateField = (key: string, value: any) => {
   emit('update:modelValue', { ...props.modelValue, [key]: value })
@@ -160,6 +161,8 @@ const isPasswordMismatch = (field: any) => {
           @update:modelValue="val => updateField(field.key, val)"
           :disabled="isLoading"
           :icon="field.icon"
+          :showPassword="passwordVisibility[field.originalKey || field.key] || false"
+          @update:showPassword="val => passwordVisibility[field.originalKey || field.key] = val"
           :class="errors?.[field.key] || isPasswordMismatch(field) ? '!border-[var(--color-brand-danger)] !ring-[var(--color-brand-danger)]/20' : ''"
         />
       </div>

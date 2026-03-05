@@ -150,7 +150,8 @@
     "bulkEdit": "Массовое редактирование",
     "delete": "Удалить",
     "fieldRequired": "Это поле обязательно для заполнения",
-    "passwordsMismatch": "Пароли не совпадают!"
+    "passwordsMismatch": "Пароли не совпадают!",
+    "passwordsMinLength": "Пароль должен состоять как минимум из {count} символов"
   },
   "user": {
     "name": "MR Musa",

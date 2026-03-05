@@ -147,7 +147,8 @@ const filteredAndSortedData = computed(() => {
 
 // Highlight Function for template
 const highlightText = (text: any) => {
-  if (!searchQuery.value || text === null || text === undefined) return String(text)
+  if (text === null || text === undefined) return ''
+  if (!searchQuery.value) return String(text)
   const query = searchQuery.value.trim()
   if (!query) return String(text)
   

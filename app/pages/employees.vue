@@ -49,13 +49,13 @@ const generateUsername = (first?: string, last?: string, currentId?: any) => {
 const employeeSchema = computed< (FormField & { inTable?: boolean, sortable?: boolean })[] >(() => [
   { key: 'firstName', label: t('employees.firstName', 'Ad'), type: 'text', inTable: true, sortable: true, required: true, colSpan: 1 },
   { key: 'lastName', label: t('employees.lastName', 'Soyad'), type: 'text', inTable: true, sortable: true, required: true, colSpan: 1 },
-  { key: 'email', label: t('employees.email', 'E-poçt (Email)'), icon: 'lucide:mail', type: 'email', inTable: true, sortable: true, colSpan: 2 },
+  { key: 'username', label: t('employees.username', 'İstifadəçi adı'), icon: 'lucide:user', type: 'text', inTable: true, sortable: true, required: true, colSpan: 2 },
   { key: 'phone', label: t('employees.phone', 'Telefon'), icon: 'lucide:phone', type: 'tel', inTable: true, sortable: true, colSpan: 1 },
+  { key: 'email', label: t('employees.email', 'E-poçt (Email)'), icon: 'lucide:mail', type: 'email', inTable: true, sortable: true, colSpan: 1 },
   { key: 'gender', label: t('employees.gender', 'Cinsiyyət'), type: 'select', inTable: true, sortable: true, options: [
     { label: t('employees.male', 'Kişi'), value: 'Kişi' },
     { label: t('employees.female', 'Qadın'), value: 'Qadın' }
   ], colSpan: 1 },
-  { key: 'username', label: t('employees.username', 'İstifadəçi adı'), icon: 'lucide:user', type: 'text', inTable: true, sortable: true, required: true, colSpan: 1 },
   { key: 'status', label: t('employees.status', 'Durum'), type: 'select', inTable: true, sortable: true, options: [
     { label: t('employees.statusActive', 'Aktif'), value: 'Aktif' },
     { label: t('employees.statusPassive', 'Pasif'), value: 'Pasif' },
@@ -184,8 +184,14 @@ const saveForm = () => {
     }
   }
 
-  if (!isBulkEditMode && formData.value.password !== formData.value.passwordConfirm) {
-    hasError = true
+  if (!isBulkEditMode) {
+    if (formData.value.password && formData.value.password.length < 8) {
+      formErrors.value.password = t('common.passwordsMinLength', { count: 8 })
+      hasError = true
+    }
+    if (formData.value.password !== formData.value.passwordConfirm) {
+      hasError = true
+    }
   }
 
   if (hasError) return

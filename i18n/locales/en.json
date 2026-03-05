@@ -150,7 +150,8 @@
     "bulkEdit": "Bulk edit",
     "delete": "Delete",
     "fieldRequired": "This field is required",
-    "passwordsMismatch": "Passwords do not match!"
+    "passwordsMismatch": "Passwords do not match!",
+    "passwordsMinLength": "Password must be at least {count} characters"
   },
   "user": {
     "name": "MR Musa",

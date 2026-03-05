@@ -8,15 +8,17 @@ const props = defineProps<{
   icon?: string
   disabled?: boolean
   clearable?: boolean
+  showPassword?: boolean
 }>()
 
-const emit = defineEmits(['update:modelValue', 'clear'])
+const emit = defineEmits(['update:modelValue', 'clear', 'update:showPassword'])
 
-const showPassword = ref(false)
+const localShowPassword = ref(false)
+const isPasswordVisible = computed(() => props.showPassword ?? localShowPassword.value)
 
 const computedType = computed(() => {
   if (props.type === 'password') {
-    return showPassword.value ? 'text' : 'password'
+    return isPasswordVisible.value ? 'text' : 'password'
   }
   return props.type || 'text'
 })
@@ -52,7 +54,8 @@ const clear = () => {
 }
 
 const togglePassword = () => {
-  showPassword.value = !showPassword.value
+  localShowPassword.value = !localShowPassword.value
+  emit('update:showPassword', !isPasswordVisible.value)
 }
 </script>
 
@@ -96,7 +99,7 @@ const togglePassword = () => {
         @click="togglePassword"
         class="text-[var(--text-app)] opacity-40 hover:opacity-100 hover:text-[var(--text-primary)] transition-all flex items-center justify-center w-6 h-6 rounded-full"
       >
-        <UiIcon :name="showPassword ? 'lucide:eye-off' : 'lucide:eye'" class="w-4 h-4" />
+        <UiIcon :name="isPasswordVisible ? 'lucide:eye-off' : 'lucide:eye'" class="w-4 h-4" />
       </button>
     </div>
   </div>

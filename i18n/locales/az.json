@@ -150,7 +150,8 @@
     "bulkEdit": "Toplu redaktə",
     "delete": "Sil",
     "fieldRequired": "Bu xana mütləq doldurulmalıdır",
-    "passwordsMismatch": "Şifrələr uyğun deyil!"
+    "passwordsMismatch": "Şifrələr uyğun deyil!",
+    "passwordsMinLength": "Şifrə minimum {count} simvol olmalıdır"
   },
   "user": {
     "name": "MR Musa",
