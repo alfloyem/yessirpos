@@ -114,6 +114,7 @@
     "firstName": "Ad",
     "lastName": "Soyad",
     "username": "İstifadəçi adı",
+    "role": "Vəzifə",
     "email": "E-poçt (Email)",
     "phone": "Telefon",
     "gender": "Cinsiyyət",

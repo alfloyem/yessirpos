@@ -74,6 +74,7 @@ const employeeSchema = computed< (FormField & { inTable?: boolean, sortable?: bo
     { label: t('employees.statusPassive', 'Pasif'), value: 'Pasif' },
     { label: t('employees.statusOnLeave', 'İzinde'), value: 'İzinde' }
   ], colSpan: 1 },
+  { key: 'role', label: t('employees.role', 'Vəzifə'), type: 'tags', historyKey: 'employee_roles', inTable: true, sortable: true, colSpan: 2 },
   { key: 'password', label: t('employees.password', 'Şifrə'), icon: 'lucide:lock', type: 'password', inTable: false, required: true, colSpan: 1 },
   { key: 'notes', label: t('employees.notes', 'Xüsusi qeyd'), type: 'textarea', colSpan: 2, inTable: false },
 ])
@@ -247,6 +248,8 @@ const customSearch = (item: any, query: string) => {
     item.email,
     item.phone,
     item.notes,
+    // Role (tags array)
+    Array.isArray(item.role) ? item.role.join(' ') : item.role,
     // Translated gender
     item.gender === 'Kişi' ? t('employees.male') : item.gender === 'Qadın' ? t('employees.female') : item.gender,
     // Translated status
@@ -443,6 +446,22 @@ const saveForm = async () => {
       <!-- Customizing the Gender column using slots with Highlight support -->
       <template #cell-gender="{ value, highlight }">
         <span v-html="highlight(value === 'Kişi' ? t('employees.male', 'Kişi') : value === 'Qadın' ? t('employees.female', 'Qadın') : value)"></span>
+      </template>
+
+      <!-- Customizing the Role (Vezife) column using tags with Highlight support -->
+      <template #cell-role="{ value, highlight }">
+        <div class="flex flex-wrap gap-1">
+          <template v-if="Array.isArray(value) && value.length > 0">
+            <span 
+              v-for="(tag, i) in value" 
+              :key="i"
+              class="px-2 py-0.5 text-[11px] font-bold rounded-md bg-[var(--text-primary)]/10 text-[var(--text-primary)]"
+              v-html="highlight(tag)"
+            >
+            </span>
+          </template>
+          <span v-else class="opacity-30">-</span>
+        </div>
       </template>
 
       <!-- Customizing the Status column using slots with Highlight support -->
