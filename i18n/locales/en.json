@@ -149,10 +149,26 @@
     "searchInTable": "Search in table...",
     "bulkEdit": "Bulk edit",
     "delete": "Delete",
+    "duplicate": "Duplicate",
+    "edit": "Edit",
     "fieldRequired": "This field is required",
     "passwordsMismatch": "Passwords do not match!",
     "passwordsMinLength": "Password must be at least {count} characters",
     "noData": "No results found for your search"
+  },
+  "toast": {
+    "employeeAdded": "Employee added successfully",
+    "employeeUpdated": "Employee updated successfully",
+    "employeeDeleted": "Employee deleted",
+    "employeesDeleted": "{count} employees deleted",
+    "employeesUpdated": "{count} employees updated",
+    "employeeDuplicated": "Employee duplicated",
+    "operationFailed": "Operation failed",
+    "loadingError": "Error loading data",
+    "loginSuccess": "Welcome!",
+    "loginFailed": "Login failed",
+    "usernameExists": "This username already exists",
+    "invalidCredentials": "Invalid username or password"
   },
   "user": {
     "name": "MR Musa",

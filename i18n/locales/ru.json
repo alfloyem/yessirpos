@@ -149,10 +149,26 @@
     "searchInTable": "Поиск в таблице...",
     "bulkEdit": "Массовое редактирование",
     "delete": "Удалить",
+    "duplicate": "Дублировать",
+    "edit": "Редактировать",
     "fieldRequired": "Это поле обязательно для заполнения",
     "passwordsMismatch": "Пароли не совпадают!",
     "passwordsMinLength": "Пароль должен состоять как минимум из {count} символов",
     "noData": "Результатов по вашему запросу не найдено"
+  },
+  "toast": {
+    "employeeAdded": "Сотрудник успешно добавлен",
+    "employeeUpdated": "Данные сотрудника обновлены",
+    "employeeDeleted": "Сотрудник удален",
+    "employeesDeleted": "{count} сотрудников удалено",
+    "employeesUpdated": "{count} сотрудников обновлено",
+    "employeeDuplicated": "Сотрудник скопирован",
+    "operationFailed": "Операция не удалась",
+    "loadingError": "Ошибка при загрузке данных",
+    "loginSuccess": "Добро пожаловать!",
+    "loginFailed": "Ошибка входа",
+    "usernameExists": "Это имя пользователя уже существует",
+    "invalidCredentials": "Неверное имя пользователя или пароль"
   },
   "user": {
     "name": "MR Musa",

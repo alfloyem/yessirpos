@@ -149,10 +149,26 @@
     "searchInTable": "Cədvəldə axtar...",
     "bulkEdit": "Toplu redaktə",
     "delete": "Sil",
+    "duplicate": "Kopyala",
+    "edit": "Düzəliş et",
     "fieldRequired": "Bu xana mütləq doldurulmalıdır",
     "passwordsMismatch": "Şifrələr uyğun deyil!",
     "passwordsMinLength": "Şifrə minimum {count} simvol olmalıdır",
     "noData": "Axtarışınıza uyğun nəticə tapılmadı"
+  },
+  "toast": {
+    "employeeAdded": "Əməkdaş uğurla əlavə edildi",
+    "employeeUpdated": "Əməkdaş məlumatları yeniləndi",
+    "employeeDeleted": "Əməkdaş silindi",
+    "employeesDeleted": "{count} əməkdaş silindi",
+    "employeesUpdated": "{count} əməkdaş yeniləndi",
+    "employeeDuplicated": "Əməkdaş kopyalandı",
+    "operationFailed": "Əməliyyat uğursuz oldu",
+    "loadingError": "Məlumatlar yüklənərkən xəta baş verdi",
+    "loginSuccess": "Xoş gəldiniz!",
+    "loginFailed": "Giriş uğursuz oldu",
+    "usernameExists": "Bu istifadəçi adı artıq mövcuddur",
+    "invalidCredentials": "İstifadəçi adı və ya şifrə yanlışdır"
   },
   "user": {
     "name": "MR Musa",
