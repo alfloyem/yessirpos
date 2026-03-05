@@ -42,12 +42,12 @@ export default defineEventHandler(async (event) => {
     if (firstName) updateData.firstName = firstName
     if (lastName) updateData.lastName = lastName
     if (barcode) updateData.barcode = barcode
-    if (bonus !== undefined) updateData.bonus = typeof bonus === 'number' ? bonus : parseFloat(bonus || 0)
+    if (bonus !== undefined) updateData.bonus = bonus
     if (email !== undefined) updateData.email = email
     if (phone !== undefined) updateData.phone = phone
     if (gender !== undefined) updateData.gender = gender
     if (address !== undefined) updateData.address = address
-    if (city !== undefined) updateData.city = Array.isArray(city) ? JSON.stringify(city) : city
+    if (city !== undefined) updateData.city = city
     if (country !== undefined) updateData.country = country
     if (notes !== undefined) updateData.notes = notes
 
