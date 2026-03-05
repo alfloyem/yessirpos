@@ -15,6 +15,7 @@ export interface FormField {
   icon?: string // Optional icon
   historyKey?: string // For tags
   isCountry?: boolean // For country select
+  barcodePrefix?: string // For barcode type
 }
 
 const props = defineProps<{
@@ -163,6 +164,7 @@ const isPasswordMismatch = (field: any) => {
           @update:modelValue="val => updateField(field.key, val)"
           :disabled="isLoading"
           :icon="field.icon"
+          :barcodePrefix="field.barcodePrefix"
           :showPassword="passwordVisibility[field.originalKey || field.key] || false"
           @update:showPassword="val => passwordVisibility[field.originalKey || field.key] = val"
           :class="errors?.[field.key] || isPasswordMismatch(field) ? '!border-[var(--color-brand-danger)] !ring-[var(--color-brand-danger)]/20' : ''"

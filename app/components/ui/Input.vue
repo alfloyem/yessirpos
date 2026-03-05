@@ -9,6 +9,7 @@ const props = defineProps<{
   disabled?: boolean
   clearable?: boolean
   showPassword?: boolean
+  barcodePrefix?: string
 }>()
 
 const emit = defineEmits(['update:modelValue', 'clear', 'update:showPassword'])
@@ -49,10 +50,11 @@ const handleInput = (e: Event) => {
     }
   }
 
-  // Barcode specific formatting: C + 7 digits max
+  // Barcode specific formatting: Prefix + 7 digits max
   if (props.type === 'barcode') {
+    const pfx = props.barcodePrefix || 'C'
     let digits = val.replace(/[^\d]/g, '').slice(0, 7)
-    val = `C${digits}`
+    val = `${pfx}${digits}`
     if ((e.target as HTMLInputElement).value !== val) {
       (e.target as HTMLInputElement).value = val
     }

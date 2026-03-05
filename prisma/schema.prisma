@@ -63,7 +63,19 @@ model Customer {
   city      String?  @default("Bakı")
   country   String?  @default("Azərbaycan")
   notes     String?
+  giftCards GiftCard[]
   createdBy String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model GiftCard {
+  id         Int       @id @default(autoincrement())
+  barcode    String    @unique
+  value      Float     @default(0)
+  customerId Int?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  createdBy  String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 }
