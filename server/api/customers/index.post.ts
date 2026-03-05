@@ -3,7 +3,7 @@ import prisma from '../../utils/prisma'
 export default defineEventHandler(async (event) => {
   try {
     const body = await readBody(event)
-    const { firstName, lastName, barcode, bonus, gender, email, phone, address, city, country, notes } = body
+    const { firstName, lastName, barcode, bonus, gender, email, phone, address, city, country, notes, createdAt } = body
 
     // Validation
     if (!firstName || !lastName || !barcode) {
@@ -36,10 +36,11 @@ export default defineEventHandler(async (event) => {
         email,
         phone,
         address,
-        city,
+        city: Array.isArray(city) ? JSON.stringify(city) : city,
         country,
         notes,
-        createdBy: user?.name || user?.username || 'Sistem'
+        createdBy: user?.name || user?.username || 'Sistem',
+        createdAt: createdAt ? new Date(createdAt) : undefined
       }
     })
 

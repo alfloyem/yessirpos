@@ -41,15 +41,14 @@ const customerSchema = computed< (FormField & { inTable?: boolean, sortable?: bo
   { key: 'lastName', label: t('customers.lastName', 'Soyad'), type: 'text', inTable: true, sortable: true, required: true, colSpan: 1 },
   { key: 'barcode', label: t('customers.barcode', 'Barkod'), icon: 'lucide:qr-code', type: 'barcode', inTable: true, sortable: true, required: true, colSpan: 2 },
   { key: 'gender', label: t('customers.gender', 'Cinsiyyət'), type: 'select', inTable: true, sortable: true, options: [
+    { label: t('common.select', 'Seç...'), value: '' },
     { label: t('customers.male', 'Kişi'), value: 'Kişi' },
     { label: t('customers.female', 'Qadın'), value: 'Qadın' }
   ], colSpan: 1 },
   { key: 'bonus', label: t('customers.bonus', 'Bonus (AZN)'), icon: 'lucide:wallet', type: 'number', inTable: true, sortable: true, colSpan: 1 },
-  { key: 'email', label: t('employees.email', 'E-poçt (Email)'), icon: 'lucide:mail', type: 'email', inTable: false, sortable: true, colSpan: 1 },
+  { key: 'email', label: t('employees.email', 'E-poçt (Email)'), icon: 'lucide:mail', type: 'email', inTable: true, sortable: true, colSpan: 1 },
   { key: 'phone', label: t('employees.phone', 'Telefon'), icon: 'lucide:phone', type: 'tel', inTable: true, sortable: true, colSpan: 1 },
-  { key: 'city', label: t('customers.city', 'Şəhər/rayon'), type: 'select', inTable: true, sortable: true, options: [
-    { label: t('customers.baku', 'Bakı'), value: 'Bakı' }
-  ], colSpan: 1 },
+  { key: 'city', label: t('customers.city', 'Şəhər/rayon'), type: 'tags', inTable: true, sortable: true, colSpan: 1 },
   { key: 'country', label: t('customers.country', 'Ölkə'), icon: 'lucide:globe', type: 'text', inTable: false, colSpan: 1 },
   { key: 'address', label: t('customers.address', 'Ünvan'), icon: 'lucide:map-pin', type: 'text', colSpan: 2, inTable: false },
   { key: 'notes', label: t('employees.notes', 'Xüsusi qeyd'), type: 'textarea', colSpan: 2, inTable: false },
@@ -84,6 +83,7 @@ const loadCustomers = async () => {
     const data = await $fetch('/api/customers')
     mockData.value = (data as any[]).map(d => ({
       ...d,
+      _date: new Date(d.createdAt),
       createdAt: new Date(d.createdAt).toLocaleString('tr-TR', {
         year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
       })
@@ -115,8 +115,8 @@ const bulkSelectedIds = ref<any[]>([])
 const handleAdd = () => {
   formData.value = {
     barcode: generateBarcode(),
-    bonus: 0,
-    city: 'Bakı',
+    bonus: '0.00',
+    city: [],
     country: 'Azərbaycan'
   }
   formErrors.value = {}
@@ -180,17 +180,28 @@ const handleBulkEdit = (ids: any[]) => {
 const handleDuplicate = async (row: any) => {
   loading.value = true
   const toast = useToast()
+  const { token, logout } = useAuth()
   
   try {
     const newBarcode = generateBarcode()
+    
+    // Set createdAt slightly ahead of the copied row to position it right above
+    let newDate = new Date()
+    if (row._date) {
+      newDate = new Date(row._date.getTime() + 1000)
+    }
+    
+    const headers = { Authorization: `Bearer ${token.value}` }
     
     await $fetch('/api/customers', {
       method: 'POST',
       body: {
         ...row,
         id: undefined,
-        barcode: newBarcode
-      }
+        barcode: newBarcode,
+        createdAt: newDate.toISOString()
+      },
+      headers
     })
     
     toast.success(t('toast.customerDuplicated', 'Müştəri kopyalandı'))
@@ -200,6 +211,10 @@ const handleDuplicate = async (row: any) => {
     const errorMsg = err.message || t('toast.operationFailed', 'Əməliyyat zamanı xəta baş verdi')
     toast.error(errorMsg)
     console.error('Duplicate error:', err)
+    
+    if (err.statusCode === 401) {
+      logout()
+    }
   } finally {
     loading.value = false
   }
@@ -363,7 +378,7 @@ const saveForm = async () => {
       <template #cell-bonus="{ value, highlight }">
         <span 
           class="font-medium text-[var(--color-brand-success)]"
-          v-html="highlight(value || 0) + ' ₼'"
+          v-html="highlight(Number(value || 0).toFixed(2)) + ' ₼'"
         >
         </span>
       </template>
@@ -373,9 +388,18 @@ const saveForm = async () => {
         <span v-html="highlight(value === 'Kişi' ? t('customers.male', 'Kişi') : value === 'Qadın' ? t('customers.female', 'Qadın') : value)"></span>
       </template>
       
-      <!-- Customizing the City column using slots with Highlight support -->
+      <!-- Customizing the City column (Tags) using slots -->
       <template #cell-city="{ value, highlight }">
-        <span v-html="highlight(value === 'Bakı' ? t('customers.baku', 'Bakı') : value)"></span>
+        <div v-if="value && Array.isArray(value)" class="flex gap-1 flex-wrap">
+          <span 
+            v-for="(tag, idx) in value" 
+            :key="idx"
+            class="px-2 py-0.5 bg-[var(--color-brand-primary)]/10 text-[var(--color-brand-primary)] rounded-[6px] text-[12px] font-medium"
+            v-html="highlight(tag)"
+          ></span>
+        </div>
+        <span v-else-if="value" v-html="highlight(value)"></span>
+        <span v-else>-</span>
       </template>
     </DataTable>
 
