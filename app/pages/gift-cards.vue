@@ -331,12 +331,12 @@ const confirmDelete = async () => {
     </DataTable>
 
     <!-- Modal: Add -->
-    <Modal v-model="showAddModal" :title="t('common.addNewCard', 'Yeni Hədiyyə Kartı Əlavə Et')" max-width="3xl">
+    <Modal v-model="showAddModal" :title="t('common.addNewCard', 'Yeni Hədiyyə Kartı Əlavə Et')" max-width="xl">
       <DynamicForm 
         :fields="formFields"
         v-model="formData" 
         :errors="formErrors"
-        :grid-cols="2"
+        :grid-cols="1"
       />
       <template #footer>
         <UiButton variant="ghost" @click="showAddModal = false" class="!px-6">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
@@ -348,7 +348,7 @@ const confirmDelete = async () => {
     <Modal 
       v-model="showEditModal" 
       :title="bulkSelectedIds.length > 0 ? t('common.bulkEdit', 'Toplu Redaktə') : t('common.editCard', 'Hədiyyə Kartını Redaktə Et')" 
-      max-width="3xl"
+      max-width="xl"
       @update:model-value="(val) => { if (!val) bulkSelectedIds = [] }"
     >
       <div v-if="bulkSelectedIds.length > 0" class="mb-4 p-3 bg-[var(--color-brand-warning)]/10 text-[var(--color-brand-warning)] rounded-lg text-sm font-medium">
@@ -359,7 +359,7 @@ const confirmDelete = async () => {
         :fields="showEditModal && bulkSelectedIds.length > 0 ? formFields.filter(f => !['barcode', 'customer'].includes(f.key)) : formFields"
         v-model="formData" 
         :errors="formErrors"
-        :grid-cols="2"
+        :grid-cols="1"
       />
       <template #footer>
         <UiButton variant="ghost" @click="showEditModal = false; bulkSelectedIds = []" class="!px-6">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
