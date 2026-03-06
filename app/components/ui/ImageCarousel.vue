@@ -181,7 +181,7 @@ const triggerUpload = () => {
     <div 
       v-if="images.length > 0 || canAddMore" 
       ref="scrollContainerRef"
-      class="flex items-center gap-3 overflow-x-auto pb-2 no-scrollbar scroll-smooth"
+      class="flex items-center gap-3 overflow-x-auto no-scrollbar scroll-smooth"
     >
       <!-- Thumbnails -->
       <div 

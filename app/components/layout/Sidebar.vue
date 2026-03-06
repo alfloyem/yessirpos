@@ -2,7 +2,10 @@
 import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from '#i18n'
+import { useState } from '#imports'
+// @ts-ignore
 import yessirIcon from '~/assets/images/yessir_icon.svg'
+// @ts-ignore
 import yessirTextLogo from '~/assets/images/yessir_pos_text_logo.svg'
 
 const { t } = useI18n()
@@ -40,7 +43,7 @@ const menu = ref([
     icon: 'lucide:package',
     isOpen: false,
     children: [
-      { title: 'Mallar', titleKey: 'menu.products', to: '/goods' },
+      { title: 'Mallar', titleKey: 'menu.products', to: '/products' },
       { title: 'Atributlar', titleKey: 'menu.attributes', to: '/attributes' }
     ]
   },
@@ -74,8 +77,11 @@ const isActiveMenu = (item: any) => {
 // On mount, open the menu that contains the active route
 onMounted(() => {
   const activeIndex = menu.value.findIndex(item => isActiveMenu(item))
-  if (activeIndex !== -1 && !isSidebarCollapsed.value && menu.value[activeIndex]) {
-    menu.value[activeIndex].isOpen = true
+  if (activeIndex !== -1 && !isSidebarCollapsed.value) {
+    const activeMenu = menu.value[activeIndex]
+    if (activeMenu) {
+      activeMenu.isOpen = true
+    }
   }
 })
 
@@ -90,8 +96,11 @@ watch(isSidebarCollapsed, (collapsed) => {
 watch(() => route.path, () => {
   if (!isSidebarCollapsed.value) {
     const activeIndex = menu.value.findIndex(item => isActiveMenu(item))
-    if (activeIndex !== -1 && menu.value[activeIndex]) {
-      menu.value[activeIndex].isOpen = true
+    if (activeIndex !== -1) {
+      const activeMenu = menu.value[activeIndex]
+      if (activeMenu) {
+        activeMenu.isOpen = true
+      }
     }
   }
 })

@@ -647,9 +647,9 @@ const saveForm = async () => {
       is-top 
       max-height="90vh"
     >
-      <div class="flex flex-col lg:flex-row gap-8 items-start h-full pb-2">
+      <div class="flex flex-col lg:flex-row gap-8 items-start h-full">
         <!-- Left: Image Section (Expanded) -->
-        <div class="w-full lg:w-[45%] shrink-0 space-y-4">
+        <div class="w-full lg:w-[45%] shrink-0 space-y-4 lg:sticky lg:top-4">
           <div class="text-[10px] font-bold text-[var(--text-app)] tracking-[0.2em] opacity-40">
             {{ t('products.image', 'Məhsulun şəkilləri') }}
           </div>
@@ -689,9 +689,9 @@ const saveForm = async () => {
         {{ t('employees.bulkEditWarning', { count: bulkSelectedIds.length, default: `Diqqət: Seçilmiş ${bulkSelectedIds.length} qeydin üzərinə yazılacak.` }) }}
       </div>
 
-      <div class="flex flex-col lg:flex-row gap-8 items-start h-full pb-2">
+      <div class="flex flex-col lg:flex-row gap-8 items-start h-full">
         <!-- Left: Image Section (Expanded) -->
-        <div v-if="bulkSelectedIds.length === 0" class="w-full lg:w-[45%] shrink-0 space-y-4">
+        <div v-if="bulkSelectedIds.length === 0" class="w-full lg:w-[45%] shrink-0 space-y-4 lg:sticky lg:top-4">
           <div class="text-[10px] font-bold text-[var(--text-app)] tracking-[0.2em] opacity-40">
             {{ t('products.image', 'Məhsulun şəkilləri') }}
           </div>
@@ -721,9 +721,9 @@ const saveForm = async () => {
 
     <!-- Variant Əlavə Et / Modal -->
     <Modal v-model="showVariantModal" :title="t('products.addVariant', 'Variant Əlavə Et')" max-width="3xl" is-top max-height="90vh">
-      <div class="flex flex-col lg:flex-row gap-8 items-start h-full pb-2">
+      <div class="flex flex-col lg:flex-row gap-8 items-start h-full">
         <!-- Left: Image Section (Expanded) -->
-        <div class="w-full lg:w-[45%] shrink-0 space-y-4">
+        <div class="w-full lg:w-[45%] shrink-0 space-y-4 lg:sticky lg:top-4">
           <div class="text-[10px] font-bold text-[var(--text-app)] tracking-[0.2em] opacity-40">
             {{ t('products.variantImage', 'Variant Şəkilləri') }}
           </div>
@@ -747,7 +747,7 @@ const saveForm = async () => {
           <!-- Custom Attributes Management -->
           <div class="space-y-4 pt-4 border-t border-[var(--border-app)]">
             <div class="flex items-center justify-between">
-              <label class="text-xs font-bold text-[var(--text-app)] tracking-wider uppercase">
+              <label class="text-xs font-bold text-[var(--text-app)] tracking-wider">
                 {{ t('menu.attributes', 'Atributlar') }}
               </label>
             </div>
@@ -779,8 +779,9 @@ const saveForm = async () => {
               
               <!-- Add New Attribute Button directly in the list flow -->
               <UiSelect 
+                v-if="availableAttributes.filter(a => !selectedVariantAttr.find(s => s.id === a.id)).length > 0"
                 placeholder="+ Atribut əlavə et..."
-                :options="availableAttributes.map(a => ({ label: a.name, value: a.id }))"
+                :options="availableAttributes.filter(a => !selectedVariantAttr.find(s => s.id === a.id)).map(a => ({ label: a.name, value: a.id }))"
                 @update:modelValue="addAttributeToVariant"
               />
             </div>
