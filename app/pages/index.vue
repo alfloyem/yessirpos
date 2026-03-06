@@ -2,6 +2,22 @@
 import { ref, computed } from 'vue'
 import { useI18n } from '#i18n'
 import { useColorMode } from '#imports'
+import { generateDailyReport } from '~/utils/generateDailyReport'
+
+const { t, locale } = useI18n()
+const colorMode = useColorMode()
+const toast = useToast()
+
+// PDF yüklə funksiyası
+const downloadReport = () => {
+  try {
+    generateDailyReport(locale.value)
+    toast.success(t('dashboard.successMessage'))
+  } catch (error) {
+    console.error('Report generation error:', error)
+    toast.error(t('dashboard.errorMessage'))
+  }
+}
 
 // Chart.js exact imports
 import {
@@ -31,9 +47,6 @@ ChartJS.register(
   Filler,
   BarElement
 )
-
-const { t } = useI18n()
-const colorMode = useColorMode()
 
 // Add head title for the page
 useHead({
@@ -513,7 +526,10 @@ const dateFilters = computed(() => [
             <p class="text-sm text-white/80 max-w-[200px] mb-6 leading-relaxed">
               {{ t('dashboard.dailyReportText') }}
             </p>
-            <button class="bg-white text-[var(--text-primary)] px-6 py-2.5 rounded-lg text-sm font-bold shadow-md hover:shadow-xl hover:scale-105 transition-all w-full">
+            <button 
+              @click="downloadReport"
+              class="bg-white text-[var(--text-primary)] px-6 py-2.5 rounded-lg text-sm font-bold shadow-md hover:shadow-xl hover:scale-105 transition-all w-full"
+            >
               {{ t('dashboard.downloadReport') }}
             </button>
           </div>
