@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from '#i18n'
 import { useState } from '#imports'
@@ -9,7 +9,7 @@ import yessirIcon from '~/assets/images/yessir_icon.svg'
 import yessirTextLogo from '~/assets/images/yessir_pos_text_logo.svg'
 
 const { t } = useI18n()
-const { logout } = useAuth()
+const { logout, user } = useAuth()
 const route = useRoute()
 
 const isSidebarCollapsed = useState<boolean>('sidebarCollapsed', () => false)
@@ -191,6 +191,17 @@ onUnmounted(() => {
   }
 })
 
+const userRoles = computed(() => {
+  if (!user.value?.role) return []
+  try {
+    const roles = typeof user.value.role === 'string' && user.value.role.startsWith('[') 
+      ? JSON.parse(user.value.role) 
+      : user.value.role
+    return Array.isArray(roles) ? roles : [roles]
+  } catch (e) {
+    return [user.value.role]
+  }
+})
 </script>
 
 <template>
@@ -364,6 +375,40 @@ onUnmounted(() => {
               </div>
             </div>
 
+          </div>
+        </div>
+      </div>
+      
+      <!-- User Info Area -->
+      <div 
+        v-if="user" 
+        class="px-3 pb-2 shrink-0 overflow-hidden transition-all duration-300"
+        :class="isSidebarCollapsed && !isMobileMenuOpen ? 'opacity-0 h-0 pointer-events-none' : 'opacity-100 h-auto mt-auto py-3 border-t border-[var(--border-app)]'"
+      >
+        <div class="flex items-center gap-3 px-3">
+          <!-- Avatar Placeholder -->
+          <div class="w-10 h-10 rounded-full bg-[var(--text-primary)]/10 flex items-center justify-center shrink-0 border border-[var(--text-primary)]/20 shadow-sm">
+            <span class="text-[var(--text-primary)] font-bold text-sm">
+              {{ (user.firstName?.[0] || '') + (user.lastName?.[0] || '') }}
+            </span>
+          </div>
+          
+          <div class="flex flex-col min-w-0 pr-2">
+            <span class="text-[14px] font-bold text-[var(--text-app)] truncate">
+              {{ user.firstName }} {{ user.lastName }}
+            </span>
+            <span class="text-[11px] font-medium text-[var(--text-app)] opacity-60 truncate">
+              @{{ user.username }}
+            </span>
+            <div class="flex flex-wrap gap-1 mt-1.5">
+              <span 
+                v-for="role in userRoles" 
+                :key="role"
+                class="px-1.5 py-0.5 bg-[var(--text-primary)]/10 text-[var(--text-primary)] rounded-[4px] text-[9px] font-bold border border-[var(--text-primary)]/20 whitespace-nowrap shadow-sm"
+              >
+                {{ role }}
+              </span>
+            </div>
           </div>
         </div>
       </div>

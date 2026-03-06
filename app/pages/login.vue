@@ -44,7 +44,7 @@ const handleLogin = async () => {
     })
     
     if (response?.token) {
-      login(response.token)
+      login(response.token, response.user)
       toast.success(t('toast.loginSuccess'))
       navigateTo(localePath('/'))
     }

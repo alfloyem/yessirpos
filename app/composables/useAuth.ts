@@ -9,25 +9,31 @@ export const useAuth = () => {
     sameSite: 'lax'
   })
 
+  const user = useState<any>('auth-user', () => null)
+
   const isAuthenticated = computed(() => {
     // Token varsa ve geçerli bir değerse true döner
     return !!token.value && token.value.length > 0
   })
 
-  const login = (authToken: string) => {
+  const login = (authToken: string, userData?: any) => {
     token.value = authToken
+    if (userData) {
+      user.value = userData
+    }
   }
 
   const logout = () => {
     // Cookie'yi tamamen temizle
     token.value = null
-    
+    user.value = null
+
     // Tarayıcı storage'ı da temizle
     if (process.client) {
       localStorage.clear()
       sessionStorage.clear()
     }
-    
+
     const localePath = useLocalePath()
     navigateTo(localePath('/login'), { replace: true })
   }
@@ -37,11 +43,14 @@ export const useAuth = () => {
     if (!token.value) return false
 
     try {
-      await $fetch('/api/auth/verify', {
+      const response = await $fetch<any>('/api/auth/verify', {
         headers: {
           Authorization: `Bearer ${token.value}`
         }
       })
+      if (response?.user) {
+        user.value = response.user
+      }
       return true
     } catch (error) {
       // Token geçersiz veya kullanıcı silinmiş
@@ -65,6 +74,7 @@ export const useAuth = () => {
 
   return {
     token,
+    user,
     isAuthenticated,
     login,
     logout,

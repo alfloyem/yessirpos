@@ -3,7 +3,7 @@ import prisma from '../utils/prisma'
 
 export default defineEventHandler(async (event: any) => {
   const url = event.node.req.url || ''
-  
+
   // Public endpoints - auth kontrolü yapma
   const publicEndpoints = [
     '/api/auth/login',
@@ -13,7 +13,7 @@ export default defineEventHandler(async (event: any) => {
     '/icon.svg',
     '/manifest.json'
   ]
-  
+
   // Public endpoint kontrolü
   if (publicEndpoints.some(endpoint => url.startsWith(endpoint))) {
     return
@@ -42,7 +42,7 @@ export default defineEventHandler(async (event: any) => {
 
     // Token'dan user ID'yi çıkar
     const userId = parseInt(token.replace('mock-jwt-token-for-', ''))
-    
+
     if (isNaN(userId)) {
       throw createError({
         statusCode: 401,
@@ -54,7 +54,7 @@ export default defineEventHandler(async (event: any) => {
     try {
       const user = await prisma.employee.findUnique({
         where: { id: userId },
-        select: { id: true, username: true, status: true }
+        select: { id: true, username: true, firstName: true, lastName: true, role: true, status: true }
       })
 
       if (!user) {
@@ -75,7 +75,7 @@ export default defineEventHandler(async (event: any) => {
       event.context.user = user
     } catch (error: any) {
       if (error.statusCode) throw error
-      
+
       throw createError({
         statusCode: 500,
         statusMessage: 'Kullanıcı doğrulama hatası'
