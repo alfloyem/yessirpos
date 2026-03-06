@@ -27,7 +27,8 @@ export default defineEventHandler(async (event) => {
       ...e,
       role: e.role ? JSON.parse(e.role) : []
     }))
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Error in /api/employees GET:', error)
     throw createError({
       statusCode: 500,
       statusMessage: 'Çalışanlar yüklenirken hata oluştu'
