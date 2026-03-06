@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import UiInput from '~/components/ui/Input.vue'
 import UiSelect from '~/components/ui/Select.vue'
 import UiAutocomplete from '~/components/ui/Autocomplete.vue'
@@ -9,7 +9,7 @@ import { useI18n } from '#i18n'
 export interface FormField {
   key: string
   label: string
-  type: 'text' | 'email' | 'password' | 'tel' | 'textarea' | 'select' | 'autocomplete' | 'number' | 'date' | 'datetime' | 'tags' | 'barcode'
+  type: 'text' | 'email' | 'password' | 'tel' | 'textarea' | 'select' | 'autocomplete' | 'number' | 'integer' | 'date' | 'datetime' | 'tags' | 'barcode'
   options?: { label: string, value: any }[] // For select
   required?: boolean
   autofocus?: boolean
@@ -18,6 +18,7 @@ export interface FormField {
   historyKey?: string // For tags
   isCountry?: boolean // For country select
   barcodePrefix?: string // For barcode type
+  placeholder?: string // Optional placeholder
 }
 
 const props = defineProps<{
@@ -180,6 +181,7 @@ const isPasswordMismatch = (field: any) => {
           :disabled="isLoading"
           :icon="field.icon"
           :barcodePrefix="field.barcodePrefix"
+          :placeholder="field.placeholder"
           :showPassword="passwordVisibility[field.originalKey || field.key] || false"
           @update:showPassword="val => passwordVisibility[field.originalKey || field.key] = val"
           :class="errors?.[field.key] || isPasswordMismatch(field) ? '!border-[var(--color-brand-danger)] !ring-[var(--color-brand-danger)]/20' : ''"

@@ -17,11 +17,25 @@ useHead({
 })
 
 // --- Helper for Barcode Generation ---
-const generateBarcode = () => {
-  let barcode = ''
-  for (let i = 0; i < 12; i++) {
-    barcode += Math.floor(Math.random() * 10).toString()
+const generateBarcode = (prefix = '') => {
+  const cBarcodes = mockData.value
+    .map(m => m.barcode)
+    .filter(b => typeof b === 'string' && new RegExp(`^${prefix || 'P'}\\d{7}$`).test(b))
+    .map(b => parseInt(b.substring(1), 10))
+  
+  let nextNum = 1
+  if (cBarcodes.length > 0) {
+    nextNum = Math.max(...cBarcodes) + 1
   }
+  
+  let barcode = `${prefix || 'P'}${String(nextNum).padStart(7, '0')}`
+  
+  const existingSet = new Set(mockData.value.map(m => m.barcode))
+  while (existingSet.has(barcode)) {
+    nextNum++
+    barcode = `${prefix || 'P'}${String(nextNum).padStart(7, '0')}`
+  }
+  
   return barcode
 }
 
@@ -110,7 +124,7 @@ const goodsSchema = computed< (FormField & { inTable?: boolean, sortable?: boole
   { 
     key: 'stock', 
     label: t('dashboard.stock', 'Stok'), 
-    type: 'number', 
+    type: 'integer', 
     inTable: true, 
     sortable: true 
   },
@@ -143,8 +157,8 @@ const formFields = computed(() => {
   return goodsSchema.value.filter(f => ['productName', 'brandName', 'category', 'description'].includes(f.key))
 })
 
-// --- Variant Schema ---
-const variantSchema = computed<FormField[]>(() => {
+// --- Variant Schema Top ---
+const variantSchemaTop = computed<FormField[]>(() => {
   // Seçilə biləcək Base Productlar
   const productOptions = mockData.value
     .filter(m => !m.parentProductId) // Yalnız əsas məhsullar
@@ -152,14 +166,17 @@ const variantSchema = computed<FormField[]>(() => {
 
   return [
     { key: 'parentProductId', label: t('products.parentProduct', 'Asılı olduğu məhsul'), icon: 'lucide:box', type: 'select', required: true, options: productOptions },
-    { key: 'barcode', label: t('customers.barcode', 'Barkod'), icon: 'lucide:qr-code', type: 'text', required: true },
-    { key: 'attribute', label: t('menu.attributes', 'Atribut'), icon: 'lucide:tag', type: 'tags', required: true, historyKey: 'variant_attr' },
-    { key: 'wholesalePrice', label: t('products.wholesalePrice', 'Topdansatış qiyməti (₼)'), icon: 'lucide:coins', type: 'number', required: true },
-    { key: 'retailPrice', label: t('products.retailPrice', 'Pərakəndə qiyməti (₼)'), icon: 'lucide:banknote', type: 'number', required: true },
-    { key: 'stock', label: t('dashboard.stock', 'Stok (Say)'), icon: 'lucide:package-check', type: 'number', required: true },
-    { key: 'reorderLevel', label: t('products.reorderLevel', 'Yenidən sifariş limiti'), icon: 'lucide:alert-circle', type: 'number', required: true },
   ]
 })
+
+// --- Variant Schema Bottom ---
+const variantSchemaBottom = computed<FormField[]>(() => [
+  { key: 'barcode', label: t('customers.barcode', 'Barkod'), icon: 'lucide:qr-code', type: 'barcode', barcodePrefix: 'P', required: true },
+  { key: 'wholesalePrice', label: t('products.wholesalePrice', 'Topdansatış qiyməti (₼)'), icon: 'lucide:coins', type: 'number', required: true },
+  { key: 'retailPrice', label: t('products.retailPrice', 'Pərakəndə qiyməti (₼)'), icon: 'lucide:banknote', type: 'number', required: true },
+  { key: 'stock', label: t('dashboard.stock', 'Stok (Say)'), icon: 'lucide:package-check', type: 'integer', placeholder: '0', required: true },
+  { key: 'reorderLevel', label: t('products.reorderLevel', 'Yenidən sifariş limiti'), icon: 'lucide:alert-circle', type: 'integer', placeholder: '0', required: true },
+])
 
 // Extract table columns dynamically
 const columns = computed(() => 
@@ -219,9 +236,6 @@ const loadGoods = async () => {
   }
 }
 
-onMounted(() => {
-  loadGoods()
-})
 
 // Modals State
 const showAddModal = ref(false)
@@ -231,10 +245,30 @@ const showDeleteConfirmModal = ref(false)
 const deleteTarget = ref<{ type: 'single' | 'bulk', id?: any, ids?: any[] } | null>(null)
 const formData = ref<any>({})
 const variantFormData = ref<any>({})
+const formErrors = ref<Record<string, string>>({})
 const bulkSelectedIds = ref<any[]>([])
 const barcodeError = ref('')
 const productImages = ref<string[]>([])
 const variantImages = ref<string[]>([])
+const availableAttributes = ref<any[]>([])
+const selectedVariantAttr = ref<{ id: string, name: string, value: string }[]>([])
+
+// Attributes for selection from DB
+const loadAttributes = async () => {
+  try {
+    const data = await $fetch('/api/attributes', {
+      headers: { Authorization: `Bearer ${token.value}` }
+    })
+    availableAttributes.value = data as any[]
+  } catch (err) {
+    console.error('Failed to load attributes', err)
+  }
+}
+
+onMounted(() => {
+  loadGoods()
+  loadAttributes()
+})
 
 // --- Handlers ---
 const handleAdd = () => {
@@ -250,16 +284,31 @@ const handleAdd = () => {
 const handleStandaloneVariantAdd = () => {
   variantFormData.value = {
     parentProductId: null,
-    barcode: generateBarcode(),
-    attribute: [],
-    wholesalePrice: 0,
-    retailPrice: 0,
-    stock: 0,
-    reorderLevel: 0
+    barcode: generateBarcode('P'),
+    wholesalePrice: '0.00',
+    retailPrice: '0.00',
+    stock: '',
+    reorderLevel: ''
   }
   variantImages.value = []
+  selectedVariantAttr.value = []
   barcodeError.value = ''
   showVariantModal.value = true
+}
+
+const addAttributeToVariant = (attrId: string) => {
+  const attr = availableAttributes.value.find(a => a.id === attrId)
+  if (attr && !selectedVariantAttr.value.find(s => s.id === attr.id)) {
+    selectedVariantAttr.value.push({
+      id: attr.id,
+      name: attr.name,
+      value: attr.values?.[0] || ''
+    })
+  }
+}
+
+const removeAttributeFromVariant = (index: number) => {
+  selectedVariantAttr.value.splice(index, 1)
 }
 
 const handleEdit = (row: any) => {
@@ -274,23 +323,41 @@ const handleDelete = (row: any) => {
   showDeleteConfirmModal.value = true
 }
 
-const performDelete = () => {
+const performDelete = async () => {
   if (!deleteTarget.value) return
-  const toast = useToast()
-
-  if (deleteTarget.value.type === 'single') {
-    mockData.value = mockData.value.filter(m => m.id !== deleteTarget.value!.id)
-  } else if (deleteTarget.value.type === 'bulk') {
-    mockData.value = mockData.value.filter(m => !deleteTarget.value!.ids!.includes(m.id))
+  loading.value = true
+  
+  try {
+    if (deleteTarget.value.type === 'single') {
+      // API call placeholder
+      // await $fetch(`/api/goods/${deleteTarget.value.id}`, { method: 'DELETE' })
+      mockData.value = mockData.value.filter(m => m.id !== deleteTarget.value!.id)
+    } else if (deleteTarget.value.type === 'bulk') {
+      // await $fetch('/api/goods/bulk-delete', { method: 'POST', body: { ids: deleteTarget.value.ids } })
+      mockData.value = mockData.value.filter(m => !deleteTarget.value!.ids!.includes(m.id))
+    }
+    
+    mockData.value.forEach((item, index) => {
+      item.rowNumber = index + 1
+    })
+    
+    toast.success(t('common.delete', 'Silindi'))
+    showDeleteConfirmModal.value = false
+    deleteTarget.value = null
+  } catch (err: any) {
+    toast.error(t('toast.operationFailed', 'Xəta baş verdi'))
+  } finally {
+    loading.value = false
   }
-  
-  mockData.value.forEach((item, index) => {
-    item.rowNumber = index + 1
+}
+
+const copyBarcode = (barcode: string) => {
+  if (!barcode) return
+  navigator.clipboard.writeText(barcode).then(() => {
+    toast.success(t('toast.barcodeCopied', 'Barkod kopyalandı!'))
+  }).catch(() => {
+    toast.error(t('toast.operationFailed', 'Xəta baş verdi'))
   })
-  
-  toast.success(t('common.delete', 'Silindi'))
-  showDeleteConfirmModal.value = false
-  deleteTarget.value = null
 }
 
 const handleDuplicate = (row: any) => {
@@ -338,65 +405,122 @@ const handleBulkEdit = (ids: any[]) => {
   showEditModal.value = true
 }
 
-const saveForm = () => {
-  const toast = useToast()
-  barcodeError.value = ''
+const validateForm = () => {
+  const errors: Record<string, string> = {}
   
-  const d = new Date()
-  const formattedDate = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth()+1).padStart(2, '0')}.${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+  if (showAddModal.value || showEditModal.value) {
+    const isBulkEditMode = showEditModal.value && bulkSelectedIds.value.length > 0
+    const activeFields = formFields.value
 
-  if (showAddModal.value) {
-    mockData.value.push({ 
-      id: Date.now(),
-      rowNumber: mockData.value.length + 1,
-      images: [...productImages.value],
-      ...formData.value,
-      createdAt: formattedDate,
-      createdBy: 'Admin'
-    })
-    toast.success(t('toast.customerAdded', 'Əlavə edildi'))
-    showAddModal.value = false
-  } else if (showEditModal.value) {
-    if (bulkSelectedIds.value.length > 0) {
-      const updates = Object.fromEntries(Object.entries(formData.value).filter(([_, v]) => v !== undefined && v !== ''))
-      mockData.value = mockData.value.map(item => 
-        bulkSelectedIds.value.includes(item.id) ? { ...item, ...updates } : item
-      )
-      bulkSelectedIds.value = []
-    } else {
-      const index = mockData.value.findIndex(m => m.id === formData.value.id)
-      if (index !== -1) {
-        mockData.value[index] = { 
-          ...mockData.value[index], 
-          ...formData.value,
-          images: [...productImages.value]
+    for (const field of activeFields) {
+      if (field.required && !formData.value[field.key]) {
+        if (!isBulkEditMode) {
+          errors[field.key] = t('common.fieldRequired', 'Bu xəna mütləq doldurulmalıdır')
         }
       }
     }
-    toast.success(t('toast.customerUpdated', 'Yeniləndi'))
-    showEditModal.value = false
   } else if (showVariantModal.value) {
-    const parentProduct = mockData.value.find(m => m.id === variantFormData.value.parentProductId)
-    if (!parentProduct) {
-      toast.error(t('common.fieldRequired', 'Məhsulu seçin'))
-      return
+    for (const field of [...variantSchemaTop.value, ...variantSchemaBottom.value]) {
+      if (field.required && !variantFormData.value[field.key]) {
+        errors[field.key] = t('common.fieldRequired', 'Bu xəna mütləq doldurulmalıdır')
+      }
     }
+  }
+  
+  formErrors.value = errors
+  return Object.keys(errors).length === 0
+}
 
-    mockData.value.push({
-      id: Date.now(),
-      rowNumber: mockData.value.length + 1,
-      parentProductId: parentProduct.id,
-      parentProductName: parentProduct.productName,
-      brandName: parentProduct.brandName,
-      productName: parentProduct.productName,
-      category: parentProduct.category,
-      ...variantFormData.value,
-      images: [...variantImages.value],
-      createdAt: formattedDate,
-      createdBy: 'Admin'
-    })
-    toast.success(t('toast.customerAdded', 'Variant əlavə edildi'))
-    showVariantModal.value = false
+const customSearch = (item: any, query: string) => {
+  const normalizeText = (text: any) => {
+    if (text === null || text === undefined) return ''
+    return String(text)
+      .toLocaleLowerCase('tr-TR')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, "")
+  }
+
+  const q = normalizeText(query)
+  
+  const searchableFields = [
+    item.productName,
+    item.barcode,
+    item.parentProductName,
+    item.description,
+    Array.isArray(item.brandName) ? item.brandName.join(' ') : item.brandName,
+    Array.isArray(item.category) ? item.category.join(' ') : item.category,
+    Array.isArray(item.attribute) ? item.attribute.join(' ') : item.attribute,
+    item.wholesalePrice,
+    item.retailPrice,
+    item.createdBy
+  ]
+  
+  return searchableFields.some(field => normalizeText(field).includes(q))
+}
+
+const saveForm = async () => {
+  if (!validateForm()) return
+  
+  loading.value = true
+  const d = new Date()
+  const formattedDate = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth()+1).padStart(2, '0')}.${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+
+  try {
+    if (showAddModal.value) {
+      mockData.value.push({ 
+        id: Date.now(),
+        rowNumber: mockData.value.length + 1,
+        images: [...productImages.value],
+        ...formData.value,
+        createdAt: formattedDate,
+        createdBy: 'Admin'
+      })
+      toast.success(t('toast.customerAdded', 'Əlavə edildi'))
+      showAddModal.value = false
+    } else if (showEditModal.value) {
+      if (bulkSelectedIds.value.length > 0) {
+        const updates = Object.fromEntries(Object.entries(formData.value).filter(([_, v]) => v !== undefined && v !== ''))
+        mockData.value = mockData.value.map(item => 
+          bulkSelectedIds.value.includes(item.id) ? { ...item, ...updates } : item
+        )
+        bulkSelectedIds.value = []
+      } else {
+        const index = mockData.value.findIndex(m => m.id === formData.value.id)
+        if (index !== -1) {
+          mockData.value[index] = { 
+            ...mockData.value[index], 
+            ...formData.value,
+            images: [...productImages.value]
+          }
+        }
+      }
+      toast.success(t('toast.customerUpdated', 'Yeniləndi'))
+      showEditModal.value = false
+    } else if (showVariantModal.value) {
+      const parentProduct = mockData.value.find(m => m.id === variantFormData.value.parentProductId)
+      if (parentProduct) {
+        mockData.value.push({
+          id: Date.now(),
+          rowNumber: mockData.value.length + 1,
+          parentProductId: parentProduct.id,
+          parentProductName: parentProduct.productName,
+          brandName: parentProduct.brandName,
+          productName: parentProduct.productName,
+          category: parentProduct.category,
+          ...variantFormData.value,
+          attribute: selectedVariantAttr.value.map(s => `${s.name}: ${s.value}`),
+          images: [...variantImages.value],
+          createdAt: formattedDate,
+          createdBy: 'Admin'
+        })
+        toast.success(t('toast.customerAdded', 'Variant əlavə edildi'))
+        showVariantModal.value = false
+      }
+    }
+  } catch (err: any) {
+    toast.error(t('toast.operationFailed'))
+  } finally {
+    loading.value = false
   }
 }
 </script>
@@ -417,6 +541,7 @@ const saveForm = () => {
       :selectable="true"
       :actions="true"
       :loading="loading"
+      :custom-search="customSearch"
       @add="handleAdd"
       @edit="handleEdit"
       @delete="handleDelete"
@@ -481,15 +606,34 @@ const saveForm = () => {
         </div>
       </template>
 
+      <!-- Barcode Custom Format -->
+      <template #cell-barcode="{ value, highlight }">
+        <div 
+          class="font-mono tracking-wider font-bold cursor-pointer hover:text-[var(--text-primary)] transition-colors inline-block"
+          @click.stop="copyBarcode(value)"
+          :title="t('common.clickToCopy', 'Kopyalamaq üçün kliklə')"
+        >
+          <span v-html="highlight(value)"></span>
+        </div>
+      </template>
+
+      <!-- Prices Custom Format -->
+      <template #cell-wholesalePrice="{ value, highlight }">
+        <span class="font-medium text-[var(--text-app)]" v-html="highlight(Number(value || 0).toFixed(2)) + ' ₼'"></span>
+      </template>
+      <template #cell-retailPrice="{ value, highlight }">
+        <span class="font-medium text-[var(--color-brand-success)] font-bold" v-html="highlight(Number(value || 0).toFixed(2)) + ' ₼'"></span>
+      </template>
+
       <!-- Category Custom Format -->
-      <template #cell-category="{ value }">
+      <template #cell-category="{ value, highlight }">
         <div class="flex flex-wrap gap-1">
           <span 
             v-for="(cat, idx) in (Array.isArray(value) ? value : [value])" 
             :key="idx" 
             class="px-2 py-1 rounded-lg text-[10px] font-bold tracking-wide bg-[var(--text-primary)]/10 text-[var(--text-primary)] shrink-0"
+            v-html="highlight(cat)"
           >
-            {{ cat }}
           </span>
         </div>
       </template>
@@ -592,12 +736,64 @@ const saveForm = () => {
         </div>
 
         <!-- Right: Form Fields -->
-        <div class="flex-1 w-full lg:border-l lg:border-[var(--border-app)] lg:pl-8">
+        <div class="flex-1 w-full lg:border-l lg:border-[var(--border-app)] lg:pl-8 space-y-6">
+          <!-- Top Part (Parent Product) -->
           <DynamicForm 
-            :fields="variantSchema"
+            :fields="variantSchemaTop"
             v-model="variantFormData"
             :gridCols="1" 
           />
+
+          <!-- Custom Attributes Management -->
+          <div class="space-y-4 pt-4 border-t border-[var(--border-app)]">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-bold text-[var(--text-app)] tracking-wider uppercase">
+                {{ t('menu.attributes', 'Atributlar') }}
+              </label>
+            </div>
+
+            <div class="flex flex-col gap-3">
+              <div 
+                v-for="(attr, idx) in selectedVariantAttr" 
+                :key="attr.id"
+                class="flex items-center gap-3 p-3 bg-[var(--input-bg)] rounded-[14px] border border-[var(--border-app)] group/v-attr transition-colors hover:border-[var(--text-primary)]/30"
+              >
+                <div class="w-1/3 text-[14px] font-semibold text-[var(--text-app)] truncate px-2">
+                  {{ attr.name }}
+                </div>
+                
+                <div class="flex-1">
+                  <UiSelect 
+                    v-model="attr.value"
+                    :options="availableAttributes.find(a => a.id === attr.id)?.values.map((v: string) => ({ label: v, value: v })) || []"
+                  />
+                </div>
+
+                <button 
+                  @click="removeAttributeFromVariant(idx)"
+                  class="w-10 h-10 flex flex-shrink-0 items-center justify-center text-[var(--color-brand-danger)] opacity-0 group-hover/v-attr:opacity-100 hover:bg-[var(--color-brand-danger)]/10 rounded-lg transition-all"
+                >
+                  <UiIcon name="lucide:trash-2" class="w-4 h-4" />
+                </button>
+              </div>
+              
+              <!-- Add New Attribute Button directly in the list flow -->
+              <UiSelect 
+                placeholder="+ Atribut əlavə et..."
+                :options="availableAttributes.map(a => ({ label: a.name, value: a.id }))"
+                @update:modelValue="addAttributeToVariant"
+              />
+            </div>
+          </div>
+
+          <!-- Bottom Part (Barcode, Prices, Stock) -->
+          <div class="pt-4 border-t border-[var(--border-app)]">
+            <DynamicForm 
+              :fields="variantSchemaBottom"
+              v-model="variantFormData"
+              :gridCols="1" 
+            />
+          </div>
         </div>
       </div>
 
@@ -607,23 +803,51 @@ const saveForm = () => {
       </template>
     </Modal>
 
-    <!-- Silmə Təsdiq Modalı -->
-    <Modal v-model="showDeleteConfirmModal" :title="t('common.confirmDelete', 'Silmək istədiyinizə əminsiniz?')" max-width="sm">
-      <div class="py-2">
-        <p class="text-[var(--text-app)] opacity-80 text-[15px] leading-relaxed">
-          {{ t('common.cannotBeUndone', 'Bu əməliyyat geri qaytarıla bilməz.') }}
-          <span v-if="deleteTarget?.type === 'bulk'" class="font-bold text-[var(--color-brand-danger)] block mt-2">
-             {{ t('employees.bulkDeleteCount', { count: deleteTarget.ids?.length, default: `${deleteTarget.ids?.length} maddə silinəcək.` }) }}
-          </span>
+    <!-- Delete Confirmation Modal (Clean Version) -->
+    <Modal 
+      v-model="showDeleteConfirmModal" 
+      :max-width="'sm'" 
+      :show-header="false" 
+      class="delete-modal"
+    >
+      <div class="px-2 py-4 flex flex-col items-center justify-center text-center">
+        <!-- Icon -->
+        <div class="w-16 h-16 rounded-2xl bg-[var(--color-brand-danger)]/10 flex items-center justify-center mb-6 text-[var(--color-brand-danger)] shadow-sm shrink-0">
+          <UiIcon name="lucide:trash-2" class="w-8 h-8" stroke-width="2" />
+        </div>
+        
+        <!-- Texts -->
+        <h3 class="text-xl font-bold text-[var(--text-app)] mb-2 tracking-wide">
+          {{ t('common.delete', 'Sil') }}
+        </h3>
+        
+        <p class="text-[15px] font-medium text-[var(--text-app)] opacity-60 leading-relaxed mb-8 max-w-[280px]">
+          {{ 
+            deleteTarget?.type === 'bulk' 
+              ? t('employees.bulkDeleteWarning', { count: deleteTarget.ids?.length, default: `Seçilmiş ${deleteTarget.ids?.length} qeydi silmək istədiyinizə əminsiniz?` }) 
+              : t('employees.deleteWarning', 'Bu qeydi silmək istədiyinizə əminsiniz?') 
+          }}
         </p>
+
+        <!-- Buttons -->
+        <div class="flex items-center gap-3 w-full">
+          <UiButton 
+            variant="ghost" 
+            class="flex-1 !h-12 text-[15px] font-semibold tracking-wide hover:bg-[var(--text-primary)]/5"
+            @click="showDeleteConfirmModal = false"
+          >
+            {{ t('common.cancel', 'Ləğv et') }}
+          </UiButton>
+          
+          <UiButton 
+            variant="danger" 
+            class="flex-1 !h-12 text-[15px] font-semibold tracking-wide shadow-md shadow-[var(--color-brand-danger)]/20 hover:shadow-lg"
+            @click="performDelete"
+          >
+            {{ t('common.delete', 'Sil') }}
+          </UiButton>
+        </div>
       </div>
-      
-      <template #footer>
-        <UiButton variant="ghost" @click="showDeleteConfirmModal = false">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
-        <UiButton variant="danger" icon="lucide:trash-2" @click="performDelete">
-          {{ t('common.yesDelete', 'Bəli, Sil') }}
-        </UiButton>
-      </template>
     </Modal>
   </div>
 </template>

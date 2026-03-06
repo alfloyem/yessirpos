@@ -118,7 +118,7 @@ const computedType = computed(() => {
   if (props.type === 'password') {
     return isPasswordVisible.value ? 'text' : 'password'
   }
-  if (props.type === 'barcode') {
+  if (props.type === 'barcode' || props.type === 'number' || props.type === 'integer') {
     return 'text'
   }
   return props.type || 'text'
@@ -199,6 +199,14 @@ const handleInput = (e: Event) => {
     }
   }
 
+  // Integer specific formatting
+  if (props.type === 'integer') {
+    val = val.replace(/[^\d]/g, '')
+    if ((e.target as HTMLInputElement).value !== val) {
+      (e.target as HTMLInputElement).value = val
+    }
+  }
+
   emit('update:modelValue', val)
 }
 
@@ -209,6 +217,18 @@ const handleBlur = (e: Event) => {
       const parsed = parseFloat(val)
       if (!isNaN(parsed)) {
         val = parsed.toFixed(2)
+        if ((e.target as HTMLInputElement).value !== val) {
+          (e.target as HTMLInputElement).value = val
+        }
+        emit('update:modelValue', val)
+      }
+    }
+  } else if (props.type === 'integer') {
+    let val = (e.target as HTMLInputElement).value
+    if (val !== '') {
+      const parsed = parseInt(val, 10)
+      if (!isNaN(parsed)) {
+        val = String(parsed)
         if ((e.target as HTMLInputElement).value !== val) {
           (e.target as HTMLInputElement).value = val
         }
