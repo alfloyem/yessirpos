@@ -397,16 +397,13 @@ const userRoles = computed(() => {
             <span class="text-[14px] font-bold text-[var(--text-app)] truncate">
               {{ user.firstName }} {{ user.lastName }}
             </span>
-            <span class="text-[11px] font-medium text-[var(--text-app)] opacity-60 truncate">
-              @{{ user.username }}
-            </span>
-            <div class="flex flex-wrap gap-1 mt-1.5">
+            <div class="flex items-center flex-wrap gap-1 mt-0.5 opacity-60">
               <span 
-                v-for="role in userRoles" 
+                v-for="(role, idx) in userRoles" 
                 :key="role"
-                class="px-1.5 py-0.5 bg-[var(--text-primary)]/10 text-[var(--text-primary)] rounded-[4px] text-[9px] font-bold border border-[var(--text-primary)]/20 whitespace-nowrap shadow-sm"
+                class="text-[11px] font-medium text-[var(--text-app)] whitespace-nowrap"
               >
-                {{ role }}
+                {{ role }}{{ idx < userRoles.length - 1 ? ' • ' : '' }}
               </span>
             </div>
           </div>
