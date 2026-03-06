@@ -140,6 +140,7 @@
     "attention": "Attention!",
     "cannotBeUndone": "This action cannot be undone.",
     "yesDelete": "Yes, Delete",
+    "confirmDelete": "Are you sure you want to delete?",
     "select": "Select",
     "typeHere": "type here...",
     "confirm": "Confirm",
@@ -156,6 +157,7 @@
     "passwordsMismatch": "Passwords do not match!",
     "passwordsMinLength": "Password must be at least {count} characters",
     "noData": "No results found for your search",
+    "rowNumber": "Row number",
     "clickToCopy": "Click to copy"
   },
   "toast": {
@@ -215,5 +217,20 @@
     "addNew": "Add New Attribute",
     "edit": "Edit Attribute",
     "bulkDeleteCount": "Selected {count} attributes will be deleted."
+  },
+  "products": {
+    "image": "Product Image",
+    "parentProduct": "Linked Product",
+    "name": "Product Name",
+    "brand": "Brand Name",
+    "category": "Category",
+    "wholesalePrice": "Wholesale Price (₼)",
+    "retailPrice": "Retail Price (₼)",
+    "reorderLevel": "Reorder Level",
+    "addVariant": "Add Variant",
+    "variantImage": "Variant Images",
+    "saveVariant": "Save Variant",
+    "addNew": "Add New Product",
+    "edit": "Edit Product"
   }
 }

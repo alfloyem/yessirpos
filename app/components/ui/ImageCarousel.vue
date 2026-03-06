@@ -12,8 +12,6 @@ const currentIndex = ref(0)
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const inputId = ref(`image-upload-${Math.random().toString(36).substring(2, 9)}`)
 
-const maxImagesCount = computed(() => props.maxImages || Infinity)
-
 const canAddMore = computed(() => props.maxImages ? props.images.length < props.maxImages : true)
 
 const processFile = (file: File): Promise<string | null> => {
@@ -60,6 +58,8 @@ const handleImageUpload = async (event: Event) => {
 
   if (validImages.length > 0) {
     emit('update:images', [...props.images, ...validImages])
+    // If it was empty, set current to 0
+    if (props.images.length === 0) currentIndex.value = 0
   }
   
   target.value = ''
@@ -79,6 +79,7 @@ const removeImage = (index: number, e?: Event) => {
 
 const goToPrevious = (e?: Event) => {
   e?.stopPropagation()
+  if (props.images.length === 0) return
   if (currentIndex.value > 0) {
     currentIndex.value--
   } else {
@@ -88,6 +89,7 @@ const goToPrevious = (e?: Event) => {
 
 const goToNext = (e?: Event) => {
   e?.stopPropagation()
+  if (props.images.length === 0) return
   if (currentIndex.value < props.images.length - 1) {
     currentIndex.value++
   } else {
@@ -106,97 +108,97 @@ const triggerUpload = () => {
 </script>
 
 <template>
-  <div class="space-y-4">
-    <!-- Main Image Display -->
+  <div class="flex flex-col h-full gap-4 min-h-[400px]">
+    <!-- Main Image Display (Above) -->
     <div 
-      class="relative w-full aspect-square bg-[var(--input-bg)] border border-[var(--border-app)] rounded-2xl overflow-hidden group transition-all duration-300"
+      class="relative flex-1 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-2xl overflow-hidden group transition-all duration-300"
       :class="!images.length && canAddMore ? 'hover:border-[var(--text-primary)] border-dashed border-2 cursor-pointer hover:bg-[var(--bg-app)]' : ''"
       @click="!images.length && canAddMore ? triggerUpload() : null"
     >
+      <!-- Empty State -->
       <div v-if="images.length === 0" class="absolute inset-0 flex flex-col items-center justify-center p-8">
-        <UiIcon name="lucide:image-plus" class="w-10 h-10 mb-3 text-[var(--text-primary)] opacity-40 group-hover:opacity-100 transition-opacity duration-300 group-hover:scale-110" />
-        <span class="text-sm font-semibold text-[var(--text-app)] opacity-60 group-hover:opacity-100 group-hover:text-[var(--text-primary)] transition-all">Şəkil əlavə et</span>
+        <UiIcon name="lucide:image-plus" class="w-12 h-12 mb-3 text-[var(--text-primary)] opacity-40 group-hover:opacity-100 transition-opacity duration-300 group-hover:scale-110" />
+        <span class="text-sm font-bold text-[var(--text-app)] opacity-60 group-hover:opacity-100 group-hover:text-[var(--text-primary)] transition-all tracking-wide">ŞƏKİL ƏLAVƏ ET</span>
       </div>
 
+      <!-- Main Preview -->
       <div v-else class="relative w-full h-full bg-white/5 flex items-center justify-center">
-        <!-- Current Image -->
+        <!-- Current Main Image -->
         <img 
           :src="images[currentIndex]" 
-          alt="Product" 
-          class="w-full h-full object-contain mix-blend-normal p-2"
+          alt="Product Preview" 
+          class="w-full h-full object-contain p-4 transition-transform duration-500"
         />
 
-        <!-- Navigation Arrows - Left -->
+        <!-- Navigation Arrows -->
         <button
           v-if="images.length > 1"
           @click="goToPrevious"
-          class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/40 hover:bg-black/80 backdrop-blur-md text-white rounded-full flex items-center justify-center transition-all duration-300 shadow-xl cursor-pointer z-10 opacity-0 group-hover:opacity-100 hover:scale-110"
+          class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/40 hover:bg-black/60 backdrop-blur-md text-white rounded-full flex items-center justify-center transition-all duration-300 shadow-xl cursor-pointer z-10 opacity-0 group-hover:opacity-100 hover:scale-110"
         >
-          <UiIcon name="lucide:chevron-left" class="w-5 h-5" />
+          <UiIcon name="lucide:chevron-left" class="w-6 h-6" />
         </button>
 
-        <!-- Navigation Arrows - Right -->
         <button
           v-if="images.length > 1"
           @click="goToNext"
-          class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/40 hover:bg-black/80 backdrop-blur-md text-white rounded-full flex items-center justify-center transition-all duration-300 shadow-xl cursor-pointer z-10 opacity-0 group-hover:opacity-100 hover:scale-110"
+          class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/40 hover:bg-black/60 backdrop-blur-md text-white rounded-full flex items-center justify-center transition-all duration-300 shadow-xl cursor-pointer z-10 opacity-0 group-hover:opacity-100 hover:scale-110"
         >
-          <UiIcon name="lucide:chevron-right" class="w-5 h-5" />
+          <UiIcon name="lucide:chevron-right" class="w-6 h-6" />
         </button>
 
-        <!-- Remove Button -->
+        <!-- Main Delete Button (Optional but user said "her görselin") -->
         <button
           @click="removeImage(currentIndex)"
-          class="absolute top-3 right-3 w-8 h-8 bg-[var(--color-brand-danger)]/80 hover:bg-[var(--color-brand-danger)] backdrop-blur-md text-white rounded-full flex items-center justify-center transition-all duration-300 shadow-xl cursor-pointer z-10 opacity-0 group-hover:opacity-100 hover:scale-110"
-          title="Şəkli sil"
+          class="absolute top-4 right-4 w-10 h-10 bg-[var(--color-brand-danger)]/80 hover:bg-[var(--color-brand-danger)] backdrop-blur-md text-white rounded-xl flex items-center justify-center transition-all duration-300 shadow-xl cursor-pointer z-10 opacity-0 group-hover:opacity-100 hover:scale-110"
         >
-          <UiIcon name="lucide:trash-2" class="w-4 h-4" />
+          <UiIcon name="lucide:trash-2" class="w-5 h-5" />
         </button>
       </div>
     </div>
 
-    <!-- Thumbnails & Upload Controls -->
-    <div class="flex items-center justify-between px-1 mt-3">
-      <div class="flex items-center gap-2">
-        <!-- Custom indicator dots -->
-        <div v-if="images.length > 1" class="flex items-center gap-1.5 mr-2">
-          <div
-            v-for="(_, index) in images"
-            :key="index"
-            @click="goToIndex(index)"
-            class="h-1.5 rounded-full transition-all duration-300 cursor-pointer"
-            :class="currentIndex === index 
-              ? 'bg-[var(--text-primary)] w-5' 
-              : 'bg-[var(--border-app)] hover:bg-[var(--text-primary)]/50 w-1.5'"
-          ></div>
-        </div>
-
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          @change="handleImageUpload"
-          class="hidden"
-          ref="fileInputRef"
-          :id="inputId"
-        />
-        <label
-          v-if="images.length > 0"
-          :for="inputId"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold tracking-wide uppercase transition-all cursor-pointer"
-          :class="canAddMore 
-            ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)] hover:bg-[var(--text-primary)]/20' 
-            : 'bg-[var(--input-bg)] text-[var(--text-app)] opacity-50 cursor-not-allowed pointer-events-none'"
+    <!-- Mini Thumbnail Row (Below) -->
+    <div v-if="images.length > 0 || canAddMore" class="flex items-center gap-3 overflow-x-auto pb-2 custom-scrollbar">
+      <!-- Thumbnails -->
+      <div 
+        v-for="(img, index) in images" 
+        :key="index"
+        @click="goToIndex(index)"
+        class="relative min-w-[80px] w-20 aspect-square rounded-xl border-2 transition-all duration-200 cursor-pointer overflow-hidden group/thumb"
+        :class="currentIndex === index 
+          ? 'border-[var(--text-primary)] shadow-lg scale-95' 
+          : 'border-[var(--border-app)] hover:border-[var(--text-primary)]/50'"
+      >
+        <img :src="img" class="w-full h-full object-cover" />
+        
+        <!-- Thumbnail Delete Button -->
+        <button
+          @click="removeImage(index, $event)"
+          class="absolute top-1 right-1 w-6 h-6 bg-[var(--color-brand-danger)]/90 text-white rounded-lg flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-all duration-200 hover:scale-110 shadow-sm z-20"
         >
-          <UiIcon name="lucide:plus" class="w-3.5 h-3.5" />
-          YENİ ŞƏKİL
-        </label>
+          <UiIcon name="lucide:x" class="w-3.5 h-3.5" />
+        </button>
       </div>
-      
-      <!-- Counter indicator -->
-      <div v-if="images.length > 0" class="text-[11px] font-bold tracking-widest text-[var(--text-app)] bg-[var(--input-bg)]/50 px-2.5 py-1 rounded-md opacity-70">
-        {{ currentIndex + 1 }} / {{ images.length }}
+
+      <!-- Add New Button (Square, dashed border) -->
+      <div 
+        v-if="canAddMore"
+        @click="triggerUpload"
+        class="min-w-[80px] w-20 aspect-square rounded-xl border-2 border-dashed border-[var(--border-app)] hover:border-[var(--text-primary)] hover:bg-[var(--text-primary)]/5 flex flex-col items-center justify-center gap-1 cursor-pointer transition-all duration-200 group/add"
+      >
+        <UiIcon name="lucide:plus" class="w-6 h-6 text-[var(--text-app)] opacity-40 group-hover/add:opacity-100 group-hover/add:text-[var(--text-primary)] transition-all" />
+        <span class="text-[9px] font-bold text-[var(--text-app)] opacity-40 group-hover/add:opacity-100 group-hover/add:text-[var(--text-primary)]">ƏLAVƏ ET</span>
       </div>
+
+      <input
+        type="file"
+        accept="image/*"
+        multiple
+        @change="handleImageUpload"
+        class="hidden"
+        ref="fileInputRef"
+        :id="inputId"
+      />
     </div>
   </div>
 </template>
@@ -206,13 +208,14 @@ const triggerUpload = () => {
   height: 6px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: var(--bg-app);
+  background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: var(--border-app);
-  border-radius: 3px;
+  border-radius: 10px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: var(--text-primary);
+  opacity: 0.5;
 }
 </style>

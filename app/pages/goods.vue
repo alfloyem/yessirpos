@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from '#i18n'
+import { useHead, useToast, useAuth } from '#imports'
 import DataTable from '~/components/ui/DataTable.vue'
 import Modal from '~/components/ui/Modal.vue'
 import UiButton from '~/components/ui/Button.vue'
@@ -8,9 +9,10 @@ import DynamicForm, { type FormField } from '~/components/ui/DynamicForm.vue'
 import ImageCarousel from '~/components/ui/ImageCarousel.vue'
 
 const { t } = useI18n()
+const { token } = useAuth()
 
 useHead({
-  title: 'Mallar'
+  title: t('menu.products', 'Mallar')
 })
 
 // --- Helper for Barcode Generation ---
@@ -22,7 +24,7 @@ const generateBarcode = () => {
   return barcode
 }
 
-// Mock brands
+// Mock brands (In a real app, these would come from the database)
 const brands = [
   { label: 'Nike', value: 'nike' },
   { label: 'Adidas', value: 'adidas' },
@@ -32,26 +34,122 @@ const brands = [
 ]
 
 // --- Centralized Schema ---
-const goodsSchema: (FormField & { inTable?: boolean, sortable?: boolean })[] = [
-  { key: 'rowNumber', label: 'Sıra sayı', type: 'text', inTable: true, sortable: false },
-  { key: 'image', label: 'Məhsulun şəkli', type: 'text', inTable: true, sortable: false },
-  { key: 'parentProductName', label: 'Bağlı olduğu məhsul', type: 'text', inTable: true, sortable: true },
-  { key: 'productName', label: 'Məhsulun adı', icon: 'lucide:package', type: 'text', inTable: true, sortable: true, required: true },
-  { key: 'brandName', label: 'Brendin adı', icon: 'lucide:award', type: 'select', inTable: true, sortable: true, required: true, options: brands },
-  { key: 'category', label: 'Kateqoriyası', icon: 'lucide:folder', type: 'tags', inTable: true, sortable: true, required: true, historyKey: 'goods_category' },
-  { key: 'attribute', label: 'Atributlar', icon: 'lucide:tag', type: 'tags', inTable: true, sortable: true },
-  { key: 'barcode', label: 'Barkod', icon: 'lucide:qr-code', type: 'text', inTable: true, sortable: true, required: true },
-  { key: 'wholesalePrice', label: 'Top. qiymət (₼)', type: 'number', inTable: true, sortable: true },
-  { key: 'retailPrice', label: 'Pər. qiymət (₼)', type: 'number', inTable: true, sortable: true },
-  { key: 'stock', label: 'Stok', type: 'number', inTable: true, sortable: true },
-  { key: 'description', label: 'Açıqlama', icon: 'lucide:file-text', type: 'textarea', colSpan: 2, inTable: false },
-  { key: 'createdAt', label: 'Yaradılma tarixi', type: 'text', inTable: false, sortable: true },
-  { key: 'createdBy', label: 'Yaradan', type: 'text', inTable: false, sortable: true },
-]
+const goodsSchema = computed< (FormField & { inTable?: boolean, sortable?: boolean })[] >(() => [
+  { 
+    key: 'rowNumber', 
+    label: t('common.rowNumber', 'Sıra sayı'), 
+    type: 'text', 
+    inTable: true, 
+    sortable: false 
+  },
+  { 
+    key: 'images', 
+    label: t('products.image', 'Məhsulun şəkli'), 
+    type: 'text', 
+    inTable: true, 
+    sortable: false 
+  },
+  { 
+    key: 'parentProductName', 
+    label: t('products.parentProduct', 'Bağlı olduğu məhsul'), 
+    type: 'text', 
+    inTable: true, 
+    sortable: true 
+  },
+  { 
+    key: 'productName', 
+    label: t('products.name', 'Məhsulun adı'), 
+    icon: 'lucide:package', 
+    type: 'text', 
+    inTable: true, 
+    sortable: true, 
+    required: true 
+  },
+  { 
+    key: 'brandName', 
+    label: t('products.brand', 'Brendin adı'), 
+    icon: 'lucide:award', 
+    type: 'select', 
+    inTable: true, 
+    sortable: true, 
+    required: true, 
+    options: brands 
+  },
+  { 
+    key: 'category', 
+    label: t('products.category', 'Kateqoriyası'), 
+    icon: 'lucide:folder', 
+    type: 'tags', 
+    inTable: true, 
+    sortable: true, 
+    required: true, 
+    historyKey: 'goods_category' 
+  },
+  { 
+    key: 'attribute', 
+    label: t('menu.attributes', 'Atributlar'), 
+    icon: 'lucide:tag', 
+    type: 'tags', 
+    inTable: true, 
+    sortable: true 
+  },
+  { 
+    key: 'barcode', 
+    label: t('customers.barcode', 'Barkod'), 
+    icon: 'lucide:qr-code', 
+    type: 'text', 
+    inTable: true, 
+    sortable: true, 
+    required: true 
+  },
+  { 
+    key: 'wholesalePrice', 
+    label: t('products.wholesalePrice', 'Top. qiymət (₼)'), 
+    type: 'number', 
+    inTable: true, 
+    sortable: true 
+  },
+  { 
+    key: 'retailPrice', 
+    label: t('products.retailPrice', 'Pər. qiymət (₼)'), 
+    type: 'number', 
+    inTable: true, 
+    sortable: true 
+  },
+  { 
+    key: 'stock', 
+    label: t('dashboard.stock', 'Stok'), 
+    type: 'number', 
+    inTable: true, 
+    sortable: true 
+  },
+  { 
+    key: 'description', 
+    label: t('employees.notes', 'Açıqlama'), 
+    icon: 'lucide:file-text', 
+    type: 'textarea', 
+    colSpan: 2, 
+    inTable: false 
+  },
+  { 
+    key: 'createdAt', 
+    label: t('customers.createdAt', 'Yaradılma tarixi'), 
+    type: 'text', 
+    inTable: false, 
+    sortable: true 
+  },
+  { 
+    key: 'createdBy', 
+    label: t('customers.createdBy', 'Yaradan'), 
+    type: 'text', 
+    inTable: false, 
+    sortable: true 
+  },
+])
 
 // Modal'da gösterilecek form alanları (Base Product)
 const formFields = computed(() => {
-  return goodsSchema.filter(f => ['productName', 'brandName', 'category', 'description'].includes(f.key))
+  return goodsSchema.value.filter(f => ['productName', 'brandName', 'category', 'description'].includes(f.key))
 })
 
 // --- Variant Schema ---
@@ -62,19 +160,19 @@ const variantSchema = computed<FormField[]>(() => {
     .map(p => ({ label: p.productName, value: p.id }))
 
   return [
-    { key: 'parentProductId', label: 'Asılı olduğu məhsul', icon: 'lucide:box', type: 'select', required: true, options: productOptions },
-    { key: 'barcode', label: 'Barkod', icon: 'lucide:qr-code', type: 'text', required: true },
-    { key: 'attribute', label: 'Atribut (Məs: Ölçü: M, Rəng: Qırmızı)', icon: 'lucide:tag', type: 'tags', required: true, historyKey: 'variant_attr' },
-    { key: 'wholesalePrice', label: 'Topdansatış qiyməti (₼)', icon: 'lucide:coins', type: 'number', required: true },
-    { key: 'retailPrice', label: 'Pərakəndə qiyməti (₼)', icon: 'lucide:banknote', type: 'number', required: true },
-    { key: 'stock', label: 'Stok (Say)', icon: 'lucide:package-check', type: 'number', required: true },
-    { key: 'reorderLevel', label: 'Yenidən sifariş limiti', icon: 'lucide:alert-circle', type: 'number', required: true },
+    { key: 'parentProductId', label: t('products.parentProduct', 'Asılı olduğu məhsul'), icon: 'lucide:box', type: 'select', required: true, options: productOptions },
+    { key: 'barcode', label: t('customers.barcode', 'Barkod'), icon: 'lucide:qr-code', type: 'text', required: true },
+    { key: 'attribute', label: t('menu.attributes', 'Atribut'), icon: 'lucide:tag', type: 'tags', required: true, historyKey: 'variant_attr' },
+    { key: 'wholesalePrice', label: t('products.wholesalePrice', 'Topdansatış qiyməti (₼)'), icon: 'lucide:coins', type: 'number', required: true },
+    { key: 'retailPrice', label: t('products.retailPrice', 'Pərakəndə qiyməti (₼)'), icon: 'lucide:banknote', type: 'number', required: true },
+    { key: 'stock', label: t('dashboard.stock', 'Stok (Say)'), icon: 'lucide:package-check', type: 'number', required: true },
+    { key: 'reorderLevel', label: t('products.reorderLevel', 'Yenidən sifariş limiti'), icon: 'lucide:alert-circle', type: 'number', required: true },
   ]
 })
 
 // Extract table columns dynamically
 const columns = computed(() => 
-  goodsSchema
+  goodsSchema.value
     .filter(f => f.inTable)
     .map(f => ({ key: f.key, label: f.label, sortable: f.sortable }))
 )
@@ -89,61 +187,61 @@ const brandLabels: Record<string, string> = {
 }
 
 // --- Data ---
-const mockData = ref<any[]>([
-  { 
-    id: 1, 
-    rowNumber: 1,
-    brandName: 'nike',
-    productName: 'Nike Air Max T-Shirt',
-    category: ['Geyim', 'İdman'],
-    barcode: '123456789012',
-    description: 'Rahat və keyfiyyətli idman köynəyi',
-    createdAt: '2026-03-03 10:15', 
-    createdBy: 'Admin'
-  },
-  { 
-    id: 101, // Bu bir variantdır (id: 1-ə bağlıdır)
-    rowNumber: 2,
-    parentProductId: 1,
-    parentProductName: 'Nike Air Max T-Shirt',
-    brandName: 'nike',
-    productName: 'Nike Air Max T-Shirt',
-    category: ['Geyim', 'İdman'],
-    attribute: ['Ölçü: M', 'Rəng: Qırmızı'],
-    barcode: '111122223333',
-    wholesalePrice: 40,
-    retailPrice: 85,
-    stock: 25,
-    reorderLevel: 5,
-    createdAt: '2026-03-03 10:20', 
-    createdBy: 'Admin'
-  },
-  { 
-    id: 2, 
-    rowNumber: 3,
-    brandName: 'adidas',
-    productName: 'Adidas Ultraboost',
-    category: ['Ayaqqabı', 'İdman'],
-    barcode: '987654321098',
-    description: 'Yüksək performanslı qaçış ayaqqabısı',
-    createdAt: '2026-03-02 14:30', 
-    createdBy: 'Admin'
-  },
-  { 
-    id: 3, 
-    rowNumber: 3,
-    brandName: 'zara',
-    productName: 'Zara Yay Paltarı',
-    category: ['Geyim', 'Gündəlik'],
-    barcode: '456789123456',
-    description: 'Yüngül və rahat yay paltarı',
-    createdAt: '2026-03-01 09:20', 
-    createdBy: 'Admin'
-  },
-])
+const mockData = ref<any[]>([])
+const loading = ref(false)
 
-// Pagination & Selection
-const selectedIds = ref([])
+const loadGoods = async () => {
+  loading.value = true
+  const toast = useToast()
+  try {
+    // For now still using mock data simulation because API is not ready
+    // But structured for the future
+    setTimeout(() => {
+      mockData.value = [
+        { 
+          id: 1, 
+          rowNumber: 1,
+          brandName: 'nike',
+          productName: 'Nike Air Max T-Shirt',
+          category: ['Geyim', 'İdman'],
+          barcode: '123456789012',
+          description: 'Rahat və keyfiyyətli idman köynəyi',
+          images: [],
+          createdAt: '2026-03-03 10:15', 
+          createdBy: 'Admin'
+        },
+        { 
+          id: 101, 
+          rowNumber: 2,
+          parentProductId: 1,
+          parentProductName: 'Nike Air Max T-Shirt',
+          brandName: 'nike',
+          productName: 'Nike Air Max T-Shirt',
+          category: ['Geyim', 'İdman'],
+          attribute: ['Ölçü: M', 'Rəng: Qırmızı'],
+          barcode: '111122223333',
+          wholesalePrice: 40,
+          retailPrice: 85,
+          stock: 25,
+          reorderLevel: 5,
+          images: [],
+          createdAt: '2026-03-03 10:20', 
+          createdBy: 'Admin'
+        }
+      ]
+      loading.value = false
+    }, 500)
+  } catch (err: any) {
+    toast.error(t('toast.loadingError', 'Məlumatlar yüklənərkən xəta baş verdi'))
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  loadGoods()
+})
+
+// Modals State
 const showAddModal = ref(false)
 const showEditModal = ref(false)
 const showVariantModal = ref(false)
@@ -152,7 +250,6 @@ const deleteTarget = ref<{ type: 'single' | 'bulk', id?: any, ids?: any[] } | nu
 const formData = ref<any>({})
 const variantFormData = ref<any>({})
 const bulkSelectedIds = ref<any[]>([])
-const selectedVariantProductId = ref<any>(null)
 const barcodeError = ref('')
 const productImages = ref<string[]>([])
 const variantImages = ref<string[]>([])
@@ -183,26 +280,6 @@ const handleStandaloneVariantAdd = () => {
   showVariantModal.value = true
 }
 
-const handleVariantAdd = (selectedIds: any[]) => {
-  if (selectedIds.length !== 1) {
-    alert('Bunu cədvəldən əlavə etmək üçün yalnız 1 məhsul seçilməlidir!')
-    return
-  }
-  const parentProduct = mockData.value.find(m => m.id === selectedIds[0])
-  variantFormData.value = {
-    parentProductId: parentProduct?.parentProductId || parentProduct?.id, // Əgər variant seçilibsə onun valideyninə bağla
-    barcode: generateBarcode(),
-    attribute: [],
-    wholesalePrice: 0,
-    retailPrice: 0,
-    stock: 0,
-    reorderLevel: 0
-  }
-  variantImages.value = []
-  barcodeError.value = ''
-  showVariantModal.value = true
-}
-
 const handleEdit = (row: any) => {
   formData.value = { ...row }
   productImages.value = [...(row.images || [])]
@@ -217,6 +294,7 @@ const handleDelete = (row: any) => {
 
 const performDelete = () => {
   if (!deleteTarget.value) return
+  const toast = useToast()
 
   if (deleteTarget.value.type === 'single') {
     mockData.value = mockData.value.filter(m => m.id !== deleteTarget.value!.id)
@@ -224,55 +302,46 @@ const performDelete = () => {
     mockData.value = mockData.value.filter(m => !deleteTarget.value!.ids!.includes(m.id))
   }
   
-  // Recalculate row numbers
   mockData.value.forEach((item, index) => {
     item.rowNumber = index + 1
   })
   
+  toast.success(t('common.delete', 'Silindi'))
   showDeleteConfirmModal.value = false
   deleteTarget.value = null
 }
 
 const handleDuplicate = (row: any) => {
+  const toast = useToast()
   const d = new Date()
   const formattedDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
   
   const newId = Date.now()
-  
-  // Find next number for name
-  const baseProductName = row.productName.replace(/\s*\(\d+\)$/, '')
-  const existingNumbers = mockData.value
-    .filter(item => item.productName.startsWith(baseProductName))
-    .map(item => {
-      const match = item.productName.match(/\((\d+)\)$/)
-      return match ? parseInt(match[1]) : 0
-    })
-  
-  const nextNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1
-  const newProductName = `${baseProductName} (${nextNumber})`
+  const baseName = row.productName.replace(/\s\d+$/, '')
+  const existingNames = mockData.value.map(item => item.name)
+  let count = 1
+  let newName = `${baseName} ${count}`
+  while (existingNames.includes(newName)) {
+    count++
+    newName = `${baseName} ${count}`
+  }
   
   const duplicatedData = {
     ...row,
     id: newId,
-    barcode: generateBarcode(), // Yeni məhsul üçün fərqli barkod yaradaq
-    productName: newProductName,
+    barcode: generateBarcode(),
+    productName: newName,
     images: [...(row.images || [])],
-    image: row.image,
     createdAt: formattedDate,
-    createdBy: 'Sistem İdarəçisi'
+    createdBy: 'Admin'
   }
   
-  const index = mockData.value.findIndex(m => m.id === row.id)
-  if (index !== -1) {
-    mockData.value.splice(index + 1, 0, duplicatedData)
-  } else {
-    mockData.value.push(duplicatedData)
-  }
+  mockData.value.push(duplicatedData)
   
-  // Recalculate row numbers
   mockData.value.forEach((item, idx) => {
     item.rowNumber = idx + 1
   })
+  toast.success(t('toast.attributeDuplicated', 'Kopyalandı')) // reusing key or should add productSpecific
 }
 
 const handleBulkDelete = (ids: any[]) => {
@@ -287,37 +356,23 @@ const handleBulkEdit = (ids: any[]) => {
   showEditModal.value = true
 }
 
-// Barkod kontrolü
-const checkBarcodeUnique = (barcode: string, currentId?: any) => {
-  return !mockData.value.some(m => m.barcode === barcode && m.id !== currentId)
-}
-
 const saveForm = () => {
+  const toast = useToast()
   barcodeError.value = ''
   
-  // Barkod validasyonu
-  if (formData.value.barcode && !checkBarcodeUnique(formData.value.barcode, formData.value.id)) {
-    barcodeError.value = 'Bu barkod artıq mövcuddur! Fərqli barkod daxil edin.'
-    return 
-  }
-
   const d = new Date()
-  const formattedDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+  const formattedDate = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth()+1).padStart(2, '0')}.${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 
   if (showAddModal.value) {
-    
-    const newId = Date.now()
-    const newRowNumber = mockData.value.length + 1
-    
     mockData.value.push({ 
-      id: newId,
-      rowNumber: newRowNumber,
+      id: Date.now(),
+      rowNumber: mockData.value.length + 1,
       images: [...productImages.value],
-      image: productImages.value[0] || '📦',
       ...formData.value,
       createdAt: formattedDate,
-      createdBy: 'Sistem İdarəçisi'
+      createdBy: 'Admin'
     })
+    toast.success(t('toast.customerAdded', 'Əlavə edildi'))
     showAddModal.value = false
   } else if (showEditModal.value) {
     if (bulkSelectedIds.value.length > 0) {
@@ -332,26 +387,22 @@ const saveForm = () => {
         mockData.value[index] = { 
           ...mockData.value[index], 
           ...formData.value,
-          images: [...productImages.value],
-          image: productImages.value[0] || mockData.value[index].image || '📦'
+          images: [...productImages.value]
         }
       }
     }
+    toast.success(t('toast.customerUpdated', 'Yeniləndi'))
     showEditModal.value = false
   } else if (showVariantModal.value) {
     const parentProduct = mockData.value.find(m => m.id === variantFormData.value.parentProductId)
-    
     if (!parentProduct) {
-      alert("Asılı olduğu məhsulu seçmək məcburidir!")
+      toast.error(t('common.fieldRequired', 'Məhsulu seçin'))
       return
     }
 
-    const newId = Date.now()
-    const newRowNumber = mockData.value.length + 1
-    
     mockData.value.push({
-      id: newId,
-      rowNumber: newRowNumber,
+      id: Date.now(),
+      rowNumber: mockData.value.length + 1,
       parentProductId: parentProduct.id,
       parentProductName: parentProduct.productName,
       brandName: parentProduct.brandName,
@@ -359,11 +410,10 @@ const saveForm = () => {
       category: parentProduct.category,
       ...variantFormData.value,
       images: [...variantImages.value],
-      image: variantImages.value[0] || '📦',
       createdAt: formattedDate,
-      createdBy: 'Sistem İdarəçisi'
+      createdBy: 'Admin'
     })
-    
+    toast.success(t('toast.customerAdded', 'Variant əlavə edildi'))
     showVariantModal.value = false
   }
 }
@@ -373,17 +423,18 @@ const saveForm = () => {
   <div class="space-y-6">
     <div class="flex items-center justify-between">
       <h1 class="text-2xl font-bold text-[var(--text-app)]">
-        Mallar
+        {{ t('menu.products', 'Mallar') }}
       </h1>
     </div>
 
     <!-- Smart Data Table -->
     <DataTable 
-      title="Mal_Listesi"
+      :title="t('menu.products', 'Mallar')"
       :data="mockData" 
       :columns="columns"
       :selectable="true"
       :actions="true"
+      :loading="loading"
       @add="handleAdd"
       @edit="handleEdit"
       @delete="handleDelete"
@@ -398,7 +449,7 @@ const saveForm = () => {
           icon="lucide:layers" 
           @click="handleStandaloneVariantAdd"
         >
-          Variant Əlavə Et
+          {{ t('products.addVariant', 'Variant Əlavə Et') }}
         </UiButton>
       </template>
 
@@ -410,7 +461,7 @@ const saveForm = () => {
       </template>
 
       <!-- Image Custom Format -->
-      <template #cell-image="{ row }">
+      <template #cell-images="{ row }">
         <div class="flex items-center -space-x-3">
           <template v-if="row.images && row.images.length > 0">
             <div 
@@ -456,26 +507,30 @@ const saveForm = () => {
       </template>
     </DataTable>
 
-    <!-- Modal: Add -->
-    <Modal v-model="showAddModal" title="Yeni Mal Əlavə Et" max-width="3xl" min-height="700px">
-      <div v-if="barcodeError" class="mb-4 p-3 bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)] rounded-lg text-sm font-medium flex items-center gap-2">
-        <UiIcon name="lucide:alert-triangle" class="w-3.5 h-3.5"/>
-        {{ barcodeError }}
-      </div>
-
-      <div class="flex flex-col lg:flex-row gap-8 items-start relative">
-        <div class="w-full lg:w-[45%] lg:sticky lg:top-0 lg:left-0 z-10 pb-2 bg-[var(--bg-app)]">
-          <label class="block text-xs font-bold text-[var(--text-app)] tracking-wider mb-3">
-            Məhsulun şəkilləri
+    <!-- Modal: Add / Edit Base Product -->
+    <Modal 
+      v-model="showAddModal" 
+      :title="t('products.addNew', 'Yeni Mal Əlavə Et')" 
+      max-width="3xl" 
+      is-top 
+      max-height="95vh"
+    >
+      <div class="flex flex-col lg:flex-row gap-8 items-stretch min-h-[500px]">
+        <!-- Left: Image Section -->
+        <div class="w-full lg:w-[45%] flex flex-col">
+          <label class="block text-xs font-bold text-[var(--text-app)] tracking-wider mb-3 uppercase opacity-60">
+            {{ t('products.image', 'Məhsulun şəkilləri') }}
           </label>
-          <ImageCarousel 
-            :images="productImages"
-            @update:images="val => productImages = val"
-          />
+          <div class="flex-1">
+            <ImageCarousel 
+              :images="productImages"
+              @update:images="val => productImages = val"
+            />
+          </div>
         </div>
 
         <!-- Right: Form Fields -->
-        <div class="w-full lg:w-[55%]">
+        <div class="w-full lg:w-[55%] border-l border-[var(--border-app)] pl-8">
           <DynamicForm 
             :fields="formFields"
             v-model="formData" 
@@ -485,36 +540,39 @@ const saveForm = () => {
       </div>
 
       <template #footer>
-        <UiButton variant="ghost" @click="showAddModal = false">İmtina</UiButton>
-        <UiButton variant="primary" @click="saveForm">Yadda saxla</UiButton>
+        <UiButton variant="ghost" @click="showAddModal = false">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
+        <UiButton variant="primary" icon="lucide:check" @click="saveForm">{{ t('common.save', 'Yadda saxla') }}</UiButton>
       </template>
     </Modal>
 
     <!-- Modal: Edit -->
-    <Modal v-model="showEditModal" :title="bulkSelectedIds.length > 0 ? 'Toplu Redaktə' : 'Malı Redaktə Et'" max-width="2xl" min-height="400px">
-      <div v-if="barcodeError" class="mb-4 p-3 bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)] rounded-lg text-sm font-medium flex items-center gap-2">
-        <UiIcon name="lucide:alert-triangle" class="w-3.5 h-3.5"/>
-        {{ barcodeError }}
-      </div>
-
+    <Modal 
+      v-model="showEditModal" 
+      :title="bulkSelectedIds.length > 0 ? t('common.bulkEdit', 'Toplu Redaktə') : t('products.edit', 'Malı Redaktə Et')" 
+      max-width="3xl" 
+      is-top 
+      max-height="95vh"
+    >
       <div v-if="bulkSelectedIds.length > 0" class="mb-4 p-3 bg-[var(--color-brand-warning)]/10 text-[var(--color-brand-warning)] rounded-lg text-sm font-medium">
-        Xəbərdarlıq: Toplu redaktə rejimindəsiniz. Burada doldurduğunuz sahələr, seçdiyiniz <span class="font-bold">{{ bulkSelectedIds.length }}</span> qeydin məlumatının üzərinə yazılacaq.
+        {{ t('employees.bulkEditWarning', { count: bulkSelectedIds.length, default: `Diqqət: Seçilmiş ${bulkSelectedIds.length} qeydin üzərinə yazılacak.` }) }}
       </div>
 
-      <div v-if="bulkSelectedIds.length === 0" class="flex flex-col lg:flex-row gap-8 items-start relative">
-        <!-- Left: Image Carousel (Sticky) -->
-        <div class="w-full lg:w-[45%] lg:sticky lg:top-0 lg:left-0 z-10 pb-2 bg-[var(--bg-app)]">
-          <label class="block text-xs font-bold text-[var(--text-app)] tracking-wider mb-3">
-            Məhsulun şəkilləri
+      <div class="flex flex-col lg:flex-row gap-8 items-stretch min-h-[500px]">
+        <!-- Left: Image Section -->
+        <div v-if="bulkSelectedIds.length === 0" class="w-full lg:w-[45%] flex flex-col">
+          <label class="block text-xs font-bold text-[var(--text-app)] tracking-wider mb-3 uppercase opacity-60">
+            {{ t('products.image', 'Məhsulun şəkilləri') }}
           </label>
-          <ImageCarousel 
-            :images="productImages"
-            @update:images="val => productImages = val"
-          />
+          <div class="flex-1">
+            <ImageCarousel 
+              :images="productImages"
+              @update:images="val => productImages = val"
+            />
+          </div>
         </div>
 
         <!-- Right: Form Fields -->
-        <div class="w-full lg:w-[55%]">
+        <div :class="bulkSelectedIds.length === 0 ? 'w-full lg:w-[55%] border-l border-[var(--border-app)] pl-8' : 'w-full'">
           <DynamicForm 
             :fields="formFields"
             v-model="formData"
@@ -523,41 +581,30 @@ const saveForm = () => {
         </div>
       </div>
 
-      <div v-else>
-        <DynamicForm 
-          :fields="formFields"
-          v-model="formData" 
-          :gridCols="1"
-        />
-      </div>
-
       <template #footer>
-        <UiButton variant="ghost" @click="showEditModal = false; bulkSelectedIds = []">İmtina</UiButton>
-        <UiButton variant="primary" @click="saveForm">Yenilə</UiButton>
+        <UiButton variant="ghost" @click="showEditModal = false; bulkSelectedIds = []">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
+        <UiButton variant="primary" icon="lucide:check" @click="saveForm">{{ t('common.update', 'Yenilə') }}</UiButton>
       </template>
     </Modal>
 
     <!-- Variant Əlavə Et / Modal -->
-    <Modal v-model="showVariantModal" title="Variant Əlavə Et" max-width="3xl" min-height="700px">
-      <div v-if="barcodeError" class="mb-4 p-3 bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)] rounded-lg text-sm font-medium flex items-center gap-2">
-        <UiIcon name="lucide:alert-triangle" class="w-3.5 h-3.5"/>
-        {{ barcodeError }}
-      </div>
-
-      <div class="flex flex-col lg:flex-row gap-8 items-start relative max-h-[70vh] overflow-y-auto custom-scrollbar pr-2">
-        <!-- Left: Image Carousel (Sticky) -->
-        <div class="w-full lg:w-[45%] lg:sticky lg:top-0 lg:left-0 z-10 bg-[var(--bg-app)] pb-2">
-          <label class="block text-xs font-bold text-[var(--text-app)] tracking-wider mb-3">
-            Variant Şəkilləri
+    <Modal v-model="showVariantModal" :title="t('products.addVariant', 'Variant Əlavə Et')" max-width="3xl" is-top max-height="95vh">
+      <div class="flex flex-col lg:flex-row gap-8 items-stretch min-h-[500px]">
+        <!-- Left: Image Section -->
+        <div class="w-full lg:w-[45%] flex flex-col">
+          <label class="block text-xs font-bold text-[var(--text-app)] tracking-wider mb-3 uppercase opacity-60">
+            {{ t('products.variantImage', 'Variant Şəkilləri') }}
           </label>
-          <ImageCarousel 
-            :images="variantImages"
-            @update:images="val => variantImages = val"
-          />
+          <div class="flex-1">
+            <ImageCarousel 
+              :images="variantImages"
+              @update:images="val => variantImages = val"
+            />
+          </div>
         </div>
 
         <!-- Right: Form Fields -->
-        <div class="w-full lg:w-[55%]">
+        <div class="w-full lg:w-[55%] border-l border-[var(--border-app)] pl-8">
           <DynamicForm 
             :fields="variantSchema"
             v-model="variantFormData"
@@ -567,30 +614,26 @@ const saveForm = () => {
       </div>
 
       <template #footer>
-        <UiButton variant="ghost" @click="showVariantModal = false">İmtina</UiButton>
-        <UiButton variant="primary" @click="saveForm">Variantı Yadda Saxla</UiButton>
+        <UiButton variant="ghost" @click="showVariantModal = false">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
+        <UiButton variant="primary" icon="lucide:check" @click="saveForm">{{ t('products.saveVariant', 'Variantı Yadda Saxla') }}</UiButton>
       </template>
     </Modal>
 
     <!-- Silmə Təsdiq Modalı -->
-    <Modal v-model="showDeleteConfirmModal" title="Diggət!" max-width="sm">
-      <div class="flex flex-col items-center justify-center p-6 text-center space-y-4">
-        <div class="w-16 h-16 bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)] rounded-full flex items-center justify-center mb-2">
-          <UiIcon name="lucide:alert-triangle" class="w-8 h-8" />
-        </div>
-        <h3 class="text-xl font-bold text-[var(--text-primary)]">Silmək istədiyinizə əminsiniz?</h3>
-        <p class="text-[var(--text-app)] opacity-70 text-[15px]">
-          Bu əməliyyat geri qaytarıla bilməz. 
-          <span v-if="deleteTarget?.type === 'bulk'" class="font-bold text-[var(--text-primary)] block mt-2">
-            Seçilmiş {{ deleteTarget.ids?.length }} maddə silinəcək.
+    <Modal v-model="showDeleteConfirmModal" :title="t('common.confirmDelete', 'Silmək istədiyinizə əminsiniz?')" max-width="sm">
+      <div class="py-2">
+        <p class="text-[var(--text-app)] opacity-80 text-[15px] leading-relaxed">
+          {{ t('common.cannotBeUndone', 'Bu əməliyyat geri qaytarıla bilməz.') }}
+          <span v-if="deleteTarget?.type === 'bulk'" class="font-bold text-[var(--color-brand-danger)] block mt-2">
+             {{ t('employees.bulkDeleteCount', { count: deleteTarget.ids?.length, default: `${deleteTarget.ids?.length} maddə silinəcək.` }) }}
           </span>
         </p>
       </div>
       
       <template #footer>
-        <UiButton variant="ghost" @click="showDeleteConfirmModal = false" class="!px-6">Ləğv et</UiButton>
-        <UiButton variant="danger" icon="lucide:trash-2" @click="performDelete" class="!px-8 min-w-[120px]">
-          Bəli, Sil
+        <UiButton variant="ghost" @click="showDeleteConfirmModal = false">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
+        <UiButton variant="danger" icon="lucide:trash-2" @click="performDelete">
+          {{ t('common.yesDelete', 'Bəli, Sil') }}
         </UiButton>
       </template>
     </Modal>

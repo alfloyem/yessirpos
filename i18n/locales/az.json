@@ -158,6 +158,7 @@
     "passwordsMismatch": "Şifrələr uyğun deyil!",
     "passwordsMinLength": "Şifrə minimum {count} simvol olmalıdır",
     "noData": "Axtarışınıza uyğun nəticə tapılmadı",
+    "rowNumber": "Sıra sayı",
     "clickToCopy": "Kopyalamaq üçün klikləyin"
   },
   "toast": {
@@ -172,7 +173,7 @@
     "loginSuccess": "Xoş gəldiniz!",
     "loginFailed": "Giriş uğursuz oldu",
     "usernameExists": "Bu istifadəçi adı artıq mövcuddur",
-    "invalidCredentials": "İstifadəçi adı və ya şifrə yanlışdır",
+    "invalidCredentials": "İstifadəçi adı ve ya şifrə yanlışdır",
     "customerAdded": "Müştəri uğurla əlavə edildi",
     "customerUpdated": "Müştəri uğurla yeniləndi",
     "customersUpdated": "{count} müştəri yeniləndi",
@@ -217,5 +218,20 @@
     "addNew": "Yeni Atribut Əlavə Et",
     "edit": "Atributu Redaktə Et",
     "bulkDeleteCount": "Seçilmiş {count} atribut silinəcək."
+  },
+  "products": {
+    "image": "Məhsulun şəkli",
+    "parentProduct": "Bağlı olduğu məhsul",
+    "name": "Məhsulun adı",
+    "brand": "Brendin adı",
+    "category": "Kateqoriyası",
+    "wholesalePrice": "Topdansatış qiyməti (₼)",
+    "retailPrice": "Pərakəndə qiyməti (₼)",
+    "reorderLevel": "Yenidən sifariş limiti",
+    "addVariant": "Variant Əlavə Et",
+    "variantImage": "Variant Şəkilləri",
+    "saveVariant": "Variantı Yadda Saxla",
+    "addNew": "Yeni Mal Əlavə Et",
+    "edit": "Malı Redaktə Et"
   }
 }
