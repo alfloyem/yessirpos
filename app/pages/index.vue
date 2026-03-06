@@ -122,7 +122,7 @@ const lineChartOptions = computed(() => ({
       },
       ticks: {
         color: themeColors.value.textMuted,
-        font: { size: 12, family: 'Inter' },
+        font: { size: 12, family: 'SF Pro Display' },
         callback: (value) => value / 1000 + 'k'
       },
       border: { display: false }
@@ -131,7 +131,7 @@ const lineChartOptions = computed(() => ({
       grid: { display: false, drawBorder: false },
       ticks: { 
         color: themeColors.value.textMuted, 
-        font: { size: 12, family: 'Inter' },
+        font: { size: 12, family: 'SF Pro Display' },
         padding: 10
       },
       border: { display: false }
@@ -247,7 +247,7 @@ const barChartOptions = computed(() => ({
     y: { display: false, grid: { display: false } },
     x: {
       grid: { display: false, drawBorder: false },
-      ticks: { color: themeColors.value.textMuted, font: { size: 11, family: 'Inter' } },
+      ticks: { color: themeColors.value.textMuted, font: { size: 11, family: 'SF Pro Display' } },
       border: { display: false }
     }
   },
@@ -294,7 +294,7 @@ const dateFilters = computed(() => [
 </script>
 
 <template>
-  <div class="space-y-6 pb-6">
+  <div class="space-y-6 pb-6 font-sans">
     <!-- Dashboard Header -->
     <div class="flex items-end justify-between">
       <div>

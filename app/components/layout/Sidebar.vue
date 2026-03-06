@@ -193,12 +193,11 @@ onUnmounted(() => {
     ></div>
 
     <aside 
-      class="bg-[var(--bg-app)] flex flex-col h-full border-r border-[var(--border-app)] transition-all duration-300 ease-in-out fixed md:relative z-50 top-0 left-0"
+      class="bg-[var(--bg-app)] flex flex-col h-full border-r border-[var(--border-app)] transition-all duration-300 ease-in-out fixed md:relative z-50 top-0 left-0 font-sans"
       :class="[
         isSidebarCollapsed ? 'md:w-[92px]' : 'md:w-[282px]',
         isMobileMenuOpen ? 'w-[282px] translate-x-0' : 'w-0 -translate-x-full md:translate-x-0 overflow-hidden md:overflow-visible'
       ]"
-      style="font-family: 'Inter', sans-serif;"
     >
       <!-- Logo Area -->
       <div 
@@ -246,7 +245,7 @@ onUnmounted(() => {
             <!-- Parent Category Button -->
             <button 
               @click="toggleMenu(index)"
-              class="flex items-center rounded-[12px] text-[var(--text-app)] bg-transparent hover:bg-[var(--text-primary)]/10 hover:text-[var(--text-primary)] transition-all duration-300 ease-in-out cursor-pointer outline-none overflow-hidden"
+              class="flex items-center rounded-[12px] text-[var(--text-app)] bg-transparent hover:bg-[var(--text-primary)]/10 hover:text-[var(--text-primary)] transition-all duration-300 ease-in-out cursor-pointer outline-none overflow-hidden font-sans"
               :class="[
                 (item.isOpen || isActiveMenu(item)) && !isSidebarCollapsed ? 'text-[var(--text-primary)] font-medium' : 'opacity-80',
                 'w-full h-[48px] px-4',
