@@ -1,13 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 24 24">
-  <!-- Generator: Adobe Illustrator 30.1.0, SVG Export Plug-In . SVG Version: 2.1.1 Build 136)  -->
-  <defs>
-    <style>
-      .st0 {
-        fill: #fff;
-      }
-    </style>
-  </defs>
-  <polygon points="5.9 2.3 8 21 12.1 12.7 19.7 12.4 5.9 2.3"/>
-  <path class="st0" d="M7.7,22.7L5.3,1.3l15.9,11.6-8.7.3-4.7,9.5ZM6.5,3.4l1.8,15.9,3.5-7.1,6.5-.2L6.5,3.4Z"/>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M5 2L8.12175 29.7985L14.2166 17.4601L25.5144 17.0141L5 2Z" fill="black"/>
+<path d="M27.6004 17.2724L14.6149 17.7849L7.59298 32L4 0L27.6004 17.2724ZM8.50465 26.7971L13.6742 16.3346L23.283 15.9543L5.85528 3.19811L8.50465 26.7971Z" fill="white"/>
 </svg>
