@@ -40,7 +40,8 @@ const loadData = async () => {
     
     customersOptions.value = (customersRes as any[]).map(c => ({
       label: `${c.firstName} ${c.lastName}`,
-      value: c.id
+      value: c.id,
+      extra: c.barcode
     }))
 
   } catch (err: any) {
@@ -84,9 +85,10 @@ const giftCardSchema = computed< (FormField & { inTable?: boolean, sortable?: bo
   { 
     key: 'customer', 
     label: 'Müştəri adını axtar', 
-    type: 'select', 
+    type: 'autocomplete', 
     inTable: false, // We will map it manually for the table to show full name
     required: true,
+    autofocus: true,
     icon: 'lucide:user',
     options: customersOptions.value,
     colSpan: 2
@@ -346,6 +348,7 @@ const copyBarcode = (barcode: string) => {
     <!-- Modal: Add -->
     <Modal v-model="showAddModal" :title="t('common.addNewCard', 'Yeni Hədiyyə Kartı Əlavə Et')" max-width="xl">
       <DynamicForm 
+        v-if="showAddModal"
         :fields="formFields"
         v-model="formData" 
         :errors="formErrors"
@@ -369,6 +372,7 @@ const copyBarcode = (barcode: string) => {
       </div>
 
       <DynamicForm 
+        v-if="showEditModal"
         :fields="showEditModal && bulkSelectedIds.length > 0 ? formFields.filter(f => !['barcode', 'customer'].includes(f.key)) : formFields"
         v-model="formData" 
         :errors="formErrors"

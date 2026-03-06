@@ -2,15 +2,17 @@
 import { computed } from 'vue'
 import UiInput from '~/components/ui/Input.vue'
 import UiSelect from '~/components/ui/Select.vue'
+import UiAutocomplete from '~/components/ui/Autocomplete.vue'
 import TagsInput from '~/components/ui/TagsInput.vue'
 import { useI18n } from '#i18n'
 
 export interface FormField {
   key: string
   label: string
-  type: 'text' | 'email' | 'password' | 'tel' | 'textarea' | 'select' | 'number' | 'date' | 'datetime' | 'tags' | 'barcode'
+  type: 'text' | 'email' | 'password' | 'tel' | 'textarea' | 'select' | 'autocomplete' | 'number' | 'date' | 'datetime' | 'tags' | 'barcode'
   options?: { label: string, value: any }[] // For select
   required?: boolean
+  autofocus?: boolean
   colSpan?: 1 | 2
   icon?: string // Optional icon
   historyKey?: string // For tags
@@ -140,6 +142,19 @@ const isPasswordMismatch = (field: any) => {
         :disabled="isLoading"
         :icon="field.icon"
         :isCountry="field.isCountry"
+        class="hover:border-[var(--text-primary)] transition-colors"
+        :class="{ '!border-[var(--color-brand-danger)]': errors?.[field.key] }"
+      />
+
+      <!-- Autocomplete -->
+      <UiAutocomplete 
+        v-else-if="field.type === 'autocomplete'"
+        :modelValue="modelValue[field.key]"
+        @update:modelValue="val => updateField(field.key, val)"
+        :options="field.options || []"
+        :disabled="isLoading"
+        :icon="field.icon"
+        :autofocus="field.autofocus"
         class="hover:border-[var(--text-primary)] transition-colors"
         :class="{ '!border-[var(--color-brand-danger)]': errors?.[field.key] }"
       />
