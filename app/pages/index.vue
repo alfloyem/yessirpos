@@ -422,17 +422,17 @@ const dateFilters = computed(() => [
           <div class="text-center p-2 rounded-xl border border-[var(--border-app)] hover:bg-[var(--bg-app)] transition-colors">
             <div class="w-full flex justify-center mb-1.5"><div class="w-2.5 h-2.5 rounded-full" :style="{ backgroundColor: themeColors.success }"></div></div>
             <div class="text-[15px] font-extrabold text-[var(--text-app)]">65%</div>
-            <div class="text-[10px] uppercase font-bold text-[var(--text-app)] opacity-50 mt-1 tracking-wider">{{ t('dashboard.complete') }}</div>
+            <div class="text-[10px] font-bold text-[var(--text-app)] opacity-50 mt-1 tracking-wider">{{ t('dashboard.complete') }}</div>
           </div>
           <div class="text-center p-2 rounded-xl border border-[var(--border-app)] hover:bg-[var(--bg-app)] transition-colors">
             <div class="w-full flex justify-center mb-1.5"><div class="w-2.5 h-2.5 rounded-full" :style="{ backgroundColor: themeColors.warning }"></div></div>
             <div class="text-[15px] font-extrabold text-[var(--text-app)]">25%</div>
-            <div class="text-[10px] uppercase font-bold text-[var(--text-app)] opacity-50 mt-1 tracking-wider">{{ t('dashboard.waiting') }}</div>
+            <div class="text-[10px] font-bold text-[var(--text-app)] opacity-50 mt-1 tracking-wider">{{ t('dashboard.waiting') }}</div>
           </div>
           <div class="text-center p-2 rounded-xl border border-[var(--border-app)] hover:bg-[var(--bg-app)] transition-colors">
             <div class="w-full flex justify-center mb-1.5"><div class="w-2.5 h-2.5 rounded-full" :style="{ backgroundColor: themeColors.danger }"></div></div>
             <div class="text-[15px] font-extrabold text-[var(--text-app)]">10%</div>
-            <div class="text-[10px] uppercase font-bold text-[var(--text-app)] opacity-50 mt-1 tracking-wider">{{ t('dashboard.cancel') }}</div>
+            <div class="text-[10px] font-bold text-[var(--text-app)] opacity-50 mt-1 tracking-wider">{{ t('dashboard.cancel') }}</div>
           </div>
         </div>
       </div>

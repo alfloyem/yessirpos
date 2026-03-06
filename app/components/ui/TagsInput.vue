@@ -119,7 +119,7 @@ const handleBlur = () => {
           "{{ inputValue.trim() }}" əlavə et
         </div>
 
-        <div v-if="filteredHistory.length > 0" class="px-3 py-2 text-[10px] font-bold text-[var(--text-app)] opacity-40 uppercase tracking-widest bg-[var(--bg-app)]/50 backdrop-blur-sm sticky top-0 border-b border-[var(--border-app)]">
+        <div v-if="filteredHistory.length > 0" class="px-3 py-2 text-[10px] font-bold text-[var(--text-app)] opacity-40 tracking-widest bg-[var(--bg-app)]/50 backdrop-blur-sm sticky top-0 border-b border-[var(--border-app)]">
           Kechmish Axtarishlar
         </div>
         

@@ -487,7 +487,7 @@ const saveForm = () => {
           <span 
             v-for="(cat, idx) in (Array.isArray(value) ? value : [value])" 
             :key="idx" 
-            class="px-2 py-1 rounded-lg text-[10px] font-bold tracking-wide uppercase bg-[var(--text-primary)]/10 text-[var(--text-primary)] shrink-0"
+            class="px-2 py-1 rounded-lg text-[10px] font-bold tracking-wide bg-[var(--text-primary)]/10 text-[var(--text-primary)] shrink-0"
           >
             {{ cat }}
           </span>
@@ -506,7 +506,7 @@ const saveForm = () => {
       <div class="flex flex-col lg:flex-row gap-8 items-start h-full pb-2">
         <!-- Left: Image Section (Expanded) -->
         <div class="w-full lg:w-[45%] shrink-0 space-y-4">
-          <div class="text-[10px] font-bold text-[var(--text-app)] tracking-[0.2em] uppercase opacity-40">
+          <div class="text-[10px] font-bold text-[var(--text-app)] tracking-[0.2em] opacity-40">
             {{ t('products.image', 'Məhsulun şəkilləri') }}
           </div>
           <div class="w-full">
@@ -548,7 +548,7 @@ const saveForm = () => {
       <div class="flex flex-col lg:flex-row gap-8 items-start h-full pb-2">
         <!-- Left: Image Section (Expanded) -->
         <div v-if="bulkSelectedIds.length === 0" class="w-full lg:w-[45%] shrink-0 space-y-4">
-          <div class="text-[10px] font-bold text-[var(--text-app)] tracking-[0.2em] uppercase opacity-40">
+          <div class="text-[10px] font-bold text-[var(--text-app)] tracking-[0.2em] opacity-40">
             {{ t('products.image', 'Məhsulun şəkilləri') }}
           </div>
           <div class="w-full">
@@ -580,7 +580,7 @@ const saveForm = () => {
       <div class="flex flex-col lg:flex-row gap-8 items-start h-full pb-2">
         <!-- Left: Image Section (Expanded) -->
         <div class="w-full lg:w-[45%] shrink-0 space-y-4">
-          <div class="text-[10px] font-bold text-[var(--text-app)] tracking-[0.2em] uppercase opacity-40">
+          <div class="text-[10px] font-bold text-[var(--text-app)] tracking-[0.2em] opacity-40">
             {{ t('products.variantImage', 'Variant Şəkilləri') }}
           </div>
           <div class="w-full">
