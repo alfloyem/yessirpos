@@ -108,7 +108,12 @@
     "main": "Əsas",
     "warehouse": "Anbar",
     "supply": "Təchizat",
-    "finance": "Maliyyə"
+    "finance": "Maliyyə",
+    "main_category": "Əsas",
+    "customers_category": "Müştərilər",
+    "inventory_category": "Anbar",
+    "suppliers_category": "Təchizat",
+    "finance_category": "Maliyyə"
   },
   "employees": {
     "firstName": "Ad",

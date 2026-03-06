@@ -108,7 +108,12 @@
     "main": "Main",
     "warehouse": "Warehouse",
     "supply": "Supply",
-    "finance": "Finance"
+    "finance": "Finance",
+    "main_category": "Main",
+    "customers_category": "Customers",
+    "inventory_category": "Inventory",
+    "suppliers_category": "Supply",
+    "finance_category": "Finance"
   },
   "employees": {
     "firstName": "First Name",

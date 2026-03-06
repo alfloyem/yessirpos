@@ -108,7 +108,12 @@
     "main": "Главная",
     "warehouse": "Склад",
     "supply": "Снабжение",
-    "finance": "Финансы"
+    "finance": "Финансы",
+    "main_category": "Основное",
+    "customers_category": "Клиенты",
+    "inventory_category": "Склад",
+    "suppliers_category": "Снабжение",
+    "finance_category": "Финансы"
   },
   "employees": {
     "firstName": "Имя",
