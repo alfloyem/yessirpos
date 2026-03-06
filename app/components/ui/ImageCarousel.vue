@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 
 const props = defineProps<{
   images: string[]
@@ -10,9 +10,29 @@ const emit = defineEmits(['update:images', 'remove'])
 
 const currentIndex = ref(0)
 const fileInputRef = ref<HTMLInputElement | null>(null)
+const scrollContainerRef = ref<HTMLElement | null>(null)
+const thumbRefs = ref<HTMLElement[]>([])
 const inputId = ref(`image-upload-${Math.random().toString(36).substring(2, 9)}`)
 
 const canAddMore = computed(() => props.maxImages ? props.images.length < props.maxImages : true)
+
+// Auto-scroll to selected thumbnail
+watch(currentIndex, async (newVal) => {
+  await nextTick()
+  const el = thumbRefs.value?.[newVal]
+  if (el && typeof el.scrollIntoView === 'function') {
+    el.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'center'
+    })
+  }
+})
+
+// Reset thumb refs when images change
+watch(() => props.images.length, () => {
+  thumbRefs.value = []
+})
 
 const processFile = (file: File): Promise<string | null> => {
   return new Promise((resolve) => {
@@ -108,10 +128,10 @@ const triggerUpload = () => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full gap-4 min-h-[400px]">
+  <div class="flex flex-col h-full gap-4 min-h-0">
     <!-- Main Image Display (Above) -->
     <div 
-      class="relative flex-1 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-2xl overflow-hidden group transition-all duration-300"
+      class="relative aspect-square w-full bg-[var(--input-bg)] border border-[var(--border-app)] rounded-2xl overflow-hidden group transition-all duration-300"
       :class="!images.length && canAddMore ? 'hover:border-[var(--text-primary)] border-dashed border-2 cursor-pointer hover:bg-[var(--bg-app)]' : ''"
       @click="!images.length && canAddMore ? triggerUpload() : null"
     >
@@ -122,12 +142,12 @@ const triggerUpload = () => {
       </div>
 
       <!-- Main Preview -->
-      <div v-else class="relative w-full h-full bg-white/5 flex items-center justify-center">
+      <div v-else class="relative w-full h-full bg-white/5 flex items-center justify-center min-h-0">
         <!-- Current Main Image -->
         <img 
           :src="images[currentIndex]" 
-          alt="Product Preview" 
-          class="w-full h-full object-contain p-4 transition-transform duration-500"
+          class="w-full h-full object-cover transition-opacity duration-500"
+          alt="Product Image"
         />
 
         <!-- Navigation Arrows -->
@@ -147,7 +167,7 @@ const triggerUpload = () => {
           <UiIcon name="lucide:chevron-right" class="w-6 h-6" />
         </button>
 
-        <!-- Main Delete Button (Optional but user said "her görselin") -->
+        <!-- Main Delete Button -->
         <button
           @click="removeImage(currentIndex)"
           class="absolute top-4 right-4 w-10 h-10 bg-[var(--color-brand-danger)]/80 hover:bg-[var(--color-brand-danger)] backdrop-blur-md text-white rounded-xl flex items-center justify-center transition-all duration-300 shadow-xl cursor-pointer z-10 opacity-0 group-hover:opacity-100 hover:scale-110"
@@ -158,26 +178,23 @@ const triggerUpload = () => {
     </div>
 
     <!-- Mini Thumbnail Row (Below) -->
-    <div v-if="images.length > 0 || canAddMore" class="flex items-center gap-3 overflow-x-auto pb-2 custom-scrollbar">
+    <div 
+      v-if="images.length > 0 || canAddMore" 
+      ref="scrollContainerRef"
+      class="flex items-center gap-3 overflow-x-auto pb-2 no-scrollbar scroll-smooth"
+    >
       <!-- Thumbnails -->
       <div 
         v-for="(img, index) in images" 
         :key="index"
+        :ref="el => { if (el) thumbRefs[index] = el as HTMLElement }"
         @click="goToIndex(index)"
-        class="relative min-w-[80px] w-20 aspect-square rounded-xl border-2 transition-all duration-200 cursor-pointer overflow-hidden group/thumb"
+        class="relative min-w-[80px] w-20 aspect-square rounded-xl border-2 transition-all duration-300 cursor-pointer overflow-hidden group/thumb"
         :class="currentIndex === index 
-          ? 'border-[var(--text-primary)] shadow-lg scale-95' 
-          : 'border-[var(--border-app)] hover:border-[var(--text-primary)]/50'"
+          ? 'border-[var(--text-primary)] shadow-lg scale-95 brightness-100 grayscale-0' 
+          : 'border-[var(--border-app)] hover:border-[var(--text-primary)]/50 brightness-[0.6] grayscale'"
       >
         <img :src="img" class="w-full h-full object-cover" />
-        
-        <!-- Thumbnail Delete Button -->
-        <button
-          @click="removeImage(index, $event)"
-          class="absolute top-1 right-1 w-6 h-6 bg-[var(--color-brand-danger)]/90 text-white rounded-lg flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-all duration-200 hover:scale-110 shadow-sm z-20"
-        >
-          <UiIcon name="lucide:x" class="w-3.5 h-3.5" />
-        </button>
       </div>
 
       <!-- Add New Button (Square, dashed border) -->
@@ -204,18 +221,11 @@ const triggerUpload = () => {
 </template>
 
 <style scoped>
-.custom-scrollbar::-webkit-scrollbar {
-  height: 6px;
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--border-app);
-  border-radius: 10px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--text-primary);
-  opacity: 0.5;
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 </style>

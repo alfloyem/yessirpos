@@ -513,15 +513,15 @@ const saveForm = () => {
       :title="t('products.addNew', 'Yeni Mal Əlavə Et')" 
       max-width="3xl" 
       is-top 
-      max-height="95vh"
+      max-height="90vh"
     >
-      <div class="flex flex-col lg:flex-row gap-8 items-stretch min-h-[500px]">
-        <!-- Left: Image Section -->
-        <div class="w-full lg:w-[45%] flex flex-col">
-          <label class="block text-xs font-bold text-[var(--text-app)] tracking-wider mb-3 uppercase opacity-60">
+      <div class="flex flex-col lg:flex-row gap-8 items-start h-full pb-2">
+        <!-- Left: Image Section (Expanded) -->
+        <div class="w-full lg:w-[45%] shrink-0 space-y-4">
+          <div class="text-[10px] font-bold text-[var(--text-app)] tracking-[0.2em] uppercase opacity-40">
             {{ t('products.image', 'Məhsulun şəkilləri') }}
-          </label>
-          <div class="flex-1">
+          </div>
+          <div class="w-full">
             <ImageCarousel 
               :images="productImages"
               @update:images="val => productImages = val"
@@ -530,7 +530,7 @@ const saveForm = () => {
         </div>
 
         <!-- Right: Form Fields -->
-        <div class="w-full lg:w-[55%] border-l border-[var(--border-app)] pl-8">
+        <div class="flex-1 w-full lg:border-l lg:border-[var(--border-app)] lg:pl-8">
           <DynamicForm 
             :fields="formFields"
             v-model="formData" 
@@ -551,19 +551,19 @@ const saveForm = () => {
       :title="bulkSelectedIds.length > 0 ? t('common.bulkEdit', 'Toplu Redaktə') : t('products.edit', 'Malı Redaktə Et')" 
       max-width="3xl" 
       is-top 
-      max-height="95vh"
+      max-height="90vh"
     >
       <div v-if="bulkSelectedIds.length > 0" class="mb-4 p-3 bg-[var(--color-brand-warning)]/10 text-[var(--color-brand-warning)] rounded-lg text-sm font-medium">
         {{ t('employees.bulkEditWarning', { count: bulkSelectedIds.length, default: `Diqqət: Seçilmiş ${bulkSelectedIds.length} qeydin üzərinə yazılacak.` }) }}
       </div>
 
-      <div class="flex flex-col lg:flex-row gap-8 items-stretch min-h-[500px]">
-        <!-- Left: Image Section -->
-        <div v-if="bulkSelectedIds.length === 0" class="w-full lg:w-[45%] flex flex-col">
-          <label class="block text-xs font-bold text-[var(--text-app)] tracking-wider mb-3 uppercase opacity-60">
+      <div class="flex flex-col lg:flex-row gap-8 items-start h-full pb-2">
+        <!-- Left: Image Section (Expanded) -->
+        <div v-if="bulkSelectedIds.length === 0" class="w-full lg:w-[45%] shrink-0 space-y-4">
+          <div class="text-[10px] font-bold text-[var(--text-app)] tracking-[0.2em] uppercase opacity-40">
             {{ t('products.image', 'Məhsulun şəkilləri') }}
-          </label>
-          <div class="flex-1">
+          </div>
+          <div class="w-full">
             <ImageCarousel 
               :images="productImages"
               @update:images="val => productImages = val"
@@ -572,11 +572,11 @@ const saveForm = () => {
         </div>
 
         <!-- Right: Form Fields -->
-        <div :class="bulkSelectedIds.length === 0 ? 'w-full lg:w-[55%] border-l border-[var(--border-app)] pl-8' : 'w-full'">
+        <div :class="bulkSelectedIds.length === 0 ? 'flex-1 w-full lg:border-l lg:border-[var(--border-app)] lg:pl-8' : 'w-full'">
           <DynamicForm 
             :fields="formFields"
             v-model="formData"
-            :gridCols="1" 
+            :gridCols="bulkSelectedIds.length === 0 ? 1 : 2" 
           />
         </div>
       </div>
@@ -588,14 +588,14 @@ const saveForm = () => {
     </Modal>
 
     <!-- Variant Əlavə Et / Modal -->
-    <Modal v-model="showVariantModal" :title="t('products.addVariant', 'Variant Əlavə Et')" max-width="3xl" is-top max-height="95vh">
-      <div class="flex flex-col lg:flex-row gap-8 items-stretch min-h-[500px]">
-        <!-- Left: Image Section -->
-        <div class="w-full lg:w-[45%] flex flex-col">
-          <label class="block text-xs font-bold text-[var(--text-app)] tracking-wider mb-3 uppercase opacity-60">
+    <Modal v-model="showVariantModal" :title="t('products.addVariant', 'Variant Əlavə Et')" max-width="3xl" is-top max-height="90vh">
+      <div class="flex flex-col lg:flex-row gap-8 items-start h-full pb-2">
+        <!-- Left: Image Section (Expanded) -->
+        <div class="w-full lg:w-[45%] shrink-0 space-y-4">
+          <div class="text-[10px] font-bold text-[var(--text-app)] tracking-[0.2em] uppercase opacity-40">
             {{ t('products.variantImage', 'Variant Şəkilləri') }}
-          </label>
-          <div class="flex-1">
+          </div>
+          <div class="w-full">
             <ImageCarousel 
               :images="variantImages"
               @update:images="val => variantImages = val"
@@ -604,7 +604,7 @@ const saveForm = () => {
         </div>
 
         <!-- Right: Form Fields -->
-        <div class="w-full lg:w-[55%] border-l border-[var(--border-app)] pl-8">
+        <div class="flex-1 w-full lg:border-l lg:border-[var(--border-app)] lg:pl-8">
           <DynamicForm 
             :fields="variantSchema"
             v-model="variantFormData"

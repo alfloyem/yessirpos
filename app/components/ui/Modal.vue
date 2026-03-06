@@ -55,21 +55,18 @@ const maxWidthClass = computed(() => {
 <template>
   <Teleport to="body">
     <Transition name="modal">
-      <div v-show="modelValue" class="fixed inset-0 z-[9999] flex justify-center p-4 sm:p-6 overflow-y-auto" :class="isTop ? 'items-start pt-10 sm:pt-20' : 'items-center'" style="margin: 0;">
+      <div v-show="modelValue" class="max-h-[100vh] h-[100vh] min-h-[0] fixed inset-0 z-[9999] flex justify-center items-center p-4">
         
         <!-- Backdrop -->
         <div 
-          class="modal-backdrop fixed inset-0 bg-black/20"
+          class="modal-backdrop fixed inset-0 bg-black/20 backdrop-blur-sm"
           @click="close"
+          style="transition: backdrop-filter 0s;"
         ></div>
 
         <div 
-          class="relative w-full bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] flex flex-col transition-all"
+          class="relative w-full bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] flex flex-col transition-all max-h-[90%]"
           :class="maxWidthClass"
-          :style="{ 
-            minHeight: minHeight || 'auto',
-            maxHeight: maxHeight || '90vh'
-          }"
         >
           <!-- Header -->
           <div v-if="!hideHeader" class="flex items-center justify-between px-8 py-5 border-b border-[var(--border-app)]">
