@@ -177,6 +177,9 @@
     "customerDeleted": "Customer successfully deleted",
     "customersDeleted": "{count} customers successfully deleted",
     "customerDuplicated": "Customer duplicated",
+    "attributeAdded": "Attribute added successfully",
+    "attributeUpdated": "Attribute updated successfully",
+    "attributeDuplicated": "Attribute duplicated",
     "barcodeCopied": "Barcode copied successfully!"
   },
   "user": {

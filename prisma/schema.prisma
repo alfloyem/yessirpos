@@ -74,3 +74,11 @@ model GiftCard {
   updatedAt  DateTime  @updatedAt
   customer   Customer? @relation(fields: [customerId], references: [id])
 }
+model Attribute {
+  id        Int      @id @default(autoincrement())
+  name      String
+  values    String   // Store as JSON string or comma-separated
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

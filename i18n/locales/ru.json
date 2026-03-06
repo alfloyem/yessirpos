@@ -177,6 +177,9 @@
     "customerDeleted": "Клиент успешно удален",
     "customersDeleted": "{count} клиентов успешно удалены",
     "customerDuplicated": "Клиент скопирован",
+    "attributeAdded": "Атрибут успешно добавлен",
+    "attributeUpdated": "Атрибут успешно обновлен",
+    "attributeDuplicated": "Атрибут скопирован",
     "barcodeCopied": "Штрих-код успешно скопирован!"
   },
   "user": {

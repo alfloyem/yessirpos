@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from '#i18n'
-import { useHead, useToast } from '#imports'
+import { useHead, useToast, useAuth } from '#imports'
 import DataTable from '~/components/ui/DataTable.vue'
 import Modal from '~/components/ui/Modal.vue'
 import UiButton from '~/components/ui/Button.vue'
 import DynamicForm, { type FormField } from '~/components/ui/DynamicForm.vue'
 
 const { t } = useI18n()
+const { token } = useAuth()
 
 useHead({
   title: t('menu.attributes', 'Atributlar')
@@ -52,29 +53,32 @@ const columns = computed(() =>
 )
 
 // --- Data ---
-const mockData = ref<any[]>([
-  { 
-    id: 1, 
-    name: 'Rəng',
-    values: ['Qırmızı', 'Mavi', 'Yaşıl', 'Qara', 'Ağ'],
-    createdAt: '03.03.2026 10:15', 
-    createdBy: 'Admin'
-  },
-  { 
-    id: 2, 
-    name: 'Ölçü',
-    values: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
-    createdAt: '02.03.2026 14:30', 
-    createdBy: 'Admin'
-  },
-  { 
-    id: 3, 
-    name: 'Material',
-    values: ['Pambıq', 'Polyester', 'Yun', 'İpək'],
-    createdAt: '01.03.2026 09:20', 
-    createdBy: 'Admin'
-  },
-])
+const mockData = ref<any[]>([])
+const loading = ref(false)
+
+const loadAttributes = async () => {
+  loading.value = true
+  const toast = useToast()
+  try {
+    const data = await $fetch('/api/attributes', {
+      headers: { Authorization: `Bearer ${token.value}` }
+    })
+    mockData.value = (data as any[]).map(d => ({
+      ...d,
+      createdAt: new Date(d.createdAt).toLocaleString('tr-TR', {
+        year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+      })
+    }))
+  } catch (err: any) {
+    toast.error(t('toast.loadingError', 'Məlumatlar yüklənərkən xəta baş verdi'))
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  loadAttributes()
+})
 
 // --- Modals State ---
 const showAddModal = ref(false)
@@ -100,6 +104,39 @@ const handleEdit = (row: any) => {
   showEditModal.value = true
 }
 
+const handleDuplicate = async (row: any) => {
+  loading.value = true
+  const toast = useToast()
+  
+  // Find next number
+  const baseName = row.name.replace(/\s\d+$/, '') // Strip trailing number if any
+  const existingNames = mockData.value.map(item => item.name)
+  let count = 1
+  let newName = `${baseName} ${count}`
+  
+  while (existingNames.includes(newName)) {
+    count++
+    newName = `${baseName} ${count}`
+  }
+
+  try {
+    await $fetch('/api/attributes', {
+      method: 'POST',
+      body: {
+        name: newName,
+        values: row.values
+      },
+      headers: { Authorization: `Bearer ${token.value}` }
+    })
+    toast.success(t('toast.attributeDuplicated', 'Atribut kopyalandı'))
+    await loadAttributes()
+  } catch (err: any) {
+    toast.error(t('toast.operationFailed', 'Xəta baş verdi'))
+  } finally {
+    loading.value = false
+  }
+}
+
 const handleDelete = (row: any) => {
   deleteTarget.value = { type: 'single', id: row.id }
   showDeleteConfirmModal.value = true
@@ -110,20 +147,33 @@ const handleBulkDelete = (ids: any[]) => {
   showDeleteConfirmModal.value = true
 }
 
-const performDelete = () => {
+const performDelete = async () => {
   if (!deleteTarget.value) return
-
-  if (deleteTarget.value.type === 'single') {
-    mockData.value = mockData.value.filter(m => m.id !== deleteTarget.value?.id)
-  } else if (deleteTarget.value.type === 'bulk') {
-    const ids = deleteTarget.value.ids || []
-    mockData.value = mockData.value.filter(m => !ids.includes(m.id))
-  }
-
-  showDeleteConfirmModal.value = false
-  deleteTarget.value = null
+  loading.value = true
   const toast = useToast()
-  toast.success(t('common.delete', 'Silindi'))
+
+  try {
+    if (deleteTarget.value.type === 'single') {
+      await $fetch(`/api/attributes/${deleteTarget.value.id}`, { 
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token.value}` }
+      })
+    } else if (deleteTarget.value.type === 'bulk') {
+      await $fetch('/api/attributes/bulk-delete', {
+        method: 'POST',
+        body: { ids: deleteTarget.value.ids },
+        headers: { Authorization: `Bearer ${token.value}` }
+      })
+    }
+    toast.success(t('common.delete', 'Silindi'))
+    await loadAttributes()
+    showDeleteConfirmModal.value = false
+    deleteTarget.value = null
+  } catch (err: any) {
+    toast.error(t('toast.operationFailed', 'Xəta baş verdi'))
+  } finally {
+    loading.value = false
+  }
 }
 
 const handleBulkEdit = (ids: any[]) => {
@@ -133,7 +183,7 @@ const handleBulkEdit = (ids: any[]) => {
   showEditModal.value = true
 }
 
-const saveForm = () => {
+const saveForm = async () => {
   formErrors.value = {}
   let hasError = false
   
@@ -145,30 +195,43 @@ const saveForm = () => {
   }
 
   if (hasError) return
+  loading.value = true
+  const toast = useToast()
 
-  if (showAddModal.value) {
-    const d = new Date()
-    const formattedDate = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth()+1).padStart(2, '0')}.${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-    
-    mockData.value.push({ 
-      id: Date.now(),
-      ...formData.value,
-      createdAt: formattedDate,
-      createdBy: 'Admin'
-    })
-    showAddModal.value = false
-  } else if (showEditModal.value) {
-    if (bulkSelectedIds.value.length > 0) {
-      const updates = Object.fromEntries(Object.entries(formData.value).filter(([_, v]) => v !== undefined && v !== ''))
-      mockData.value = mockData.value.map(item => 
-        bulkSelectedIds.value.includes(item.id) ? { ...item, ...updates } : item
-      )
-      bulkSelectedIds.value = []
-    } else {
-      const index = mockData.value.findIndex(m => m.id === formData.value.id)
-      if (index !== -1) mockData.value[index] = { ...mockData.value[index], ...formData.value }
+  try {
+    const headers = { Authorization: `Bearer ${token.value}` }
+    if (showAddModal.value) {
+      await $fetch('/api/attributes', {
+        method: 'POST',
+        body: formData.value,
+        headers
+      })
+      toast.success(t('toast.attributeAdded', 'Atribut əlavə edildi'))
+      showAddModal.value = false
+    } else if (showEditModal.value) {
+      if (bulkSelectedIds.value.length > 0) {
+        const updates = Object.fromEntries(Object.entries(formData.value).filter(([_, v]) => v !== undefined && v !== ''))
+        await $fetch('/api/attributes/bulk-update', {
+          method: 'POST',
+          body: { ids: bulkSelectedIds.value, updates },
+          headers
+        })
+        bulkSelectedIds.value = []
+      } else {
+        await $fetch(`/api/attributes/${formData.value.id}`, {
+          method: 'PUT',
+          body: formData.value,
+          headers
+        })
+        toast.success(t('toast.attributeUpdated', 'Atribut yeniləndi'))
+      }
+      showEditModal.value = false
     }
-    showEditModal.value = false
+    await loadAttributes()
+  } catch (err: any) {
+    toast.error(t('toast.operationFailed', 'Xəta baş verdi'))
+  } finally {
+    loading.value = false
   }
 }
 </script>
@@ -188,8 +251,10 @@ const saveForm = () => {
       :columns="columns"
       :selectable="true"
       :actions="true"
+      :loading="loading"
       @add="handleAdd"
       @edit="handleEdit"
+      @duplicate="handleDuplicate"
       @delete="handleDelete"
       @bulk-delete="handleBulkDelete"
       @bulk-edit="handleBulkEdit"
@@ -217,11 +282,12 @@ const saveForm = () => {
         v-model="formData" 
         :errors="formErrors"
         :grid-cols="1"
+        :is-loading="loading"
       />
       
       <template #footer>
-        <UiButton variant="ghost" @click="showAddModal = false" class="!px-6">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
-        <UiButton variant="primary" icon="lucide:check" @click="saveForm" class="!px-8 min-w-[120px]">{{ t('common.save', 'Yadda saxla') }}</UiButton>
+        <UiButton variant="ghost" @click="showAddModal = false" :disabled="loading" class="!px-6">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
+        <UiButton variant="primary" icon="lucide:check" @click="saveForm" :loading="loading" class="!px-8 min-w-[120px]">{{ t('common.save', 'Yadda saxla') }}</UiButton>
       </template>
     </Modal>
 
@@ -244,11 +310,12 @@ const saveForm = () => {
         v-model="formData" 
         :errors="formErrors"
         :grid-cols="1"
+        :is-loading="loading"
       />
       
       <template #footer>
-        <UiButton variant="ghost" @click="showEditModal = false; bulkSelectedIds = []" class="!px-6">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
-        <UiButton variant="primary" icon="lucide:check" @click="saveForm" class="!px-8 min-w-[120px]">{{ t('common.update', 'Yenilə') }}</UiButton>
+        <UiButton variant="ghost" @click="showEditModal = false; bulkSelectedIds = []" :disabled="loading" class="!px-6">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
+        <UiButton variant="primary" icon="lucide:check" @click="saveForm" :loading="loading" class="!px-8 min-w-[120px]">{{ t('common.update', 'Yenilə') }}</UiButton>
       </template>
     </Modal>
 
@@ -264,8 +331,8 @@ const saveForm = () => {
       </div>
       
       <template #footer>
-        <UiButton variant="ghost" @click="showDeleteConfirmModal = false">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
-        <UiButton variant="danger" @click="performDelete">
+        <UiButton variant="ghost" @click="showDeleteConfirmModal = false" :disabled="loading">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
+        <UiButton variant="danger" @click="performDelete" :loading="loading">
           {{ t('common.yesDelete', 'Bəli, Sil') }}
         </UiButton>
       </template>

@@ -141,6 +141,7 @@
     "attention": "Diqqət!",
     "cannotBeUndone": "Bu əməliyyat geri qaytarıla bilməz.",
     "yesDelete": "Bəli, Sil",
+    "confirmDelete": "Silmək istədiyinizə əminsiniz?",
     "select": "Seç",
     "typeHere": "yazın...",
     "confirm": "Təkrarı",
@@ -178,6 +179,9 @@
     "customerDeleted": "Müştəri uğurla silindi",
     "customersDeleted": "{count} müştəri uğurla silindi",
     "customerDuplicated": "Müştəri kopyalandı",
+    "attributeAdded": "Atribut əlavə edildi",
+    "attributeUpdated": "Atribut yeniləndi",
+    "attributeDuplicated": "Atribut kopyalandı",
     "barcodeCopied": "Barkod uğurla kopyalandı!"
   },
   "user": {
