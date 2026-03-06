@@ -32,11 +32,26 @@ model Employee {
 }
 
 model Product {
-  id        Int      @id @default(autoincrement())
-  name      String
-  price     Float
-  stock     Int
-  createdAt DateTime @default(now())
+  id                Int       @id @default(autoincrement())
+  productName       String
+  brandName         String?   // Store array as JSON
+  category          String?   // Store array as JSON
+  barcode           String?   @unique
+  description       String?
+  images            String?   // Store array/JSON URLs
+  wholesalePrice    Float?    @default(0)
+  retailPrice       Float?    @default(0)
+  stock             Int?      @default(0)
+  reorderLevel      Int?      @default(0)
+  attribute         String?   // Store as JSON for variants (e.g. ["Size: M"])
+  
+  parentProductId   Int?
+  parentProduct     Product?  @relation("ProductVariants", fields: [parentProductId], references: [id], onDelete: Cascade)
+  variants          Product[] @relation("ProductVariants")
+  
+  createdBy         String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
 
 model Order {

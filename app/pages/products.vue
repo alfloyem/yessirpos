@@ -206,45 +206,16 @@ const orderedMockData = computed(() => {
 const loadGoods = async () => {
   loading.value = true
   try {
-    // For now still using mock data simulation because API is not ready
-    // But structured for the future
-    setTimeout(() => {
-      mockData.value = [
-        { 
-          id: 1, 
-          rowNumber: 1,
-          brandName: ['nike'],
-          productName: 'Nike Air Max T-Shirt',
-          category: ['Geyim', 'İdman'],
-          barcode: '123456789012',
-          description: 'Rahat və keyfiyyətli idman köynəyi',
-          images: [],
-          createdAt: '2026-03-03 10:15', 
-          createdBy: 'Admin'
-        },
-        { 
-          id: 101, 
-          rowNumber: 2,
-          parentProductId: 1,
-          parentProductName: 'Nike Air Max T-Shirt',
-          brandName: 'nike',
-          productName: 'Nike Air Max T-Shirt',
-          category: ['Geyim', 'İdman'],
-          attribute: ['Ölçü: M', 'Rəng: Qırmızı'],
-          barcode: '111122223333',
-          wholesalePrice: 40,
-          retailPrice: 85,
-          stock: 25,
-          reorderLevel: 5,
-          images: [],
-          createdAt: '2026-03-03 10:20', 
-          createdBy: 'Admin'
-        }
-      ]
-      loading.value = false
-    }, 500)
+    const data = await $fetch('/api/products', {
+      headers: { Authorization: `Bearer ${token.value}` }
+    })
+    mockData.value = (data as any[]).map((p, idx) => ({
+      ...p,
+      rowNumber: idx + 1
+    }))
   } catch (err: any) {
     toast.error(t('toast.loadingError', 'Məlumatlar yüklənərkən xəta baş verdi'))
+  } finally {
     loading.value = false
   }
 }
@@ -297,6 +268,9 @@ const handleAdd = () => {
 const handleStandaloneVariantAdd = (row: any) => {
   variantFormData.value = {
     parentProductId: row.id,
+    productName: row.productName,
+    brandName: row.brandName,
+    category: row.category,
     barcode: generateBarcode('P'),
     wholesalePrice: '0.00',
     retailPrice: '0.00',
@@ -341,20 +315,20 @@ const performDelete = async () => {
   loading.value = true
   
   try {
+    const headers = { Authorization: `Bearer ${token.value}` }
     if (deleteTarget.value.type === 'single') {
-      // API call placeholder
-      // await $fetch(`/api/goods/${deleteTarget.value.id}`, { method: 'DELETE' })
-      mockData.value = mockData.value.filter(m => m.id !== deleteTarget.value!.id)
+      await $fetch(`/api/products/${deleteTarget.value.id}`, { method: 'DELETE', headers })
+      toast.success(t('common.delete', 'Silindi'))
     } else if (deleteTarget.value.type === 'bulk') {
-      // await $fetch('/api/goods/bulk-delete', { method: 'POST', body: { ids: deleteTarget.value.ids } })
-      mockData.value = mockData.value.filter(m => !deleteTarget.value!.ids!.includes(m.id))
+      await $fetch('/api/products/bulk-delete', { 
+        method: 'POST', 
+        body: { ids: deleteTarget.value.ids },
+        headers 
+      })
+      toast.success(t('common.delete', 'Toplu silindi'))
     }
     
-    mockData.value.forEach((item, index) => {
-      item.rowNumber = index + 1
-    })
-    
-    toast.success(t('common.delete', 'Silindi'))
+    await loadGoods()
     showDeleteConfirmModal.value = false
     deleteTarget.value = null
   } catch (err: any) {
@@ -373,37 +347,39 @@ const copyBarcode = (barcode: string) => {
   })
 }
 
-const handleDuplicate = (row: any) => {
-  const toast = useToast()
-  const d = new Date()
-  const formattedDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-  
-  const newId = Date.now()
-  const baseName = row.productName.replace(/\s\d+$/, '')
-  const existingNames = mockData.value.map(item => item.name)
-  let count = 1
-  let newName = `${baseName} ${count}`
-  while (existingNames.includes(newName)) {
-    count++
-    newName = `${baseName} ${count}`
+const handleDuplicate = async (row: any) => {
+  loading.value = true
+  try {
+    const baseName = row.productName.replace(/\s\d+$/, '')
+    const existingNames = mockData.value.map(item => item.productName)
+    let count = 1
+    let newName = `${baseName} ${count}`
+    while (existingNames.includes(newName)) {
+      count++
+      newName = `${baseName} ${count}`
+    }
+    
+    const headers = { Authorization: `Bearer ${token.value}` }
+    await $fetch('/api/products', {
+      method: 'POST',
+      body: {
+        ...row,
+        id: undefined,
+        barcode: generateBarcode('P'),
+        productName: newName,
+        images: [...(row.images || [])],
+        attribute: [...(row.attribute || [])]
+      },
+      headers
+    })
+    
+    toast.success(t('toast.attributeDuplicated', 'Kopyalandı'))
+    await loadGoods()
+  } catch (err: any) {
+    toast.error(t('toast.operationFailed'))
+  } finally {
+    loading.value = false
   }
-  
-  const duplicatedData = {
-    ...row,
-    id: newId,
-    barcode: generateBarcode(),
-    productName: newName,
-    images: [...(row.images || [])],
-    createdAt: formattedDate,
-    createdBy: 'Admin'
-  }
-  
-  mockData.value.push(duplicatedData)
-  
-  mockData.value.forEach((item, idx) => {
-    item.rowNumber = idx + 1
-  })
-  toast.success(t('toast.attributeDuplicated', 'Kopyalandı')) // reusing key or should add productSpecific
 }
 
 const handleBulkDelete = (ids: any[]) => {
@@ -475,63 +451,58 @@ const saveForm = async () => {
   if (!validateForm()) return
   
   loading.value = true
-  const d = new Date()
-  const formattedDate = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth()+1).padStart(2, '0')}.${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+  const headers = { Authorization: `Bearer ${token.value}` }
 
   try {
     if (showAddModal.value) {
-      mockData.value.push({ 
-        id: Date.now(),
-        rowNumber: mockData.value.length + 1,
-        images: [...productImages.value],
-        ...formData.value,
-        createdAt: formattedDate,
-        createdBy: 'Admin'
+      await $fetch('/api/products', {
+        method: 'POST',
+        body: {
+          ...formData.value,
+          images: productImages.value
+        },
+        headers
       })
       toast.success(t('toast.customerAdded', 'Əlavə edildi'))
       showAddModal.value = false
     } else if (showEditModal.value) {
       if (bulkSelectedIds.value.length > 0) {
         const updates = Object.fromEntries(Object.entries(formData.value).filter(([_, v]) => v !== undefined && v !== ''))
-        mockData.value = mockData.value.map(item => 
-          bulkSelectedIds.value.includes(item.id) ? { ...item, ...updates } : item
-        )
+        await $fetch('/api/products/bulk-update', {
+          method: 'POST',
+          body: { ids: bulkSelectedIds.value, updates },
+          headers
+        })
         bulkSelectedIds.value = []
       } else {
-        const index = mockData.value.findIndex(m => m.id === formData.value.id)
-        if (index !== -1) {
-          mockData.value[index] = { 
-            ...mockData.value[index], 
+        await $fetch(`/api/products/${formData.value.id}`, {
+          method: 'PUT',
+          body: {
             ...formData.value,
-            images: [...productImages.value]
-          }
-        }
+            images: productImages.value
+          },
+          headers
+        })
       }
       toast.success(t('toast.customerUpdated', 'Yeniləndi'))
       showEditModal.value = false
     } else if (showVariantModal.value) {
-      const parentProduct = mockData.value.find(m => m.id === variantFormData.value.parentProductId)
-      if (parentProduct) {
-        mockData.value.push({
-          id: Date.now(),
-          rowNumber: mockData.value.length + 1,
-          parentProductId: parentProduct.id,
-          parentProductName: parentProduct.productName,
-          brandName: parentProduct.brandName,
-          productName: parentProduct.productName,
-          category: parentProduct.category,
+      await $fetch('/api/products', {
+        method: 'POST',
+        body: {
           ...variantFormData.value,
           attribute: selectedVariantAttr.value.map(s => `${s.name}: ${s.value}`),
-          images: [...variantImages.value],
-          createdAt: formattedDate,
-          createdBy: 'Admin'
-        })
-        toast.success(t('toast.customerAdded', 'Variant əlavə edildi'))
-        showVariantModal.value = false
-      }
+          images: variantImages.value
+        },
+        headers
+      })
+      toast.success(t('toast.customerAdded', 'Variant əlavə edildi'))
+      showVariantModal.value = false
     }
+    await loadGoods()
   } catch (err: any) {
-    toast.error(t('toast.operationFailed'))
+    const msg = err.data?.statusMessage || t('toast.operationFailed')
+    toast.error(msg)
   } finally {
     loading.value = false
   }
