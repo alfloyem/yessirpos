@@ -1,15 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
-
-const toastContainerRef = ref()
-const toast = useToast()
-
-onMounted(async () => {
-  await nextTick()
-  if (toastContainerRef.value) {
-    toast.setContainer(toastContainerRef.value)
-  }
-})
+import Toaster from '~/components/ui/Toaster.vue'
 </script>
 
 <template>
@@ -17,6 +7,6 @@ onMounted(async () => {
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
-    <ToastContainer ref="toastContainerRef" />
+    <Toaster />
   </div>
 </template>

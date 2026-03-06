@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
+import { useHead, useToast, useAuth } from '#imports'
 import { useI18n } from '#i18n'
 import DataTable from '~/components/ui/DataTable.vue'
 import Modal from '~/components/ui/Modal.vue'
@@ -7,6 +8,7 @@ import UiButton from '~/components/ui/Button.vue'
 import DynamicForm, { type FormField } from '~/components/ui/DynamicForm.vue'
 
 const { t } = useI18n()
+const toast = useToast()
 
 useHead({
   title: t('menu.employees')
@@ -106,7 +108,6 @@ const error = ref<string | null>(null)
 const loadEmployees = async () => {
   loading.value = true
   error.value = null
-  const toast = useToast()
   
   try {
     const data = await $fetch('/api/employees')
@@ -193,7 +194,6 @@ const performDelete = async () => {
   if (!deleteTarget.value) return
 
   loading.value = true
-  const toast = useToast()
   
   try {
     if (deleteTarget.value.type === 'single') {
@@ -261,7 +261,6 @@ const customSearch = (item: any, query: string) => {
 
 const handleDuplicate = async (row: any) => {
   loading.value = true
-  const toast = useToast()
   
   try {
     const newUsername = duplicateUsername(row.username)
@@ -334,7 +333,6 @@ const saveForm = async () => {
   if (hasError) return
 
   loading.value = true
-  const toast = useToast()
   const { token, logout } = useAuth()
   
   try {

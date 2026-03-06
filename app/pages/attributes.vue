@@ -8,7 +8,8 @@ import UiButton from '~/components/ui/Button.vue'
 import DynamicForm, { type FormField } from '~/components/ui/DynamicForm.vue'
 
 const { t } = useI18n()
-const { token } = useAuth()
+const { token, logout } = useAuth()
+const toast = useToast()
 
 useHead({
   title: t('menu.attributes', 'Atributlar')
@@ -58,7 +59,6 @@ const loading = ref(false)
 
 const loadAttributes = async () => {
   loading.value = true
-  const toast = useToast()
   try {
     const data = await $fetch('/api/attributes', {
       headers: { Authorization: `Bearer ${token.value}` }
@@ -150,7 +150,6 @@ const handleBulkDelete = (ids: any[]) => {
 const performDelete = async () => {
   if (!deleteTarget.value) return
   loading.value = true
-  const toast = useToast()
 
   try {
     if (deleteTarget.value.type === 'single') {

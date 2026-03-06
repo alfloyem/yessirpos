@@ -9,7 +9,8 @@ import DynamicForm, { type FormField } from '~/components/ui/DynamicForm.vue'
 import ImageCarousel from '~/components/ui/ImageCarousel.vue'
 
 const { t } = useI18n()
-const { token } = useAuth()
+const { token, logout } = useAuth()
+const toast = useToast()
 
 useHead({
   title: t('menu.products', 'Mallar')
@@ -192,7 +193,6 @@ const loading = ref(false)
 
 const loadGoods = async () => {
   loading.value = true
-  const toast = useToast()
   try {
     // For now still using mock data simulation because API is not ready
     // But structured for the future
