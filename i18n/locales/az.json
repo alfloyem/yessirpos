@@ -237,6 +237,8 @@
     "variantImage": "Variant Şəkilləri",
     "saveVariant": "Variantı Yadda Saxla",
     "addNew": "Yeni Mal Əlavə Et",
-    "edit": "Malı Redaktə Et"
+    "edit": "Malı Redaktə Et",
+    "description": "Açıqlama",
+    "barcode": "Barkod"
   }
 }

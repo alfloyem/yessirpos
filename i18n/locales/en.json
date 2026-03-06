@@ -236,6 +236,8 @@
     "variantImage": "Variant Images",
     "saveVariant": "Save Variant",
     "addNew": "Add New Product",
-    "edit": "Edit Product"
+    "edit": "Edit Product",
+    "description": "Description",
+    "barcode": "Barcode"
   }
 }

@@ -25,14 +25,6 @@ const generateBarcode = () => {
   return barcode
 }
 
-// Mock brands (In a real app, these would come from the database)
-const brands = [
-  { label: 'Nike', value: 'nike' },
-  { label: 'Adidas', value: 'adidas' },
-  { label: 'Zara', value: 'zara' },
-  { label: 'H&M', value: 'hm' },
-  { label: 'Mango', value: 'mango' }
-]
 
 // --- Centralized Schema ---
 const goodsSchema = computed< (FormField & { inTable?: boolean, sortable?: boolean })[] >(() => [
@@ -70,11 +62,10 @@ const goodsSchema = computed< (FormField & { inTable?: boolean, sortable?: boole
     key: 'brandName', 
     label: t('products.brand', 'Brendin adı'), 
     icon: 'lucide:award', 
-    type: 'select', 
+    type: 'tags', 
     inTable: true, 
     sortable: true, 
-    required: true, 
-    options: brands 
+    historyKey: 'brand_history' 
   },
   { 
     key: 'category', 
@@ -83,7 +74,6 @@ const goodsSchema = computed< (FormField & { inTable?: boolean, sortable?: boole
     type: 'tags', 
     inTable: true, 
     sortable: true, 
-    required: true, 
     historyKey: 'goods_category' 
   },
   { 
@@ -126,7 +116,7 @@ const goodsSchema = computed< (FormField & { inTable?: boolean, sortable?: boole
   },
   { 
     key: 'description', 
-    label: t('employees.notes', 'Açıqlama'), 
+    label: t('products.description', 'Açıqlama'), 
     icon: 'lucide:file-text', 
     type: 'textarea', 
     colSpan: 2, 
@@ -178,14 +168,6 @@ const columns = computed(() =>
     .map(f => ({ key: f.key, label: f.label, sortable: f.sortable }))
 )
 
-// Brand labels for display
-const brandLabels: Record<string, string> = {
-  nike: 'Nike',
-  adidas: 'Adidas',
-  zara: 'Zara',
-  hm: 'H&M',
-  mango: 'Mango'
-}
 
 // --- Data ---
 const mockData = ref<any[]>([])
@@ -201,7 +183,7 @@ const loadGoods = async () => {
         { 
           id: 1, 
           rowNumber: 1,
-          brandName: 'nike',
+          brandName: ['nike'],
           productName: 'Nike Air Max T-Shirt',
           category: ['Geyim', 'İdman'],
           barcode: '123456789012',
@@ -488,9 +470,15 @@ const saveForm = () => {
 
       <!-- Brand Name Custom Format -->
       <template #cell-brandName="{ value }">
-        <span class="font-semibold text-[var(--text-primary)]">
-          {{ brandLabels[value] || value }}
-        </span>
+        <div class="flex flex-wrap gap-1">
+          <span 
+            v-for="(brand, idx) in (Array.isArray(value) ? value : [value])" 
+            :key="idx"
+            class="font-semibold text-[var(--text-primary)]"
+          >
+            {{ brand }}{{ (Array.isArray(value) && idx < value.length - 1) ? ',' : '' }}
+          </span>
+        </div>
       </template>
 
       <!-- Category Custom Format -->
