@@ -3,13 +3,15 @@
     "label": "Azerbaijan",
     "value": "AZ",
     "flag": "🇦🇿",
-    "phoneCode": "+994"
+    "phoneCode": "+994",
+    "mask": "99-999-99-99"
   },
   {
     "label": "Afghanistan",
     "value": "AF",
     "flag": "🇦🇫",
-    "phoneCode": "+93"
+    "phoneCode": "+93",
+    "mask": "99-999-9999"
   },
   {
     "label": "Åland Islands",
@@ -21,151 +23,176 @@
     "label": "Albania",
     "value": "AL",
     "flag": "🇦🇱",
-    "phoneCode": "+355"
+    "phoneCode": "+355",
+    "mask": "(999)999-999"
   },
   {
     "label": "Algeria",
     "value": "DZ",
     "flag": "🇩🇿",
-    "phoneCode": "+213"
+    "phoneCode": "+213",
+    "mask": "99-999-9999"
   },
   {
     "label": "American Samoa",
     "value": "AS",
     "flag": "🇦🇸",
-    "phoneCode": "+1684"
+    "phoneCode": "+1684",
+    "mask": "(684)999-9999"
   },
   {
     "label": "Andorra",
     "value": "AD",
     "flag": "🇦🇩",
-    "phoneCode": "+376"
+    "phoneCode": "+376",
+    "mask": "999-999"
   },
   {
     "label": "Angola",
     "value": "AO",
     "flag": "🇦🇴",
-    "phoneCode": "+244"
+    "phoneCode": "+244",
+    "mask": "(999)999-999"
   },
   {
     "label": "Anguilla",
     "value": "AI",
     "flag": "🇦🇮",
-    "phoneCode": "+1264"
+    "phoneCode": "+1264",
+    "mask": "(264)999-9999"
   },
   {
     "label": "Antarctica",
     "value": "AQ",
     "flag": "🇦🇶",
-    "phoneCode": ""
+    "phoneCode": "",
+    "mask": "672-199-999"
   },
   {
     "label": "Antigua and Barbuda",
     "value": "AG",
     "flag": "🇦🇬",
-    "phoneCode": "+1268"
+    "phoneCode": "+1268",
+    "mask": "(268)999-9999"
   },
   {
     "label": "Argentina",
     "value": "AR",
     "flag": "🇦🇷",
-    "phoneCode": "+54"
+    "phoneCode": "+54",
+    "mask": "(999)999-9999"
   },
   {
     "label": "Aruba",
     "value": "AW",
     "flag": "🇦🇼",
-    "phoneCode": "+297"
+    "phoneCode": "+297",
+    "mask": "999-9999"
   },
   {
     "label": "Australia",
     "value": "AU",
     "flag": "🇦🇺",
-    "phoneCode": "+61"
+    "phoneCode": "+61",
+    "mask": "9-9999-9999"
   },
   {
     "label": "Austria",
     "value": "AT",
     "flag": "🇦🇹",
-    "phoneCode": "+43"
+    "phoneCode": "+43",
+    "mask": "(999)999-9999"
   },
   {
     "label": "Bahamas",
     "value": "BS",
     "flag": "🇧🇸",
-    "phoneCode": "+1242"
+    "phoneCode": "+1242",
+    "mask": "(242)999-9999"
   },
   {
     "label": "Bahrain",
     "value": "BH",
     "flag": "🇧🇭",
-    "phoneCode": "+973"
+    "phoneCode": "+973",
+    "mask": "9999-9999"
   },
   {
     "label": "Bangladesh",
     "value": "BD",
     "flag": "🇧🇩",
-    "phoneCode": "+880"
+    "phoneCode": "+880",
+    "mask": "99-999-999"
   },
   {
     "label": "Barbados",
     "value": "BB",
     "flag": "🇧🇧",
-    "phoneCode": "+1246"
+    "phoneCode": "+1246",
+    "mask": "(246)999-9999"
   },
   {
     "label": "Belarus",
     "value": "BY",
     "flag": "🇧🇾",
-    "phoneCode": "+375"
+    "phoneCode": "+375",
+    "mask": "(99)999-99-99"
   },
   {
     "label": "Belgium",
     "value": "BE",
     "flag": "🇧🇪",
-    "phoneCode": "+32"
+    "phoneCode": "+32",
+    "mask": "(999)999-999"
   },
   {
     "label": "Belize",
     "value": "BZ",
     "flag": "🇧🇿",
-    "phoneCode": "+501"
+    "phoneCode": "+501",
+    "mask": "999-9999"
   },
   {
     "label": "Benin",
     "value": "BJ",
     "flag": "🇧🇯",
-    "phoneCode": "+229"
+    "phoneCode": "+229",
+    "mask": "99-99-9999"
   },
   {
     "label": "Bermuda",
     "value": "BM",
     "flag": "🇧🇲",
-    "phoneCode": "+1441"
+    "phoneCode": "+1441",
+    "mask": "(441)999-9999"
   },
   {
     "label": "Bhutan",
     "value": "BT",
     "flag": "🇧🇹",
-    "phoneCode": "+975"
+    "phoneCode": "+975",
+    "mask": "9-999-999"
   },
   {
     "label": "Bolivia",
     "value": "BO",
     "flag": "🇧🇴",
-    "phoneCode": "+591"
+    "phoneCode": "+591",
+    "mask": "9-999-9999"
   },
   {
     "label": "Bosnia and Herzegovina",
     "value": "BA",
     "flag": "🇧🇦",
-    "phoneCode": "+387"
+    "phoneCode": "+387",
+    "mask": "99-9999"
   },
   {
     "label": "Botswana",
     "value": "BW",
     "flag": "🇧🇼",
-    "phoneCode": "+267"
+    "phoneCode": "+267",
+    "mask": "99-999-999"
   },
   {
     "label": "Bouvet Island",
@@ -177,67 +204,78 @@
     "label": "Brazil",
     "value": "BR",
     "flag": "🇧🇷",
-    "phoneCode": "+55"
+    "phoneCode": "+55",
+    "mask": "(99)99999-9999"
   },
   {
     "label": "British Indian Ocean Territory",
     "value": "IO",
     "flag": "🇮🇴",
-    "phoneCode": "+246"
+    "phoneCode": "+246",
+    "mask": "999-9999"
   },
   {
     "label": "British Virgin Islands",
     "value": "VG",
     "flag": "🇻🇬",
-    "phoneCode": "+1284"
+    "phoneCode": "+1284",
+    "mask": "(284)999-9999"
   },
   {
     "label": "Brunei",
     "value": "BN",
     "flag": "🇧🇳",
-    "phoneCode": "+673"
+    "phoneCode": "+673",
+    "mask": "999-9999"
   },
   {
     "label": "Bulgaria",
     "value": "BG",
     "flag": "🇧🇬",
-    "phoneCode": "+359"
+    "phoneCode": "+359",
+    "mask": "(999)999-999"
   },
   {
     "label": "Burkina Faso",
     "value": "BF",
     "flag": "🇧🇫",
-    "phoneCode": "+226"
+    "phoneCode": "+226",
+    "mask": "99-99-9999"
   },
   {
     "label": "Burundi",
     "value": "BI",
     "flag": "🇧🇮",
-    "phoneCode": "+257"
+    "phoneCode": "+257",
+    "mask": "99-99-9999"
   },
   {
     "label": "Cambodia",
     "value": "KH",
     "flag": "🇰🇭",
-    "phoneCode": "+855"
+    "phoneCode": "+855",
+    "mask": "99-999-999"
   },
   {
     "label": "Cameroon",
     "value": "CM",
     "flag": "🇨🇲",
-    "phoneCode": "+237"
+    "phoneCode": "+237",
+    "mask": "9999-9999"
   },
   {
     "label": "Canada",
     "value": "CA",
     "flag": "🇨🇦",
-    "phoneCode": "+1"
+    "phoneCode": "+1",
+    "mask": "(999)999-9999"
   },
   {
     "label": "Cape Verde",
     "value": "CV",
     "flag": "🇨🇻",
-    "phoneCode": "+238"
+    "phoneCode": "+238",
+    "mask": "(999)99-99"
   },
   {
     "label": "Caribbean Netherlands",
@@ -249,31 +287,36 @@
     "label": "Cayman Islands",
     "value": "KY",
     "flag": "🇰🇾",
-    "phoneCode": "+1345"
+    "phoneCode": "+1345",
+    "mask": "(345)999-9999"
   },
   {
     "label": "Central African Republic",
     "value": "CF",
     "flag": "🇨🇫",
-    "phoneCode": "+236"
+    "phoneCode": "+236",
+    "mask": "99-99-9999"
   },
   {
     "label": "Chad",
     "value": "TD",
     "flag": "🇹🇩",
-    "phoneCode": "+235"
+    "phoneCode": "+235",
+    "mask": "99-99-99-99"
   },
   {
     "label": "Chile",
     "value": "CL",
     "flag": "🇨🇱",
-    "phoneCode": "+56"
+    "phoneCode": "+56",
+    "mask": "9-9999-9999"
   },
   {
     "label": "China",
     "value": "CN",
     "flag": "🇨🇳",
-    "phoneCode": "+86"
+    "phoneCode": "+86",
+    "mask": "99-99999-99999"
   },
   {
     "label": "Christmas Island",
@@ -291,175 +334,204 @@
     "label": "Colombia",
     "value": "CO",
     "flag": "🇨🇴",
-    "phoneCode": "+57"
+    "phoneCode": "+57",
+    "mask": "(999)999-9999"
   },
   {
     "label": "Comoros",
     "value": "KM",
     "flag": "🇰🇲",
-    "phoneCode": "+269"
+    "phoneCode": "+269",
+    "mask": "99-99999"
   },
   {
     "label": "Cook Islands",
     "value": "CK",
     "flag": "🇨🇰",
-    "phoneCode": "+682"
+    "phoneCode": "+682",
+    "mask": "99-999"
   },
   {
     "label": "Costa Rica",
     "value": "CR",
     "flag": "🇨🇷",
-    "phoneCode": "+506"
+    "phoneCode": "+506",
+    "mask": "9999-9999"
   },
   {
     "label": "Croatia",
     "value": "HR",
     "flag": "🇭🇷",
-    "phoneCode": "+385"
+    "phoneCode": "+385",
+    "mask": "99-999-999"
   },
   {
     "label": "Cuba",
     "value": "CU",
     "flag": "🇨🇺",
-    "phoneCode": "+53"
+    "phoneCode": "+53",
+    "mask": "9-999-9999"
   },
   {
     "label": "Curaçao",
     "value": "CW",
     "flag": "🇨🇼",
-    "phoneCode": "+599"
+    "phoneCode": "+599",
+    "mask": "999-9999"
   },
   {
     "label": "Cyprus",
     "value": "CY",
     "flag": "🇨🇾",
-    "phoneCode": "+357"
+    "phoneCode": "+357",
+    "mask": "99-999-999"
   },
   {
     "label": "Czechia",
     "value": "CZ",
     "flag": "🇨🇿",
-    "phoneCode": "+420"
+    "phoneCode": "+420",
+    "mask": "(999)999-999"
   },
   {
     "label": "Denmark",
     "value": "DK",
     "flag": "🇩🇰",
-    "phoneCode": "+45"
+    "phoneCode": "+45",
+    "mask": "99-99-99-99"
   },
   {
     "label": "Djibouti",
     "value": "DJ",
     "flag": "🇩🇯",
-    "phoneCode": "+253"
+    "phoneCode": "+253",
+    "mask": "99-99-99-99"
   },
   {
     "label": "Dominica",
     "value": "DM",
     "flag": "🇩🇲",
-    "phoneCode": "+1767"
+    "phoneCode": "+1767",
+    "mask": "(767)999-9999"
   },
   {
     "label": "Dominican Republic",
     "value": "DO",
     "flag": "🇩🇴",
-    "phoneCode": "+1"
+    "phoneCode": "+1",
+    "mask": "(849)999-9999"
   },
   {
     "label": "DR Congo",
     "value": "CD",
     "flag": "🇨🇩",
-    "phoneCode": "+243"
+    "phoneCode": "+243",
+    "mask": "(999)999-999"
   },
   {
     "label": "Ecuador",
     "value": "EC",
     "flag": "🇪🇨",
-    "phoneCode": "+593"
+    "phoneCode": "+593",
+    "mask": "9-999-9999"
   },
   {
     "label": "Egypt",
     "value": "EG",
     "flag": "🇪🇬",
-    "phoneCode": "+20"
+    "phoneCode": "+20",
+    "mask": "(999)999-9999"
   },
   {
     "label": "El Salvador",
     "value": "SV",
     "flag": "🇸🇻",
-    "phoneCode": "+503"
+    "phoneCode": "+503",
+    "mask": "99-99-9999"
   },
   {
     "label": "Equatorial Guinea",
     "value": "GQ",
     "flag": "🇬🇶",
-    "phoneCode": "+240"
+    "phoneCode": "+240",
+    "mask": "99-999-9999"
   },
   {
     "label": "Eritrea",
     "value": "ER",
     "flag": "🇪🇷",
-    "phoneCode": "+291"
+    "phoneCode": "+291",
+    "mask": "9-999-999"
   },
   {
     "label": "Estonia",
     "value": "EE",
     "flag": "🇪🇪",
-    "phoneCode": "+372"
+    "phoneCode": "+372",
+    "mask": "999-9999"
   },
   {
     "label": "Eswatini",
     "value": "SZ",
     "flag": "🇸🇿",
-    "phoneCode": "+268"
+    "phoneCode": "+268",
+    "mask": "99-99-9999"
   },
   {
     "label": "Ethiopia",
     "value": "ET",
     "flag": "🇪🇹",
-    "phoneCode": "+251"
+    "phoneCode": "+251",
+    "mask": "99-999-9999"
   },
   {
     "label": "Falkland Islands",
     "value": "FK",
     "flag": "🇫🇰",
-    "phoneCode": "+500"
+    "phoneCode": "+500",
+    "mask": "99999"
   },
   {
     "label": "Faroe Islands",
     "value": "FO",
     "flag": "🇫🇴",
-    "phoneCode": "+298"
+    "phoneCode": "+298",
+    "mask": "999-999"
   },
   {
     "label": "Fiji",
     "value": "FJ",
     "flag": "🇫🇯",
-    "phoneCode": "+679"
+    "phoneCode": "+679",
+    "mask": "99-99999"
   },
   {
     "label": "Finland",
     "value": "FI",
     "flag": "🇫🇮",
-    "phoneCode": "+358"
+    "phoneCode": "+358",
+    "mask": "(999)999-99-99"
   },
   {
     "label": "France",
     "value": "FR",
     "flag": "🇫🇷",
-    "phoneCode": "+33"
+    "phoneCode": "+33",
+    "mask": "590(999)999-999"
   },
   {
     "label": "French Guiana",
     "value": "GF",
     "flag": "🇬🇫",
-    "phoneCode": "+594"
+    "phoneCode": "+594",
+    "mask": "99999-9999"
   },
   {
     "label": "French Polynesia",
     "value": "PF",
     "flag": "🇵🇫",
-    "phoneCode": "+689"
+    "phoneCode": "+689",
+    "mask": "99-99-99"
   },
   {
     "label": "French Southern and Antarctic Lands",
@@ -471,55 +543,64 @@
     "label": "Gabon",
     "value": "GA",
     "flag": "🇬🇦",
-    "phoneCode": "+241"
+    "phoneCode": "+241",
+    "mask": "9-99-99-99"
   },
   {
     "label": "Gambia",
     "value": "GM",
     "flag": "🇬🇲",
-    "phoneCode": "+220"
+    "phoneCode": "+220",
+    "mask": "(999)99-99"
   },
   {
     "label": "Georgia",
     "value": "GE",
     "flag": "🇬🇪",
-    "phoneCode": "+995"
+    "phoneCode": "+995",
+    "mask": "(999)999-999"
   },
   {
     "label": "Germany",
     "value": "DE",
     "flag": "🇩🇪",
-    "phoneCode": "+49"
+    "phoneCode": "+49",
+    "mask": "999-999"
   },
   {
     "label": "Ghana",
     "value": "GH",
     "flag": "🇬🇭",
-    "phoneCode": "+233"
+    "phoneCode": "+233",
+    "mask": "(999)999-999"
   },
   {
     "label": "Gibraltar",
     "value": "GI",
     "flag": "🇬🇮",
-    "phoneCode": "+350"
+    "phoneCode": "+350",
+    "mask": "999-99999"
   },
   {
     "label": "Greece",
     "value": "GR",
     "flag": "🇬🇷",
-    "phoneCode": "+30"
+    "phoneCode": "+30",
+    "mask": "(999)999-9999"
   },
   {
     "label": "Greenland",
     "value": "GL",
     "flag": "🇬🇱",
-    "phoneCode": "+299"
+    "phoneCode": "+299",
+    "mask": "99-99-99"
   },
   {
     "label": "Grenada",
     "value": "GD",
     "flag": "🇬🇩",
-    "phoneCode": "+1473"
+    "phoneCode": "+1473",
+    "mask": "(473)999-9999"
   },
   {
     "label": "Guadeloupe",
@@ -531,13 +612,15 @@
     "label": "Guam",
     "value": "GU",
     "flag": "🇬🇺",
-    "phoneCode": "+1671"
+    "phoneCode": "+1671",
+    "mask": "(671)999-9999"
   },
   {
     "label": "Guatemala",
     "value": "GT",
     "flag": "🇬🇹",
-    "phoneCode": "+502"
+    "phoneCode": "+502",
+    "mask": "9-999-9999"
   },
   {
     "label": "Guernsey",
@@ -549,25 +632,29 @@
     "label": "Guinea",
     "value": "GN",
     "flag": "🇬🇳",
-    "phoneCode": "+224"
+    "phoneCode": "+224",
+    "mask": "99-999-999"
   },
   {
     "label": "Guinea-Bissau",
     "value": "GW",
     "flag": "🇬🇼",
-    "phoneCode": "+245"
+    "phoneCode": "+245",
+    "mask": "9-999999"
   },
   {
     "label": "Guyana",
     "value": "GY",
     "flag": "🇬🇾",
-    "phoneCode": "+592"
+    "phoneCode": "+592",
+    "mask": "999-9999"
   },
   {
     "label": "Haiti",
     "value": "HT",
     "flag": "🇭🇹",
-    "phoneCode": "+509"
+    "phoneCode": "+509",
+    "mask": "99-99-9999"
   },
   {
     "label": "Heard Island and McDonald Islands",
@@ -579,55 +666,64 @@
     "label": "Honduras",
     "value": "HN",
     "flag": "🇭🇳",
-    "phoneCode": "+504"
+    "phoneCode": "+504",
+    "mask": "9999-9999"
   },
   {
     "label": "Hong Kong",
     "value": "HK",
     "flag": "🇭🇰",
-    "phoneCode": "+852"
+    "phoneCode": "+852",
+    "mask": "9999-9999"
   },
   {
     "label": "Hungary",
     "value": "HU",
     "flag": "🇭🇺",
-    "phoneCode": "+36"
+    "phoneCode": "+36",
+    "mask": "(999)999-999"
   },
   {
     "label": "Iceland",
     "value": "IS",
     "flag": "🇮🇸",
-    "phoneCode": "+354"
+    "phoneCode": "+354",
+    "mask": "999-9999"
   },
   {
     "label": "India",
     "value": "IN",
     "flag": "🇮🇳",
-    "phoneCode": "+91"
+    "phoneCode": "+91",
+    "mask": "(9999)999-999"
   },
   {
     "label": "Indonesia",
     "value": "ID",
     "flag": "🇮🇩",
-    "phoneCode": "+62"
+    "phoneCode": "+62",
+    "mask": "(899)999-99-999"
   },
   {
     "label": "Iran",
     "value": "IR",
     "flag": "🇮🇷",
-    "phoneCode": "+98"
+    "phoneCode": "+98",
+    "mask": "(999)999-9999"
   },
   {
     "label": "Iraq",
     "value": "IQ",
     "flag": "🇮🇶",
-    "phoneCode": "+964"
+    "phoneCode": "+964",
+    "mask": "(999)999-9999"
   },
   {
     "label": "Ireland",
     "value": "IE",
     "flag": "🇮🇪",
-    "phoneCode": "+353"
+    "phoneCode": "+353",
+    "mask": "(999)999-999"
   },
   {
     "label": "Isle of Man",
@@ -639,31 +735,36 @@
     "label": "Israel",
     "value": "IL",
     "flag": "🇮🇱",
-    "phoneCode": "+972"
+    "phoneCode": "+972",
+    "mask": "9-999-9999"
   },
   {
     "label": "Italy",
     "value": "IT",
     "flag": "🇮🇹",
-    "phoneCode": "+39"
+    "phoneCode": "+39",
+    "mask": "(999)9999-999"
   },
   {
     "label": "Ivory Coast",
     "value": "CI",
     "flag": "🇨🇮",
-    "phoneCode": "+225"
+    "phoneCode": "+225",
+    "mask": "99-999-999"
   },
   {
     "label": "Jamaica",
     "value": "JM",
     "flag": "🇯🇲",
-    "phoneCode": "+1"
+    "phoneCode": "+1",
+    "mask": "(876)999-9999"
   },
   {
     "label": "Japan",
     "value": "JP",
     "flag": "🇯🇵",
-    "phoneCode": "+81"
+    "phoneCode": "+81",
+    "mask": "(999)999-999"
   },
   {
     "label": "Jersey",
@@ -675,25 +776,29 @@
     "label": "Jordan",
     "value": "JO",
     "flag": "🇯🇴",
-    "phoneCode": "+962"
+    "phoneCode": "+962",
+    "mask": "9-9999-9999"
   },
   {
     "label": "Kazakhstan",
     "value": "KZ",
     "flag": "🇰🇿",
-    "phoneCode": "+7"
+    "phoneCode": "+7",
+    "mask": "(799)999-99-99"
   },
   {
     "label": "Kenya",
     "value": "KE",
     "flag": "🇰🇪",
-    "phoneCode": "+254"
+    "phoneCode": "+254",
+    "mask": "999-999999"
   },
   {
     "label": "Kiribati",
     "value": "KI",
     "flag": "🇰🇮",
-    "phoneCode": "+686"
+    "phoneCode": "+686",
+    "mask": "99-999"
   },
   {
     "label": "Kosovo",
@@ -705,133 +810,155 @@
     "label": "Kuwait",
     "value": "KW",
     "flag": "🇰🇼",
-    "phoneCode": "+965"
+    "phoneCode": "+965",
+    "mask": "9999-9999"
   },
   {
     "label": "Kyrgyzstan",
     "value": "KG",
     "flag": "🇰🇬",
-    "phoneCode": "+996"
+    "phoneCode": "+996",
+    "mask": "(999)999-999"
   },
   {
     "label": "Laos",
     "value": "LA",
     "flag": "🇱🇦",
-    "phoneCode": "+856"
+    "phoneCode": "+856",
+    "mask": "99-999-999"
   },
   {
     "label": "Latvia",
     "value": "LV",
     "flag": "🇱🇻",
-    "phoneCode": "+371"
+    "phoneCode": "+371",
+    "mask": "99-999-999"
   },
   {
     "label": "Lebanon",
     "value": "LB",
     "flag": "🇱🇧",
-    "phoneCode": "+961"
+    "phoneCode": "+961",
+    "mask": "9-999-999"
   },
   {
     "label": "Lesotho",
     "value": "LS",
     "flag": "🇱🇸",
-    "phoneCode": "+266"
+    "phoneCode": "+266",
+    "mask": "9-999-9999"
   },
   {
     "label": "Liberia",
     "value": "LR",
     "flag": "🇱🇷",
-    "phoneCode": "+231"
+    "phoneCode": "+231",
+    "mask": "99-999-999"
   },
   {
     "label": "Libya",
     "value": "LY",
     "flag": "🇱🇾",
-    "phoneCode": "+218"
+    "phoneCode": "+218",
+    "mask": "21-999-9999"
   },
   {
     "label": "Liechtenstein",
     "value": "LI",
     "flag": "🇱🇮",
-    "phoneCode": "+423"
+    "phoneCode": "+423",
+    "mask": "(999)999-9999"
   },
   {
     "label": "Lithuania",
     "value": "LT",
     "flag": "🇱🇹",
-    "phoneCode": "+370"
+    "phoneCode": "+370",
+    "mask": "(999)99-999"
   },
   {
     "label": "Luxembourg",
     "value": "LU",
     "flag": "🇱🇺",
-    "phoneCode": "+352"
+    "phoneCode": "+352",
+    "mask": "(999)999-999"
   },
   {
     "label": "Macau",
     "value": "MO",
     "flag": "🇲🇴",
-    "phoneCode": "+853"
+    "phoneCode": "+853",
+    "mask": "9999-9999"
   },
   {
     "label": "Madagascar",
     "value": "MG",
     "flag": "🇲🇬",
-    "phoneCode": "+261"
+    "phoneCode": "+261",
+    "mask": "99-99-99999"
   },
   {
     "label": "Malawi",
     "value": "MW",
     "flag": "🇲🇼",
-    "phoneCode": "+265"
+    "phoneCode": "+265",
+    "mask": "9-9999-9999"
   },
   {
     "label": "Malaysia",
     "value": "MY",
     "flag": "🇲🇾",
-    "phoneCode": "+60"
+    "phoneCode": "+60",
+    "mask": "9-999-999"
   },
   {
     "label": "Maldives",
     "value": "MV",
     "flag": "🇲🇻",
-    "phoneCode": "+960"
+    "phoneCode": "+960",
+    "mask": "999-9999"
   },
   {
     "label": "Mali",
     "value": "ML",
     "flag": "🇲🇱",
-    "phoneCode": "+223"
+    "phoneCode": "+223",
+    "mask": "99-99-9999"
   },
   {
     "label": "Malta",
     "value": "MT",
     "flag": "🇲🇹",
-    "phoneCode": "+356"
+    "phoneCode": "+356",
+    "mask": "9999-9999"
   },
   {
     "label": "Marshall Islands",
     "value": "MH",
     "flag": "🇲🇭",
-    "phoneCode": "+692"
+    "phoneCode": "+692",
+    "mask": "999-9999"
   },
   {
     "label": "Martinique",
     "value": "MQ",
     "flag": "🇲🇶",
-    "phoneCode": "+596"
+    "phoneCode": "+596",
+    "mask": "(999)99-99-99"
   },
   {
     "label": "Mauritania",
     "value": "MR",
     "flag": "🇲🇷",
-    "phoneCode": "+222"
+    "phoneCode": "+222",
+    "mask": "99-99-9999"
   },
   {
     "label": "Mauritius",
     "value": "MU",
     "flag": "🇲🇺",
-    "phoneCode": "+230"
+    "phoneCode": "+230",
+    "mask": "999-9999"
   },
   {
     "label": "Mayotte",
@@ -843,205 +970,239 @@
     "label": "Mexico",
     "value": "MX",
     "flag": "🇲🇽",
-    "phoneCode": "+52"
+    "phoneCode": "+52",
+    "mask": "99-99-9999"
   },
   {
     "label": "Micronesia",
     "value": "FM",
     "flag": "🇫🇲",
-    "phoneCode": "+691"
+    "phoneCode": "+691",
+    "mask": "999-9999"
   },
   {
     "label": "Moldova",
     "value": "MD",
     "flag": "🇲🇩",
-    "phoneCode": "+373"
+    "phoneCode": "+373",
+    "mask": "9999-9999"
   },
   {
     "label": "Monaco",
     "value": "MC",
     "flag": "🇲🇨",
-    "phoneCode": "+377"
+    "phoneCode": "+377",
+    "mask": "99-999-999"
   },
   {
     "label": "Mongolia",
     "value": "MN",
     "flag": "🇲🇳",
-    "phoneCode": "+976"
+    "phoneCode": "+976",
+    "mask": "99-99-9999"
   },
   {
     "label": "Montenegro",
     "value": "ME",
     "flag": "🇲🇪",
-    "phoneCode": "+382"
+    "phoneCode": "+382",
+    "mask": "99-999-999"
   },
   {
     "label": "Montserrat",
     "value": "MS",
     "flag": "🇲🇸",
-    "phoneCode": "+1664"
+    "phoneCode": "+1664",
+    "mask": "(664)999-9999"
   },
   {
     "label": "Morocco",
     "value": "MA",
     "flag": "🇲🇦",
-    "phoneCode": "+212"
+    "phoneCode": "+212",
+    "mask": "99-9999-999"
   },
   {
     "label": "Mozambique",
     "value": "MZ",
     "flag": "🇲🇿",
-    "phoneCode": "+258"
+    "phoneCode": "+258",
+    "mask": "99-999-999"
   },
   {
     "label": "Myanmar",
     "value": "MM",
     "flag": "🇲🇲",
-    "phoneCode": "+95"
+    "phoneCode": "+95",
+    "mask": "999-999"
   },
   {
     "label": "Namibia",
     "value": "NA",
     "flag": "🇳🇦",
-    "phoneCode": "+264"
+    "phoneCode": "+264",
+    "mask": "99-999-9999"
   },
   {
     "label": "Nauru",
     "value": "NR",
     "flag": "🇳🇷",
-    "phoneCode": "+674"
+    "phoneCode": "+674",
+    "mask": "999-9999"
   },
   {
     "label": "Nepal",
     "value": "NP",
     "flag": "🇳🇵",
-    "phoneCode": "+977"
+    "phoneCode": "+977",
+    "mask": "99-999-999"
   },
   {
     "label": "Netherlands",
     "value": "NL",
     "flag": "🇳🇱",
-    "phoneCode": "+31"
+    "phoneCode": "+31",
+    "mask": "99-999-9999"
   },
   {
     "label": "New Caledonia",
     "value": "NC",
     "flag": "🇳🇨",
-    "phoneCode": "+687"
+    "phoneCode": "+687",
+    "mask": "99-9999"
   },
   {
     "label": "New Zealand",
     "value": "NZ",
     "flag": "🇳🇿",
-    "phoneCode": "+64"
+    "phoneCode": "+64",
+    "mask": "(999)999-9999"
   },
   {
     "label": "Nicaragua",
     "value": "NI",
     "flag": "🇳🇮",
-    "phoneCode": "+505"
+    "phoneCode": "+505",
+    "mask": "9999-9999"
   },
   {
     "label": "Niger",
     "value": "NE",
     "flag": "🇳🇪",
-    "phoneCode": "+227"
+    "phoneCode": "+227",
+    "mask": "99-99-9999"
   },
   {
     "label": "Nigeria",
     "value": "NG",
     "flag": "🇳🇬",
-    "phoneCode": "+234"
+    "phoneCode": "+234",
+    "mask": "(999)999-9999"
   },
   {
     "label": "Niue",
     "value": "NU",
     "flag": "🇳🇺",
-    "phoneCode": "+683"
+    "phoneCode": "+683",
+    "mask": "9999"
   },
   {
     "label": "Norfolk Island",
     "value": "NF",
     "flag": "🇳🇫",
-    "phoneCode": "+672"
+    "phoneCode": "+672",
+    "mask": "399-999"
   },
   {
     "label": "North Korea",
     "value": "KP",
     "flag": "🇰🇵",
-    "phoneCode": "+850"
+    "phoneCode": "+850",
+    "mask": "9999-9999999999999"
   },
   {
     "label": "North Macedonia",
     "value": "MK",
     "flag": "🇲🇰",
-    "phoneCode": "+389"
+    "phoneCode": "+389",
+    "mask": "99-999-999"
   },
   {
     "label": "Northern Mariana Islands",
     "value": "MP",
     "flag": "🇲🇵",
-    "phoneCode": "+1670"
+    "phoneCode": "+1670",
+    "mask": "(670)999-9999"
   },
   {
     "label": "Norway",
     "value": "NO",
     "flag": "🇳🇴",
-    "phoneCode": "+47"
+    "phoneCode": "+47",
+    "mask": "(999)99-999"
   },
   {
     "label": "Oman",
     "value": "OM",
     "flag": "🇴🇲",
-    "phoneCode": "+968"
+    "phoneCode": "+968",
+    "mask": "99-999-999"
   },
   {
     "label": "Pakistan",
     "value": "PK",
     "flag": "🇵🇰",
-    "phoneCode": "+92"
+    "phoneCode": "+92",
+    "mask": "(999)999-9999"
   },
   {
     "label": "Palau",
     "value": "PW",
     "flag": "🇵🇼",
-    "phoneCode": "+680"
+    "phoneCode": "+680",
+    "mask": "999-9999"
   },
   {
     "label": "Palestine",
     "value": "PS",
     "flag": "🇵🇸",
-    "phoneCode": "+970"
+    "phoneCode": "+970",
+    "mask": "99-999-9999"
   },
   {
     "label": "Panama",
     "value": "PA",
     "flag": "🇵🇦",
-    "phoneCode": "+507"
+    "phoneCode": "+507",
+    "mask": "999-9999"
   },
   {
     "label": "Papua New Guinea",
     "value": "PG",
     "flag": "🇵🇬",
-    "phoneCode": "+675"
+    "phoneCode": "+675",
+    "mask": "(999)99-999"
   },
   {
     "label": "Paraguay",
     "value": "PY",
     "flag": "🇵🇾",
-    "phoneCode": "+595"
+    "phoneCode": "+595",
+    "mask": "(999)999-999"
   },
   {
     "label": "Peru",
     "value": "PE",
     "flag": "🇵🇪",
-    "phoneCode": "+51"
+    "phoneCode": "+51",
+    "mask": "(999)999-999"
   },
   {
     "label": "Philippines",
     "value": "PH",
     "flag": "🇵🇭",
-    "phoneCode": "+63"
+    "phoneCode": "+63",
+    "mask": "(999)999-9999"
   },
   {
     "label": "Pitcairn Islands",
@@ -1053,13 +1214,15 @@
     "label": "Poland",
     "value": "PL",
     "flag": "🇵🇱",
-    "phoneCode": "+48"
+    "phoneCode": "+48",
+    "mask": "(999)999-999"
   },
   {
     "label": "Portugal",
     "value": "PT",
     "flag": "🇵🇹",
-    "phoneCode": "+351"
+    "phoneCode": "+351",
+    "mask": "99-999-9999"
   },
   {
     "label": "Puerto Rico",
@@ -1071,37 +1234,43 @@
     "label": "Qatar",
     "value": "QA",
     "flag": "🇶🇦",
-    "phoneCode": "+974"
+    "phoneCode": "+974",
+    "mask": "9999-9999"
   },
   {
     "label": "Republic of the Congo",
     "value": "CG",
     "flag": "🇨🇬",
-    "phoneCode": "+242"
+    "phoneCode": "+242",
+    "mask": "99-999-9999"
   },
   {
     "label": "Réunion",
     "value": "RE",
     "flag": "🇷🇪",
-    "phoneCode": "+262"
+    "phoneCode": "+262",
+    "mask": "99999-9999"
   },
   {
     "label": "Romania",
     "value": "RO",
     "flag": "🇷🇴",
-    "phoneCode": "+40"
+    "phoneCode": "+40",
+    "mask": "99-999-9999"
   },
   {
     "label": "Russia",
     "value": "RU",
     "flag": "🇷🇺",
-    "phoneCode": "+7"
+    "phoneCode": "+7",
+    "mask": "(999)999-99-99"
   },
   {
     "label": "Rwanda",
     "value": "RW",
     "flag": "🇷🇼",
-    "phoneCode": "+250"
+    "phoneCode": "+250",
+    "mask": "(999)999-999"
   },
   {
     "label": "Saint Barthélemy",
@@ -1113,19 +1282,22 @@
     "label": "Saint Helena, Ascension and Tristan da Cunha",
     "value": "SH",
     "flag": "🇸🇭",
-    "phoneCode": "+2"
+    "phoneCode": "+2",
+    "mask": "90-9999"
   },
   {
     "label": "Saint Kitts and Nevis",
     "value": "KN",
     "flag": "🇰🇳",
-    "phoneCode": "+1869"
+    "phoneCode": "+1869",
+    "mask": "(869)999-9999"
   },
   {
     "label": "Saint Lucia",
     "value": "LC",
     "flag": "🇱🇨",
-    "phoneCode": "+1758"
+    "phoneCode": "+1758",
+    "mask": "(758)999-9999"
   },
   {
     "label": "Saint Martin",
@@ -1143,97 +1315,113 @@
     "label": "Saint Vincent and the Grenadines",
     "value": "VC",
     "flag": "🇻🇨",
-    "phoneCode": "+1784"
+    "phoneCode": "+1784",
+    "mask": "(784)999-9999"
   },
   {
     "label": "Samoa",
     "value": "WS",
     "flag": "🇼🇸",
-    "phoneCode": "+685"
+    "phoneCode": "+685",
+    "mask": "99-9999"
   },
   {
     "label": "San Marino",
     "value": "SM",
     "flag": "🇸🇲",
-    "phoneCode": "+378"
+    "phoneCode": "+378",
+    "mask": "9999-999999"
   },
   {
     "label": "São Tomé and Príncipe",
     "value": "ST",
     "flag": "🇸🇹",
-    "phoneCode": "+239"
+    "phoneCode": "+239",
+    "mask": "99-99999"
   },
   {
     "label": "Saudi Arabia",
     "value": "SA",
     "flag": "🇸🇦",
-    "phoneCode": "+966"
+    "phoneCode": "+966",
+    "mask": "9-999-9999"
   },
   {
     "label": "Senegal",
     "value": "SN",
     "flag": "🇸🇳",
-    "phoneCode": "+221"
+    "phoneCode": "+221",
+    "mask": "99-999-9999"
   },
   {
     "label": "Serbia",
     "value": "RS",
     "flag": "🇷🇸",
-    "phoneCode": "+381"
+    "phoneCode": "+381",
+    "mask": "99-999-9999"
   },
   {
     "label": "Seychelles",
     "value": "SC",
     "flag": "🇸🇨",
-    "phoneCode": "+248"
+    "phoneCode": "+248",
+    "mask": "9-999-999"
   },
   {
     "label": "Sierra Leone",
     "value": "SL",
     "flag": "🇸🇱",
-    "phoneCode": "+232"
+    "phoneCode": "+232",
+    "mask": "99-999999"
   },
   {
     "label": "Singapore",
     "value": "SG",
     "flag": "🇸🇬",
-    "phoneCode": "+65"
+    "phoneCode": "+65",
+    "mask": "9999-9999"
   },
   {
     "label": "Sint Maarten",
     "value": "SX",
     "flag": "🇸🇽",
-    "phoneCode": "+1721"
+    "phoneCode": "+1721",
+    "mask": "(721)999-9999"
   },
   {
     "label": "Slovakia",
     "value": "SK",
     "flag": "🇸🇰",
-    "phoneCode": "+421"
+    "phoneCode": "+421",
+    "mask": "(999)999-999"
   },
   {
     "label": "Slovenia",
     "value": "SI",
     "flag": "🇸🇮",
-    "phoneCode": "+386"
+    "phoneCode": "+386",
+    "mask": "99-999-999"
   },
   {
     "label": "Solomon Islands",
     "value": "SB",
     "flag": "🇸🇧",
-    "phoneCode": "+677"
+    "phoneCode": "+677",
+    "mask": "99999"
   },
   {
     "label": "Somalia",
     "value": "SO",
     "flag": "🇸🇴",
-    "phoneCode": "+252"
+    "phoneCode": "+252",
+    "mask": "9-999-999"
   },
   {
     "label": "South Africa",
     "value": "ZA",
     "flag": "🇿🇦",
-    "phoneCode": "+27"
+    "phoneCode": "+27",
+    "mask": "99-999-9999"
   },
   {
     "label": "South Georgia",
@@ -1245,37 +1433,43 @@
     "label": "South Korea",
     "value": "KR",
     "flag": "🇰🇷",
-    "phoneCode": "+82"
+    "phoneCode": "+82",
+    "mask": "99-999-9999"
   },
   {
     "label": "South Sudan",
     "value": "SS",
     "flag": "🇸🇸",
-    "phoneCode": "+211"
+    "phoneCode": "+211",
+    "mask": "99-999-9999"
   },
   {
     "label": "Spain",
     "value": "ES",
     "flag": "🇪🇸",
-    "phoneCode": "+34"
+    "phoneCode": "+34",
+    "mask": "(999)999-999"
   },
   {
     "label": "Sri Lanka",
     "value": "LK",
     "flag": "🇱🇰",
-    "phoneCode": "+94"
+    "phoneCode": "+94",
+    "mask": "99-999-9999"
   },
   {
     "label": "Sudan",
     "value": "SD",
     "flag": "🇸🇩",
-    "phoneCode": "+249"
+    "phoneCode": "+249",
+    "mask": "99-999-9999"
   },
   {
     "label": "Suriname",
     "value": "SR",
     "flag": "🇸🇷",
-    "phoneCode": "+597"
+    "phoneCode": "+597",
+    "mask": "999-999"
   },
   {
     "label": "Svalbard and Jan Mayen",
@@ -1287,121 +1481,141 @@
     "label": "Sweden",
     "value": "SE",
     "flag": "🇸🇪",
-    "phoneCode": "+46"
+    "phoneCode": "+46",
+    "mask": "99-999-9999"
   },
   {
     "label": "Switzerland",
     "value": "CH",
     "flag": "🇨🇭",
-    "phoneCode": "+41"
+    "phoneCode": "+41",
+    "mask": "99-999-9999"
   },
   {
     "label": "Syria",
     "value": "SY",
     "flag": "🇸🇾",
-    "phoneCode": "+963"
+    "phoneCode": "+963",
+    "mask": "99-9999-999"
   },
   {
     "label": "Taiwan",
     "value": "TW",
     "flag": "🇹🇼",
-    "phoneCode": "+886"
+    "phoneCode": "+886",
+    "mask": "9999-9999"
   },
   {
     "label": "Tajikistan",
     "value": "TJ",
     "flag": "🇹🇯",
-    "phoneCode": "+992"
+    "phoneCode": "+992",
+    "mask": "99-999-9999"
   },
   {
     "label": "Tanzania",
     "value": "TZ",
     "flag": "🇹🇿",
-    "phoneCode": "+255"
+    "phoneCode": "+255",
+    "mask": "99-999-9999"
   },
   {
     "label": "Thailand",
     "value": "TH",
     "flag": "🇹🇭",
-    "phoneCode": "+66"
+    "phoneCode": "+66",
+    "mask": "99-999-999"
   },
   {
     "label": "Timor-Leste",
     "value": "TL",
     "flag": "🇹🇱",
-    "phoneCode": "+670"
+    "phoneCode": "+670",
+    "mask": "789-99999"
   },
   {
     "label": "Togo",
     "value": "TG",
     "flag": "🇹🇬",
-    "phoneCode": "+228"
+    "phoneCode": "+228",
+    "mask": "99-999-999"
   },
   {
     "label": "Tokelau",
     "value": "TK",
     "flag": "🇹🇰",
-    "phoneCode": "+690"
+    "phoneCode": "+690",
+    "mask": "9999"
   },
   {
     "label": "Tonga",
     "value": "TO",
     "flag": "🇹🇴",
-    "phoneCode": "+676"
+    "phoneCode": "+676",
+    "mask": "99999"
   },
   {
     "label": "Trinidad and Tobago",
     "value": "TT",
     "flag": "🇹🇹",
-    "phoneCode": "+1868"
+    "phoneCode": "+1868",
+    "mask": "(868)999-9999"
   },
   {
     "label": "Tunisia",
     "value": "TN",
     "flag": "🇹🇳",
-    "phoneCode": "+216"
+    "phoneCode": "+216",
+    "mask": "99-999-999"
   },
   {
     "label": "Turkey",
     "value": "TR",
     "flag": "🇹🇷",
-    "phoneCode": "+90"
+    "phoneCode": "+90",
+    "mask": "(999)999-9999"
   },
   {
     "label": "Turkmenistan",
     "value": "TM",
     "flag": "🇹🇲",
-    "phoneCode": "+993"
+    "phoneCode": "+993",
+    "mask": "9-999-9999"
   },
   {
     "label": "Turks and Caicos Islands",
     "value": "TC",
     "flag": "🇹🇨",
-    "phoneCode": "+1649"
+    "phoneCode": "+1649",
+    "mask": "(649)999-9999"
   },
   {
     "label": "Tuvalu",
     "value": "TV",
     "flag": "🇹🇻",
-    "phoneCode": "+688"
+    "phoneCode": "+688",
+    "mask": "29999"
   },
   {
     "label": "Uganda",
     "value": "UG",
     "flag": "🇺🇬",
-    "phoneCode": "+256"
+    "phoneCode": "+256",
+    "mask": "(999)999-999"
   },
   {
     "label": "Ukraine",
     "value": "UA",
     "flag": "🇺🇦",
-    "phoneCode": "+380"
+    "phoneCode": "+380",
+    "mask": "(99)999-99-99"
   },
   {
     "label": "United Arab Emirates",
     "value": "AE",
     "flag": "🇦🇪",
-    "phoneCode": "+971"
+    "phoneCode": "+971",
+    "mask": "9-999-9999"
   },
   {
     "label": "United Kingdom",
@@ -1413,7 +1627,8 @@
     "label": "United States",
     "value": "US",
     "flag": "🇺🇸",
-    "phoneCode": "+1"
+    "phoneCode": "+1",
+    "mask": "(999)999-9999"
   },
   {
     "label": "United States Minor Outlying Islands",
@@ -1425,49 +1640,57 @@
     "label": "United States Virgin Islands",
     "value": "VI",
     "flag": "🇻🇮",
-    "phoneCode": "+1340"
+    "phoneCode": "+1340",
+    "mask": "(340)999-9999"
   },
   {
     "label": "Uruguay",
     "value": "UY",
     "flag": "🇺🇾",
-    "phoneCode": "+598"
+    "phoneCode": "+598",
+    "mask": "9-999-99-99"
   },
   {
     "label": "Uzbekistan",
     "value": "UZ",
     "flag": "🇺🇿",
-    "phoneCode": "+998"
+    "phoneCode": "+998",
+    "mask": "99-999-9999"
   },
   {
     "label": "Vanuatu",
     "value": "VU",
     "flag": "🇻🇺",
-    "phoneCode": "+678"
+    "phoneCode": "+678",
+    "mask": "99999"
   },
   {
     "label": "Vatican City",
     "value": "VA",
     "flag": "🇻🇦",
-    "phoneCode": "+3"
+    "phoneCode": "+3",
+    "mask": "9-6-698-99999"
   },
   {
     "label": "Venezuela",
     "value": "VE",
     "flag": "🇻🇪",
-    "phoneCode": "+58"
+    "phoneCode": "+58",
+    "mask": "(999)999-9999"
   },
   {
     "label": "Vietnam",
     "value": "VN",
     "flag": "🇻🇳",
-    "phoneCode": "+84"
+    "phoneCode": "+84",
+    "mask": "(999)9999-999"
   },
   {
     "label": "Wallis and Futuna",
     "value": "WF",
     "flag": "🇼🇫",
-    "phoneCode": "+681"
+    "phoneCode": "+681",
+    "mask": "99-9999"
   },
   {
     "label": "Western Sahara",
@@ -1479,18 +1702,21 @@
     "label": "Yemen",
     "value": "YE",
     "flag": "🇾🇪",
-    "phoneCode": "+967"
+    "phoneCode": "+967",
+    "mask": "99-999-999"
   },
   {
     "label": "Zambia",
     "value": "ZM",
     "flag": "🇿🇲",
-    "phoneCode": "+260"
+    "phoneCode": "+260",
+    "mask": "99-999-9999"
   },
   {
     "label": "Zimbabwe",
     "value": "ZW",
     "flag": "🇿🇼",
-    "phoneCode": "+263"
+    "phoneCode": "+263",
+    "mask": "9-999999"
   }
 ]

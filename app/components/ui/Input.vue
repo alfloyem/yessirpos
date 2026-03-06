@@ -25,32 +25,72 @@ const phoneDropdownRef = ref<HTMLElement | null>(null)
 let phoneSearchTimeout: any = null
 let phoneSearchTerm = ''
 
+// --- Mask Helpers ---
+const applyMask = (val: string, mask: string) => {
+  if (!mask) return val
+  const digits = String(val).replace(/\D/g, '')
+  let result = ''
+  let dIdx = 0
+  for (let i = 0; i < mask.length; i++) {
+    if (mask[i] === '9') {
+      if (dIdx < digits.length) {
+        result += digits[dIdx++]
+      } else {
+        break
+      }
+    } else {
+      if (dIdx < digits.length) {
+        result += mask[i]
+      } else {
+        break
+      }
+    }
+  }
+  return result
+}
+
+const getDigits = (val: string) => String(val || '').replace(/\D/g, '')
+
+// Detect country from modelValue (e.g. "+994...")
+const detectCountry = (val: string | number) => {
+  const v = String(val || '')
+  if (v.startsWith('+')) {
+    // Sort by length descending to match longest code first (e.g. +35818 over +358)
+    const sorted = [...countryList].filter(c => c.phoneCode).sort((a, b) => (b.phoneCode?.length || 0) - (a.phoneCode?.length || 0))
+    const found = sorted.find(c => v.startsWith(c.phoneCode || ''))
+    if (found) selectedCountry.value = found
+  }
+}
+
 const handlePhoneDropdownOutsideClick = (e: MouseEvent) => {
   if (phoneDropdownRef.value && !phoneDropdownRef.value.contains(e.target as Node)) {
     showPhoneDropdown.value = false
   }
 }
 
-onMounted(() => document.addEventListener('click', handlePhoneDropdownOutsideClick))
+onMounted(() => {
+  document.addEventListener('click', handlePhoneDropdownOutsideClick)
+  detectCountry(props.modelValue)
+})
 onUnmounted(() => document.removeEventListener('click', handlePhoneDropdownOutsideClick))
 
 const filteredCountries = computed(() => countryList.filter(c => c.phoneCode))
 
 const selectPhoneCountry = (country: any) => {
+  const oldCode = selectedCountry.value?.phoneCode || ''
   selectedCountry.value = country
   showPhoneDropdown.value = false
   
-  // Format current value with new code if needed. Wait, usually the input just contains the local number
-  // For now let's make it so the phone code is visually prepended but maybe emitted together, or the user enters the full number.
-  // Actually, usually the input emits only what's typed, but for `modelValue` we'll let it be the full formatted number?
-  // Let's just manage the visual part and let handleInput handle value.
-  
-  // Easiest is to force replacing the prefix if it exists, but the user expects just normal input.
   if (props.type === 'tel') {
-    let val = String(props.modelValue).replace(/[^\d\s\-\+]/g, '')
-    // Remove old prefix if exists? It's complex. Let's just emit the new prefix
-    if (!val.startsWith('+')) {
-      emit('update:modelValue', `${country.phoneCode} ${val}`)
+    let val = String(props.modelValue)
+    if (val.startsWith(oldCode)) {
+      // Swap code but keep digits
+      const digits = val.substring(oldCode.length).replace(/\D/g, '')
+      emit('update:modelValue', `${country.phoneCode}${digits}`)
+    } else {
+      // Prepend code if not there
+      const digits = val.replace(/\D/g, '')
+      emit('update:modelValue', `${country.phoneCode}${digits}`)
     }
   }
 }
@@ -95,16 +135,50 @@ const computedIcon = computed(() => {
   }
 })
 
+const localValue = computed(() => {
+  if (props.type === 'tel') {
+    const val = String(props.modelValue || '')
+    const code = selectedCountry.value?.phoneCode || ''
+    if (val.startsWith(code)) {
+      const digits = val.substring(code.length).replace(/\D/g, '')
+      return applyMask(digits, selectedCountry.value?.mask)
+    }
+    return applyMask(val.replace(/\D/g, ''), selectedCountry.value?.mask)
+  }
+  return String(props.modelValue || '')
+})
+
+const computedPlaceholder = computed(() => {
+  if (props.placeholder) return props.placeholder
+  if (props.type === 'tel' && selectedCountry.value?.mask) {
+    let mask = selectedCountry.value.mask
+    let count = 0
+    // Generate an example based on mask: 50, 40, etc.
+    return mask.replace(/9/g, () => {
+      count++
+      if (count <= 2) return '5'
+      if (count <= 3) return '4'
+      return '0'
+    })
+  }
+  return props.placeholder || (props.type === 'tel' ? '(55) 555-55-55' : '')
+})
+
 const handleInput = (e: Event) => {
   let val = (e.target as HTMLInputElement).value
 
-  // Telefon numarası giriliyorsa sadece rakam ve belirli işaretlere (+, tire, boşluk) izin ver
+  // Telefon numarası giriliyorsa maske uygula ve modelValue'yu full string olarak emit et (+994...)
   if (props.type === 'tel') {
-    val = val.replace(/[^\d\s\-\+]/g, '')
-    // Ekranda da değerin değişmesi için DOM'u güncelle
-    if ((e.target as HTMLInputElement).value !== val) {
-      (e.target as HTMLInputElement).value = val
+    const digits = val.replace(/\D/g, '')
+    const code = selectedCountry.value?.phoneCode || ''
+    emit('update:modelValue', `${code}${digits}`)
+    
+    // UI update handled by computed localValue, but we should make sure the input element is clean
+    const formatted = applyMask(digits, selectedCountry.value?.mask)
+    if ((e.target as HTMLInputElement).value !== formatted) {
+      (e.target as HTMLInputElement).value = formatted
     }
+    return
   }
 
   // Barcode specific formatting: Prefix + 7 digits max
@@ -152,6 +226,18 @@ const clear = () => {
 const togglePassword = () => {
   localShowPassword.value = !localShowPassword.value
   emit('update:showPassword', !isPasswordVisible.value)
+}
+
+const handleCopy = (e: ClipboardEvent) => {
+  if (props.type === 'tel') {
+    const target = e.target as HTMLInputElement
+    const selection = target.value.substring(target.selectionStart || 0, target.selectionEnd || 0)
+    if (selection) {
+      const digits = selection.replace(/\D/g, '')
+      e.clipboardData?.setData('text/plain', digits)
+      e.preventDefault()
+    }
+  }
 }
 </script>
 
@@ -218,10 +304,11 @@ const togglePassword = () => {
       <!-- Input Element -->
       <input 
         :type="computedType" 
-        :value="modelValue"
+        :value="localValue"
         @input="handleInput"
         @blur="handleBlur"
-        :placeholder="type === 'tel' ? '(55) 555-55-55' : placeholder"
+        @copy="handleCopy"
+        :placeholder="computedPlaceholder"
         :disabled="disabled"
         class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] py-3 text-[15px] font-medium rounded-[14px] outline-none focus:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/10 hover:border-[var(--text-muted)] transition-all duration-300 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-[var(--border-app)] placeholder:font-normal"
         :class="[
