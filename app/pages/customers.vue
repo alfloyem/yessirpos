@@ -39,13 +39,13 @@ const generateBarcode = () => {
 const customerSchema = computed< (FormField & { inTable?: boolean, sortable?: boolean })[] >(() => [
   { key: 'firstName', label: t('customers.firstName', 'Ad'), type: 'text', inTable: true, sortable: true, required: true, colSpan: 1 },
   { key: 'lastName', label: t('customers.lastName', 'Soyad'), type: 'text', inTable: true, sortable: true, required: true, colSpan: 1 },
-  { key: 'barcode', label: t('customers.barcode', 'Barkod'), icon: 'lucide:qr-code', type: 'barcode', inTable: true, sortable: true, required: true, colSpan: 2 },
-  { key: 'gender', label: t('customers.gender', 'Cinsiyyət'), type: 'select', inTable: true, sortable: true, options: [
+  { key: 'barcode', label: t('customers.barcode', 'Barkod'), icon: 'lucide:barcode', type: 'barcode', inTable: true, sortable: true, required: true, colSpan: 2 },
+  { key: 'gender', label: t('customers.gender', 'Cinsiyyət'), icon: 'streamline-ultimate:gender-hetero-bold', type: 'select', inTable: true, sortable: true, options: [
     { label: t('common.select', 'Seç...'), value: '' },
     { label: t('customers.male', 'Kişi'), value: 'Kişi' },
     { label: t('customers.female', 'Qadın'), value: 'Qadın' }
   ], colSpan: 1 },
-  { key: 'bonus', label: t('customers.bonus', 'Bonus (AZN)'), icon: 'lucide:wallet', type: 'number', inTable: true, sortable: true, colSpan: 1 },
+  { key: 'bonus', label: t('customers.bonus', 'Bonus (AZN)'), icon: 'fa7-solid:manat-sign', type: 'number', inTable: true, sortable: true, colSpan: 1 },
   { key: 'email', label: t('employees.email', 'E-poçt (Email)'), icon: 'lucide:mail', type: 'email', inTable: true, sortable: true, colSpan: 1 },
   { key: 'phone', label: t('employees.phone', 'Telefon'), icon: 'lucide:phone', type: 'tel', inTable: true, sortable: true, colSpan: 1 },
   { key: 'city', label: t('customers.city', 'Şəhər/rayon'), type: 'tags', inTable: true, sortable: true, colSpan: 1 },
