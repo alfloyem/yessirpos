@@ -242,24 +242,24 @@ const handleCopy = (e: ClipboardEvent) => {
 </script>
 
 <template>
-  <div class="relative group w-full" :class="{ 'flex': type === 'tel' }">
+  <div class="relative group w-full">
     
     <!-- Phone Code Dropdown -->
     <div 
       v-if="type === 'tel'" 
-      class="relative z-20 mr-2 flex-shrink-0" 
+      class="absolute left-0 top-0 bottom-0 z-20 flex items-center pr-2 pl-3" 
       ref="phoneDropdownRef" 
       @keydown="handlePhoneKeydown"
     >
       <button 
         type="button" 
         @click="showPhoneDropdown = !showPhoneDropdown"
-        class="h-full bg-[var(--input-bg)] border border-[var(--border-app)] px-3 text-[15px] font-medium rounded-[14px] outline-none focus:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/10 hover:border-[var(--text-primary)]/50 transition-all duration-300 shadow-sm cursor-pointer flex items-center gap-2"
+        class="h-[80%] flex items-center gap-1.5 px-2 rounded-lg transition-colors outline-none cursor-pointer"
         :disabled="disabled"
       >
-        <span class="emoji-flag text-[17px] -mt-0.5">{{ selectedCountry?.flag }}</span>
-        <span class="text-[var(--text-app)]">{{ selectedCountry?.phoneCode }}</span>
-        <UiIcon name="lucide:chevron-down" class="w-3.5 h-3.5 text-[var(--text-app)] opacity-50" />
+        <span class="emoji-flag text-[18px]">{{ selectedCountry?.flag }}</span>
+        <span class="text-[14px] font-bold text-[var(--text-app)]">{{ selectedCountry?.phoneCode }}</span>
+        <UiIcon name="lucide:chevron-down" class="w-3 h-3 text-[var(--text-app)] opacity-50" />
       </button>
 
       <Transition
@@ -312,7 +312,7 @@ const handleCopy = (e: ClipboardEvent) => {
         :disabled="disabled"
         class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] py-3 text-[15px] font-medium rounded-[14px] outline-none focus:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/10 hover:border-[var(--text-muted)] transition-all duration-300 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-[var(--border-app)] placeholder:font-normal"
         :class="[
-          computedIcon && type !== 'tel' ? 'pl-11' : (type === 'tel' ? 'pl-5' : 'pl-5'), 
+          computedIcon && type !== 'tel' ? 'pl-11' : (type === 'tel' ? 'pl-[115px]' : 'pl-5'), 
           (clearable && modelValue) || type === 'password' ? 'pr-11' : 'pr-5'
         ]"
       />
