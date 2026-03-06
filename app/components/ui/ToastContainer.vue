@@ -30,7 +30,7 @@ defineExpose({
 
 <template>
   <Teleport to="body">
-    <div class="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none">
+    <div class="fixed bottom-6 right-6 z-[10001] flex flex-col gap-3 pointer-events-none">
       <TransitionGroup
         name="toast"
         tag="div"

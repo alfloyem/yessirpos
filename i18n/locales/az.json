@@ -156,7 +156,8 @@
     "fieldRequired": "Bu xana mütləq doldurulmalıdır",
     "passwordsMismatch": "Şifrələr uyğun deyil!",
     "passwordsMinLength": "Şifrə minimum {count} simvol olmalıdır",
-    "noData": "Axtarışınıza uyğun nəticə tapılmadı"
+    "noData": "Axtarışınıza uyğun nəticə tapılmadı",
+    "clickToCopy": "Kopyalamaq üçün klikləyin"
   },
   "toast": {
     "employeeAdded": "Əməkdaş uğurla əlavə edildi",
@@ -176,7 +177,8 @@
     "customersUpdated": "{count} müştəri yeniləndi",
     "customerDeleted": "Müştəri uğurla silindi",
     "customersDeleted": "{count} müştəri uğurla silindi",
-    "customerDuplicated": "Müştəri kopyalandı"
+    "customerDuplicated": "Müştəri kopyalandı",
+    "barcodeCopied": "Barkod uğurla kopyalandı!"
   },
   "user": {
     "name": "MR Musa",

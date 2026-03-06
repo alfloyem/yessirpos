@@ -155,7 +155,8 @@
     "fieldRequired": "Это поле обязательно для заполнения",
     "passwordsMismatch": "Пароли не совпадают!",
     "passwordsMinLength": "Пароль должен состоять как минимум из {count} символов",
-    "noData": "Результатов по вашему запросу не найдено"
+    "noData": "Результатов по вашему запросу не найдено",
+    "clickToCopy": "Нажмите, чтобы скопировать"
   },
   "toast": {
     "employeeAdded": "Сотрудник успешно добавлен",
@@ -175,7 +176,8 @@
     "customersUpdated": "{count} клиентов обновлено",
     "customerDeleted": "Клиент успешно удален",
     "customersDeleted": "{count} клиентов успешно удалены",
-    "customerDuplicated": "Клиент скопирован"
+    "customerDuplicated": "Клиент скопирован",
+    "barcodeCopied": "Штрих-код успешно скопирован!"
   },
   "user": {
     "name": "MR Musa",

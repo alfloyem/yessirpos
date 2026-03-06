@@ -155,7 +155,8 @@
     "fieldRequired": "This field is required",
     "passwordsMismatch": "Passwords do not match!",
     "passwordsMinLength": "Password must be at least {count} characters",
-    "noData": "No results found for your search"
+    "noData": "No results found for your search",
+    "clickToCopy": "Click to copy"
   },
   "toast": {
     "employeeAdded": "Employee added successfully",
@@ -175,7 +176,8 @@
     "customersUpdated": "{count} customers updated",
     "customerDeleted": "Customer successfully deleted",
     "customersDeleted": "{count} customers successfully deleted",
-    "customerDuplicated": "Customer duplicated"
+    "customerDuplicated": "Customer duplicated",
+    "barcodeCopied": "Barcode copied successfully!"
   },
   "user": {
     "name": "MR Musa",
