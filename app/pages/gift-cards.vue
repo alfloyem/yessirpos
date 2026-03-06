@@ -286,6 +286,17 @@ const confirmDelete = async () => {
     loading.value = false
   }
 }
+
+const copyBarcode = (barcode: string) => {
+  if (!barcode) return
+  const toast = useToast()
+  
+  navigator.clipboard.writeText(barcode).then(() => {
+    toast.success(t('toast.barcodeCopied', 'Barkod kopyalandı!'))
+  }).catch(() => {
+    toast.error(t('toast.operationFailed', 'Xəta baş verdi'))
+  })
+}
 </script>
 
 <template>
@@ -320,13 +331,15 @@ const confirmDelete = async () => {
         </span>
       </template>
 
-      <!-- Card Number Visual Formatting -->
+      <!-- Card Number Visual Formatting - Mono font + Click to Copy -->
       <template #cell-barcode="{ value, highlight }">
-        <span 
-          class="font-mono bg-[var(--input-bg)] px-2 py-1 rounded text-[13px] border border-[var(--border-app)] tracking-widest text-[var(--text-primary)]"
-          v-html="highlight(value)"
+        <div 
+          class="font-mono tracking-wider font-bold cursor-pointer hover:text-[var(--text-primary)] transition-colors inline-block"
+          @click.stop="copyBarcode(value)"
+          :title="t('common.clickToCopy', 'Kopyalamaq üçün kliklə')"
         >
-        </span>
+          <span v-html="highlight(value)"></span>
+        </div>
       </template>
     </DataTable>
 
