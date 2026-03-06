@@ -248,6 +248,17 @@ const customSearch = (item: any, query: string) => {
   return searchableFields.some(field => normalizeText(field).includes(q))
 }
 
+const copyBarcode = (barcode: string) => {
+  if (!barcode) return
+  const toast = useToast()
+  
+  navigator.clipboard.writeText(barcode).then(() => {
+    toast.success(t('toast.barcodeCopied', 'Barkod kopyalandı!'))
+  }).catch(() => {
+    toast.error(t('toast.operationFailed', 'Xəta baş verdi'))
+  })
+}
+
 const saveForm = async () => {
   formErrors.value = {}
   let hasError = false
@@ -382,6 +393,17 @@ const saveForm = async () => {
           v-html="highlight(Number(value || 0).toFixed(2)) + ' ₼'"
         >
         </span>
+      </template>
+
+      <!-- Customizing the Barcode column - Mono font + Copy to Click -->
+      <template #cell-barcode="{ value, highlight }">
+        <div 
+          class="font-mono tracking-wider font-bold cursor-pointer hover:text-[var(--text-primary)] transition-colors inline-block"
+          @click.stop="copyBarcode(value)"
+          :title="t('common.clickToCopy', 'Kopyalamaq üçün kliklə')"
+        >
+          <span v-html="highlight(value)"></span>
+        </div>
       </template>
 
       <!-- Customizing the Gender column using slots with Highlight support -->
