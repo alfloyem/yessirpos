@@ -56,7 +56,7 @@ const handleLogin = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center p-4 md:p-8 bg-gradient-to-br from-[var(--bg-app)] via-[var(--bg-app)] to-[var(--input-bg)] relative overflow-hidden">
+  <div class="min-h-screen flex items-center justify-center p-4 md:p-8 bg-gradient-to-br from-[var(--bg-app)] via-[var(--bg-app)] to-[var(--input-bg)] relative overflow-hidden font-sans">
     <!-- Animated Background Elements -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
       <div class="absolute top-20 left-10 w-72 h-72 bg-[var(--text-primary)] opacity-5 rounded-full blur-3xl animate-pulse"></div>

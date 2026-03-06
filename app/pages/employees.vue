@@ -395,7 +395,7 @@ const saveForm = async () => {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 font-sans">
     <div class="flex items-center justify-between">
       <h1 class="text-2xl font-bold text-[var(--text-app)]">
         {{ t('menu.employees') }}
