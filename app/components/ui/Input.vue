@@ -239,6 +239,30 @@ const handleCopy = (e: ClipboardEvent) => {
     }
   }
 }
+
+const handleInputKeydown = (e: KeyboardEvent) => {
+  if (props.type === 'tel' || props.type === 'number') {
+    if (
+      e.ctrlKey || e.metaKey || e.altKey ||
+      ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', 'Home', 'End', 'Enter', 'Escape'].includes(e.key)
+    ) {
+      return
+    }
+
+    if (/^[0-9]$/.test(e.key)) {
+      return
+    }
+
+    if (props.type === 'number' && ['.', ','].includes(e.key)) {
+      const val = String(props.modelValue || '')
+      if (!val.includes('.') && !val.includes(',')) {
+        return
+      }
+    }
+
+    e.preventDefault()
+  }
+}
 </script>
 
 <template>
@@ -308,6 +332,7 @@ const handleCopy = (e: ClipboardEvent) => {
         @input="handleInput"
         @blur="handleBlur"
         @copy="handleCopy"
+        @keydown="handleInputKeydown"
         :placeholder="computedPlaceholder"
         :disabled="disabled"
         class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] py-3 text-[15px] font-medium rounded-[14px] outline-none focus:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/10 hover:border-[var(--text-muted)] transition-all duration-300 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-[var(--border-app)] placeholder:font-normal"
