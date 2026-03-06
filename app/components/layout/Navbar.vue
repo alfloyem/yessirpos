@@ -2,7 +2,6 @@
 import { useI18n } from '#i18n'
 const { t, locales, locale, setLocale } = useI18n()
 const colorMode = useColorMode()
-const { logout } = useAuth()
 
 const now = ref(new Date())
 const isSidebarCollapsed = useState('sidebarCollapsed', () => false)
@@ -30,9 +29,7 @@ const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value
 }
 
-const handleLogout = () => {
-  logout()
-}
+
 
 import azFlag from '~/assets/images/flags/az.png'
 import enFlag from '~/assets/images/flags/gb.png'
@@ -130,17 +127,7 @@ const selectLanguage = (code) => {
           </Transition>
         </button>
 
-        <!-- Logout Button -->
-        <button 
-          @click="handleLogout"
-          class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-[var(--color-brand-danger)]/10 border border-[var(--color-brand-danger)]/20 rounded-lg hover:bg-[var(--color-brand-danger)]/20 hover:border-[var(--color-brand-danger)] hover:scale-105 transition-all group cursor-pointer"
-          :title="t('logout', 'Çıxış')"
-        >
-          <Icon 
-            name="lucide:log-out" 
-            class="w-3.5 h-3.5 md:w-5 md:h-5 text-[var(--color-brand-danger)]"
-          />
-        </button>
+
       </div>
 
       </div>

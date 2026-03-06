@@ -9,6 +9,7 @@ import yessirIcon from '~/assets/images/yessir_icon.svg'
 import yessirTextLogo from '~/assets/images/yessir_pos_text_logo.svg'
 
 const { t } = useI18n()
+const { logout } = useAuth()
 const route = useRoute()
 
 const isSidebarCollapsed = useState<boolean>('sidebarCollapsed', () => false)
@@ -369,10 +370,10 @@ onUnmounted(() => {
       
       <!-- Exit Account -->
       <div class="p-3 shrink-0">
-        <NuxtLink 
-          to="/login"
+        <button 
+          @click="logout"
           draggable="false"
-          class="flex items-center rounded-[12px] text-red-500 bg-transparent hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 transition-all duration-300 cursor-pointer mx-auto w-full h-[48px]"
+          class="flex items-center rounded-[12px] text-red-500 bg-transparent hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 transition-all duration-300 cursor-pointer mx-auto w-full h-[48px] border-none outline-none"
           :class="isSidebarCollapsed && !isMobileMenuOpen ? 'justify-center px-4' : 'justify-start gap-[10px] px-3'"
         >
           <Icon 
@@ -386,7 +387,7 @@ onUnmounted(() => {
           >
             {{ t('logout') || 'Hesabdan Çıx' }}
           </span>
-        </NuxtLink>
+        </button>
       </div>
 
     </aside>
