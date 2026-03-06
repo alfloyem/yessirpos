@@ -1,6 +1,7 @@
+import { defineEventHandler, createError, readBody, getRouterParam, getQuery, getCookie, getHeader } from 'h3'
 import prisma from '../../utils/prisma'
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event: any) => {
   try {
     const customers = await prisma.customer.findMany({
       orderBy: {

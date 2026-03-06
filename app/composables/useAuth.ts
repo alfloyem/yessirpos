@@ -1,3 +1,7 @@
+import { computed } from 'vue'
+import { useCookie, navigateTo } from '#imports'
+import { useLocalePath } from '#i18n'
+
 export const useAuth = () => {
   const token = useCookie('auth-token', {
     maxAge: 60 * 60 * 24 * 7, // 1 week

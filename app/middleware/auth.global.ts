@@ -1,4 +1,7 @@
-export default defineNuxtRouteMiddleware((to) => {
+import { defineNuxtRouteMiddleware, navigateTo, useAuth } from '#imports'
+import { useLocalePath } from '#i18n'
+
+export default defineNuxtRouteMiddleware((to: any) => {
   const { token, isAuthenticated } = useAuth()
   const localePath = useLocalePath()
   

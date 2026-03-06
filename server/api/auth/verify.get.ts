@@ -1,4 +1,5 @@
-export default defineEventHandler(async (event) => {
+import { defineEventHandler, createError, readBody, getRouterParam, getQuery, getCookie, getHeader } from 'h3'
+export default defineEventHandler(async (event: any) => {
   // Server middleware zaten user'ı doğruladı ve context'e ekledi
   const user = event.context.user
 

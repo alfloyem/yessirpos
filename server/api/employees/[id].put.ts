@@ -1,7 +1,8 @@
+import { defineEventHandler, createError, readBody, getRouterParam, getQuery, getCookie, getHeader } from 'h3'
 import prisma from '../../utils/prisma'
 import bcrypt from 'bcryptjs'
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event: any) => {
   try {
     const id = parseInt(getRouterParam(event, 'id') || '0')
     const body = await readBody(event)
