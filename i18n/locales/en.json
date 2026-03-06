@@ -39,8 +39,8 @@
     "pieces": "pcs.",
     "weeklyOrders": "Weekly Orders",
     "weeklySubtitle": "Monday - Sunday",
-    "dailyReportReady": "Daily Report Ready",
-    "dailyReportText": "Download the report immediately to confirm today's sales.",
+    "dailyReportReady": "Daily Report Ready!",
+    "dailyReportText": "You can download statistical information about today's sales and system activity in report format.",
     "downloadReport": "Download Report",
     "orderCount": "Order count",
     "products": {
