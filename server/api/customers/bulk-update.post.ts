@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
     if (updates.email !== undefined) updateData.email = updates.email
     if (updates.phone !== undefined) updateData.phone = updates.phone
     if (updates.address !== undefined) updateData.address = updates.address
-    if (updates.city !== undefined) updateData.city = Array.isArray(updates.city) ? JSON.stringify(updates.city) : updates.city
+    if (updates.city !== undefined) updateData.city = Array.isArray(updates.city) ? JSON.stringify(updates.city) : (updates.city || '')
     if (updates.country !== undefined) updateData.country = updates.country
     if (updates.notes !== undefined) updateData.notes = updates.notes
 

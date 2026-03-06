@@ -7,7 +7,11 @@ export default defineEventHandler(async (event) => {
         createdAt: 'desc'
       }
     })
-    return customers
+
+    return customers.map((c: any) => ({
+      ...c,
+      city: c.city ? (c.city.startsWith('[') ? JSON.parse(c.city) : [c.city]) : []
+    }))
   } catch (error) {
     throw createError({
       statusCode: 500,

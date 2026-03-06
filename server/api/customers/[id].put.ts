@@ -47,16 +47,19 @@ export default defineEventHandler(async (event) => {
     if (phone !== undefined) updateData.phone = phone
     if (gender !== undefined) updateData.gender = gender
     if (address !== undefined) updateData.address = address
-    if (city !== undefined) updateData.city = Array.isArray(city) ? JSON.stringify(city) : city
+    if (city !== undefined) updateData.city = Array.isArray(city) ? JSON.stringify(city) : (city || '')
     if (country !== undefined) updateData.country = country
     if (notes !== undefined) updateData.notes = notes
 
-    const customer = await prisma.customer.update({
+    const customer: any = await prisma.customer.update({
       where: { id },
       data: updateData
     })
 
-    return customer
+    return {
+      ...customer,
+      city: customer.city ? (customer.city.startsWith('[') ? JSON.parse(customer.city) : [customer.city]) : []
+    }
   } catch (error: any) {
     if (error.statusCode) throw error
     

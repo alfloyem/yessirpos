@@ -241,7 +241,8 @@ const customSearch = (item: any, query: string) => {
     item.notes,
     item.createdBy,
     item.gender === 'Kişi' ? t('customers.male', 'Kişi') : item.gender === 'Qadın' ? t('customers.female', 'Qadın') : item.gender,
-    item.city === 'Bakı' ? t('customers.baku', 'Bakı') : item.city
+    // City (tags array)
+    Array.isArray(item.city) ? item.city.join(' ') : item.city
   ]
   
   return searchableFields.some(field => normalizeText(field).includes(q))
@@ -390,16 +391,17 @@ const saveForm = async () => {
       
       <!-- Customizing the City column (Tags) using slots -->
       <template #cell-city="{ value, highlight }">
-        <div v-if="value && Array.isArray(value)" class="flex gap-1 flex-wrap">
-          <span 
-            v-for="(tag, idx) in value" 
-            :key="idx"
-            class="px-2 py-0.5 bg-[var(--color-brand-primary)]/10 text-[var(--color-brand-primary)] rounded-[6px] text-[12px] font-medium"
-            v-html="highlight(tag)"
-          ></span>
+        <div class="flex gap-1 flex-wrap">
+          <template v-if="Array.isArray(value) && value.length > 0">
+            <span 
+              v-for="(tag, idx) in value" 
+              :key="idx"
+              class="px-2 py-0.5 bg-[var(--text-primary)]/10 text-[var(--text-primary)] rounded-[6px] text-[12px] font-medium"
+              v-html="highlight(tag)"
+            ></span>
+          </template>
+          <span v-else class="opacity-30">-</span>
         </div>
-        <span v-else-if="value" v-html="highlight(value)"></span>
-        <span v-else>-</span>
       </template>
     </DataTable>
 

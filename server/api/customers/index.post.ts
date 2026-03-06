@@ -26,7 +26,7 @@ export default defineEventHandler(async (event) => {
 
     const { user } = event.context
 
-    const customer = await prisma.customer.create({
+    const customer: any = await prisma.customer.create({
       data: {
         firstName,
         lastName,
@@ -36,7 +36,7 @@ export default defineEventHandler(async (event) => {
         email,
         phone,
         address,
-        city: Array.isArray(city) ? JSON.stringify(city) : city,
+        city: Array.isArray(city) ? JSON.stringify(city) : (city || ''),
         country,
         notes,
         createdBy: user?.name || user?.username || 'Sistem',
@@ -44,7 +44,10 @@ export default defineEventHandler(async (event) => {
       }
     })
 
-    return customer
+    return {
+      ...customer,
+      city: customer.city ? (customer.city.startsWith('[') ? JSON.parse(customer.city) : [customer.city]) : []
+    }
   } catch (error: any) {
     if (error.statusCode) throw error
     
