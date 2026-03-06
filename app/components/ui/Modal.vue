@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch } from 'vue'
+import { onMounted, onUnmounted, watch, computed } from 'vue'
 
 const props = defineProps<{
   modelValue: boolean
   title?: string
   maxWidth?: string // e.g. 'sm', 'md', 'lg', 'xl', '2xl'
   minHeight?: string // e.g. '400px', '500px'
+  maxHeight?: string // e.g. '80vh', '95vh'
   hideHeader?: boolean
+  isTop?: boolean
 }>()
 
 const emit = defineEmits(['update:modelValue', 'close'])
@@ -53,18 +55,21 @@ const maxWidthClass = computed(() => {
 <template>
   <Teleport to="body">
     <Transition name="modal">
-      <div v-show="modelValue" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6" style="margin: 0;">
+      <div v-show="modelValue" class="fixed inset-0 z-[9999] flex justify-center p-4 sm:p-6 overflow-y-auto" :class="isTop ? 'items-start pt-10 sm:pt-20' : 'items-center'" style="margin: 0;">
         
         <!-- Backdrop -->
         <div 
-          class="modal-backdrop absolute inset-0 bg-black/20"
+          class="modal-backdrop fixed inset-0 bg-black/20"
           @click="close"
         ></div>
 
         <div 
-          class="relative w-full bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] flex flex-col max-h-[90vh] transition-all"
+          class="relative w-full bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] flex flex-col transition-all"
           :class="maxWidthClass"
-          :style="minHeight ? { minHeight } : {}"
+          :style="{ 
+            minHeight: minHeight || 'auto',
+            maxHeight: maxHeight || '90vh'
+          }"
         >
           <!-- Header -->
           <div v-if="!hideHeader" class="flex items-center justify-between px-8 py-5 border-b border-[var(--border-app)]">

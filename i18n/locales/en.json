@@ -205,5 +205,12 @@
     "addNew": "Add New Customer",
     "edit": "Edit Customer",
     "bulkDeleteCount": "Selected {count} customers will be deleted."
+  },
+  "attributes": {
+    "name": "Attribute Name",
+    "values": "Values",
+    "addNew": "Add New Attribute",
+    "edit": "Edit Attribute",
+    "bulkDeleteCount": "Selected {count} attributes will be deleted."
   }
 }

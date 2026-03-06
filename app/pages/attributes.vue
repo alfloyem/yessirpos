@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useI18n } from '#i18n'
+import { useHead, useToast } from '#imports'
 import DataTable from '~/components/ui/DataTable.vue'
 import Modal from '~/components/ui/Modal.vue'
 import UiButton from '~/components/ui/Button.vue'
@@ -9,87 +10,68 @@ import DynamicForm, { type FormField } from '~/components/ui/DynamicForm.vue'
 const { t } = useI18n()
 
 useHead({
-  title: 'Atributlar'
+  title: t('menu.attributes', 'Atributlar')
 })
 
 // --- Centralized Schema ---
-const attributeSchema: (FormField & { inTable?: boolean, sortable?: boolean })[] = [
-  { key: 'rowNumber', label: 'Sıra sayı', type: 'text', inTable: true, sortable: false },
-  { key: 'name', label: 'Atributun adı', icon: 'lucide:tag', type: 'text', inTable: true, sortable: true, required: true },
-  { key: 'type', label: 'Atributun tipi', icon: 'lucide:list', type: 'select', inTable: true, sortable: true, required: true, options: [
-    { label: 'Dropdown', value: 'dropdown' },
-    { label: 'Checkbox', value: 'checkbox' },
-    { label: 'Radio', value: 'radio' },
-    { label: 'Text', value: 'text' },
-    { label: 'Number', value: 'number' }
-  ]},
-  { key: 'createdAt', label: 'Yaradılma tarixi', type: 'text', inTable: false, sortable: true },
-  { key: 'createdBy', label: 'Yaradan', type: 'text', inTable: false, sortable: true },
-]
+const attributeSchema = computed< (FormField & { inTable?: boolean, sortable?: boolean })[] >(() => [
+  { 
+    key: 'name', 
+    label: t('attributes.name', 'Atributun adı'), 
+    icon: 'lucide:tag', 
+    type: 'text', 
+    inTable: true, 
+    sortable: true, 
+    required: true,
+    colSpan: 1
+  },
+  { 
+    key: 'values', 
+    label: t('attributes.values', 'Dəyər'), 
+    icon: 'lucide:list', 
+    type: 'tags', 
+    inTable: true, 
+    sortable: false, 
+    required: true,
+    colSpan: 1
+  },
+  { key: 'createdAt', label: t('customers.createdAt', 'Tarix'), type: 'text', inTable: true, sortable: true },
+  { key: 'createdBy', label: t('customers.createdBy', 'Əməkdaş'), type: 'text', inTable: true, sortable: true },
+])
 
-// Modal'da gösterilecek form alanları (createdAt, createdBy və rowNumber Hariç)
+// Modal'da gösterilecek form alanları
 const formFields = computed(() => {
-  return attributeSchema.filter(f => !['createdAt', 'createdBy', 'rowNumber'].includes(f.key))
+  return attributeSchema.value.filter(f => !['createdAt', 'createdBy'].includes(f.key))
 })
-
-// Values management in add/edit modal
-const tempValues = ref<string[]>([])
-const newValueInput = ref('')
-
-const addValueToTemp = () => {
-  if (newValueInput.value.trim() && !tempValues.value.includes(newValueInput.value.trim())) {
-    tempValues.value.push(newValueInput.value.trim())
-    newValueInput.value = ''
-  }
-}
-
-const removeValueFromTemp = (index: number) => {
-  tempValues.value.splice(index, 1)
-}
 
 // Extract table columns dynamically
 const columns = computed(() => 
-  attributeSchema
+  attributeSchema.value
     .filter(f => f.inTable)
     .map(f => ({ key: f.key, label: f.label, sortable: f.sortable }))
 )
-
-// Attribute type labels for display
-const typeLabels: Record<string, string> = {
-  dropdown: 'Dropdown',
-  checkbox: 'Checkbox',
-  radio: 'Radio',
-  text: 'Text',
-  number: 'Number'
-}
 
 // --- Data ---
 const mockData = ref<any[]>([
   { 
     id: 1, 
-    rowNumber: 1,
     name: 'Rəng',
-    type: 'dropdown',
     values: ['Qırmızı', 'Mavi', 'Yaşıl', 'Qara', 'Ağ'],
-    createdAt: '2026-03-03 10:15', 
+    createdAt: '03.03.2026 10:15', 
     createdBy: 'Admin'
   },
   { 
     id: 2, 
-    rowNumber: 2,
     name: 'Ölçü',
-    type: 'dropdown',
     values: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
-    createdAt: '2026-03-02 14:30', 
+    createdAt: '02.03.2026 14:30', 
     createdBy: 'Admin'
   },
   { 
     id: 3, 
-    rowNumber: 3,
     name: 'Material',
-    type: 'checkbox',
     values: ['Pambıq', 'Polyester', 'Yun', 'İpək'],
-    createdAt: '2026-03-01 09:20', 
+    createdAt: '01.03.2026 09:20', 
     createdBy: 'Admin'
   },
 ])
@@ -97,99 +79,82 @@ const mockData = ref<any[]>([
 // --- Modals State ---
 const showAddModal = ref(false)
 const showEditModal = ref(false)
-const showValuesModal = ref(false)
+const showDeleteConfirmModal = ref(false)
+const deleteTarget = ref<{ type: 'single' | 'bulk', id?: any, ids?: any[] } | null>(null)
 const formData = ref<Record<string, any>>({})
+const formErrors = ref<Record<string, string>>({})
 const bulkSelectedIds = ref<any[]>([])
-const currentAttributeValues = ref<string[]>([])
-const newValue = ref('')
 
 // --- Handlers ---
 const handleAdd = () => {
   formData.value = {
-    type: 'dropdown',
     values: []
   }
-  tempValues.value = []
-  newValueInput.value = ''
+  formErrors.value = {}
   showAddModal.value = true
 }
 
 const handleEdit = (row: any) => {
   formData.value = { ...row, values: [...(row.values || [])] }
-  tempValues.value = [...(row.values || [])]
-  newValueInput.value = ''
+  formErrors.value = {}
   showEditModal.value = true
 }
 
 const handleDelete = (row: any) => {
-  if (confirm(`"${row.name}" atributunu silmək istəyirsiniz?`)) {
-    mockData.value = mockData.value.filter(m => m.id !== row.id)
-    // Recalculate row numbers
-    mockData.value.forEach((item, index) => {
-      item.rowNumber = index + 1
-    })
-  }
+  deleteTarget.value = { type: 'single', id: row.id }
+  showDeleteConfirmModal.value = true
 }
 
 const handleBulkDelete = (ids: any[]) => {
-  if (confirm(`${ids.length} atributu silmək istəyirsiniz?`)) {
+  deleteTarget.value = { type: 'bulk', ids }
+  showDeleteConfirmModal.value = true
+}
+
+const performDelete = () => {
+  if (!deleteTarget.value) return
+
+  if (deleteTarget.value.type === 'single') {
+    mockData.value = mockData.value.filter(m => m.id !== deleteTarget.value?.id)
+  } else if (deleteTarget.value.type === 'bulk') {
+    const ids = deleteTarget.value.ids || []
     mockData.value = mockData.value.filter(m => !ids.includes(m.id))
-    // Recalculate row numbers
-    mockData.value.forEach((item, index) => {
-      item.rowNumber = index + 1
-    })
   }
+
+  showDeleteConfirmModal.value = false
+  deleteTarget.value = null
+  const toast = useToast()
+  toast.success(t('common.delete', 'Silindi'))
 }
 
 const handleBulkEdit = (ids: any[]) => {
   bulkSelectedIds.value = ids
   formData.value = {}
+  formErrors.value = {}
   showEditModal.value = true
 }
 
-const handleManageValues = (row: any) => {
-  formData.value = { ...row }
-  currentAttributeValues.value = [...(row.values || [])]
-  newValue.value = ''
-  showValuesModal.value = true
-}
-
-const addValue = () => {
-  if (newValue.value.trim() && !currentAttributeValues.value.includes(newValue.value.trim())) {
-    currentAttributeValues.value.push(newValue.value.trim())
-    newValue.value = ''
-  }
-}
-
-const removeValue = (index: number) => {
-  currentAttributeValues.value.splice(index, 1)
-}
-
-const saveValues = () => {
-  const index = mockData.value.findIndex(m => m.id === formData.value.id)
-  if (index !== -1) {
-    mockData.value[index].values = [...currentAttributeValues.value]
-  }
-  showValuesModal.value = false
-}
-
 const saveForm = () => {
-  // Assign temp values to formData
-  formData.value.values = [...tempValues.value]
+  formErrors.value = {}
+  let hasError = false
   
+  for (const field of formFields.value) {
+    if (field.required && (!formData.value[field.key] || (Array.isArray(formData.value[field.key]) && formData.value[field.key].length === 0))) {
+      formErrors.value[field.key] = t('common.fieldRequired', 'Bu xəna mütləq doldurulmalıdır')
+      hasError = true
+    }
+  }
+
+  if (hasError) return
+
   if (showAddModal.value) {
     const d = new Date()
-    const formattedDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-    
-    const newId = Date.now()
-    const newRowNumber = mockData.value.length + 1
+    const formattedDate = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth()+1).padStart(2, '0')}.${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
     
     mockData.value.push({ 
-      id: newId,
-      rowNumber: newRowNumber,
+      id: Date.now(),
       ...formData.value,
       createdAt: formattedDate,
-      createdBy: 'Sistem İdarəçisi'
+      createdBy: 'Admin'
     })
     showAddModal.value = false
   } else if (showEditModal.value) {
@@ -212,13 +177,13 @@ const saveForm = () => {
   <div class="space-y-6">
     <div class="flex items-center justify-between">
       <h1 class="text-2xl font-bold text-[var(--text-app)]">
-        Atributlar
+        {{ t('menu.attributes', 'Atributlar') }}
       </h1>
     </div>
 
     <!-- Smart Data Table -->
     <DataTable 
-      title="Atribut_Listesi"
+      :title="t('menu.attributes', 'Atributlar')"
       :data="mockData" 
       :columns="columns"
       :selectable="true"
@@ -229,205 +194,82 @@ const saveForm = () => {
       @bulk-delete="handleBulkDelete"
       @bulk-edit="handleBulkEdit"
     >
-      <!-- Row Number Custom Format -->
-      <template #cell-rowNumber="{ value }">
-        <span class="font-medium text-[var(--text-app)] opacity-60">
-          {{ value }}
-        </span>
-      </template>
-
-      <!-- Type Custom Format -->
-      <template #cell-type="{ value, row }">
-        <div class="flex items-center gap-2">
-          <span class="px-2 py-1 rounded-lg text-xs font-medium bg-[var(--text-primary)]/10 text-[var(--text-primary)]">
-            {{ typeLabels[value] || value }}
-          </span>
-          <button
-            @click="handleManageValues(row)"
-            class="px-2 py-1 rounded-lg text-xs font-medium bg-[var(--color-brand-success)]/10 text-[var(--color-brand-success)] hover:bg-[var(--color-brand-success)]/20 transition-colors cursor-pointer"
-          >
-            Dəyərlər ({{ row.values?.length || 0 }})
-          </button>
+      <!-- Values List Custom Format -->
+      <template #cell-values="{ value, highlight }">
+        <div class="flex gap-1 flex-wrap">
+          <template v-if="Array.isArray(value) && value.length > 0">
+            <span 
+              v-for="(tag, idx) in value" 
+              :key="idx"
+              class="px-2 py-0.5 bg-[var(--text-primary)]/10 text-[var(--text-primary)] rounded-[6px] text-[12px] font-medium"
+              v-html="highlight(tag)"
+            ></span>
+          </template>
+          <span v-else class="opacity-30">-</span>
         </div>
       </template>
     </DataTable>
 
     <!-- Modal: Add -->
-    <Modal v-model="showAddModal" title="Yeni Atribut Əlavə Et" max-width="3xl" min-height="500px">
+    <Modal v-model="showAddModal" :title="t('attributes.addNew', 'Yeni Atribut Əlavə Et')" max-width="md" min-height="600px" is-top max-height="95vh">
       <DynamicForm 
         :fields="formFields"
         v-model="formData" 
+        :errors="formErrors"
+        :grid-cols="1"
       />
       
-      <!-- Values Section -->
-      <div class="mt-6 space-y-4">
-        <label class="block text-xs font-bold text-[var(--text-app)] tracking-wider">
-          Atributun daxilində olacaqlar
-        </label>
-        
-        <!-- Add New Value -->
-        <div class="flex gap-2">
-          <UiInput 
-            v-model="newValueInput" 
-            placeholder="Dəyər əlavə et"
-            icon="lucide:plus"
-            @keyup.enter="addValueToTemp"
-            class="flex-1"
-          />
-          <UiButton variant="primary" @click="addValueToTemp" :disabled="!newValueInput.trim()">
-            Əlavə et
-          </UiButton>
-        </div>
-
-        <!-- Values List -->
-        <div class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
-          <div 
-            v-for="(value, index) in tempValues" 
-            :key="index"
-            class="flex items-center justify-between p-3 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg hover:border-[var(--text-primary)] transition-colors"
-          >
-            <span class="text-sm text-[var(--text-app)]">{{ value }}</span>
-            <button
-              @click="removeValueFromTemp(index)"
-              class="text-[var(--color-brand-danger)] hover:bg-[var(--color-brand-danger)]/10 p-1 rounded transition-colors cursor-pointer"
-            >
-              <UiIcon name="lucide:trash-2" class="w-4 h-4" />
-            </button>
-          </div>
-          <div v-if="tempValues.length === 0" class="text-center py-6 text-[var(--text-app)] opacity-50 text-sm">
-            Hələ dəyər əlavə edilməyib
-          </div>
-        </div>
-      </div>
-      
       <template #footer>
-        <UiButton variant="ghost" @click="showAddModal = false">İmtina</UiButton>
-        <UiButton variant="primary" @click="saveForm">Yadda saxla</UiButton>
+        <UiButton variant="ghost" @click="showAddModal = false" class="!px-6">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
+        <UiButton variant="primary" icon="lucide:check" @click="saveForm" class="!px-8 min-w-[120px]">{{ t('common.save', 'Yadda saxla') }}</UiButton>
       </template>
     </Modal>
 
     <!-- Modal: Edit -->
-    <Modal v-model="showEditModal" :title="bulkSelectedIds.length > 0 ? 'Toplu Redaktə' : 'Atributu Redaktə Et'" max-width="3xl" min-height="500px">
+    <Modal 
+      v-model="showEditModal" 
+      :title="bulkSelectedIds.length > 0 ? t('common.bulkEdit', 'Toplu Redaktə') : t('attributes.edit', 'Atributu Redaktə Et')" 
+      max-width="md"
+      min-height="600px"
+      is-top
+      max-height="95vh"
+      @update:model-value="(val) => { if (!val) bulkSelectedIds = [] }"
+    >
       <div v-if="bulkSelectedIds.length > 0" class="mb-4 p-3 bg-[var(--color-brand-warning)]/10 text-[var(--color-brand-warning)] rounded-lg text-sm font-medium">
-        Xəbərdarlıq: Toplu redaktə rejimindəsiniz. Burada doldurduğunuz sahələr, seçdiyiniz <span class="font-bold">{{ bulkSelectedIds.length }}</span> qeydin məlumatının üzərinə yazılacaq.
+        {{ t('employees.bulkEditWarning', { count: bulkSelectedIds.length, default: `Diqqət: Seçilmiş ${bulkSelectedIds.length} qeydin üzərinə yazılacak.` }) }}
       </div>
 
       <DynamicForm 
         :fields="formFields"
         v-model="formData" 
+        :errors="formErrors"
+        :grid-cols="1"
       />
       
-      <!-- Values Section (only for single edit) -->
-      <div v-if="bulkSelectedIds.length === 0" class="mt-6 space-y-4">
-        <label class="block text-xs font-bold text-[var(--text-app)] tracking-wider">
-          Atributun daxilində olacaqlar
-        </label>
-        
-        <!-- Add New Value -->
-        <div class="flex gap-2">
-          <UiInput 
-            v-model="newValueInput" 
-            placeholder="Dəyər əlavə et"
-            icon="lucide:plus"
-            @keyup.enter="addValueToTemp"
-            class="flex-1"
-          />
-          <UiButton variant="primary" @click="addValueToTemp" :disabled="!newValueInput.trim()">
-            Əlavə et
-          </UiButton>
-        </div>
-
-        <!-- Values List -->
-        <div class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
-          <div 
-            v-for="(value, index) in tempValues" 
-            :key="index"
-            class="flex items-center justify-between p-3 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg hover:border-[var(--text-primary)] transition-colors"
-          >
-            <span class="text-sm text-[var(--text-app)]">{{ value }}</span>
-            <button
-              @click="removeValueFromTemp(index)"
-              class="text-[var(--color-brand-danger)] hover:bg-[var(--color-brand-danger)]/10 p-1 rounded transition-colors cursor-pointer"
-            >
-              <UiIcon name="lucide:trash-2" class="w-4 h-4" />
-            </button>
-          </div>
-          <div v-if="tempValues.length === 0" class="text-center py-6 text-[var(--text-app)] opacity-50 text-sm">
-            Hələ dəyər əlavə edilməyib
-          </div>
-        </div>
-      </div>
-      
       <template #footer>
-        <UiButton variant="ghost" @click="showEditModal = false; bulkSelectedIds = []">İmtina</UiButton>
-        <UiButton variant="primary" @click="saveForm">Yenilə</UiButton>
+        <UiButton variant="ghost" @click="showEditModal = false; bulkSelectedIds = []" class="!px-6">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
+        <UiButton variant="primary" icon="lucide:check" @click="saveForm" class="!px-8 min-w-[120px]">{{ t('common.update', 'Yenilə') }}</UiButton>
       </template>
     </Modal>
 
-    <!-- Modal: Manage Values -->
-    <Modal v-model="showValuesModal" title="Atribut Dəyərlərini İdarə Et" max-width="md">
-      <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-[var(--text-app)] mb-2">
-            Atribut: <span class="text-[var(--text-primary)]">{{ formData.name }}</span>
-          </label>
-        </div>
-
-        <!-- Add New Value -->
-        <div class="flex gap-2">
-          <UiInput 
-            v-model="newValue" 
-            placeholder="Yeni dəyər əlavə et"
-            icon="lucide:plus"
-            @keyup.enter="addValue"
-            class="flex-1"
-          />
-          <UiButton variant="primary" @click="addValue" :disabled="!newValue.trim()">
-            Əlavə et
-          </UiButton>
-        </div>
-
-        <!-- Values List -->
-        <div class="space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
-          <div 
-            v-for="(value, index) in currentAttributeValues" 
-            :key="index"
-            class="flex items-center justify-between p-3 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg hover:border-[var(--text-primary)] transition-colors"
-          >
-            <span class="text-sm text-[var(--text-app)]">{{ value }}</span>
-            <button
-              @click="removeValue(index)"
-              class="text-[var(--color-brand-danger)] hover:bg-[var(--color-brand-danger)]/10 p-1 rounded transition-colors cursor-pointer"
-            >
-              <UiIcon name="lucide:trash-2" class="w-4 h-4" />
-            </button>
-          </div>
-          <div v-if="currentAttributeValues.length === 0" class="text-center py-8 text-[var(--text-app)] opacity-50 text-sm">
-            Hələ dəyər əlavə edilməyib
-          </div>
-        </div>
+    <!-- Silmə Təsdiq Modalı -->
+    <Modal v-model="showDeleteConfirmModal" :title="t('common.confirmDelete', 'Silmək istədiyinizə əminsiniz?')" max-width="sm">
+      <div class="py-2">
+        <p class="text-[var(--text-app)] opacity-80 text-[15px] leading-relaxed">
+          {{ t('common.cannotBeUndone', 'Bu əməliyyat geri qaytarıla bilməz.') }}
+          <span v-if="deleteTarget?.type === 'bulk'" class="font-bold text-[var(--color-brand-danger)] block mt-2">
+            {{ t('attributes.bulkDeleteCount', { count: deleteTarget.ids?.length, default: `${deleteTarget.ids?.length} atribut silinəcək` }) }}
+          </span>
+        </p>
       </div>
+      
       <template #footer>
-        <UiButton variant="ghost" @click="showValuesModal = false">İmtina</UiButton>
-        <UiButton variant="primary" @click="saveValues">Yadda saxla</UiButton>
+        <UiButton variant="ghost" @click="showDeleteConfirmModal = false">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
+        <UiButton variant="danger" @click="performDelete">
+          {{ t('common.yesDelete', 'Bəli, Sil') }}
+        </UiButton>
       </template>
     </Modal>
 
   </div>
 </template>
-
-<style scoped>
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: var(--bg-app);
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--border-app);
-  border-radius: 3px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--text-primary);
-}
-</style>

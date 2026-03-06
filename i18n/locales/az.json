@@ -206,5 +206,12 @@
     "addNew": "Yeni Müştəri Əlavə Et",
     "edit": "Müştərini Redaktə Et",
     "bulkDeleteCount": "Seçilmiş {count} müştəri silinəcək."
+  },
+  "attributes": {
+    "name": "Atributun adı",
+    "values": "Dəyərlər",
+    "addNew": "Yeni Atribut Əlavə Et",
+    "edit": "Atributu Redaktə Et",
+    "bulkDeleteCount": "Seçilmiş {count} atribut silinəcək."
   }
 }
