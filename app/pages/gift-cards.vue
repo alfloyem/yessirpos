@@ -5,7 +5,7 @@ import DataTable from '~/components/ui/DataTable.vue'
 import Modal from '~/components/ui/Modal.vue'
 import UiButton from '~/components/ui/Button.vue'
 import DynamicForm, { type FormField } from '~/components/ui/DynamicForm.vue'
-import { useToast, useAuth } from '#imports'
+import { useAuth, useHead, useToast } from '#imports'
 
 const { t } = useI18n()
 

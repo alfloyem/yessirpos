@@ -4,6 +4,8 @@ import { useI18n } from '#i18n'
 import DataTable from '~/components/ui/DataTable.vue'
 import Modal from '~/components/ui/Modal.vue'
 import UiButton from '~/components/ui/Button.vue'
+import { useHead } from '#imports'
+import { watch } from 'vue'
 import DynamicForm, { type FormField } from '~/components/ui/DynamicForm.vue'
 
 const { t } = useI18n()
@@ -290,7 +292,7 @@ const formData = ref<Record<string, any>>({})
 const bulkSelectedIds = ref<any[]>([])
 
 // Watch for "new" category selection
-watch(() => formData.value.category, (newValue) => {
+watch(() => formData.value.category, (newValue: unknown) => {
   if (newValue === 'new') {
     showNewCategoryModal.value = true
     newCategoryName.value = ''

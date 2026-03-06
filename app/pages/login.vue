@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { useI18n, useLocalePath } from '#i18n'
+import { useAuth, navigateTo, definePageMeta, useColorMode, useToast } from '#imports'
+import { ref, onMounted, Transition } from 'vue'
+
 const { t } = useI18n()
 const localePath = useLocalePath()
 const { login } = useAuth()
