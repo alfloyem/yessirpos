@@ -146,7 +146,7 @@ const triggerUpload = () => {
         <!-- Current Main Image -->
         <img 
           :src="images[currentIndex]" 
-          class="w-full h-full object-cover transition-opacity duration-500"
+          class="w-full h-full object-contain transition-opacity duration-500 p-2"
           alt="Product Image"
         />
 
@@ -194,7 +194,7 @@ const triggerUpload = () => {
           ? 'border-[var(--text-primary)] shadow-lg scale-95 brightness-100 grayscale-0' 
           : 'border-[var(--border-app)] hover:border-[var(--text-primary)]/50 brightness-[0.6] grayscale'"
       >
-        <img :src="img" class="w-full h-full object-cover" />
+        <img :src="img" class="w-full h-full object-contain p-1" />
       </div>
 
       <!-- Add New Button (Square, dashed border) -->
