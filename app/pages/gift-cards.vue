@@ -346,7 +346,7 @@ const copyBarcode = (barcode: string) => {
     </DataTable>
 
     <!-- Modal: Add -->
-    <Modal v-model="showAddModal" :title="t('common.addNewCard', 'Yeni Hədiyyə Kartı Əlavə Et')" max-width="xl">
+    <Modal v-model="showAddModal" :title="t('common.addNewCard', 'Yeni Hədiyyə Kartı Əlavə Et')" max-width="xl" min-height="500px">
       <DynamicForm 
         v-if="showAddModal"
         :fields="formFields"
@@ -365,6 +365,7 @@ const copyBarcode = (barcode: string) => {
       v-model="showEditModal" 
       :title="bulkSelectedIds.length > 0 ? t('common.bulkEdit', 'Toplu Redaktə') : t('common.editCard', 'Hədiyyə Kartını Redaktə Et')" 
       max-width="xl"
+      min-height="500px"
       @update:model-value="(val) => { if (!val) bulkSelectedIds = [] }"
     >
       <div v-if="bulkSelectedIds.length > 0" class="mb-4 p-3 bg-[var(--color-brand-warning)]/10 text-[var(--color-brand-warning)] rounded-lg text-sm font-medium">

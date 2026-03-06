@@ -103,7 +103,7 @@ const handleKeydown = (e: KeyboardEvent) => {
       @click="isOpen = !isOpen"
       @keydown.down.prevent="isOpen = true"
       :disabled="disabled"
-      class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] py-3 text-[15px] font-medium rounded-[14px] outline-none focus:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/10 hover:border-[var(--text-primary)]/50 transition-all duration-300 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-left flex items-center justify-between"
+      class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] py-2 text-[15px] font-medium rounded-[14px] outline-none focus:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/10 hover:border-[var(--text-primary)]/50 transition-all duration-300 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-left flex items-center justify-between"
       :class="[(icon || isCountry) ? 'pl-11' : 'pl-5', 'pr-11']"
     >
       <!-- Left Icon (Optional) -->
@@ -152,7 +152,7 @@ const handleKeydown = (e: KeyboardEvent) => {
             :data-value="opt.value"
             type="button"
             @click="selectOption(opt.value)"
-            class="w-full px-5 py-3.5 text-[15px] font-medium text-left hover:bg-[var(--text-primary)]/10 transition-colors cursor-pointer flex items-center gap-3"
+            class="w-full px-5 py-2 text-[15px] font-medium text-left hover:bg-[var(--text-primary)]/10 transition-colors cursor-pointer flex items-center gap-3"
 
             :class="modelValue === opt.value ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)] font-semibold' : 'text-[var(--text-app)]'"
           >

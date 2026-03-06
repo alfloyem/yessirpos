@@ -67,6 +67,7 @@ const maxWidthClass = computed(() => {
         <div 
           class="relative w-full bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] flex flex-col transition-all max-h-[90%]"
           :class="maxWidthClass"
+          :style="{ minHeight: minHeight, maxHeight: maxHeight }"
         >
           <!-- Header -->
           <div v-if="!hideHeader" class="flex items-center justify-between px-8 py-5 border-b border-[var(--border-app)]">

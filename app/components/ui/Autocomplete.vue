@@ -150,7 +150,7 @@ const highlightMatch = (text: string | undefined | null) => {
       @focus="handleFocus"
       :disabled="disabled"
       :placeholder="placeholder || t('common.search', 'Axtar...')"
-      class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] py-3 text-[15px] font-medium rounded-[14px] outline-none focus:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/10 hover:border-[var(--text-primary)]/50 transition-all duration-300 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed placeholder:font-normal"
+      class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] py-2 text-[15px] font-medium rounded-[14px] outline-none focus:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/10 hover:border-[var(--text-primary)]/50 transition-all duration-300 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed placeholder:font-normal"
       :class="icon ? 'pl-11 pr-11' : 'px-5 pr-11'"
     />
     
@@ -174,13 +174,13 @@ const highlightMatch = (text: string | undefined | null) => {
         v-if="isOpen && filteredOptions.length > 0"
         class="absolute z-50 w-full mt-2 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-[14px] shadow-xl overflow-hidden"
       >
-        <div class="max-h-60 overflow-y-auto overflow-x-hidden custom-scrollbar">
+        <div class="max-h-48 overflow-y-auto overflow-x-hidden custom-scrollbar">
           <button
             v-for="opt in filteredOptions"
             :key="opt.value"
             type="button"
             @click.prevent="selectOption(opt)"
-            class="w-full px-5 py-3.5 text-[15px] font-medium text-left hover:bg-[var(--text-primary)]/10 transition-colors cursor-pointer flex items-center gap-3"
+            class="w-full px-5 py-2 text-[15px] font-medium text-left hover:bg-[var(--text-primary)]/10 transition-colors cursor-pointer flex items-center gap-3"
             :class="modelValue === opt.value ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)] font-semibold' : 'text-[var(--text-app)]'"
           >
             <!-- Icon for selected item -->
@@ -203,7 +203,7 @@ const highlightMatch = (text: string | undefined | null) => {
       </div>
       <div 
         v-else-if="isOpen && searchTerm && filteredOptions.length === 0"
-        class="absolute z-50 w-full mt-2 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-[14px] shadow-xl overflow-hidden px-5 py-4 text-center text-sm text-[var(--text-app)] opacity-60"
+        class="absolute z-50 w-full mt-2 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-[14px] shadow-xl overflow-hidden px-5 py-2 text-center text-sm text-[var(--text-app)] opacity-60"
       >
         {{ t('common.noDataFound', 'Məlumat tapılmadı') }}
       </div>
