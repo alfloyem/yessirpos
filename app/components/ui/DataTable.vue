@@ -20,6 +20,7 @@ interface Props {
   searchable?: boolean
   perPage?: number // items per page
   customSearch?: (item: any, query: string) => boolean // custom search function
+  rowClass?: (row: any) => string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -413,7 +414,10 @@ watch(searchQuery, () => {
                 v-for="row in paginatedData" 
                 :key="row.id"
                 class="hover:bg-[var(--bg-app)]/50 transition-colors group"
-                :class="{'bg-[var(--text-primary)]/5': selectedIds.has(row.id)}"
+                :class="[
+                  {'bg-[var(--text-primary)]/5': selectedIds.has(row.id)},
+                  rowClass ? rowClass(row) : ''
+                ]"
               >
                 <!-- Multi Select Cell -->
                 <td v-if="selectable" class="px-6 py-3 w-12 cursor-pointer" @click.stop="toggleSelect(row.id)">
@@ -440,6 +444,7 @@ watch(searchQuery, () => {
                 <!-- Actions Cell -->
                 <td v-if="actions" class="px-6 py-3 text-right" @click.stop>
                   <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <slot name="row-actions" :row="row"></slot>
                     <div class="relative group/duplicate">
                       <UiButton 
                         variant="ghost"

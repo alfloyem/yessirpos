@@ -165,7 +165,7 @@ const variantSchemaTop = computed<FormField[]>(() => {
     .map(p => ({ label: p.productName, value: p.id }))
 
   return [
-    { key: 'parentProductId', label: t('products.parentProduct', 'Asılı olduğu məhsul'), icon: 'lucide:box', type: 'select', required: true, options: productOptions },
+    { key: 'parentProductId', label: t('products.parentProduct', 'Asılı olduğu məhsul'), icon: 'lucide:box', type: 'select', required: true, options: productOptions, disabled: true },
   ]
 })
 
@@ -189,6 +189,19 @@ const columns = computed(() =>
 // --- Data ---
 const mockData = ref<any[]>([])
 const loading = ref(false)
+
+const orderedMockData = computed(() => {
+  const mainProducts = mockData.value.filter(m => !m.parentProductId)
+  const variants = mockData.value.filter(m => !!m.parentProductId)
+  
+  const result: any[] = []
+  mainProducts.forEach(main => {
+    result.push(main)
+    const childVariants = variants.filter(v => v.parentProductId === main.id)
+    result.push(...childVariants)
+  })
+  return result
+})
 
 const loadGoods = async () => {
   loading.value = true
@@ -281,9 +294,9 @@ const handleAdd = () => {
   showAddModal.value = true
 }
 
-const handleStandaloneVariantAdd = () => {
+const handleStandaloneVariantAdd = (row: any) => {
   variantFormData.value = {
-    parentProductId: null,
+    parentProductId: row.id,
     barcode: generateBarcode('P'),
     wholesalePrice: '0.00',
     retailPrice: '0.00',
@@ -536,12 +549,13 @@ const saveForm = async () => {
     <!-- Smart Data Table -->
     <DataTable 
       :title="t('menu.products', 'Mallar')"
-      :data="mockData" 
+      :data="orderedMockData" 
       :columns="columns"
       :selectable="true"
       :actions="true"
       :loading="loading"
       :custom-search="customSearch"
+      :row-class="(row) => row.parentProductId ? '!bg-[var(--text-primary)]/[0.04]' : ''"
       @add="handleAdd"
       @edit="handleEdit"
       @delete="handleDelete"
@@ -549,15 +563,19 @@ const saveForm = async () => {
       @bulk-delete="handleBulkDelete"
       @bulk-edit="handleBulkEdit"
     >
-      <template #extra-actions>
-        <UiButton 
-          variant="soft-primary" 
-          size="sm" 
-          icon="lucide:layers" 
-          @click="handleStandaloneVariantAdd"
-        >
-          {{ t('products.addVariant', 'Variant Əlavə Et') }}
-        </UiButton>
+      <template #row-actions="{ row }">
+        <div v-if="!row.parentProductId" class="relative group/add-variant flex items-center">
+          <UiButton 
+            variant="ghost"
+            size="icon"
+            icon="lucide:layers"
+            @click="handleStandaloneVariantAdd(row)"
+            class="hover:text-[var(--color-brand-success)] hover:bg-[var(--color-brand-success)]/10 cursor-pointer"
+          />
+          <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-[var(--text-primary)] text-[var(--bg-app)] text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover/add-variant:opacity-100 pointer-events-none transition-all z-50">
+            {{ t('products.addVariant', 'Variant Əlavə Et') }}
+          </div>
+        </div>
       </template>
 
       <!-- Row Number Custom Format -->

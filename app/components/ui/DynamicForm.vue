@@ -19,6 +19,7 @@ export interface FormField {
   isCountry?: boolean // For country select
   barcodePrefix?: string // For barcode type
   placeholder?: string // Optional placeholder
+  disabled?: boolean // For disabled state
 }
 
 const props = defineProps<{
@@ -79,7 +80,8 @@ const enhancedFields = computed(() => {
         required: field.required,
         isConfirm: true,
         originalKey: field.key,
-        colSpan: field.colSpan
+        colSpan: field.colSpan,
+        disabled: field.disabled
       })
     }
   }
@@ -117,7 +119,7 @@ const isPasswordMismatch = (field: any) => {
         <textarea 
           :value="modelValue[field.key]"
           @input="e => updateField(field.key, (e.target as HTMLTextAreaElement).value)"
-          :disabled="isLoading"
+          :disabled="isLoading || field.disabled"
           class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] px-5 py-3 text-[15px] font-medium rounded-[14px] outline-none focus:border-[var(--text-primary)] transition-all min-h-[120px] resize-y disabled:opacity-50 disabled:cursor-not-allowed leading-relaxed hover:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/10 placeholder:font-normal"
           :class="{ '!border-[var(--color-brand-danger)]': errors?.[field.key] }"
         />
@@ -140,7 +142,7 @@ const isPasswordMismatch = (field: any) => {
         :modelValue="modelValue[field.key]"
         @update:modelValue="val => updateField(field.key, val)"
         :options="field.options || []"
-        :disabled="isLoading"
+        :disabled="isLoading || field.disabled"
         :icon="field.icon"
         :isCountry="field.isCountry"
         class="hover:border-[var(--text-primary)] transition-colors"
@@ -153,7 +155,7 @@ const isPasswordMismatch = (field: any) => {
         :modelValue="modelValue[field.key]"
         @update:modelValue="val => updateField(field.key, val)"
         :options="field.options || []"
-        :disabled="isLoading"
+        :disabled="isLoading || field.disabled"
         :icon="field.icon"
         :autofocus="field.autofocus"
         class="hover:border-[var(--text-primary)] transition-colors"
@@ -166,7 +168,7 @@ const isPasswordMismatch = (field: any) => {
           type="text"
           :modelValue="formatDateTimeForDisplay(modelValue[field.key] || '')"
           @update:modelValue="val => updateField(field.key, parseDateTimeFromDisplay(val))"
-          :disabled="isLoading"
+          :disabled="isLoading || field.disabled"
           :icon="field.icon"
           placeholder="dd.mm.yyyy HH:mm"
         />
@@ -178,7 +180,7 @@ const isPasswordMismatch = (field: any) => {
           :type="field.type"
           :modelValue="modelValue[field.key]"
           @update:modelValue="val => updateField(field.key, val)"
-          :disabled="isLoading"
+          :disabled="isLoading || field.disabled"
           :icon="field.icon"
           :barcodePrefix="field.barcodePrefix"
           :placeholder="field.placeholder"
