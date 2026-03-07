@@ -162,15 +162,16 @@ const isPasswordMismatch = (field: any) => {
         :class="{ '!border-[var(--color-brand-danger)]': errors?.[field.key] }"
       />
       
-      <!-- DateTime Input (dd.mm.yyyy HH:mm) -->
+      <!-- DateTime Input -->
       <div v-else-if="field.type === 'datetime'" class="relative">
         <UiInput 
-          type="text"
-          :modelValue="formatDateTimeForDisplay(modelValue[field.key] || '')"
-          @update:modelValue="val => updateField(field.key, parseDateTimeFromDisplay(val))"
+          type="datetime-local"
+          :modelValue="modelValue[field.key]"
+          @update:modelValue="val => updateField(field.key, val)"
           :disabled="isLoading || field.disabled"
           :icon="field.icon"
-          placeholder="dd.mm.yyyy HH:mm"
+          class="hover:border-[var(--text-primary)] transition-colors"
+          :class="{ '!border-[var(--color-brand-danger)]': errors?.[field.key] }"
         />
       </div>
       

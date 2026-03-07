@@ -117,9 +117,14 @@ const formErrors = ref<Record<string, string>>({})
 const bulkSelectedIds = ref<any[]>([])
 
 // --- Handlers ---
+const getLocalISOString = (date: Date = new Date()) => {
+  const tzOffset = date.getTimezoneOffset() * 60000
+  return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16)
+}
+
 const handleAdd = () => {
   formData.value = {
-    date: new Date().toISOString().slice(0, 16),
+    date: getLocalISOString(),
     amount: '0.00',
     category: [],
     paymentMethod: 'cash'
@@ -131,7 +136,7 @@ const handleAdd = () => {
 const handleEdit = (row: any) => {
   formData.value = { 
     ...row,
-    date: row._date ? row._date.toISOString().slice(0, 16) : ''
+    date: row._date ? getLocalISOString(row._date) : getLocalISOString()
   }
   formErrors.value = {}
   showEditModal.value = true

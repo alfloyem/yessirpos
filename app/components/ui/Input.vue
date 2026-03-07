@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import countryList from '~/utils/countries.json'
+import { useI18n } from '#i18n'
+
+const { locale } = useI18n()
 
 const props = defineProps<{
   modelValue: string | number
@@ -131,6 +134,8 @@ const computedIcon = computed(() => {
     case 'password': return 'lucide:lock'
     case 'tel': return 'lucide:phone'
     case 'barcode': return 'lucide:barcode'
+    case 'date':
+    case 'datetime-local': return 'lucide:calendar'
     default: return ''
   }
 })
@@ -163,6 +168,8 @@ const computedPlaceholder = computed(() => {
   }
   return props.placeholder || (props.type === 'tel' ? '(55) 555-55-55' : '')
 })
+
+const inputRef = ref<HTMLInputElement | null>(null)
 
 const handleInput = (e: Event) => {
   let val = (e.target as HTMLInputElement).value
@@ -208,6 +215,20 @@ const handleInput = (e: Event) => {
   }
 
   emit('update:modelValue', val)
+}
+
+const handleInputClick = () => {
+  if (props.type === 'datetime-local' || props.type === 'date') {
+    try {
+      // @ts-ignore - showPicker is a newer standard, may not be in all TS versions
+      if (inputRef.value?.showPicker) {
+        // @ts-ignore
+        inputRef.value.showPicker()
+      }
+    } catch (e) {
+      console.warn('showPicker not supported', e)
+    }
+  }
 }
 
 const handleBlur = (e: Event) => {
@@ -347,19 +368,23 @@ const handleInputKeydown = (e: KeyboardEvent) => {
       
       <!-- Input Element -->
       <input 
+        ref="inputRef"
         :type="computedType" 
         :value="localValue"
         @input="handleInput"
+        @click="handleInputClick"
         @blur="handleBlur"
         @copy="handleCopy"
         @keydown="handleInputKeydown"
         :placeholder="computedPlaceholder"
         :disabled="disabled"
+        :lang="locale"
         class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] py-3 text-[15px] font-medium rounded-[14px] outline-none focus:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/10 hover:border-[var(--text-muted)] transition-all duration-300 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-[var(--border-app)] placeholder:font-normal"
         :class="[
           computedIcon && type !== 'tel' ? 'pl-11' : (type === 'tel' ? 'pl-[115px]' : 'pl-5'), 
           (clearable && modelValue) || type === 'password' ? 'pr-11' : 'pr-5',
-          type === 'barcode' ? 'font-mono tracking-wider' : ''
+          type === 'barcode' ? 'font-mono tracking-wider' : '',
+          (type === 'date' || type === 'datetime-local') ? 'cursor-pointer' : ''
         ]"
       />
       
@@ -403,5 +428,26 @@ const handleInputKeydown = (e: KeyboardEvent) => {
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: var(--text-primary);
+}
+/* Hide native calendar icon in modern browsers to avoid double icons */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: auto;
+  height: auto;
+  color: transparent;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* For Firefox */
+input[type="date"],
+input[type="datetime-local"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
 }
 </style>
