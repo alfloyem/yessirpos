@@ -791,6 +791,7 @@ const saveForm = async () => {
           <div class="w-full">
             <ImageCarousel 
               :images="productImages"
+              :product-name="formData.productName"
               @update:images="val => productImages = val"
             />
           </div>
@@ -834,6 +835,7 @@ const saveForm = async () => {
           <div class="w-full">
             <ImageCarousel 
               :images="productImages"
+              :product-name="formData.productName"
               @update:images="val => productImages = val"
             />
           </div>
@@ -882,6 +884,8 @@ const saveForm = async () => {
           <div class="w-full">
             <ImageCarousel 
               :images="variantImages"
+              :product-name="variantFormData.productName"
+              :attributes="selectedVariantAttr.map(a => a.value)"
               @update:images="val => variantImages = val"
             />
           </div>

@@ -1,5 +1,36 @@
 import { defineEventHandler, createError, readBody, getRouterParam } from 'h3'
 import prisma from '../../utils/prisma'
+import { saveBase64Image } from '../../utils/image'
+
+const processImages = async (images: any[], baseName: string, attributes?: string[]) => {
+  if (!Array.isArray(images)) return []
+  
+  const results = []
+  for (let i = 0; i < images.length; i++) {
+    const img = images[i]
+    if (img && typeof img === 'string' && img.startsWith('data:')) {
+      let filename = baseName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+      if (attributes && attributes.length > 0) {
+        filename += '_' + attributes.map(a => a.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')).join('_')
+      }
+      if (i > 0) filename += `-${i}`
+      
+      let ext = '.webp'
+      if (img.startsWith('data:image/svg+xml')) ext = '.svg'
+      else if (img.startsWith('data:image/png')) ext = '.png'
+      else if (img.startsWith('data:image/jpeg')) ext = '.jpg'
+      else if (img.startsWith('data:image/gif')) ext = '.gif'
+      
+      filename += ext
+      
+      const savedPath = await saveBase64Image(img, filename)
+      if (savedPath) results.push(savedPath)
+    } else {
+      results.push(img)
+    }
+  }
+  return results
+}
 
 export default defineEventHandler(async (event: any) => {
   try {
@@ -31,6 +62,8 @@ export default defineEventHandler(async (event: any) => {
       }
     }
 
+    const processedImages = await processImages(images, productName, attribute)
+
     const updated = await (prisma as any).product.update({
       where: { id },
       data: {
@@ -39,7 +72,7 @@ export default defineEventHandler(async (event: any) => {
         category: Array.isArray(category) ? JSON.stringify(category) : (category || null),
         barcode,
         description,
-        images: Array.isArray(images) ? JSON.stringify(images) : (images || null),
+        images: Array.isArray(processedImages) ? JSON.stringify(processedImages) : (processedImages || null),
         wholesalePrice: Number(wholesalePrice),
         retailPrice: Number(retailPrice),
         stock: Number(stock),
