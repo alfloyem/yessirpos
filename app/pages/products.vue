@@ -254,6 +254,7 @@ const formErrors = ref<Record<string, string>>({})
 const bulkSelectedIds = ref<any[]>([])
 const barcodeError = ref('')
 const isSaving = ref(false)
+const isVariantEdit = ref(false)
 const productImages = ref<string[]>([])
 const variantImages = ref<string[]>([])
 const availableAttributes = ref<any[]>([])
@@ -321,10 +322,32 @@ const removeAttributeFromVariant = (index: number) => {
 }
 
 const handleEdit = (row: any) => {
-  formData.value = { ...row }
-  productImages.value = [...(row.images || [])]
-  barcodeError.value = ''
-  showEditModal.value = true
+  if (row.parentProductId) {
+    // Edit Variant
+    isVariantEdit.value = true
+    variantFormData.value = { ...row }
+    variantImages.value = [...(row.images || [])]
+    
+    // Parse attributes like "Color: Red" back to {id, name, value}
+    selectedVariantAttr.value = (row.attribute || []).map((attrStr: string) => {
+      const [name, value] = attrStr.split(':').map(s => s.trim())
+      const attrDef = availableAttributes.value.find(a => a.name === name)
+      return {
+        id: attrDef?.id || Math.random().toString(),
+        name: name,
+        value: value
+      }
+    })
+    
+    barcodeError.value = ''
+    showVariantModal.value = true
+  } else {
+    // Edit Main Product
+    formData.value = { ...row }
+    productImages.value = [...(row.images || [])]
+    barcodeError.value = ''
+    showEditModal.value = true
+  }
 }
 
 const handleDelete = (row: any) => {
@@ -399,7 +422,7 @@ const handleDuplicate = async (row: any) => {
     })
     
     mockData.value.unshift(newProduct)
-    toast.success(t('toast.attributeDuplicated', 'Kopyalandı'))
+    toast.success(t('common.duplicate', 'Kopyalandı'))
   } catch (err: any) {
     toast.error(t('toast.operationFailed'))
   } finally {
@@ -516,7 +539,7 @@ const saveForm = async () => {
       }
       toast.success(t('toast.customerUpdated', 'Yeniləndi'))
       showEditModal.value = false
-    } else if (showVariantModal.value) {
+    } else if (showVariantModal.value && !isVariantEdit.value) {
       const newVariant = await $fetch('/api/products', {
         method: 'POST',
         body: {
@@ -529,6 +552,21 @@ const saveForm = async () => {
       mockData.value.unshift(newVariant)
       toast.success(t('toast.customerAdded', 'Variant əlavə edildi'))
       showVariantModal.value = false
+    } else if (showVariantModal.value && isVariantEdit.value) {
+      const updatedVariant = await $fetch(`/api/products/${variantFormData.value.id}`, {
+        method: 'PUT',
+        body: {
+          ...variantFormData.value,
+          attribute: selectedVariantAttr.value.map(s => `${s.name}: ${s.value}`),
+          images: variantImages.value
+        },
+        headers
+      })
+      const idx = mockData.value.findIndex(p => p.id === variantFormData.value.id)
+      if (idx !== -1) mockData.value[idx] = updatedVariant
+      toast.success(t('toast.customerUpdated', 'Yeniləndi'))
+      showVariantModal.value = false
+      isVariantEdit.value = false
     }
   } catch (err: any) {
     const msg = err.data?.statusMessage || t('toast.operationFailed')
@@ -781,8 +819,15 @@ const saveForm = async () => {
       </template>
     </Modal>
 
-    <!-- Variant Əlavə Et / Modal -->
-    <Modal v-model="showVariantModal" :title="t('products.addVariant', 'Variant Əlavə Et')" max-width="3xl" is-top max-height="90vh">
+    <!-- Variant Modal (Add / Edit) -->
+    <Modal 
+      v-model="showVariantModal" 
+      :title="isVariantEdit ? t('products.editVariant', 'Variantı Redaktə Et') : t('products.addVariant', 'Variant Əlavə Et')" 
+      max-width="3xl" 
+      is-top 
+      max-height="90vh"
+      @close="isVariantEdit = false"
+    >
       <div class="flex flex-col lg:flex-row gap-8 items-start h-full">
         <!-- Left: Image Section (Expanded) -->
         <div class="w-full lg:w-[45%] shrink-0 space-y-4 lg:sticky lg:top-4">
@@ -864,8 +909,14 @@ const saveForm = async () => {
       </div>
 
       <template #footer>
-        <UiButton variant="ghost" @click="showVariantModal = false">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
-        <UiButton variant="primary" icon="lucide:check" @click="saveForm">{{ t('products.saveVariant', 'Variantı Yadda Saxla') }}</UiButton>
+        <UiButton variant="ghost" @click="showVariantModal = false; isVariantEdit = false">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
+        <UiButton 
+          variant="primary" 
+          icon="lucide:check" 
+          @click="saveForm"
+        >
+          {{ isVariantEdit ? t('common.update', 'Yenilə') : t('products.saveVariant', 'Variantı Yadda Saxla') }}
+        </UiButton>
       </template>
     </Modal>
 
