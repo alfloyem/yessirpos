@@ -17,19 +17,15 @@ useHead({
 const supplierSchema: (FormField & { inTable?: boolean, sortable?: boolean })[] = [
   { key: 'rowNumber', label: 'Sıra sayı', type: 'text', inTable: true, sortable: false },
   { key: 'brandName', label: 'Brendin adı', icon: 'lucide:tag', type: 'text', inTable: true, sortable: true, required: true },
-  { key: 'companyName', label: 'Şirkətin adı', icon: 'lucide:building-2', type: 'text', inTable: true, sortable: true, required: true },
+  { key: 'companyName', label: 'Şirkətin adı', icon: 'lucide:building-2', type: 'tags', inTable: true, sortable: true, required: true, historyKey: 'company_names' },
   { key: 'firstName', label: 'Ad', type: 'text', inTable: true, sortable: true },
   { key: 'lastName', label: 'Soyad', type: 'text', inTable: true, sortable: true },
   { key: 'email', label: 'E-poçt', icon: 'lucide:mail', type: 'email', inTable: true, sortable: true },
   { key: 'phone', label: 'Telefon', icon: 'lucide:phone', type: 'tel', inTable: true, sortable: true },
-  { key: 'voen', label: 'VÖEN', icon: 'lucide:file-text', type: 'text', inTable: true, sortable: true },
+  { key: 'voen', label: 'VÖEN', icon: 'lucide:file-text', type: 'tags', inTable: true, sortable: true, historyKey: 'voen_numbers' },
   { key: 'address', label: 'Ünvan', icon: 'lucide:map-pin', type: 'text', colSpan: 2, inTable: false },
-  { key: 'city', label: 'Şəhər/rayon', type: 'select', inTable: false, sortable: true, options: [
-    { label: 'Bakı', value: 'Bakı' },
-    { label: 'Gəncə', value: 'Gəncə' },
-    { label: 'Sumqayıt', value: 'Sumqayıt' }
-  ]},
-  { key: 'country', label: 'Ölkə', icon: 'lucide:globe', type: 'text', inTable: false },
+  { key: 'city', label: 'Şəhər/rayon', type: 'tags', inTable: false, sortable: true, historyKey: 'cities' },
+  { key: 'country', label: 'Ölkə', icon: 'lucide:globe', type: 'select', inTable: false, isCountry: true },
   { key: 'notes', label: 'Xüsusi qeyd', type: 'textarea', colSpan: 2, inTable: false },
   { key: 'createdAt', label: 'Tarix', type: 'text', inTable: false, sortable: true },
   { key: 'createdBy', label: 'Əməkdaş', type: 'text', inTable: false, sortable: true },
@@ -53,15 +49,15 @@ const mockData = ref<any[]>([
     id: 1, 
     rowNumber: 1,
     brandName: 'Nike', 
-    companyName: 'Nike Azerbaijan LLC', 
+    companyName: ['Nike Azerbaijan LLC'], 
     firstName: 'Rəşad', 
     lastName: 'Məmmədov', 
     email: 'rashad@nike.az', 
     phone: '+994 50 123 45 67', 
-    voen: '1234567890',
+    voen: ['1234567890'],
     address: '28 May küçəsi 12', 
-    city: 'Bakı', 
-    country: 'Azərbaycan', 
+    city: ['Bakı'], 
+    country: 'AZ', 
     notes: 'Premium tədarükçü',
     createdAt: '2026-03-03 10:15', 
     createdBy: 'Admin'
@@ -70,15 +66,15 @@ const mockData = ref<any[]>([
     id: 2, 
     rowNumber: 2,
     brandName: 'Adidas', 
-    companyName: 'Adidas Sport MMC', 
+    companyName: ['Adidas Sport MMC'], 
     firstName: 'Leyla', 
     lastName: 'Əliyeva', 
     email: 'leyla@adidas.az', 
     phone: '+994 55 987 65 43', 
-    voen: '0987654321',
+    voen: ['0987654321'],
     address: 'Neftçilər prospekti 25', 
-    city: 'Bakı', 
-    country: 'Azərbaycan', 
+    city: ['Bakı'], 
+    country: 'AZ', 
     notes: '',
     createdAt: '2026-03-02 14:30', 
     createdBy: 'Admin'
@@ -87,15 +83,15 @@ const mockData = ref<any[]>([
     id: 3, 
     rowNumber: 3,
     brandName: 'Zara', 
-    companyName: 'Inditex Azerbaijan', 
+    companyName: ['Inditex Azerbaijan'], 
     firstName: 'Elvin', 
     lastName: 'Quliyev', 
     email: 'elvin@zara.az', 
     phone: '+994 51 234 56 78', 
-    voen: '5678901234',
+    voen: ['5678901234'],
     address: 'Nizami küçəsi 45', 
-    city: 'Bakı', 
-    country: 'Azərbaycan', 
+    city: ['Bakı'], 
+    country: 'AZ', 
     notes: 'Fast fashion',
     createdAt: '2026-03-01 09:20', 
     createdBy: 'Admin'
@@ -112,8 +108,10 @@ const voenError = ref('')
 // --- Handlers ---
 const handleAdd = () => {
   formData.value = {
-    city: 'Bakı',
-    country: 'Azərbaycan'
+    companyName: [],
+    voen: [],
+    city: [],
+    country: 'AZ'
   }
   voenError.value = ''
   showAddModal.value = true
@@ -185,8 +183,13 @@ const handleBulkEdit = (ids: any[]) => {
 }
 
 // VÖEN kontrolü
-const checkVoenUnique = (voen: string, currentId?: any) => {
-  return !mockData.value.some(m => m.voen === voen && m.id !== currentId)
+const checkVoenUnique = (voen: string[], currentId?: any) => {
+  if (!voen || voen.length === 0) return true
+  const voenStr = voen[0]
+  return !mockData.value.some(m => {
+    const mVoen = Array.isArray(m.voen) ? m.voen[0] : m.voen
+    return mVoen === voenStr && m.id !== currentId
+  })
 }
 
 const saveForm = () => {
@@ -258,6 +261,13 @@ const saveForm = () => {
         </span>
       </template>
 
+      <!-- Company Name Custom Format -->
+      <template #cell-companyName="{ value }">
+        <span class="font-medium text-[var(--text-app)]">
+          {{ Array.isArray(value) ? value[0] : value }}
+        </span>
+      </template>
+
       <!-- Brand Name Custom Format -->
       <template #cell-brandName="{ value }">
         <span class="font-semibold text-[var(--text-primary)]">
@@ -268,7 +278,7 @@ const saveForm = () => {
       <!-- VÖEN Custom Format -->
       <template #cell-voen="{ value }">
         <span class="font-mono text-sm text-[var(--text-app)]">
-          {{ value }}
+          {{ Array.isArray(value) ? value[0] : value }}
         </span>
       </template>
     </DataTable>
