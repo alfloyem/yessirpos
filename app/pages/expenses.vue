@@ -1,623 +1,349 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useHead, useToast, useAuth } from '#imports'
 import { useI18n } from '#i18n'
 import DataTable from '~/components/ui/DataTable.vue'
 import Modal from '~/components/ui/Modal.vue'
 import UiButton from '~/components/ui/Button.vue'
-import { useHead } from '#imports'
-import { watch } from 'vue'
 import DynamicForm, { type FormField } from '~/components/ui/DynamicForm.vue'
 
 const { t } = useI18n()
+const toast = useToast()
 
 useHead({
-  title: t('menu.expenses') || 'Xərclər'
+  title: t('menu.expenses', 'Xərclər')
 })
 
-// --- Centralized Schema ---
-const dateFilter = ref('all')
-const dateFilterOptions = [
-  { label: 'Hamısı', value: 'all' },
-  { label: 'Bu gün', value: 'today' },
-  { label: 'Dünən', value: 'yesterday' },
-  { label: 'Bu həftə', value: 'thisWeek' },
-  { label: 'Son 2 həftə', value: 'last2Weeks' },
-  { label: 'Bu ay', value: 'thisMonth' },
-  { label: 'Son 3 ay', value: 'last3Months' },
-  { label: 'Bu il', value: 'thisYear' }
-]
-
-// Parse date from dd.mm.yyyy HH:mm format
-const parseDate = (dateStr: string) => {
-  const [datePart] = (dateStr || '').split(' ')
-  const [day, month, year] = (datePart || '').split('.')
-  if (!day || !month || !year) return new Date()
-  return new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
-}
-
-// Filter data by date
-const filteredData = computed(() => {
-  if (dateFilter.value === 'all') return mockData.value
-
-  const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  
-  return mockData.value.filter(item => {
-    const itemDate = parseDate(item.date)
-    
-    switch (dateFilter.value) {
-      case 'today':
-        return itemDate >= today
-      
-      case 'yesterday':
-        const yesterday = new Date(today)
-        yesterday.setDate(yesterday.getDate() - 1)
-        return itemDate >= yesterday && itemDate < today
-      
-      case 'thisWeek':
-        const weekStart = new Date(today)
-        weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1) // Monday
-        return itemDate >= weekStart
-      
-      case 'last2Weeks':
-        const twoWeeksAgo = new Date(today)
-        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14)
-        return itemDate >= twoWeeksAgo
-      
-      case 'thisMonth':
-        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-        return itemDate >= monthStart
-      
-      case 'last3Months':
-        const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1)
-        return itemDate >= threeMonthsAgo
-      
-      case 'thisYear':
-        const yearStart = new Date(now.getFullYear(), 0, 1)
-        return itemDate >= yearStart
-      
-      default:
-        return true
-    }
-  })
-})
+// --- Data ---
+const expenses = ref<any[]>([])
+const employeesOptions = ref<{label: string, value: string}[]>([])
+const loading = ref(false)
+const error = ref<string | null>(null)
 
 // --- Centralized Schema ---
-const expenseSchema: (FormField & { inTable?: boolean, sortable?: boolean })[] = [
-  { key: 'rowNumber', label: 'Sıra sayı', type: 'text', inTable: true, sortable: false },
-  { key: 'date', label: 'Tarix', icon: 'lucide:calendar', type: 'datetime', inTable: true, sortable: true, required: true },
-  { key: 'employee', label: 'Əməkdaş', icon: 'lucide:user', type: 'text', inTable: true, sortable: true },
-  { key: 'amount', label: 'Xərc (₼)', icon: 'lucide:wallet', type: 'number', inTable: true, sortable: true, required: true },
-  { key: 'category', label: 'Kateqoriya', icon: 'lucide:folder', type: 'select', inTable: true, sortable: true, required: true, options: [
-    { label: 'Obyekt xərcləri', value: 'office' },
-    { label: 'Maaş', value: 'salary' },
-    { label: 'İcarə', value: 'rent' },
-    { label: 'Kommunal xidmətlər', value: 'utilities' },
-    { label: 'Nəqliyyat', value: 'transport' },
-    { label: 'Marketinq', value: 'marketing' },
-    { label: 'Yemək', value: 'food' },
-    { label: 'Yeni', value: 'new' }
-  ]},
-  { key: 'paymentMethod', label: 'Ödəniş üsulu', icon: 'lucide:credit-card', type: 'select', inTable: false, sortable: true, options: [
-    { label: 'Nağd', value: 'cash' },
-    { label: 'Bank kartı', value: 'card' },
-    { label: 'Bank köçürməsi', value: 'transfer' }
-  ]},
-  { key: 'description', label: 'Açıqlama', icon: 'lucide:file-text', type: 'textarea', colSpan: 2, inTable: false },
-  { key: 'notes', label: 'Qeydlər', type: 'textarea', colSpan: 2, inTable: false },
-  { key: 'createdAt', label: 'Yaradılma tarixi', type: 'text', inTable: false, sortable: true },
-  { key: 'createdBy', label: 'Yaradan', type: 'text', inTable: false, sortable: true },
-]
+const expenseSchema = computed< (FormField & { inTable?: boolean, sortable?: boolean })[] >(() => [
+  { key: 'date', label: t('expenses.date', 'Tarix'), icon: 'lucide:calendar', type: 'datetime', inTable: true, sortable: true, required: true, colSpan: 1 },
+  { 
+    key: 'employeeName', 
+    label: t('expenses.employee', 'Əməkdaş'), 
+    icon: 'lucide:user', 
+    type: 'autocomplete', 
+    options: employeesOptions.value,
+    inTable: true, 
+    sortable: true, 
+    colSpan: 1 
+  },
+  { key: 'amount', label: t('expenses.amount', 'Xərc (₼)'), icon: 'lucide:wallet', type: 'number', inTable: true, sortable: true, required: true, colSpan: 1 },
+  { 
+    key: 'category', 
+    label: t('expenses.category', 'Kateqoriya'), 
+    icon: 'lucide:folder', 
+    type: 'tags', 
+    historyKey: 'expense_categories',
+    inTable: true, 
+    sortable: true, 
+    required: true, 
+    colSpan: 1 
+  },
+  { key: 'paymentMethod', label: t('expenses.paymentMethod', 'Ödəniş üsulu'), icon: 'lucide:credit-card', type: 'select', inTable: true, sortable: true, options: [
+    { label: t('expenses.payCash', 'Nağd'), value: 'cash' },
+    { label: t('expenses.payCard', 'Bank kartı'), value: 'card' },
+    { label: t('expenses.payTransfer', 'Bank köçürməsi'), value: 'transfer' }
+  ], colSpan: 1 },
+  { key: 'notes', label: t('expenses.notes', 'Qeydlər'), type: 'textarea', colSpan: 2, inTable: false },
+  { key: 'createdAt', label: t('common.createdAt', 'Yaradılma'), type: 'text', inTable: true, sortable: true },
+  { key: 'createdBy', label: t('common.createdBy', 'Yaradan'), type: 'text', inTable: true, sortable: true },
+])
 
-// Modal'da gösterilecek form alanları (createdAt, createdBy və rowNumber Hariç)
+// Modal'da gösterilecek form alanları
 const formFields = computed(() => {
-  return expenseSchema.filter(f => !['createdAt', 'createdBy', 'rowNumber'].includes(f.key))
+  return expenseSchema.value.filter(f => !['createdAt', 'createdBy'].includes(f.key))
 })
 
 // Extract table columns dynamically
 const columns = computed(() => 
-  expenseSchema
+  expenseSchema.value
     .filter(f => f.inTable)
     .map(f => ({ key: f.key, label: f.label, sortable: f.sortable }))
 )
 
-// Category labels for display
-const categoryLabels: Record<string, string> = {
-  office: 'Obyekt xərcləri',
-  salary: 'Maaş',
-  rent: 'İcarə',
-  utilities: 'Kommunal xidmətlər',
-  transport: 'Nəqliyyat',
-  marketing: 'Marketinq',
-  food: 'Yemək',
-  new: 'Yeni'
+const loadData = async () => {
+  loading.value = true
+  error.value = null
+  
+  try {
+    const [expensesRes, employeesRes] = await Promise.all([
+      $fetch('/api/expenses'),
+      $fetch('/api/employees')
+    ])
+
+    expenses.value = (expensesRes as any[]).map(e => ({
+      ...e,
+      _date: new Date(e.date),
+      category: e.category ? (e.category.startsWith('[') ? JSON.parse(e.category) : [e.category]) : [],
+      date: new Date(e.date).toLocaleString('tr-TR', {
+        year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+      }),
+      createdAt: new Date(e.createdAt).toLocaleString('tr-TR', {
+        year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+      })
+    }))
+
+    employeesOptions.value = (employeesRes as any[]).map(emp => ({
+      label: `${emp.firstName} ${emp.lastName}`,
+      value: `${emp.firstName} ${emp.lastName}`
+    }))
+
+  } catch (err: any) {
+    const errorMsg = err.message || t('toast.loadingError', 'Məlumatlar yüklənərkən xəta baş verdi')
+    error.value = errorMsg
+    toast.error(errorMsg)
+  } finally {
+    loading.value = false
+  }
 }
 
-// --- Data ---
-const mockData = ref<any[]>([
-  { 
-    id: 1, 
-    rowNumber: 1,
-    date: '03.03.2026 10:15',
-    employee: 'Rəşad Məmmədov',
-    amount: 500,
-    category: 'office',
-    paymentMethod: 'cash',
-    description: 'Ofis ləvazimatları alışı',
-    notes: '',
-    createdAt: '2026-03-03 10:15', 
-    createdBy: 'Admin'
-  },
-  { 
-    id: 2, 
-    rowNumber: 2,
-    date: '02.03.2026 14:30',
-    employee: 'Leyla Əliyeva',
-    amount: 3500,
-    category: 'salary',
-    paymentMethod: 'transfer',
-    description: 'Mart ayı maaş ödənişi',
-    notes: 'Tam ödənilib',
-    createdAt: '2026-03-02 14:30', 
-    createdBy: 'Admin'
-  },
-  { 
-    id: 3, 
-    rowNumber: 3,
-    date: '01.03.2026 09:20',
-    employee: 'Elvin Quliyev',
-    amount: 1200,
-    category: 'rent',
-    paymentMethod: 'transfer',
-    description: 'Mart ayı ofis icarəsi',
-    notes: '',
-    createdAt: '2026-03-01 09:20', 
-    createdBy: 'Admin'
-  },
-  { 
-    id: 4, 
-    rowNumber: 4,
-    date: '28.02.2026 16:45',
-    employee: 'Nigar Həsənova',
-    amount: 250,
-    category: 'utilities',
-    paymentMethod: 'card',
-    description: 'Elektrik və su ödənişi',
-    notes: '',
-    createdAt: '2026-02-28 16:45', 
-    createdBy: 'Admin'
-  },
-  { 
-    id: 5, 
-    rowNumber: 5,
-    date: '27.02.2026 11:30',
-    employee: 'Məhəmməd Şükürov',
-    amount: 800,
-    category: 'marketing',
-    paymentMethod: 'card',
-    description: 'Facebook reklamları',
-    notes: 'Kampaniya uğurlu oldu',
-    createdAt: '2026-02-27 11:30', 
-    createdBy: 'Admin'
-  },
-])
-
-// Calculate total expenses based on filtered data
-const totalExpenses = computed(() => {
-  return filteredData.value.reduce((sum, item) => sum + (item.amount || 0), 0)
-})
-
-// Calculate previous period total for comparison
-const previousPeriodTotal = computed(() => {
-  if (dateFilter.value === 'all') return 0
-  
-  const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  
-  let startDate: Date
-  let endDate: Date
-  
-  switch (dateFilter.value) {
-    case 'today':
-      startDate = new Date(today)
-      startDate.setDate(startDate.getDate() - 1)
-      endDate = today
-      break
-    
-    case 'yesterday':
-      startDate = new Date(today)
-      startDate.setDate(startDate.getDate() - 2)
-      endDate = new Date(today)
-      endDate.setDate(endDate.getDate() - 1)
-      break
-    
-    case 'thisWeek':
-      const weekStart = new Date(today)
-      weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1)
-      startDate = new Date(weekStart)
-      startDate.setDate(startDate.getDate() - 7)
-      endDate = weekStart
-      break
-    
-    case 'last2Weeks':
-      const twoWeeksAgo = new Date(today)
-      twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14)
-      startDate = new Date(twoWeeksAgo)
-      startDate.setDate(startDate.getDate() - 14)
-      endDate = twoWeeksAgo
-      break
-    
-    case 'thisMonth':
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-      startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-      endDate = monthStart
-      break
-    
-    case 'last3Months':
-      const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1)
-      startDate = new Date(now.getFullYear(), now.getMonth() - 6, 1)
-      endDate = threeMonthsAgo
-      break
-    
-    case 'thisYear':
-      const yearStart = new Date(now.getFullYear(), 0, 1)
-      startDate = new Date(now.getFullYear() - 1, 0, 1)
-      endDate = yearStart
-      break
-    
-    default:
-      return 0
-  }
-  
-  return mockData.value
-    .filter(item => {
-      const itemDate = parseDate(item.date)
-      return itemDate >= startDate && itemDate < endDate
-    })
-    .reduce((sum, item) => sum + (item.amount || 0), 0)
-})
-
-// Calculate percentage change
-const percentageChange = computed(() => {
-  if (previousPeriodTotal.value === 0) return 0
-  return ((totalExpenses.value - previousPeriodTotal.value) / previousPeriodTotal.value) * 100
+onMounted(() => {
+  loadData()
 })
 
 // --- Modals State ---
 const showAddModal = ref(false)
 const showEditModal = ref(false)
-const showNewCategoryModal = ref(false)
-const newCategoryName = ref('')
+const showDeleteConfirmModal = ref(false)
+const deleteTarget = ref<{ type: 'single' | 'bulk', id?: any, ids?: any[] } | null>(null)
 const formData = ref<Record<string, any>>({})
+const formErrors = ref<Record<string, string>>({})
 const bulkSelectedIds = ref<any[]>([])
-
-// Watch for "new" category selection
-watch(() => formData.value.category, (newValue: unknown) => {
-  if (newValue === 'new') {
-    showNewCategoryModal.value = true
-    newCategoryName.value = ''
-  }
-})
-
-// Add new category
-const addNewCategory = () => {
-  if (newCategoryName.value.trim()) {
-    const newValue = newCategoryName.value.trim().toLowerCase().replace(/\s+/g, '_')
-    
-    // Add to category labels
-    categoryLabels[newValue] = newCategoryName.value.trim()
-    
-    // Add to schema options
-    const categoryField = expenseSchema.find(f => f.key === 'category')
-    if (categoryField && categoryField.options) {
-      // Remove "Yeni" option temporarily
-      const newOption = categoryField.options.pop()
-      // Add new category
-      categoryField.options.push({ label: newCategoryName.value.trim(), value: newValue })
-      // Add "Yeni" back at the end
-      if (newOption) categoryField.options.push(newOption)
-    }
-    
-    // Set the new category as selected
-    formData.value.category = newValue
-    showNewCategoryModal.value = false
-  }
-}
 
 // --- Handlers ---
 const handleAdd = () => {
-  const d = new Date()
-  const day = String(d.getDate()).padStart(2, '0')
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  const year = d.getFullYear()
-  const hours = String(d.getHours()).padStart(2, '0')
-  const minutes = String(d.getMinutes()).padStart(2, '0')
-  const formattedDateTime = `${day}.${month}.${year} ${hours}:${minutes}`
-  
   formData.value = {
-    date: formattedDateTime,
-    employee: '',
-    paymentMethod: 'cash',
-    category: 'office'
+    date: new Date().toISOString().slice(0, 16),
+    amount: '0.00',
+    category: [],
+    paymentMethod: 'cash'
   }
+  formErrors.value = {}
   showAddModal.value = true
 }
 
 const handleEdit = (row: any) => {
-  formData.value = { ...row }
+  formData.value = { 
+    ...row,
+    date: row._date ? row._date.toISOString().slice(0, 16) : ''
+  }
+  formErrors.value = {}
   showEditModal.value = true
 }
 
 const handleDelete = (row: any) => {
-  if (confirm(`${row.amount} ₼ məbləğində xərci silmək istəyirsiniz?`)) {
-    mockData.value = mockData.value.filter(m => m.id !== row.id)
-    // Recalculate row numbers
-    mockData.value.forEach((item, index) => {
-      item.rowNumber = index + 1
-    })
-  }
-}
-
-const handleDuplicate = (row: any) => {
-  const d = new Date()
-  const day = String(d.getDate()).padStart(2, '0')
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  const year = d.getFullYear()
-  const hours = String(d.getHours()).padStart(2, '0')
-  const minutes = String(d.getMinutes()).padStart(2, '0')
-  const formattedDateTime = `${day}.${month}.${year} ${hours}:${minutes}`
-  
-  const newId = Date.now()
-  const newRowNumber = mockData.value.length + 1
-  
-  const duplicatedData = {
-    ...row,
-    id: newId,
-    rowNumber: newRowNumber,
-    date: formattedDateTime,
-    createdAt: formattedDateTime,
-    createdBy: 'Sistem İdarəçisi'
-  }
-  
-  mockData.value.push(duplicatedData)
+  deleteTarget.value = { type: 'single', id: row.id }
+  showDeleteConfirmModal.value = true
 }
 
 const handleBulkDelete = (ids: any[]) => {
-  if (confirm(`${ids.length} xərci silmək istəyirsiniz?`)) {
-    mockData.value = mockData.value.filter(m => !ids.includes(m.id))
-    // Recalculate row numbers
-    mockData.value.forEach((item, index) => {
-      item.rowNumber = index + 1
-    })
+  deleteTarget.value = { type: 'bulk', ids }
+  showDeleteConfirmModal.value = true
+}
+
+const performDelete = async () => {
+  if (!deleteTarget.value) return
+  loading.value = true
+  
+  try {
+    if (deleteTarget.value.type === 'single') {
+      await $fetch(`/api/expenses/${deleteTarget.value.id}`, { method: 'DELETE' })
+      toast.success(t('toast.expenseDeleted', 'Xərc uğurla silindi'))
+    } else {
+      await $fetch('/api/expenses/bulk-delete', {
+        method: 'POST',
+        body: { ids: deleteTarget.value.ids }
+      })
+      toast.success(t('toast.expensesDeleted', 'Xərclər uğurla silindi'))
+    }
+    await loadData()
+    showDeleteConfirmModal.value = false
+    deleteTarget.value = null
+  } catch (err: any) {
+    toast.error(err.message || t('toast.operationFailed', 'Xəta baş verdi'))
+  } finally {
+    loading.value = false
   }
 }
 
-const handleBulkEdit = (ids: any[]) => {
-  bulkSelectedIds.value = ids
-  formData.value = {}
-  showEditModal.value = true
+const handleDuplicate = async (row: any) => {
+  loading.value = true
+  try {
+    const { token } = useAuth()
+    await $fetch('/api/expenses', {
+      method: 'POST',
+      body: {
+        ...row,
+        id: undefined,
+        createdAt: undefined,
+        updatedAt: undefined
+      },
+      headers: { Authorization: `Bearer ${token.value}` }
+    })
+    toast.success(t('toast.expenseDuplicated', 'Xərc kopyalandı'))
+    await loadData()
+  } catch (err: any) {
+    toast.error(err.message || t('toast.operationFailed', 'Xəta baş verdi'))
+  } finally {
+    loading.value = false
+  }
 }
 
-const saveForm = () => {
-  if (showAddModal.value) {
-    const d = new Date()
-    const day = String(d.getDate()).padStart(2, '0')
-    const month = String(d.getMonth() + 1).padStart(2, '0')
-    const year = d.getFullYear()
-    const hours = String(d.getHours()).padStart(2, '0')
-    const minutes = String(d.getMinutes()).padStart(2, '0')
-    const formattedDateTime = `${day}.${month}.${year} ${hours}:${minutes}`
-    
-    const newId = Date.now()
-    const newRowNumber = mockData.value.length + 1
-    
-    mockData.value.push({ 
-      id: newId,
-      rowNumber: newRowNumber,
-      ...formData.value,
-      createdAt: formattedDateTime,
-      createdBy: 'Sistem İdarəçisi'
-    })
-    showAddModal.value = false
-  } else if (showEditModal.value) {
-    if (bulkSelectedIds.value.length > 0) {
-      const updates = Object.fromEntries(Object.entries(formData.value).filter(([_, v]) => v !== undefined && v !== ''))
-      mockData.value = mockData.value.map(item => 
-        bulkSelectedIds.value.includes(item.id) ? { ...item, ...updates } : item
-      )
-      bulkSelectedIds.value = []
-    } else {
-      const index = mockData.value.findIndex(m => m.id === formData.value.id)
-      if (index !== -1) mockData.value[index] = { ...mockData.value[index], ...formData.value }
+const customSearch = (item: any, query: string) => {
+  const q = query.toLowerCase()
+  const fields = [
+    item.employeeName,
+    item.category,
+    item.paymentMethod,
+    item.description,
+    item.notes,
+    item.amount?.toString()
+  ]
+  return fields.some(f => f?.toLowerCase().includes(q))
+}
+
+const saveForm = async () => {
+  formErrors.value = {}
+  let hasError = false
+  
+  for (const field of formFields.value) {
+    if (field.required && !formData.value[field.key]) {
+      formErrors.value[field.key] = t('common.fieldRequired', 'Mütləqdir')
+      hasError = true
     }
+  }
+
+  if (hasError) return
+  loading.value = true
+  
+  try {
+    const { token } = useAuth()
+    const method = showAddModal.value ? 'POST' : 'PUT'
+    const url = showAddModal.value ? '/api/expenses' : `/api/expenses/${formData.value.id}`
+    
+    await $fetch(url, {
+      method,
+      body: {
+        ...formData.value,
+        category: JSON.stringify(formData.value.category)
+      },
+      headers: { Authorization: `Bearer ${token.value}` }
+    })
+    
+    toast.success(showAddModal.value ? t('toast.expenseAdded', 'Əlavə edildi') : t('toast.expenseUpdated', 'Yeniləndi'))
+    showAddModal.value = false
     showEditModal.value = false
+    await loadData()
+  } catch (err: any) {
+    toast.error(err.message || t('toast.operationFailed', 'Xəta baş verdi'))
+  } finally {
+    loading.value = false
   }
 }
 </script>
 
 <template>
-  <div class="space-y-6 font-sans">
+  <div class="space-y-6">
     <div class="flex items-center justify-between">
       <h1 class="text-2xl font-bold text-[var(--text-app)]">
-        Xərclər
+        {{ t('menu.expenses', 'Xərclər') }}
       </h1>
     </div>
 
     <!-- Smart Data Table -->
     <DataTable 
-      title="Xerc_Listesi"
-      :data="filteredData" 
+      :title="t('menu.expenses', 'Xərclər')"
+      :data="expenses" 
       :columns="columns"
+      :loading="loading"
       :selectable="true"
       :actions="true"
+      :custom-search="customSearch"
+      :search-placeholder="t('expenses.search', 'Xərclərdə axtar...')"
       @add="handleAdd"
       @edit="handleEdit"
       @delete="handleDelete"
-      @duplicate="handleDuplicate"
       @bulk-delete="handleBulkDelete"
-      @bulk-edit="handleBulkEdit"
+      @duplicate="handleDuplicate"
     >
-      <!-- Row Number Custom Format -->
-      <template #cell-rowNumber="{ value }">
-        <span class="font-medium text-[var(--text-app)] opacity-60">
-          {{ value }}
-        </span>
+      <!-- Custom Category Cell with Highlighting -->
+      <template #cell-category="{ value, highlight }">
+        <div class="flex gap-1 flex-wrap">
+          <template v-if="Array.isArray(value) && value.length > 0">
+            <span 
+              v-for="(tag, idx) in value" 
+              :key="idx"
+              class="px-2 py-0.5 bg-[var(--text-primary)]/10 text-[var(--text-primary)] rounded-[6px] text-[11px] font-bold uppercase tracking-wider"
+              v-html="highlight(tag)"
+            ></span>
+          </template>
+          <span v-else class="opacity-30">-</span>
+        </div>
       </template>
 
-      <!-- Date Custom Format -->
-      <template #cell-date="{ value }">
-        <span class="font-medium text-[var(--text-app)]">
-          {{ value }}
-        </span>
+      <!-- Amount Cell with Highlighting -->
+      <template #cell-amount="{ value, highlight }">
+        <span class="font-bold text-[var(--text-primary)]" v-html="highlight(value) + ' ₼'"></span>
       </template>
 
-      <!-- Amount Custom Format -->
-      <template #cell-amount="{ value }">
-        <span class="font-bold text-[var(--color-brand-danger)]">
-          {{ value.toLocaleString() }} ₼
-        </span>
+      <!-- Audit Cells -->
+      <template #cell-createdAt="{ value, highlight }">
+        <span class="opacity-60" v-html="highlight(value)"></span>
       </template>
-
-      <!-- Category Custom Format -->
-      <template #cell-category="{ value }">
-        <span class="px-2 py-1 rounded-lg text-xs font-medium bg-[var(--text-primary)]/10 text-[var(--text-primary)]">
-          {{ categoryLabels[value] || value }}
-        </span>
-      </template>
-
-      <!-- Footer: Total Row -->
-      <template #footer="{ columns, selectable, actions }">
-        <tr class="bg-gradient-to-r from-[var(--color-brand-danger)]/5 to-[var(--color-brand-danger)]/10 border-t-2 border-[var(--color-brand-danger)]/30">
-          <!-- Checkbox column if selectable -->
-          <td v-if="selectable" class="px-6 py-4"></td>
-          
-          <!-- Row Number Column -->
-          <td class="px-6 py-4">
-            <div class="flex items-center gap-2">
-              <UiIcon name="lucide:calculator" class="w-5 h-5 text-[var(--color-brand-danger)]" />
-            </div>
-          </td>
-          
-          <!-- Date Column -->
-          <td class="px-6 py-4">
-            <span class="text-sm font-semibold text-[var(--text-app)]">
-              {{ dateFilterOptions.find(o => o.value === dateFilter)?.label || 'Hamısı' }}
-            </span>
-          </td>
-          
-          <!-- Employee Column -->
-          <td class="px-6 py-4">
-            <span class="text-sm font-bold text-[var(--text-app)]">CƏMİ XƏRC</span>
-          </td>
-          
-          <!-- Amount Column -->
-          <td class="px-6 py-4">
-            <div class="flex items-center gap-2">
-              <span class="text-lg font-bold text-[var(--color-brand-danger)]">
-                {{ totalExpenses.toLocaleString() }} ₼
-              </span>
-              <UiIcon 
-                v-if="dateFilter !== 'all'"
-                :name="percentageChange >= 0 ? 'lucide:trending-up' : 'lucide:trending-down'" 
-                class="w-4 h-4"
-                :class="percentageChange >= 0 ? 'text-red-500' : 'text-green-500'"
-              />
-              <span 
-                v-if="dateFilter !== 'all'"
-                class="text-xs font-medium"
-                :class="percentageChange >= 0 ? 'text-red-500' : 'text-green-500'"
-              >
-                {{ Math.abs(percentageChange).toFixed(1) }}%
-              </span>
-            </div>
-          </td>
-          
-          <!-- Category Column -->
-          <td class="px-6 py-4">
-            <div class="flex flex-wrap gap-1">
-              <button
-                v-for="option in dateFilterOptions.slice(0, 4)"
-                :key="option.value"
-                @click="dateFilter = option.value"
-                class="px-2 py-1 rounded-md text-xs font-medium transition-all duration-300 cursor-pointer"
-                :class="dateFilter === option.value 
-                  ? 'bg-[var(--color-brand-danger)] text-white' 
-                  : 'bg-[var(--input-bg)] text-[var(--text-app)] hover:bg-[var(--color-brand-danger)]/10 border border-[var(--border-app)]'"
-              >
-                {{ option.label }}
-              </button>
-            </div>
-          </td>
-          
-          <!-- Actions column if present -->
-          <td v-if="actions" class="px-6 py-4"></td>
-        </tr>
+      <template #cell-createdBy="{ value, highlight }">
+        <span class="font-medium" v-html="highlight(value)"></span>
       </template>
     </DataTable>
 
-    <!-- Filter Buttons (Below Table) -->
-    <div class="flex flex-wrap gap-2 justify-end">
-      <button
-        v-for="option in dateFilterOptions"
-        :key="option.value"
-        @click="dateFilter = option.value"
-        class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 cursor-pointer"
-        :class="dateFilter === option.value 
-          ? 'bg-[var(--color-brand-danger)] text-white shadow-md shadow-[var(--color-brand-danger)]/30' 
-          : 'bg-[var(--input-bg)] text-[var(--text-app)] hover:bg-[var(--color-brand-danger)]/10 border border-[var(--border-app)]'"
-      >
-        {{ option.label }}
-      </button>
-    </div>
-
-    <!-- Modal: Add -->
-    <Modal v-model="showAddModal" title="Yeni Xərc Əlavə Et" max-width="3xl">
+    <!-- Modals: Add / Edit -->
+    <Modal v-model="showAddModal" :title="t('expenses.addNew', 'Yeni xərc əlavə et')" max-width="3xl">
       <DynamicForm 
+        v-model="formData"
         :fields="formFields"
-        v-model="formData" 
+        :errors="formErrors"
+        :grid-cols="2"
       />
       <template #footer>
-        <UiButton variant="ghost" @click="showAddModal = false">İmtina</UiButton>
-        <UiButton variant="primary" @click="saveForm">Yadda saxla</UiButton>
+        <UiButton variant="ghost" @click="showAddModal = false" class="!px-6">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
+        <UiButton variant="primary" icon="lucide:check" @click="saveForm" class="!px-8 min-w-[120px]">{{ t('common.save', 'Yadda saxla') }}</UiButton>
       </template>
     </Modal>
 
-    <!-- Modal: Edit -->
-    <Modal v-model="showEditModal" :title="bulkSelectedIds.length > 0 ? 'Toplu Redaktə' : 'Xərci Redaktə Et'" max-width="3xl">
-      <div v-if="bulkSelectedIds.length > 0" class="mb-4 p-3 bg-[var(--color-brand-warning)]/10 text-[var(--color-brand-warning)] rounded-lg text-sm font-medium">
-        Xəbərdarlıq: Toplu redaktə rejimindəsiniz. Burada doldurduğunuz sahələr, seçdiyiniz <span class="font-bold">{{ bulkSelectedIds.length }}</span> qeydin məlumatının üzərinə yazılacaq.
-      </div>
-
+    <Modal v-model="showEditModal" :title="t('expenses.edit', 'Xərci redaktə et')" max-width="3xl">
       <DynamicForm 
+        v-model="formData"
         :fields="formFields"
-        v-model="formData" 
+        :errors="formErrors"
+        :grid-cols="2"
       />
       <template #footer>
-        <UiButton variant="ghost" @click="showEditModal = false; bulkSelectedIds = []">İmtina</UiButton>
-        <UiButton variant="primary" @click="saveForm">Yenilə</UiButton>
+        <UiButton variant="ghost" @click="showEditModal = false" class="!px-6">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
+        <UiButton variant="primary" icon="lucide:check" @click="saveForm" class="!px-8 min-w-[120px]">{{ t('common.save', 'Yadda saxla') }}</UiButton>
       </template>
     </Modal>
 
-    <!-- Modal: New Category -->
-    <Modal v-model="showNewCategoryModal" title="Yeni Kateqoriya Əlavə Et" max-width="md">
-      <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-[var(--text-app)] mb-2">
-            Kateqoriya adı
-          </label>
-          <UiInput 
-            v-model="newCategoryName" 
-            placeholder="Məsələn: Təmir işləri"
-            icon="lucide:tag"
-            @keyup.enter="addNewCategory"
-          />
-        </div>
+    <!-- Delete Confirmation -->
+    <Modal v-model="showDeleteConfirmModal" :title="t('common.confirmDelete', 'Silmək istədiyinizə əminsiniz?')" max-width="sm">
+      <div class="py-2">
+        <p class="text-[var(--text-app)] opacity-80 text-[15px] leading-relaxed">
+          {{ t('common.cannotBeUndone', 'Bu əməliyyat geri qaytarıla bilməz.') }}
+          <span v-if="deleteTarget?.type === 'bulk'" class="font-bold text-[var(--color-brand-danger)] block mt-2">
+            {{ t('common.deleteBulkWarning', { count: deleteTarget.ids?.length }, 'seçilmiş bütün məlumatlar silinəcək') }}
+          </span>
+        </p>
       </div>
       <template #footer>
-        <UiButton variant="ghost" @click="showNewCategoryModal = false; formData.category = ''">İmtina</UiButton>
-        <UiButton variant="primary" @click="addNewCategory" :disabled="!newCategoryName.trim()">Əlavə et</UiButton>
+        <UiButton variant="ghost" @click="showDeleteConfirmModal = false">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
+        <UiButton variant="danger" :loading="loading" @click="performDelete">
+          {{ t('common.yesDelete', 'Bəli, Sil') }}
+        </UiButton>
       </template>
     </Modal>
-
   </div>
 </template>
