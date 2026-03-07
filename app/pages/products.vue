@@ -76,10 +76,11 @@ const goodsSchema = computed< (FormField & { inTable?: boolean, sortable?: boole
     key: 'brandName', 
     label: t('products.brand', 'Brendin adı'), 
     icon: 'lucide:award', 
-    type: 'tags', 
+    type: 'autocomplete', 
+    options: suppliersOptions.value,
     inTable: true, 
     sortable: true, 
-    historyKey: 'brand_history' 
+    required: true
   },
   { 
     key: 'category', 
@@ -195,6 +196,7 @@ const columns = computed(() =>
 
 // --- Data ---
 const mockData = ref<any[]>([])
+const suppliersOptions = ref<{ label: string, value: string }[]>([])
 const loading = ref(false)
 
 const orderedMockData = computed(() => {
@@ -298,9 +300,27 @@ const loadAttributes = async () => {
   }
 }
 
+const loadSuppliers = async () => {
+  try {
+    const data = await $fetch('/api/suppliers', {
+      headers: { Authorization: `Bearer ${token.value}` }
+    })
+    
+    // Extract brand names and remove duplicates
+    const brands = (data as any[])
+      .map(s => s.brandName)
+      .filter((b, i, arr) => b && arr.indexOf(b) === i)
+      
+    suppliersOptions.value = brands.map(b => ({ label: b, value: b }))
+  } catch (err) {
+    console.error('Failed to load suppliers', err)
+  }
+}
+
 onMounted(() => {
   loadGoods()
   loadAttributes()
+  loadSuppliers()
 })
 
 // --- Handlers ---
