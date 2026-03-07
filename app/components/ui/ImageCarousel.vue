@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import imageCompression from 'browser-image-compression'
-import VueEasyLightbox from 'vue-easy-lightbox'
-import 'vue-easy-lightbox/dist/external-css/vue-easy-lightbox.css'
 import draggable from 'vuedraggable'
 import { useI18n } from '#i18n'
 
@@ -44,9 +42,7 @@ const { t } = useI18n()
 const currentIndex = ref(0)
 const isDraggingOver = ref(false)
 const imageMetadata = ref<Record<string, ImageMetadata>>({})
-const processedImages = ref<string[]>([...props.images]) // local storage for IDs or keep syncing with prop
-const lightboxVisible = ref(false)
-const lightboxIndex = ref(0)
+const processedImages = ref<string[]>([...props.images])
 const fileInput = ref<HTMLInputElement | null>(null)
 
 const suggestedBaseName = computed(() => {
@@ -202,11 +198,6 @@ const onDragEnd = () => {
   emit('update:images', [...processedImages.value])
 }
 
-const openLightbox = (index: number) => {
-  lightboxIndex.value = index
-  lightboxVisible.value = true
-}
-
 onMounted(() => {
   window.addEventListener('paste', onPaste)
 })
@@ -264,8 +255,7 @@ const currentImageMeta = computed(() => {
         <div class="relative w-full h-full bg-black/5 flex items-center justify-center">
           <img 
             :src="currentImageUrl" 
-            class="w-full h-full object-contain p-4 cursor-zoom-in"
-            @click="openLightbox(currentIndex)"
+            class="w-full h-full object-contain p-4"
           />
           
           <!-- Metadata Overlay -->
@@ -351,17 +341,6 @@ const currentImageMeta = computed(() => {
         </div>
       </template>
     </draggable>
-
-    <!-- Lightbox -->
-    <Teleport to="body">
-      <VueEasyLightbox
-        :visible="lightboxVisible"
-        :imgs="processedImages"
-        :index="lightboxIndex"
-        :z-index="20000"
-        @hide="lightboxVisible = false"
-      />
-    </Teleport>
   </div>
 </template>
 
