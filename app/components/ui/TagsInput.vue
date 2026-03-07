@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 
 const props = defineProps<{
   modelValue: string[]
@@ -13,6 +13,7 @@ const emit = defineEmits(['update:modelValue'])
 const inputValue = ref('')
 const isFocused = ref(false)
 const history = ref<string[]>([])
+const selectedIndex = ref(-1)
 
 onMounted(() => {
   const saved = localStorage.getItem(`tags_history_${props.historyKey}`)
@@ -32,6 +33,27 @@ const filteredHistory = computed(() => {
   return available.filter(h => h.toLowerCase().includes(query))
 })
 
+const dropdownItems = computed(() => {
+  const items: { type: 'new' | 'history', value: string }[] = []
+  
+  // Add "create new" option if input has value and not in history
+  if (inputValue.value.trim() && !history.value.some(h => h.toLowerCase() === inputValue.value.trim().toLowerCase())) {
+    items.push({ type: 'new', value: inputValue.value.trim() })
+  }
+  
+  // Add filtered history
+  filteredHistory.value.forEach(item => {
+    items.push({ type: 'history', value: item })
+  })
+  
+  return items
+})
+
+// Reset selected index when dropdown items change
+watch(dropdownItems, () => {
+  selectedIndex.value = -1
+})
+
 const addTag = (tag: string) => {
   const t = tag.trim()
   if (!t) return
@@ -46,6 +68,7 @@ const addTag = (tag: string) => {
     }
   }
   inputValue.value = ''
+  selectedIndex.value = -1
 }
 
 const removeTag = (index: number) => {
@@ -55,18 +78,49 @@ const removeTag = (index: number) => {
 }
 
 const handleKeydown = (e: KeyboardEvent) => {
-  if (e.key === 'Enter') {
+  const hasDropdown = isFocused.value && dropdownItems.value.length > 0
+  
+  if (e.key === 'ArrowDown' && hasDropdown) {
     e.preventDefault()
-    addTag(inputValue.value)
+    selectedIndex.value = Math.min(selectedIndex.value + 1, dropdownItems.value.length - 1)
+    scrollToSelected()
+  } else if (e.key === 'ArrowUp' && hasDropdown) {
+    e.preventDefault()
+    selectedIndex.value = Math.max(selectedIndex.value - 1, -1)
+    scrollToSelected()
+  } else if (e.key === 'Enter') {
+    e.preventDefault()
+    if (hasDropdown && selectedIndex.value >= 0) {
+      // Select from dropdown
+      addTag(dropdownItems.value[selectedIndex.value].value)
+    } else {
+      // Add current input
+      addTag(inputValue.value)
+    }
+  } else if (e.key === 'Escape' && hasDropdown) {
+    e.preventDefault()
+    isFocused.value = false
+    selectedIndex.value = -1
   } else if (e.key === 'Backspace' && inputValue.value === '' && props.modelValue.length > 0) {
     removeTag(props.modelValue.length - 1)
   }
+}
+
+const scrollToSelected = () => {
+  setTimeout(() => {
+    const dropdown = document.querySelector('.tags-dropdown')
+    const selectedItem = dropdown?.querySelector(`[data-index="${selectedIndex.value}"]`)
+    if (selectedItem) {
+      selectedItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    }
+  }, 0)
 }
 
 // Timeout to allow clicking on dropdown items before blur hides it
 const handleBlur = () => {
   setTimeout(() => {
     isFocused.value = false
+    selectedIndex.value = -1
   }, 200)
 }
 </script>
@@ -106,34 +160,46 @@ const handleBlur = () => {
     <!-- Dropdown / History -->
     <Transition name="fade-slide">
       <div 
-        v-if="isFocused && (filteredHistory.length > 0 || inputValue.trim())"
-        class="absolute left-0 right-0 top-full mt-2 bg-[var(--bg-sidebar)] border border-[var(--border-app)] rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.3)] z-[100] max-h-64 overflow-y-auto custom-scrollbar"
+        v-if="isFocused && dropdownItems.length > 0"
+        class="tags-dropdown absolute left-0 right-0 top-full mt-2 bg-[var(--bg-sidebar)] border border-[var(--border-app)] rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.3)] z-[100] max-h-64 overflow-y-auto custom-scrollbar"
       >
         <!-- Suggest to add what's typed if not in history -->
         <div 
-          v-if="inputValue.trim() && !history.some(h => h.toLowerCase() === inputValue.trim().toLowerCase())"
-          @click="addTag(inputValue)"
-          class="px-4 py-3 text-sm font-medium text-[var(--text-primary)] bg-[var(--text-primary)]/5 hover:bg-[var(--text-primary)]/10 cursor-pointer transition-colors flex items-center gap-2 border-b border-[var(--border-app)]"
+          v-for="(item, index) in dropdownItems"
+          :key="index"
+          :data-index="index"
+          @click="addTag(item.value)"
+          @mouseenter="selectedIndex = index"
+          class="px-4 py-3 text-sm font-medium cursor-pointer transition-colors flex items-center gap-2"
+          :class="[
+            selectedIndex === index 
+              ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)]' 
+              : 'text-[var(--text-app)] hover:bg-[var(--text-primary)]/5',
+            item.type === 'new' ? 'border-b border-[var(--border-app)] bg-[var(--text-primary)]/5' : ''
+          ]"
         >
-          <UiIcon name="lucide:plus-circle" class="w-4 h-4" />
-          "{{ inputValue.trim() }}" əlavə et
+          <UiIcon 
+            :name="item.type === 'new' ? 'lucide:plus-circle' : 'lucide:history'" 
+            class="w-4 h-4"
+            :class="selectedIndex === index ? 'opacity-100' : 'opacity-40'"
+          />
+          <span class="flex-1">
+            <template v-if="item.type === 'new'">
+              "{{ item.value }}" əlavə et
+            </template>
+            <template v-else>
+              {{ item.value }}
+            </template>
+          </span>
+          <UiIcon 
+            v-if="selectedIndex === index"
+            name="lucide:corner-down-left" 
+            class="w-4 h-4 opacity-60"
+          />
         </div>
 
-        <div v-if="filteredHistory.length > 0" class="px-3 py-2 text-[10px] font-bold text-[var(--text-app)] opacity-40 tracking-widest bg-[var(--bg-app)]/50 backdrop-blur-sm sticky top-0 border-b border-[var(--border-app)]">
-          Kechmish Axtarishlar
-        </div>
-        
-        <div 
-          v-for="item in filteredHistory" 
-          :key="item"
-          @click="addTag(item)"
-          class="px-4 py-2.5 text-sm font-medium text-[var(--text-app)] hover:bg-[var(--text-primary)]/10 hover:text-[var(--text-primary)] cursor-pointer transition-colors flex items-center justify-between group"
-        >
-          <div class="flex items-center gap-2.5">
-            <UiIcon name="lucide:history" class="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 transition-opacity" />
-            {{ item }}
-          </div>
-          <UiIcon name="lucide:arrow-up-left" class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0 !duration-300" />
+        <div v-if="dropdownItems.length === 0 && inputValue.trim()" class="px-4 py-3 text-sm text-[var(--text-app)] opacity-60 text-center">
+          Nəticə tapılmadı
         </div>
       </div>
     </Transition>
