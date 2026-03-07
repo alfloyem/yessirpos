@@ -60,7 +60,7 @@ const goodsSchema = computed< (FormField & { inTable?: boolean, sortable?: boole
     key: 'parentProductName', 
     label: t('products.parentProduct', 'Bağlı olduğu məhsul'), 
     type: 'text', 
-    inTable: true, 
+    inTable: false, 
     sortable: true 
   },
   { 
@@ -95,7 +95,7 @@ const goodsSchema = computed< (FormField & { inTable?: boolean, sortable?: boole
     label: t('menu.attributes', 'Atributlar'), 
     icon: 'lucide:tag', 
     type: 'tags', 
-    inTable: true, 
+    inTable: false, 
     sortable: true 
   },
   { 
@@ -124,6 +124,13 @@ const goodsSchema = computed< (FormField & { inTable?: boolean, sortable?: boole
   { 
     key: 'stock', 
     label: t('dashboard.stock', 'Stok'), 
+    type: 'integer', 
+    inTable: true, 
+    sortable: true 
+  },
+  { 
+    key: 'reorderLevel', 
+    label: t('products.reorderLevel', 'Limit'), 
     type: 'integer', 
     inTable: true, 
     sortable: true 
@@ -172,10 +179,10 @@ const variantSchemaTop = computed<FormField[]>(() => {
 // --- Variant Schema Bottom ---
 const variantSchemaBottom = computed<FormField[]>(() => [
   { key: 'barcode', label: t('customers.barcode', 'Barkod'), icon: 'lucide:qr-code', type: 'barcode', barcodePrefix: 'P', required: true },
-  { key: 'wholesalePrice', label: t('products.wholesalePrice', 'Topdansatış qiyməti (₼)'), icon: 'lucide:coins', type: 'number', required: true },
+  { key: 'wholesalePrice', label: t('products.wholesalePrice', 'Topdan qiymət (₼)'), icon: 'lucide:coins', type: 'number', required: false },
   { key: 'retailPrice', label: t('products.retailPrice', 'Pərakəndə qiyməti (₼)'), icon: 'lucide:banknote', type: 'number', required: true },
   { key: 'stock', label: t('dashboard.stock', 'Stok (Say)'), icon: 'lucide:package-check', type: 'integer', placeholder: '0', required: true },
-  { key: 'reorderLevel', label: t('products.reorderLevel', 'Yenidən sifariş limiti'), icon: 'lucide:alert-circle', type: 'integer', placeholder: '0', required: true },
+  { key: 'reorderLevel', label: t('products.reorderLevel', 'Yenidən sifariş limiti'), icon: 'lucide:alert-circle', type: 'integer', placeholder: '0', required: false },
 ])
 
 // Extract table columns dynamically
@@ -197,10 +204,14 @@ const orderedMockData = computed(() => {
   const result: any[] = []
   mainProducts.forEach(main => {
     result.push(main)
-    const childVariants = variants.filter(v => v.parentProductId === main.id)
+    const childVariants = variants
+      .filter(v => v.parentProductId === main.id)
+      .map(v => ({ ...v, parentName: main.productName }))
     result.push(...childVariants)
   })
-  return result
+  
+  // Re-assign row numbers sequentially for the final display
+  return result.map((item, index) => ({ ...item, rowNumber: index + 1 }))
 })
 
 const loadGoods = async () => {
@@ -227,8 +238,8 @@ const showEditModal = ref(false)
 const showVariantModal = ref(false)
 const showDeleteConfirmModal = ref(false)
 const deleteTarget = ref<{ type: 'single' | 'bulk', id?: any, ids?: any[] } | null>(null)
-const formData = ref<any>({})
-const variantFormData = ref<any>({})
+const formData = ref<Record<string, any>>({})
+const variantFormData = ref<Record<string, any>>({})
 const formErrors = ref<Record<string, string>>({})
 const bulkSelectedIds = ref<any[]>([])
 const barcodeError = ref('')
@@ -257,7 +268,7 @@ onMounted(() => {
 // --- Handlers ---
 const handleAdd = () => {
   formData.value = {
-    brandName: 'nike',
+    brandName: '',
     category: []
   }
   productImages.value = []
@@ -402,16 +413,17 @@ const validateForm = () => {
     const activeFields = formFields.value
 
     for (const field of activeFields) {
-      if (field.required && !formData.value[field.key]) {
+      if (field.required && (!formData.value[field.key] && formData.value[field.key] !== 0)) {
         if (!isBulkEditMode) {
-          errors[field.key] = t('common.fieldRequired', 'Bu xəna mütləq doldurulmalıdır')
+          errors[field.key] = t('common.pleaseFillField', { field: field.label })
         }
       }
     }
   } else if (showVariantModal.value) {
-    for (const field of [...variantSchemaTop.value, ...variantSchemaBottom.value]) {
-      if (field.required && !variantFormData.value[field.key]) {
-        errors[field.key] = t('common.fieldRequired', 'Bu xəna mütləq doldurulmalıdır')
+    const activeFields = [...variantSchemaTop.value, ...variantSchemaBottom.value]
+    for (const field of activeFields) {
+      if (field.required && (!variantFormData.value[field.key] && variantFormData.value[field.key] !== 0)) {
+        errors[field.key] = t('common.pleaseFillField', { field: field.label })
       }
     }
   }
@@ -526,7 +538,12 @@ const saveForm = async () => {
       :actions="true"
       :loading="loading"
       :custom-search="customSearch"
-      :row-class="(row) => row.parentProductId ? '!bg-[var(--text-primary)]/[0.04]' : ''"
+      :row-class="(row) => {
+        let cls = ''
+        if (!row.parentProductId) cls += ' !border-t-4 !border-[var(--border-app)]'
+        else cls += ' !bg-[var(--text-primary)]/[0.04]'
+        return cls
+      }"
       @add="handleAdd"
       @edit="handleEdit"
       @delete="handleDelete"
@@ -556,6 +573,25 @@ const saveForm = async () => {
         </span>
       </template>
 
+      <!-- Product Name Custom Format -->
+      <template #cell-productName="{ row, highlight }">
+        <div class="flex flex-col">
+          <div v-if="!row.parentProductId" class="font-bold text-[var(--text-app)]" v-html="highlight(row.productName)"></div>
+          <div v-else class="flex items-center gap-2">
+            <UiIcon name="mingcute:arrow-up-line" class="w-3.5 h-3.5 text-[var(--text-primary)] shrink-0" />
+            <div class="flex flex-wrap gap-1">
+              <span 
+                v-for="(attr, idx) in (Array.isArray(row.attribute) ? row.attribute : [row.attribute])"
+                :key="idx"
+                class="px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide bg-[var(--text-primary)]/10 text-[var(--text-primary)] border border-[var(--text-primary)]/10"
+              >
+                {{ attr }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </template>
+
       <!-- Image Custom Format -->
       <template #cell-images="{ row }">
         <div class="flex items-center -space-x-3">
@@ -583,12 +619,15 @@ const saveForm = async () => {
       </template>
 
       <!-- Brand Name Custom Format -->
-      <template #cell-brandName="{ value }">
-        <div class="flex flex-wrap gap-1">
+      <template #cell-brandName="{ row, value, highlight }">
+        <div v-if="row.parentProductId" class="flex items-center text-[var(--text-app)] opacity-30">
+          <UiIcon name="mingcute:arrow-up-line" class="w-4 h-4 ml-2" />
+        </div>
+        <div v-else class="flex flex-wrap gap-1">
           <span 
             v-for="(brand, idx) in (Array.isArray(value) ? value : [value])" 
             :key="idx"
-            class="font-semibold text-[var(--text-primary)]"
+            class="font-medium text-[var(--text-app)] text-sm"
           >
             {{ brand }}{{ (Array.isArray(value) && idx < value.length - 1) ? ',' : '' }}
           </span>
@@ -607,22 +646,37 @@ const saveForm = async () => {
       </template>
 
       <!-- Prices Custom Format -->
-      <template #cell-wholesalePrice="{ value, highlight }">
-        <span class="font-medium text-[var(--text-app)]" v-html="highlight(Number(value || 0).toFixed(2)) + ' ₼'"></span>
+      <template #cell-wholesalePrice="{ row, value, highlight }">
+        <span v-if="!row.parentProductId" class="opacity-0">-</span>
+        <span v-else class="font-medium text-[var(--text-app)]" v-html="highlight(Number(value || 0).toFixed(2)) + ' ₼'"></span>
       </template>
-      <template #cell-retailPrice="{ value, highlight }">
-        <span class="font-medium text-[var(--color-brand-success)] font-bold" v-html="highlight(Number(value || 0).toFixed(2)) + ' ₼'"></span>
+      <template #cell-retailPrice="{ row, value, highlight }">
+        <span v-if="!row.parentProductId" class="opacity-0">-</span>
+        <span v-else class="font-medium text-[var(--color-brand-success)] font-bold" v-html="highlight(Number(value || 0).toFixed(2)) + ' ₼'"></span>
+      </template>
+
+      <template #cell-stock="{ row, value, highlight }">
+        <span v-if="!row.parentProductId" class="opacity-0">-</span>
+        <span v-else class="font-medium text-[var(--text-app)]" v-html="highlight(value)"></span>
+      </template>
+
+      <template #cell-reorderLevel="{ row, value, highlight }">
+        <span v-if="!row.parentProductId" class="opacity-0">-</span>
+        <span v-else class="font-medium text-[var(--text-app)]" v-html="highlight(value)"></span>
       </template>
 
       <!-- Category Custom Format -->
-      <template #cell-category="{ value, highlight }">
-        <div class="flex flex-wrap gap-1">
+      <template #cell-category="{ row, value, highlight }">
+        <div v-if="row.parentProductId" class="flex items-center text-[var(--text-app)] opacity-30">
+          <UiIcon name="mingcute:arrow-up-line" class="w-4 h-4 ml-2" />
+        </div>
+        <div v-else class="flex flex-wrap gap-1">
           <span 
             v-for="(cat, idx) in (Array.isArray(value) ? value : [value])" 
             :key="idx" 
-            class="px-2 py-1 rounded-lg text-[10px] font-bold tracking-wide bg-[var(--text-primary)]/10 text-[var(--text-primary)] shrink-0"
-            v-html="highlight(cat)"
+            class="text-[var(--text-app)] text-sm opacity-80"
           >
+            {{ cat }}{{ (Array.isArray(value) && idx < value.length - 1) ? ',' : '' }}
           </span>
         </div>
       </template>
@@ -656,6 +710,7 @@ const saveForm = async () => {
             :fields="formFields"
             v-model="formData" 
             :gridCols="1"
+            :errors="formErrors"
           />
         </div>
       </div>
@@ -698,6 +753,7 @@ const saveForm = async () => {
             :fields="formFields"
             v-model="formData"
             :gridCols="bulkSelectedIds.length === 0 ? 1 : 2" 
+            :errors="formErrors"
           />
         </div>
       </div>
@@ -730,7 +786,8 @@ const saveForm = async () => {
           <DynamicForm 
             :fields="variantSchemaTop"
             v-model="variantFormData"
-            :gridCols="1" 
+            :gridCols="1"
+            :errors="formErrors"
           />
 
           <!-- Custom Attributes Management -->
@@ -782,6 +839,7 @@ const saveForm = async () => {
               :fields="variantSchemaBottom"
               v-model="variantFormData"
               :gridCols="1" 
+              :errors="formErrors"
             />
           </div>
         </div>
