@@ -49,7 +49,15 @@ export default defineEventHandler(async (event: any) => {
       }
     })
 
-    return updated
+    const parsedUpdated = {
+      ...updated,
+      brandName: updated.brandName ? (updated.brandName.startsWith('[') ? JSON.parse(updated.brandName) : [updated.brandName]) : [],
+      category: updated.category ? (updated.category.startsWith('[') ? JSON.parse(updated.category) : [updated.category]) : [],
+      images: updated.images ? (updated.images.startsWith('[') ? JSON.parse(updated.images) : []) : [],
+      attribute: updated.attribute ? (updated.attribute.startsWith('[') ? JSON.parse(updated.attribute) : []) : []
+    }
+
+    return parsedUpdated
   } catch (error: any) {
     if (error.statusCode) throw error
     console.error('Product PUT Error:', error)

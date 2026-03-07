@@ -69,7 +69,15 @@ export default defineEventHandler(async (event: any) => {
       }
     })
 
-    return product
+    const parsedProduct = {
+      ...product,
+      brandName: product.brandName ? (product.brandName.startsWith('[') ? JSON.parse(product.brandName) : [product.brandName]) : [],
+      category: product.category ? (product.category.startsWith('[') ? JSON.parse(product.category) : [product.category]) : [],
+      images: product.images ? (product.images.startsWith('[') ? JSON.parse(product.images) : []) : [],
+      attribute: product.attribute ? (product.attribute.startsWith('[') ? JSON.parse(product.attribute) : []) : []
+    }
+
+    return parsedProduct
   } catch (error: any) {
     if (error.statusCode) throw error
     console.error('Product POST Error:', error)

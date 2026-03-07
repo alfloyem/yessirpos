@@ -198,16 +198,26 @@ const mockData = ref<any[]>([])
 const loading = ref(false)
 
 const orderedMockData = computed(() => {
-  const mainProducts = mockData.value.filter(m => !m.parentProductId)
-  const variants = mockData.value.filter(m => !!m.parentProductId)
+  const mainProducts: any[] = []
+  const variantMap: Record<number | string, any[]> = {}
+  
+  mockData.value.forEach(item => {
+    const pid = item.parentProductId
+    if (pid) {
+      if (!variantMap[pid]) variantMap[pid] = []
+      variantMap[pid]?.push(item)
+    } else {
+      mainProducts.push(item)
+    }
+  })
   
   const result: any[] = []
   mainProducts.forEach(main => {
     result.push(main)
-    const childVariants = variants
-      .filter(v => v.parentProductId === main.id)
-      .map(v => ({ ...v, parentName: main.productName }))
-    result.push(...childVariants)
+    const childVariants = variantMap[main.id] || []
+    childVariants.forEach(v => {
+      result.push({ ...v, parentName: main.productName })
+    })
   })
   
   // Re-assign row numbers sequentially for the final display
@@ -243,6 +253,7 @@ const variantFormData = ref<Record<string, any>>({})
 const formErrors = ref<Record<string, string>>({})
 const bulkSelectedIds = ref<any[]>([])
 const barcodeError = ref('')
+const isSaving = ref(false)
 const productImages = ref<string[]>([])
 const variantImages = ref<string[]>([])
 const availableAttributes = ref<any[]>([])
@@ -323,29 +334,32 @@ const handleDelete = (row: any) => {
 
 const performDelete = async () => {
   if (!deleteTarget.value) return
-  loading.value = true
+  isSaving.value = true
   
   try {
     const headers = { Authorization: `Bearer ${token.value}` }
     if (deleteTarget.value.type === 'single') {
-      await $fetch(`/api/products/${deleteTarget.value.id}`, { method: 'DELETE', headers })
+      const idToDelete = deleteTarget.value.id
+      await $fetch(`/api/products/${idToDelete}`, { method: 'DELETE', headers })
+      mockData.value = mockData.value.filter(p => p.id !== idToDelete)
       toast.success(t('common.delete', 'Silindi'))
     } else if (deleteTarget.value.type === 'bulk') {
+      const idsToDelete = deleteTarget.value.ids || []
       await $fetch('/api/products/bulk-delete', { 
         method: 'POST', 
-        body: { ids: deleteTarget.value.ids },
+        body: { ids: idsToDelete },
         headers 
       })
+      mockData.value = mockData.value.filter(p => !idsToDelete.includes(p.id))
       toast.success(t('common.delete', 'Toplu silindi'))
     }
     
-    await loadGoods()
     showDeleteConfirmModal.value = false
     deleteTarget.value = null
   } catch (err: any) {
     toast.error(t('toast.operationFailed', 'Xəta baş verdi'))
   } finally {
-    loading.value = false
+    isSaving.value = false
   }
 }
 
@@ -359,7 +373,7 @@ const copyBarcode = (barcode: string) => {
 }
 
 const handleDuplicate = async (row: any) => {
-  loading.value = true
+  isSaving.value = true
   try {
     const baseName = row.productName.replace(/\s\d+$/, '')
     const existingNames = mockData.value.map(item => item.productName)
@@ -371,7 +385,7 @@ const handleDuplicate = async (row: any) => {
     }
     
     const headers = { Authorization: `Bearer ${token.value}` }
-    await $fetch('/api/products', {
+    const newProduct = await $fetch('/api/products', {
       method: 'POST',
       body: {
         ...row,
@@ -384,12 +398,12 @@ const handleDuplicate = async (row: any) => {
       headers
     })
     
+    mockData.value.unshift(newProduct)
     toast.success(t('toast.attributeDuplicated', 'Kopyalandı'))
-    await loadGoods()
   } catch (err: any) {
     toast.error(t('toast.operationFailed'))
   } finally {
-    loading.value = false
+    isSaving.value = false
   }
 }
 
@@ -462,12 +476,12 @@ const customSearch = (item: any, query: string) => {
 const saveForm = async () => {
   if (!validateForm()) return
   
-  loading.value = true
+  isSaving.value = true
   const headers = { Authorization: `Bearer ${token.value}` }
 
   try {
     if (showAddModal.value) {
-      await $fetch('/api/products', {
+      const newProduct = await $fetch('/api/products', {
         method: 'POST',
         body: {
           ...formData.value,
@@ -475,6 +489,7 @@ const saveForm = async () => {
         },
         headers
       })
+      mockData.value.unshift(newProduct)
       toast.success(t('toast.customerAdded', 'Əlavə edildi'))
       showAddModal.value = false
     } else if (showEditModal.value) {
@@ -486,8 +501,9 @@ const saveForm = async () => {
           headers
         })
         bulkSelectedIds.value = []
+        await loadGoods()
       } else {
-        await $fetch(`/api/products/${formData.value.id}`, {
+        const updatedProduct = await $fetch(`/api/products/${formData.value.id}`, {
           method: 'PUT',
           body: {
             ...formData.value,
@@ -495,11 +511,13 @@ const saveForm = async () => {
           },
           headers
         })
+        const idx = mockData.value.findIndex(p => p.id === formData.value.id)
+        if (idx !== -1) mockData.value[idx] = updatedProduct
       }
       toast.success(t('toast.customerUpdated', 'Yeniləndi'))
       showEditModal.value = false
     } else if (showVariantModal.value) {
-      await $fetch('/api/products', {
+      const newVariant = await $fetch('/api/products', {
         method: 'POST',
         body: {
           ...variantFormData.value,
@@ -508,15 +526,15 @@ const saveForm = async () => {
         },
         headers
       })
+      mockData.value.unshift(newVariant)
       toast.success(t('toast.customerAdded', 'Variant əlavə edildi'))
       showVariantModal.value = false
     }
-    await loadGoods()
   } catch (err: any) {
     const msg = err.data?.statusMessage || t('toast.operationFailed')
     toast.error(msg)
   } finally {
-    loading.value = false
+    isSaving.value = false
   }
 }
 </script>
@@ -578,7 +596,6 @@ const saveForm = async () => {
         <div class="flex flex-col">
           <div v-if="!row.parentProductId" class="font-bold text-[var(--text-app)]" v-html="highlight(row.productName)"></div>
           <div v-else class="flex items-center gap-2">
-            <UiIcon name="mingcute:arrow-up-line" class="w-3.5 h-3.5 text-[var(--text-primary)] shrink-0" />
             <div class="flex flex-wrap gap-1">
               <span 
                 v-for="(attr, idx) in (Array.isArray(row.attribute) ? row.attribute : [row.attribute])"
@@ -826,6 +843,7 @@ const saveForm = async () => {
               <!-- Add New Attribute Button directly in the list flow -->
               <UiSelect 
                 v-if="availableAttributes.filter(a => !selectedVariantAttr.find(s => s.id === a.id)).length > 0"
+                modelValue=""
                 placeholder="+ Atribut əlavə et..."
                 :options="availableAttributes.filter(a => !selectedVariantAttr.find(s => s.id === a.id)).map(a => ({ label: a.name, value: a.id }))"
                 @update:modelValue="addAttributeToVariant"
