@@ -21,6 +21,7 @@ interface Props {
   perPage?: number // items per page
   customSearch?: (item: any, query: string) => boolean // custom search function
   rowClass?: (row: any) => string
+  canBulkEdit?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -28,10 +29,11 @@ const props = withDefaults(defineProps<Props>(), {
   loading: false,
   selectable: false,
   actions: false,
-  perPage: 10
+  perPage: 10,
+  canBulkEdit: true
 })
 
-const emit = defineEmits(['add', 'edit', 'delete', 'duplicate', 'bulk-edit', 'bulk-delete', 'row-click'])
+const emit = defineEmits(['add', 'edit', 'delete', 'duplicate', 'bulk-edit', 'bulk-delete', 'row-click', 'update:selected-ids'])
 
 const { t } = useI18n()
 
@@ -246,6 +248,10 @@ watch(() => props.data, () => {
 watch(searchQuery, () => {
   currentPage.value = 1
 })
+
+watch(() => selectedIds.value, (newSet) => {
+  emit('update:selected-ids', Array.from(newSet))
+}, { deep: true, immediate: true })
 </script>
 
 <template>
@@ -325,12 +331,12 @@ watch(searchQuery, () => {
         <!-- Bulk Actions: Moved to the end of Actions Left to prevent layout shifting -->
         <TransitionGroup name="slide-fade" class="flex items-center gap-2">
           <UiButton 
-            v-if="selectedIds.size > 0"
+            v-if="selectedIds.size > 0 && canBulkEdit"
             key="edit"
             variant="soft-primary"
             size="sm"
             icon="lucide:edit-2"
-            @click="emit('bulk-edit', Array.from(selectedIds))"
+            @click.stop="emit('bulk-edit', Array.from(selectedIds))"
           >
             <span class="hidden sm:inline">{{ t('common.bulkEdit', 'Toplu redaktə') }}</span>
           </UiButton>
@@ -450,7 +456,7 @@ watch(searchQuery, () => {
                         variant="ghost"
                         size="icon"
                         icon="lucide:copy"
-                        @click="emit('duplicate', row)"
+                        @click.stop="emit('duplicate', row)"
                         class="hover:text-[var(--color-brand-info)] hover:bg-[var(--color-brand-info)]/10 cursor-pointer"
                       />
                       <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-[var(--text-primary)] text-[var(--bg-app)] text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover/duplicate:opacity-100 pointer-events-none transition-all z-50">
@@ -462,7 +468,7 @@ watch(searchQuery, () => {
                         variant="ghost"
                         size="icon"
                         icon="lucide:edit-2"
-                        @click="emit('edit', row)"
+                        @click.stop="emit('edit', row)"
                         class="hover:text-[var(--text-primary)] hover:bg-[var(--text-primary)]/10 cursor-pointer"
                       />
                       <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-[var(--text-primary)] text-[var(--bg-app)] text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover/edit:opacity-100 pointer-events-none transition-all z-50">
@@ -474,7 +480,7 @@ watch(searchQuery, () => {
                         variant="ghost"
                         size="icon"
                         icon="lucide:trash-2"
-                        @click="emit('delete', row)"
+                        @click.stop="emit('delete', row)"
                         class="hover:text-[var(--color-brand-danger)] hover:bg-[var(--color-brand-danger)]/10 cursor-pointer"
                       />
                       <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-[var(--text-primary)] text-[var(--bg-app)] text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover/delete:opacity-100 pointer-events-none transition-all z-50">

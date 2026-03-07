@@ -224,6 +224,31 @@ const orderedMockData = computed(() => {
   return result.map((item, index) => ({ ...item, rowNumber: index + 1 }))
 })
 
+const bulkEditType = computed(() => {
+  if (currentSelectionIds.value.length === 0) return 'none'
+  const selected = mockData.value.filter(m => currentSelectionIds.value.includes(m.id))
+  const hasBase = selected.some(s => !s.parentProductId)
+  const hasVariant = selected.some(s => !!s.parentProductId)
+  
+  if (hasBase && hasVariant) return 'mixed'
+  if (hasBase) return 'base'
+  return 'variants'
+})
+
+const canBulkEdit = computed(() => bulkEditType.value !== 'mixed')
+
+const bulkEditFields = computed(() => {
+  if (bulkEditType.value === 'base') {
+    // For base products, we don't bulk edit names
+    return formFields.value.filter(f => f.key !== 'productName')
+  }
+  if (bulkEditType.value === 'variants') {
+    // For variants, we bulk edit things like prices and stock, but not barcode or parent
+    return variantSchemaBottom.value.filter(f => f.key !== 'barcode')
+  }
+  return formFields.value
+})
+
 const loadGoods = async () => {
   loading.value = true
   try {
@@ -252,6 +277,7 @@ const formData = ref<Record<string, any>>({})
 const variantFormData = ref<Record<string, any>>({})
 const formErrors = ref<Record<string, string>>({})
 const bulkSelectedIds = ref<any[]>([])
+const currentSelectionIds = ref<any[]>([])
 const barcodeError = ref('')
 const isSaving = ref(false)
 const isVariantEdit = ref(false)
@@ -322,6 +348,7 @@ const removeAttributeFromVariant = (index: number) => {
 }
 
 const handleEdit = (row: any) => {
+  bulkSelectedIds.value = [] // Clear bulk selection if editing single row
   if (row.parentProductId) {
     // Edit Variant
     isVariantEdit.value = true
@@ -374,11 +401,13 @@ const performDelete = async () => {
         headers 
       })
       mockData.value = mockData.value.filter(p => !idsToDelete.includes(p.id))
+      currentSelectionIds.value = currentSelectionIds.value.filter(id => !idsToDelete.includes(id))
       toast.success(t('common.delete', 'Toplu silindi'))
     }
     
     showDeleteConfirmModal.value = false
     deleteTarget.value = null
+    bulkSelectedIds.value = []
   } catch (err: any) {
     toast.error(t('toast.operationFailed', 'Xəta baş verdi'))
   } finally {
@@ -437,7 +466,11 @@ const handleBulkDelete = (ids: any[]) => {
 
 const handleBulkEdit = (ids: any[]) => {
   bulkSelectedIds.value = ids
-  formData.value = {}
+  if (bulkEditType.value === 'variants') {
+    variantFormData.value = {}
+  } else {
+    formData.value = {}
+  }
   barcodeError.value = ''
   showEditModal.value = true
 }
@@ -517,7 +550,8 @@ const saveForm = async () => {
       showAddModal.value = false
     } else if (showEditModal.value) {
       if (bulkSelectedIds.value.length > 0) {
-        const updates = Object.fromEntries(Object.entries(formData.value).filter(([_, v]) => v !== undefined && v !== ''))
+        const payload = bulkEditType.value === 'variants' ? variantFormData.value : formData.value
+        const updates = Object.fromEntries(Object.entries(payload).filter(([_, v]) => v !== undefined && v !== ''))
         await $fetch('/api/products/bulk-update', {
           method: 'POST',
           body: { ids: bulkSelectedIds.value, updates },
@@ -600,6 +634,9 @@ const saveForm = async () => {
         else cls += ' !bg-[var(--text-primary)]/[0.04]'
         return cls
       }"
+      :per-page="20"
+      :can-bulk-edit="canBulkEdit"
+      @update:selected-ids="currentSelectionIds = $event"
       @add="handleAdd"
       @edit="handleEdit"
       @delete="handleDelete"
@@ -805,7 +842,15 @@ const saveForm = async () => {
         <!-- Right: Form Fields -->
         <div :class="bulkSelectedIds.length === 0 ? 'flex-1 w-full lg:border-l lg:border-[var(--border-app)] lg:pl-8' : 'w-full'">
           <DynamicForm 
-            :fields="formFields"
+            v-if="bulkEditType === 'variants'"
+            :fields="bulkEditFields"
+            v-model="variantFormData"
+            :gridCols="bulkSelectedIds.length === 0 ? 1 : 2" 
+            :errors="formErrors"
+          />
+          <DynamicForm 
+            v-else
+            :fields="bulkEditFields"
             v-model="formData"
             :gridCols="bulkSelectedIds.length === 0 ? 1 : 2" 
             :errors="formErrors"
