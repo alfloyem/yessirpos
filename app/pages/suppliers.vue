@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from '#i18n'
 import DataTable from '~/components/ui/DataTable.vue'
 import Modal from '~/components/ui/Modal.vue'
 import UiButton from '~/components/ui/Button.vue'
-import { useHead } from '#imports'
+import { useHead, useToast, useAuth } from '#imports'
 import DynamicForm, { type FormField } from '~/components/ui/DynamicForm.vue'
 
 const { t } = useI18n()
+const toast = useToast()
 
 useHead({
   title: t('menu.suppliers') || 'Tədarükçülər'
@@ -44,66 +45,49 @@ const columns = computed(() =>
 )
 
 // --- Data ---
-const mockData = ref<any[]>([
-  { 
-    id: 1, 
-    rowNumber: 1,
-    brandName: 'Nike', 
-    companyName: ['Nike Azerbaijan LLC'], 
-    firstName: 'Rəşad', 
-    lastName: 'Məmmədov', 
-    email: 'rashad@nike.az', 
-    phone: '+994 50 123 45 67', 
-    voen: ['1234567890'],
-    address: '28 May küçəsi 12', 
-    city: ['Bakı'], 
-    country: 'AZ', 
-    notes: 'Premium tədarükçü',
-    createdAt: '2026-03-03 10:15', 
-    createdBy: 'Admin'
-  },
-  { 
-    id: 2, 
-    rowNumber: 2,
-    brandName: 'Adidas', 
-    companyName: ['Adidas Sport MMC'], 
-    firstName: 'Leyla', 
-    lastName: 'Əliyeva', 
-    email: 'leyla@adidas.az', 
-    phone: '+994 55 987 65 43', 
-    voen: ['0987654321'],
-    address: 'Neftçilər prospekti 25', 
-    city: ['Bakı'], 
-    country: 'AZ', 
-    notes: '',
-    createdAt: '2026-03-02 14:30', 
-    createdBy: 'Admin'
-  },
-  { 
-    id: 3, 
-    rowNumber: 3,
-    brandName: 'Zara', 
-    companyName: ['Inditex Azerbaijan'], 
-    firstName: 'Elvin', 
-    lastName: 'Quliyev', 
-    email: 'elvin@zara.az', 
-    phone: '+994 51 234 56 78', 
-    voen: ['5678901234'],
-    address: 'Nizami küçəsi 45', 
-    city: ['Bakı'], 
-    country: 'AZ', 
-    notes: 'Fast fashion',
-    createdAt: '2026-03-01 09:20', 
-    createdBy: 'Admin'
-  },
-])
+const mockData = ref<any[]>([])
+const loading = ref(false)
+const error = ref<string | null>(null)
+
+const loadSuppliers = async () => {
+  loading.value = true
+  error.value = null
+  
+  try {
+    const data = await $fetch('/api/suppliers')
+    mockData.value = (data as any[]).map((d, index) => ({
+      ...d,
+      rowNumber: index + 1,
+      companyName: d.companyName ? (d.companyName.startsWith('[') ? JSON.parse(d.companyName) : [d.companyName]) : [],
+      voen: d.voen ? (d.voen.startsWith('[') ? JSON.parse(d.voen) : [d.voen]) : [],
+      city: d.city ? (d.city.startsWith('[') ? JSON.parse(d.city) : [d.city]) : [],
+      _date: new Date(d.createdAt),
+      createdAt: new Date(d.createdAt).toLocaleString('tr-TR', {
+        year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+      })
+    }))
+  } catch (err: any) {
+    const errorMsg = err.message || t('toast.loadingError', 'Məlumatlar yüklənərkən xəta baş verdi')
+    error.value = errorMsg
+    toast.error(errorMsg)
+    console.error('Load suppliers error:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  loadSuppliers()
+})
 
 // --- Modals State ---
 const showAddModal = ref(false)
 const showEditModal = ref(false)
+const showDeleteConfirmModal = ref(false)
+const deleteTarget = ref<{ type: 'single' | 'bulk', id?: any, ids?: any[] } | null>(null)
 const formData = ref<Record<string, any>>({})
+const formErrors = ref<Record<string, string>>({})
 const bulkSelectedIds = ref<any[]>([])
-const voenError = ref('')
 
 // --- Handlers ---
 const handleAdd = () => {
@@ -113,121 +97,216 @@ const handleAdd = () => {
     city: [],
     country: 'AZ'
   }
-  voenError.value = ''
+  formErrors.value = {}
   showAddModal.value = true
 }
 
 const handleEdit = (row: any) => {
   formData.value = { ...row }
-  voenError.value = ''
+  formErrors.value = {}
   showEditModal.value = true
 }
 
 const handleDelete = (row: any) => {
-  if (confirm(`${row.companyName} tədarükçüsünü silmək istəyirsiniz?`)) {
-    mockData.value = mockData.value.filter(m => m.id !== row.id)
-    // Recalculate row numbers
-    mockData.value.forEach((item, index) => {
-      item.rowNumber = index + 1
-    })
+  deleteTarget.value = { type: 'single', id: row.id }
+  showDeleteConfirmModal.value = true
+}
+
+const performDelete = async () => {
+  if (!deleteTarget.value) return
+
+  loading.value = true
+  
+  try {
+    if (deleteTarget.value.type === 'single') {
+      await $fetch(`/api/suppliers/${deleteTarget.value.id}`, { method: 'DELETE' })
+      toast.success(t('toast.supplierDeleted', 'Tədarükçü uğurla silindi'))
+    } else if (deleteTarget.value.type === 'bulk') {
+      const count = deleteTarget.value.ids?.length || 0
+      await $fetch('/api/suppliers/bulk-delete', {
+        method: 'POST',
+        body: { ids: deleteTarget.value.ids }
+      })
+      toast.success(t('toast.suppliersDeleted', { count, default: `${count} tədarükçü uğurla silindi` }))
+    }
+    
+    await loadSuppliers()
+    showDeleteConfirmModal.value = false
+    deleteTarget.value = null
+  } catch (err: any) {
+    const errorMsg = err.message || t('toast.operationFailed', 'Əməliyyat zamanı xəta baş verdi')
+    toast.error(errorMsg)
+    console.error('Delete error:', err)
+  } finally {
+    loading.value = false
   }
 }
 
-const handleDuplicate = (row: any) => {
-  const d = new Date()
-  const formattedDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+const handleDuplicate = async (row: any) => {
+  loading.value = true
+  const { token, logout } = useAuth()
   
-  const newId = Date.now()
-  const newRowNumber = mockData.value.length + 1
-  
-  // Find the highest number for this brand name
-  const baseBrandName = row.brandName.replace(/\s*\(\d+\)$/, '') // Remove existing (number) if any
-  const existingNumbers = mockData.value
-    .filter(item => item.brandName.startsWith(baseBrandName))
-    .map(item => {
-      const match = item.brandName.match(/\((\d+)\)$/)
-      return match ? parseInt(match[1]) : 0
+  try {
+    // Find the highest number for this brand name
+    const baseBrandName = row.brandName.replace(/\s*\(\d+\)$/, '')
+    const existingNumbers = mockData.value
+      .filter(item => item.brandName.startsWith(baseBrandName))
+      .map(item => {
+        const match = item.brandName.match(/\((\d+)\)$/)
+        return match ? parseInt(match[1]) : 0
+      })
+    
+    const nextNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 2
+    
+    let newDate = new Date()
+    if (row._date) {
+      newDate = new Date(row._date.getTime() + 1000)
+    }
+    
+    const headers = { Authorization: `Bearer ${token.value}` }
+    
+    await $fetch('/api/suppliers', {
+      method: 'POST',
+      body: {
+        ...row,
+        id: undefined,
+        brandName: `${baseBrandName} (${nextNumber})`,
+        voen: [], // VÖEN must be unique
+        createdAt: newDate.toISOString()
+      },
+      headers
     })
-  
-  const nextNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 2
-  
-  // Copy all data except id, rowNumber, voen (must be unique)
-  const duplicatedData = {
-    ...row,
-    id: newId,
-    rowNumber: newRowNumber,
-    brandName: `${baseBrandName} (${nextNumber})`,
-    voen: '', // VÖEN must be unique, so leave empty
-    createdAt: formattedDate,
-    createdBy: 'Sistem İdarəçisi'
+    
+    toast.success(t('toast.supplierDuplicated', 'Tədarükçü kopyalandı'))
+    
+    await loadSuppliers()
+  } catch (err: any) {
+    const errorMsg = err.message || t('toast.operationFailed', 'Əməliyyat zamanı xəta baş verdi')
+    toast.error(errorMsg)
+    console.error('Duplicate error:', err)
+    
+    if (err.statusCode === 401) {
+      logout()
+    }
+  } finally {
+    loading.value = false
   }
-  
-  mockData.value.push(duplicatedData)
 }
 
 const handleBulkDelete = (ids: any[]) => {
-  if (confirm(`${ids.length} tədarükçünü silmək istəyirsiniz?`)) {
-    mockData.value = mockData.value.filter(m => !ids.includes(m.id))
-    // Recalculate row numbers
-    mockData.value.forEach((item, index) => {
-      item.rowNumber = index + 1
-    })
-  }
+  deleteTarget.value = { type: 'bulk', ids }
+  showDeleteConfirmModal.value = true
 }
 
 const handleBulkEdit = (ids: any[]) => {
   bulkSelectedIds.value = ids
   formData.value = {}
-  voenError.value = ''
+  formErrors.value = {}
   showEditModal.value = true
 }
 
-// VÖEN kontrolü
-const checkVoenUnique = (voen: string[], currentId?: any) => {
-  if (!voen || voen.length === 0) return true
-  const voenStr = voen[0]
-  return !mockData.value.some(m => {
-    const mVoen = Array.isArray(m.voen) ? m.voen[0] : m.voen
-    return mVoen === voenStr && m.id !== currentId
-  })
-}
-
-const saveForm = () => {
-  voenError.value = ''
-  
-  // VÖEN özel validasyonu
-  if (formData.value.voen && !checkVoenUnique(formData.value.voen, formData.value.id)) {
-    voenError.value = 'Bu VÖEN artıq mövcuddur! Fərqli VÖEN daxil edin.'
-    return 
+const customSearch = (item: any, query: string) => {
+  const normalizeText = (text: any) => {
+    if (text === null || text === undefined) return ''
+    return String(text)
+      .toLocaleLowerCase('tr-TR')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, "")
   }
 
-  if (showAddModal.value) {
-    const d = new Date()
-    const formattedDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-    
-    const newId = Date.now()
-    const newRowNumber = mockData.value.length + 1
-    
-    mockData.value.push({ 
-      id: newId,
-      rowNumber: newRowNumber,
-      ...formData.value,
-      createdAt: formattedDate,
-      createdBy: 'Sistem İdarəçisi'
-    })
-    showAddModal.value = false
-  } else if (showEditModal.value) {
-    if (bulkSelectedIds.value.length > 0) {
-      const updates = Object.fromEntries(Object.entries(formData.value).filter(([_, v]) => v !== undefined && v !== ''))
-      mockData.value = mockData.value.map(item => 
-        bulkSelectedIds.value.includes(item.id) ? { ...item, ...updates } : item
-      )
-      bulkSelectedIds.value = []
-    } else {
-      const index = mockData.value.findIndex(m => m.id === formData.value.id)
-      if (index !== -1) mockData.value[index] = { ...mockData.value[index], ...formData.value }
+  const q = normalizeText(query)
+  
+  const searchableFields = [
+    item.brandName,
+    item.firstName,
+    item.lastName,
+    item.email,
+    item.phone,
+    item.address,
+    item.notes,
+    item.createdBy,
+    // Company Name (tags array)
+    Array.isArray(item.companyName) ? item.companyName.join(' ') : item.companyName,
+    // VÖEN (tags array)
+    Array.isArray(item.voen) ? item.voen.join(' ') : item.voen,
+    // City (tags array)
+    Array.isArray(item.city) ? item.city.join(' ') : item.city
+  ]
+  
+  return searchableFields.some(field => normalizeText(field).includes(q))
+}
+
+const saveForm = async () => {
+  formErrors.value = {}
+  let hasError = false
+  
+  const isBulkEditMode = showEditModal.value && bulkSelectedIds.value.length > 0
+  const activeFields = isBulkEditMode
+    ? formFields.value.filter(f => f.key !== 'voen')
+    : formFields.value
+
+  for (const field of activeFields) {
+    if (field.required && !formData.value[field.key]) {
+      if (!isBulkEditMode) {
+        formErrors.value[field.key] = t('common.fieldRequired', 'Bu xana mütləq doldurulmalıdır')
+        hasError = true
+      }
     }
-    showEditModal.value = false
+  }
+
+  if (hasError) return
+
+  loading.value = true
+  const { token, logout } = useAuth()
+  
+  try {
+    const headers = { Authorization: `Bearer ${token.value}` }
+    
+    if (showAddModal.value) {
+      // Create new supplier
+      await $fetch('/api/suppliers', {
+        method: 'POST',
+        body: formData.value,
+        headers
+      })
+      toast.success(t('toast.supplierAdded', 'Tədarükçü uğurla əlavə edildi'))
+      showAddModal.value = false
+    } else if (showEditModal.value) {
+      if (bulkSelectedIds.value.length > 0) {
+        // Bulk update
+        const updates = Object.fromEntries(
+          Object.entries(formData.value).filter(([_, v]) => v !== undefined && v !== '')
+        )
+        await $fetch('/api/suppliers/bulk-update', {
+          method: 'POST',
+          body: { ids: bulkSelectedIds.value, updates },
+          headers
+        })
+        toast.success(t('toast.suppliersUpdated', { count: bulkSelectedIds.value.length, default: `${bulkSelectedIds.value.length} tədarükçü yeniləndi` }))
+        bulkSelectedIds.value = []
+      } else {
+        // Single update
+        await $fetch(`/api/suppliers/${formData.value.id}`, {
+          method: 'PUT',
+          body: formData.value,
+          headers
+        })
+        toast.success(t('toast.supplierUpdated', 'Tədarükçü uğurla yeniləndi'))
+      }
+      showEditModal.value = false
+    }
+    
+    await loadSuppliers()
+  } catch (err: any) {
+    const errorMsg = err.data?.statusMessage || err.message || t('toast.operationFailed', 'Əməliyyat zamanı xəta baş verdi')
+    toast.error(errorMsg)
+    console.error('Save error:', err)
+    
+    if (err.statusCode === 401) {
+      logout()
+    }
+  } finally {
+    loading.value = false
   }
 }
 </script>
@@ -245,8 +324,10 @@ const saveForm = () => {
       title="Tedarukcu_Listesi"
       :data="mockData" 
       :columns="columns"
+      :loading="loading"
       :selectable="true"
       :actions="true"
+      :custom-search="customSearch"
       @add="handleAdd"
       @edit="handleEdit"
       @delete="handleDelete"
@@ -262,65 +343,101 @@ const saveForm = () => {
       </template>
 
       <!-- Company Name Custom Format -->
-      <template #cell-companyName="{ value }">
-        <span class="font-medium text-[var(--text-app)]">
-          {{ Array.isArray(value) ? value[0] : value }}
+      <template #cell-companyName="{ value, highlight }">
+        <span class="font-medium text-[var(--text-app)]" v-html="highlight(Array.isArray(value) ? value[0] : value)">
         </span>
       </template>
 
       <!-- Brand Name Custom Format -->
-      <template #cell-brandName="{ value }">
-        <span class="font-semibold text-[var(--text-primary)]">
-          {{ value }}
+      <template #cell-brandName="{ value, highlight }">
+        <span class="font-semibold text-[var(--text-primary)]" v-html="highlight(value)">
         </span>
       </template>
 
       <!-- VÖEN Custom Format -->
-      <template #cell-voen="{ value }">
-        <span class="font-mono text-sm text-[var(--text-app)]">
-          {{ Array.isArray(value) ? value[0] : value }}
+      <template #cell-voen="{ value, highlight }">
+        <span class="font-mono text-sm text-[var(--text-app)]" v-html="highlight(Array.isArray(value) ? value[0] : value)">
         </span>
+      </template>
+
+      <!-- Contact links with Highlighting -->
+      <template #cell-email="{ value, highlight }">
+        <a 
+          v-if="value" 
+          :href="`mailto:${value}`" 
+          class="text-[var(--text-app)] hover:text-blue-500 hover:underline transition-colors" 
+          @click.stop
+          v-html="highlight(value)"
+        ></a>
+        <span v-else>-</span>
+      </template>
+
+      <template #cell-phone="{ value, highlight }">
+        <a 
+          v-if="value" 
+          :href="`https://wa.me/${String(value).replace(/[^0-9]/g, '')}`" 
+          target="_blank"
+          class="text-[var(--text-app)] hover:text-green-500 hover:underline transition-colors" 
+          @click.stop
+          v-html="highlight(value)"
+        ></a>
+        <span v-else>-</span>
       </template>
     </DataTable>
 
     <!-- Modal: Add -->
     <Modal v-model="showAddModal" title="Yeni Tədarükçü Əlavə Et" max-width="3xl">
-      <div v-if="voenError" class="mb-4 p-3 bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)] rounded-lg text-sm font-medium flex items-center gap-2">
-        <UiIcon name="lucide:alert-triangle" class="w-5 h-5"/>
-        {{ voenError }}
-      </div>
-      
       <DynamicForm 
         :fields="formFields"
-        v-model="formData" 
+        v-model="formData"
+        :errors="formErrors"
       />
       <template #footer>
-        <UiButton variant="ghost" @click="showAddModal = false">İmtina</UiButton>
-        <UiButton variant="primary" @click="saveForm">Yadda saxla</UiButton>
+        <UiButton variant="ghost" @click="showAddModal = false" class="!px-6">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
+        <UiButton variant="primary" icon="lucide:check" @click="saveForm" class="!px-8 min-w-[120px]">{{ t('common.save', 'Yadda saxla') }}</UiButton>
       </template>
     </Modal>
 
     <!-- Modal: Edit -->
-    <Modal v-model="showEditModal" :title="bulkSelectedIds.length > 0 ? 'Toplu Redaktə' : 'Tədarükçünü Redaktə Et'" max-width="3xl">
-      <div v-if="voenError" class="mb-4 p-3 bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)] rounded-lg text-sm font-medium flex items-center gap-2">
-        <UiIcon name="lucide:alert-triangle" class="w-5 h-5"/>
-        {{ voenError }}
-      </div>
-
+    <Modal 
+      v-model="showEditModal" 
+      :title="bulkSelectedIds.length > 0 ? t('common.bulkEdit', 'Toplu Redaktə') : 'Tədarükçünü Redaktə Et'" 
+      max-width="3xl"
+      @update:model-value="(val) => { if (!val) bulkSelectedIds = [] }"
+    >
       <div v-if="bulkSelectedIds.length > 0" class="mb-4 p-3 bg-[var(--color-brand-warning)]/10 text-[var(--color-brand-warning)] rounded-lg text-sm font-medium">
-        Xəbərdarlıq: Toplu redaktə rejimindəsiniz. Burada doldurduğunuz sahələr, seçdiyiniz <span class="font-bold">{{ bulkSelectedIds.length }}</span> qeydin məlumatının üzərinə yazılacaq.
+        {{ t('employees.bulkEditWarning', { count: bulkSelectedIds.length, default: `Diqqət: Seçilmiş ${bulkSelectedIds.length} qeydin üzərinə yazılacaq.` }) }}
       </div>
 
       <!-- We omit voen in bulk edit to avoid conflicts (they should be unique) -->
       <DynamicForm 
         :fields="showEditModal && bulkSelectedIds.length > 0 ? formFields.filter(f => f.key !== 'voen') : formFields"
-        v-model="formData" 
+        v-model="formData"
+        :errors="formErrors"
       />
       <template #footer>
-        <UiButton variant="ghost" @click="showEditModal = false; bulkSelectedIds = []">İmtina</UiButton>
-        <UiButton variant="primary" @click="saveForm">Yenilə</UiButton>
+        <UiButton variant="ghost" @click="showEditModal = false; bulkSelectedIds = []" class="!px-6">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
+        <UiButton variant="primary" icon="lucide:check" @click="saveForm" class="!px-8 min-w-[120px]">{{ t('common.update', 'Yenilə') }}</UiButton>
       </template>
     </Modal>
 
+    <!-- Delete Confirmation Modal -->
+    <Modal v-model="showDeleteConfirmModal" :title="t('common.confirmDelete', 'Silmək istədiyinizə əminsiniz?')" max-width="sm">
+      <div class="py-2">
+        <p class="text-[var(--text-app)] opacity-80 text-[15px] leading-relaxed">
+          {{ t('common.cannotBeUndone', 'Bu əməliyyat geri qaytarıla bilməz.') }}
+          <span v-if="deleteTarget?.type === 'bulk'" class="font-bold text-[var(--color-brand-danger)] block mt-2">
+            {{ t('suppliers.bulkDeleteCount', { count: deleteTarget.ids?.length, default: `${deleteTarget.ids?.length} tədarükçü silinəcək` }) }}
+          </span>
+        </p>
+      </div>
+      
+      <template #footer>
+        <UiButton variant="ghost" @click="showDeleteConfirmModal = false">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
+        <UiButton variant="danger" @click="performDelete">
+          {{ t('common.yesDelete', 'Bəli, Sil') }}
+        </UiButton>
+      </template>
+    </Modal>
   </div>
 </template>
