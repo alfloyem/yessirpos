@@ -275,7 +275,7 @@ const getItemTotal = (item: CartItem) => {
 
         <div v-if="selectedCustomer && mode === 'sale'" class="flex justify-between text-[12px] font-bold text-[var(--text-app)] opacity-50">
           <span class="flex items-center gap-1.5">
-            {{ t('cart.cashbackEarned') }}:
+            {{ t('cart.cashbackEarned', 'Qazanılacaq Keşbek (5%)') }}:
           </span>
           <span class="tabular-nums font-black">+{{ cashbackAmount }} ₼</span>
         </div>
@@ -285,22 +285,12 @@ const getItemTotal = (item: CartItem) => {
           <div class="flex items-center gap-1.5">
             <span class="text-[12px] font-bold text-[var(--text-app)] opacity-50">{{ t('cart.discount', 'Endirim') }}:</span>
             <!-- Discount Type Toggle -->
-            <div class="flex bg-[var(--input-bg)] border border-[var(--border-app)] rounded-md overflow-hidden p-0.5">
-              <button 
-                @click="setDiscountType('amount')"
-                class="px-1.5 py-0.5 text-[10px] font-black rounded transition-all"
-                :class="discountType === 'amount' ? 'bg-[var(--text-primary)] text-white' : 'text-[var(--text-app)] opacity-40 hover:opacity-100'"
-              >
-                ₼
-              </button>
-              <button 
-                @click="setDiscountType('percent')"
-                class="px-1.5 py-0.5 text-[10px] font-black rounded transition-all"
-                :class="discountType === 'percent' ? 'bg-[var(--text-primary)] text-white' : 'text-[var(--text-app)] opacity-40 hover:opacity-100'"
-              >
-                %
-              </button>
-            </div>
+            <button 
+              @click="setDiscountType(discountType === 'amount' ? 'percent' : 'amount')"
+              class="w-9 h-9 flex items-center justify-center bg-[var(--text-primary)] text-white rounded-xl shadow-sm active:scale-90 transition-all font-black text-[14px]"
+            >
+              {{ discountType === 'amount' ? '₼' : '%' }}
+            </button>
           </div>
           
           <UiInput 
@@ -308,6 +298,8 @@ const getItemTotal = (item: CartItem) => {
             @update:model-value="handleDiscountInput"
             type="number" 
             placeholder="0.00"
+            size="sm"
+            class="!max-w-24"
           />
         </div>
       </div>
