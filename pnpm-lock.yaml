@@ -11,6 +11,9 @@ importers:
       '@prisma/adapter-pg':
         specifier: ^7.4.2
         version: 7.4.2
+      '@prisma/client':
+        specifier: ^7.4.2
+        version: 7.4.2(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3))(typescript@5.9.3)
       bcryptjs:
         specifier: ^3.0.3
         version: 3.0.3
@@ -54,9 +57,6 @@ importers:
       '@nuxtjs/i18n':
         specifier: ^10.2.3
         version: 10.2.3(@vue/compiler-dom@3.5.29)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(eslint@10.0.2(jiti@2.6.1))(ioredis@5.10.0)(magicast@0.5.2)(rollup@4.59.0)(vue@3.5.29(typescript@5.9.3))
-      '@prisma/client':
-        specifier: ^7.4.2
-        version: 7.4.2(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3))(typescript@5.9.3)
       '@tailwindcss/vite':
         specifier: ^4.2.1
         version: 4.2.1(vite@7.3.1(@types/node@25.3.3)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
