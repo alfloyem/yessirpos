@@ -1,4 +1,4 @@
-import { defineEventHandler, createError, readBody, getRouterParam, getQuery, getCookie, getHeader } from 'h3'
+import { defineEventHandler, createError, readBody } from 'h3'
 import prisma from '../../utils/prisma'
 
 export default defineEventHandler(async (event: any) => {
@@ -17,9 +17,11 @@ export default defineEventHandler(async (event: any) => {
     if (updates.name) updateData.name = updates.name
     if (updates.values && Array.isArray(updates.values)) updateData.values = JSON.stringify(updates.values)
 
+    const numericIds = ids.map((id: any) => parseInt(id)).filter((id: number) => !isNaN(id))
+
     const result = await (prisma as any).attribute.updateMany({
       where: {
-        id: { in: ids }
+        id: { in: numericIds }
       },
       data: updateData
     })
@@ -29,9 +31,11 @@ export default defineEventHandler(async (event: any) => {
       count: result.count
     }
   } catch (error: any) {
+    console.error('Attribute Bulk Update Error:', error)
+    if (error.statusCode) throw error
     throw createError({
       statusCode: 500,
-      statusMessage: 'Atributlar yenilənərkən xəta baş verdi'
+      statusMessage: 'Atributlar yenilənərkən xəta baş verdi: ' + (error.message || '')
     })
   }
 })

@@ -1,4 +1,4 @@
-import { defineEventHandler, createError, readBody, getRouterParam, getQuery, getCookie, getHeader } from 'h3'
+import { defineEventHandler, createError, readBody } from 'h3'
 import prisma from '../../utils/prisma'
 
 export default defineEventHandler(async (event: any) => {
@@ -23,7 +23,12 @@ export default defineEventHandler(async (event: any) => {
     const updateData: any = {}
     if (updates.firstName) updateData.firstName = updates.firstName
     if (updates.lastName) updateData.lastName = updates.lastName
-    if (updates.bonus !== undefined) updateData.bonus = updates.bonus
+    if (updates.bonus !== undefined) {
+      const parsedBonus = parseFloat(updates.bonus)
+      if (!isNaN(parsedBonus)) {
+        updateData.bonus = parsedBonus
+      }
+    }
     if (updates.gender !== undefined) updateData.gender = updates.gender
     if (updates.email !== undefined) updateData.email = updates.email
     if (updates.phone !== undefined) updateData.phone = updates.phone
@@ -32,10 +37,20 @@ export default defineEventHandler(async (event: any) => {
     if (updates.country !== undefined) updateData.country = updates.country
     if (updates.notes !== undefined) updateData.notes = updates.notes
 
+    // Ensure IDs are integers for Prisma
+    const numericIds = ids.map((id: any) => parseInt(id)).filter((id: number) => !isNaN(id))
+
+    if (numericIds.length === 0) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Yalnış ID formatı'
+      })
+    }
+
     const result = await prisma.customer.updateMany({
       where: {
         id: {
-          in: ids
+          in: numericIds
         }
       },
       data: updateData
@@ -47,9 +62,13 @@ export default defineEventHandler(async (event: any) => {
       count: result.count
     }
   } catch (error: any) {
+    console.error('Bulk update error:', error)
+    // If it's already an H3 error, rethrow it
+    if (error.statusCode) throw error
+    
     throw createError({
       statusCode: 500,
-      statusMessage: 'Müştərilər yenilənərkən xəta baş verdi'
+      statusMessage: 'Müştərilər yenilənərkən xəta baş verdi: ' + (error.message || '')
     })
   }
 })
