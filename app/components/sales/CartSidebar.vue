@@ -99,35 +99,35 @@ const getItemTotal = (item: CartItem) => {
     <div class="p-5 border-b border-[var(--border-app)] bg-[var(--bg-app)]/40 backdrop-blur-md shrink-0">
       <div class="flex justify-between items-center mb-5">
         <div>
-          <h2 class="text-[13px] font-black uppercase tracking-[0.15em] text-[var(--text-app)] flex items-center gap-2 mb-0.5">
+          <h2 class="text-[13px] font-bold text-[var(--text-app)] flex items-center gap-2 mb-0.5">
             <UiIcon :name="mode === 'sale' ? 'lucide:shopping-bag' : 'lucide:rotate-ccw'" class="w-4 h-4 text-[var(--text-primary)]" />
             {{ mode === 'sale' ? t('cart.title', 'Səbət') : t('cart.refund', 'Refund') }}
           </h2>
-          <p class="text-[9px] font-bold opacity-30 uppercase tracking-widest">{{ totalQty }} Məhsul seçilib</p>
+          <p class="text-[9px] font-medium opacity-30">{{ totalQty }} məhsul seçilib</p>
         </div>
         <button 
           v-if="cart.length > 0" 
           @click="emit('clear')"
-          class="text-[10px] font-black uppercase tracking-widest text-red-500 hover:text-red-600 transition-colors px-3 py-1.5 bg-red-500/5 rounded-lg border border-red-500/10"
+          class="text-[10px] font-bold text-red-500 hover:text-red-600 transition-colors px-2.5 py-1.5 bg-red-500/5 rounded-lg border border-red-500/10"
         >
           {{ t('cart.clear', 'Təmizlə') }}
         </button>
       </div>
 
       <!-- Mode Selector -->
-      <div class="flex p-1.5 bg-[var(--bg-app)] rounded-2xl border border-[var(--border-app)]/50 shadow-sm mb-5">
+      <div class="flex p-1 bg-[var(--bg-app)] rounded-xl border border-[var(--border-app)]/50 shadow-sm mb-4">
         <button 
           @click="toggleMode('sale')"
-          class="flex-1 py-2.5 px-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
-          :class="mode === 'sale' ? 'bg-[var(--text-primary)] text-white shadow-lg shadow-[var(--text-primary)]/20' : 'text-[var(--text-app)] opacity-40 hover:opacity-100'"
+          class="flex-1 py-2 px-3 rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-2"
+          :class="mode === 'sale' ? 'bg-[var(--text-primary)] text-white shadow-md shadow-[var(--text-primary)]/20' : 'text-[var(--text-app)] opacity-40 hover:opacity-100'"
         >
           <UiIcon name="lucide:shopping-cart" class="w-3.5 h-3.5" />
           {{ t('cart.modeSale', 'Satış') }}
         </button>
         <button 
           @click="toggleMode('refund')"
-          class="flex-1 py-2.5 px-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
-          :class="mode === 'refund' ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'text-[var(--text-app)] opacity-40 hover:opacity-100'"
+          class="flex-1 py-2 px-3 rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-2"
+          :class="mode === 'refund' ? 'bg-red-500 text-white shadow-md shadow-red-500/20' : 'text-[var(--text-app)] opacity-40 hover:opacity-100'"
         >
           <UiIcon name="lucide:rotate-ccw" class="w-3.5 h-3.5" />
           {{ t('cart.modeRefund', 'Refund') }}
@@ -143,13 +143,13 @@ const getItemTotal = (item: CartItem) => {
               <UiIcon name="lucide:user" class="w-5 h-5 text-[var(--text-primary)]" />
             </div>
             <div class="flex flex-col min-w-0">
-              <span class="text-[13px] font-black text-[var(--text-app)] truncate leading-tight tracking-tight uppercase">{{ selectedCustomer.firstName }} {{ selectedCustomer.lastName }}</span>
+              <span class="text-[13px] font-bold text-[var(--text-app)] truncate leading-tight tracking-tight">{{ selectedCustomer.firstName }} {{ selectedCustomer.lastName }}</span>
               <div class="flex items-center gap-2 mt-0.5">
-                <span class="text-[9px] font-black text-[var(--text-primary)] flex items-center gap-1 bg-[var(--text-primary)]/10 px-1.5 py-0.5 rounded-md">
+                <span class="text-[9px] font-bold text-[var(--text-primary)] flex items-center gap-1 bg-[var(--text-primary)]/10 px-1.5 py-0.5 rounded-md">
                   <UiIcon name="lucide:coins" class="w-3 h-3" />
                   {{ selectedCustomer.bonus || 0 }} ₼
                 </span>
-                <span v-if="selectedCustomer.phone" class="text-[9px] font-bold opacity-30">{{ selectedCustomer.phone }}</span>
+                <span v-if="selectedCustomer.phone" class="text-[9px] font-medium opacity-30">{{ selectedCustomer.phone }}</span>
               </div>
             </div>
           </div>
@@ -181,9 +181,9 @@ const getItemTotal = (item: CartItem) => {
     <!-- Items List -->
     <div class="flex-1 overflow-y-auto custom-scrollbar p-2.5 space-y-1.5">
       <div v-if="cart.length === 0" class="h-full flex flex-col items-center justify-center text-[var(--text-app)] opacity-30 text-center p-6 grayscale">
-        <UiIcon :name="mode === 'sale' ? 'lucide:shopping-cart' : 'lucide:package-x'" class="w-10 h-10 mb-3 stroke-[1]" />
-        <p class="font-black text-[12px] uppercase tracking-widest">{{ mode === 'sale' ? t('cart.empty', 'Səbət boşdur') : t('cart.refundEmpty', 'Refund siyahısı boşdur') }}</p>
-        <p class="text-[10px] mt-1 opacity-60">{{ t('cart.emptySubtitle', 'Məhsul əlavə etmək üçün sol tərəfdən seçim edin') }}</p>
+        <UiIcon :name="mode === 'sale' ? 'lucide:shopping-cart' : 'lucide:package-x'" class="w-9 h-9 mb-2 stroke-[1]" />
+        <p class="font-bold text-[12px]">{{ mode === 'sale' ? t('cart.empty', 'Səbət boşdur') : t('cart.refundEmpty', 'Refund siyahısı boşdur') }}</p>
+        <p class="text-[10px] mt-1 opacity-60">{{ t('cart.emptySubtitle', 'Məhsul əlavə etmək üçün seçim edin') }}</p>
       </div>
 
       <TransitionGroup name="cart-list">
@@ -208,7 +208,7 @@ const getItemTotal = (item: CartItem) => {
                   <UiIcon name="lucide:x" class="w-3 h-3" />
                 </button>
               </div>
-              <div class="text-[9px] font-black text-[var(--text-app)] opacity-30 mt-0.5 uppercase tracking-tighter">
+              <div class="text-[9px] font-bold text-[var(--text-app)] opacity-30 mt-0.5">
                 {{ item.retailPrice }} ₼ / vahid
               </div>
             </div>
@@ -327,11 +327,11 @@ const getItemTotal = (item: CartItem) => {
         :variant="mode === 'sale' ? 'primary' : 'danger'"
         @click="emit('checkout')" 
         :disabled="cart.length === 0"
-        class="!rounded-xl !h-12 shadow-lg active:scale-[0.98] transition-all"
-        :class="mode === 'sale' ? 'shadow-[var(--text-primary)]/20' : 'shadow-[var(--color-brand-danger)]/20'"
+        class="!rounded-xl !h-11 shadow-md active:scale-[0.98] transition-all"
+        :class="mode === 'sale' ? 'shadow-[var(--text-primary)]/10' : 'shadow-red-500/10'"
       >
-        <span class="flex items-center justify-center gap-2 font-bold text-sm tracking-wide">
-          {{ mode === 'sale' ? t('cart.proceed', 'Ödənişi Tamamla') : t('cart.refundSubmit', 'Refund Tamamla') }}
+        <span class="flex items-center justify-center gap-2 font-bold text-sm">
+          {{ mode === 'sale' ? t('cart.proceed', 'Ödənişi tamamla') : t('cart.refundSubmit', 'Refund tamamla') }}
           <UiIcon :name="mode === 'sale' ? 'lucide:chevron-right' : 'lucide:rotate-ccw'" class="w-4 h-4" />
         </span>
       </UiButton>

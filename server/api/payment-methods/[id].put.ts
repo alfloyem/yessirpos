@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
         name,
         icon,
         color,
-        isSystem: body.isSystem
+        isSystem: !!body.isSystem
       }
     })
   } catch (error: any) {
