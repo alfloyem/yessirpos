@@ -62,11 +62,12 @@ export default defineEventHandler(async (event: any) => {
       city: customer.city ? (customer.city.startsWith('[') ? JSON.parse(customer.city) : [customer.city]) : []
     }
   } catch (error: any) {
+    console.error('[id].put.ts error:', error)
     if (error.statusCode) throw error
     
     throw createError({
       statusCode: 500,
-      statusMessage: 'Müştəri yenilənərkən xəta baş verdi'
+      statusMessage: `Müştəri yenilənərkən xəta baş verdi: ${error.message || 'Bilinməyən xəta'}`
     })
   }
 })

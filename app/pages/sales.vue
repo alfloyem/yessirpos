@@ -37,9 +37,50 @@ const searchInput = ref<any>(null)
 
 // Modal states
 const showPaymentModal = ref(false)
+const showManageMethodsModal = ref(false)
 const showGhostModal = ref(false)
-const paymentMethod = ref('cash')
+const paymentMethod = ref('Nəğd')
 const isSaving = ref(false)
+
+// Manage Payment Methods State
+const paymentMethods = ref<any[]>([])
+const editingMethod = ref<any>(null)
+const methodForm = ref({ name: '', icon: 'lucide:credit-card', color: 'blue' })
+
+const savePaymentMethod = async () => {
+  if (!methodForm.value.name) return
+  
+  try {
+    if (editingMethod.value) {
+      await $fetch(`/api/payment-methods/${editingMethod.value.id}`, {
+        method: 'PUT',
+        body: methodForm.value
+      })
+    } else {
+      await $fetch('/api/payment-methods', {
+        method: 'POST',
+        body: methodForm.value
+      })
+    }
+    await loadPaymentMethods()
+    editingMethod.value = null
+    methodForm.value = { name: '', icon: 'lucide:credit-card', color: 'blue' }
+    toast.success('Ödəniş üsulu yadda saxlanıldı')
+  } catch (err: any) {
+    toast.error(err.statusMessage || 'Xəta baş verdi')
+  }
+}
+
+const deletePaymentMethod = async (id: number) => {
+  if (!confirm('Bu ödəniş üsulunu silmək istədiyinizə əminsiniz?')) return
+  try {
+    await $fetch(`/api/payment-methods/${id}`, { method: 'DELETE' })
+    await loadPaymentMethods()
+    toast.success('Silindi')
+  } catch (err) {
+    toast.error('Silinərkən xəta baş verdi')
+  }
+}
 
 const ghostProduct = ref({
   productName: '',
@@ -97,6 +138,31 @@ const loadProducts = async () => {
   }
 }
 
+const loadPaymentMethods = async () => {
+  try {
+    const data = await $fetch('/api/payment-methods')
+    paymentMethods.value = data as any[]
+    
+    // Add default methods if none exist
+    if (paymentMethods.value.length === 0) {
+      const defaults = [
+        { name: 'Nəğd', icon: 'lucide:coins', color: 'green' },
+        { name: 'Bank Kartı', icon: 'lucide:credit-card', color: 'blue' }
+      ]
+      for (const d of defaults) {
+        await $fetch('/api/payment-methods', {
+          method: 'POST',
+          body: d
+        })
+      }
+      const updated = await $fetch('/api/payment-methods')
+      paymentMethods.value = updated as any[]
+    }
+  } catch (err) {
+    console.error('Failed to load payment methods:', err)
+  }
+}
+
 const loadCustomers = async () => {
   try {
     const data = await $fetch('/api/customers', {
@@ -111,6 +177,7 @@ const loadCustomers = async () => {
 onMounted(() => {
   loadProducts()
   loadCustomers()
+  loadPaymentMethods()
   // Ensure focus on load
   setTimeout(focusSearch, 500)
 })
@@ -386,15 +453,18 @@ const completeOrder = async () => {
   if (!isRefund && customer) {
     try {
       const addedCashback = Number(currentCashback)
-      const newBonus = Number((Number(customer.bonus || 0) + addedCashback).toFixed(2))
+      const baseBonus = Number(customer.bonus) || 0
+      const newBonus = Number((baseBonus + addedCashback).toFixed(2))
+      
       await $fetch(`/api/customers/${customer.id}`, {
         method: 'PUT',
         body: { bonus: newBonus },
         headers: { Authorization: `Bearer ${token.value}` }
       })
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to update customer bonus:', err)
-      toast.error('Bonus məbləği yenilənərkən xəta baş verdi')
+      const errMsg = err.statusMessage || err.message || ''
+      toast.error(`Bonus yenilənərkən xəta: ${errMsg}`)
     }
   }
 
@@ -524,24 +594,50 @@ const completeOrder = async () => {
         <span class="text-4xl font-black text-[var(--text-primary)] drop-shadow-sm">{{ finalTotal.toFixed(2) }} ₼</span>
       </div>
 
-      <div>
-        <h4 class="font-bold text-[var(--text-app)] mb-3 text-sm">Ödəniş Metodunu Seçin</h4>
-        <div class="grid grid-cols-2 gap-3">
+      <div class="space-y-4">
+        <div class="flex items-center justify-between px-1">
+          <h4 class="text-[11px] font-black uppercase tracking-[0.2em] text-[var(--text-app)] opacity-50">Ödəniş Metodu</h4>
           <button 
-            @click="paymentMethod = 'cash'"
-            class="flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all duration-300 font-bold tracking-wide"
-            :class="paymentMethod === 'cash' ? 'border-[var(--text-primary)] bg-[var(--text-primary)]/10 text-[var(--text-primary)]' : 'border-[var(--border-app)] hover:border-[var(--text-primary)]/30 text-[var(--text-app)] opacity-70 hover:opacity-100 bg-[var(--bg-app)]'"
+            @click="showManageMethodsModal = true"
+            class="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-[var(--text-primary)]/10 text-[var(--text-primary)] transition-all group"
           >
-            <UiIcon name="lucide:coins" class="w-8 h-8 mb-2" />
-            Nəğd
+            <UiIcon name="lucide:settings-2" class="w-3.5 h-3.5 group-hover:rotate-45 transition-transform" />
+            <span class="text-[10px] font-bold">İDARƏ ET</span>
           </button>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-3 max-h-[280px] overflow-y-auto p-1 custom-scrollbar">
           <button 
-            @click="paymentMethod = 'card'"
-            class="flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all duration-300 font-bold tracking-wide"
-            :class="paymentMethod === 'card' ? 'border-[var(--text-primary)] bg-[var(--text-primary)]/10 text-[var(--text-primary)]' : 'border-[var(--border-app)] hover:border-[var(--text-primary)]/30 text-[var(--text-app)] opacity-70 hover:opacity-100 bg-[var(--bg-app)]'"
+            v-for="method in paymentMethods"
+            :key="method.id"
+            @click="paymentMethod = method.name"
+            class="group relative flex flex-col items-center justify-center p-5 rounded-2xl border-2 transition-all duration-300 overflow-hidden"
+            :class="paymentMethod === method.name 
+              ? 'border-[var(--text-primary)] bg-[var(--text-primary)]/5 text-[var(--text-primary)] shadow-md' 
+              : 'border-[var(--border-app)] hover:border-[var(--text-primary)]/30 text-[var(--text-app)] opacity-60 hover:opacity-100 bg-[var(--bg-app)]'"
           >
-            <UiIcon name="lucide:credit-card" class="w-8 h-8 mb-2" />
-            Bank Kartı
+            <!-- Animated background on hover -->
+            <div class="absolute inset-0 bg-gradient-to-br from-[var(--text-primary)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            
+            <div class="relative z-10 flex flex-col items-center">
+              <div 
+                class="w-12 h-12 rounded-xl mb-3 flex items-center justify-center transition-transform group-hover:scale-110"
+                :class="paymentMethod === method.name ? 'bg-[var(--text-primary)]/10' : 'bg-[var(--bg-app)]'"
+              >
+                <UiIcon :name="method.icon || 'lucide:credit-card'" class="w-6 h-6" />
+              </div>
+              <span class="text-[13px] font-bold tracking-tight text-center leading-tight">{{ method.name }}</span>
+            </div>
+
+            <!-- Selection Indicator -->
+            <div 
+              v-if="paymentMethod === method.name"
+              class="absolute top-2 right-2"
+            >
+              <div class="w-5 h-5 rounded-full bg-[var(--text-primary)] flex items-center justify-center text-white shadow-sm">
+                <UiIcon name="lucide:check" class="w-3 h-3 stroke-[3]" />
+              </div>
+            </div>
           </button>
         </div>
       </div>
@@ -618,6 +714,133 @@ const completeOrder = async () => {
         </UiButton>
       </div>
     </template>
+  </Modal>
+
+  <!-- Manage Payment Methods Modal -->
+  <Modal 
+    v-model="showManageMethodsModal" 
+    title="Ödəniş Üsullarını İdarə Et" 
+    max-width="md"
+    :show-header="false"
+  >
+    <div class="flex flex-col h-[550px]">
+      <!-- Header -->
+      <div class="p-6 border-b border-[var(--border-app)] bg-[var(--bg-app)]/50 backdrop-blur-xl shrink-0">
+        <div class="flex items-center gap-4">
+          <button 
+            @click="showManageMethodsModal = false"
+            class="w-10 h-10 rounded-xl bg-[var(--input-bg)] border border-[var(--border-app)] flex items-center justify-center text-[var(--text-app)] hover:border-[var(--text-primary)] hover:text-[var(--text-primary)] transition-all shadow-sm group"
+          >
+            <UiIcon name="lucide:arrow-left" class="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
+          </button>
+          <div class="flex-1 min-w-0">
+            <h3 class="text-xl font-black text-[var(--text-app)] tracking-tight leading-none mb-1">Ödəniş Üsulları</h3>
+            <p class="text-[11px] font-bold uppercase tracking-wider opacity-40">Konfiqurasiya paneli</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
+        <!-- Add/Edit Form -->
+        <div class="relative group">
+          <div class="absolute -inset-0.5 bg-gradient-to-r from-[var(--text-primary)]/20 to-transparent rounded-[26px] blur opacity-30 group-hover:opacity-50 transition duration-500"></div>
+          <div class="relative bg-[var(--input-bg)] border border-[var(--border-app)] p-6 rounded-[24px] shadow-sm space-y-5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-[var(--text-primary)] animate-pulse"></div>
+                <span class="text-[10px] font-black uppercase tracking-[0.2em] opacity-50">{{ editingMethod ? 'Üsulu Redaktə Et' : 'Yeni Üsul Əlavə Et' }}</span>
+              </div>
+              <button 
+                v-if="editingMethod" 
+                @click="editingMethod = null; methodForm = { name: '', icon: 'lucide:credit-card', color: 'blue' }" 
+                class="text-[10px] font-extrabold text-[var(--text-primary)] hover:bg-[var(--text-primary)]/10 px-2 py-1 rounded-md transition-colors"
+              >
+                LƏĞV ET
+              </button>
+            </div>
+            
+            <div class="flex gap-3">
+              <div class="flex-1 relative">
+                <UiInput 
+                  v-model="methodForm.name" 
+                  placeholder="Üsulun adı (məs: MilliÖN)" 
+                  class="w-full !bg-[var(--bg-app)] !rounded-xl !h-12 !pl-4" 
+                />
+              </div>
+              <UiButton 
+                variant="primary" 
+                @click="savePaymentMethod"
+                class="shrink-0 !rounded-xl !h-12 !px-6 shadow-lg shadow-[var(--text-primary)]/10"
+              >
+                <div class="flex items-center gap-2">
+                  <UiIcon :name="editingMethod ? 'lucide:save' : 'lucide:plus'" class="w-4 h-4" />
+                  <span class="font-bold">Yadda Saxla</span>
+                </div>
+              </UiButton>
+            </div>
+            
+            <div class="grid grid-cols-4 gap-2">
+              <button 
+                v-for="icon in ['lucide:credit-card', 'lucide:coins', 'lucide:banknote', 'lucide:wallet']"
+                :key="icon"
+                @click="methodForm.icon = icon"
+                class="flex items-center justify-center p-2 rounded-lg border transition-all"
+                :class="methodForm.icon === icon ? 'bg-[var(--text-primary)]/10 border-[var(--text-primary)] text-[var(--text-primary)]' : 'bg-[var(--bg-app)] border-transparent text-[var(--text-app)] opacity-40 hover:opacity-100'"
+              >
+                <UiIcon :name="icon" class="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Methods List -->
+        <div class="space-y-4">
+          <div class="flex items-center gap-3 mb-2 px-1">
+            <UiIcon name="lucide:list" class="w-4 h-4 opacity-40" />
+            <span class="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">Mövcud Üsulların Siyahısı</span>
+          </div>
+          
+          <div 
+            v-for="(method, idx) in paymentMethods" 
+            :key="method.id"
+            class="flex items-center justify-between p-4 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-2xl group hover:border-[var(--text-primary)]/40 hover:shadow-md transition-all duration-300"
+            :style="{ transitionDelay: `${idx * 50}ms` }"
+          >
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-[var(--bg-app)] border border-[var(--border-app)] flex items-center justify-center text-[var(--text-primary)] shadow-inner transition-transform group-hover:scale-105">
+                <UiIcon :name="method.icon || 'lucide:credit-card'" class="w-6 h-6" />
+              </div>
+              <div>
+                <span class="font-bold text-[var(--text-app)] block mb-0.5">{{ method.name }}</span>
+                <span class="text-[10px] opacity-40 font-medium">ID: #00{{ method.id }}</span>
+              </div>
+            </div>
+            
+            <div class="flex gap-2">
+              <button 
+                @click="editingMethod = method; methodForm = { ...method }"
+                class="p-2.5 rounded-xl bg-[var(--bg-app)] border border-[var(--border-app)] text-[var(--text-app)] hover:text-[var(--text-primary)] hover:border-[var(--text-primary)] hover:bg-[var(--text-primary)]/5 transition-all shadow-sm"
+                title="Düzəliş et"
+              >
+                <UiIcon name="lucide:edit-3" class="w-4 h-4" />
+              </button>
+              <button 
+                @click="deletePaymentMethod(method.id)"
+                class="p-2.5 rounded-xl bg-[var(--bg-app)] border border-[var(--border-app)] text-[var(--text-app)] hover:text-red-500 hover:border-red-500/30 hover:bg-red-500/5 transition-all shadow-sm"
+                title="Sil"
+              >
+                <UiIcon name="lucide:trash-2" class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+          
+          <div v-if="paymentMethods.length === 0" class="flex flex-col items-center justify-center py-10 opacity-30 text-center">
+            <UiIcon name="lucide:layers" class="w-12 h-12 mb-3" />
+            <p class="font-bold">Məlumat tapılmadı</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </Modal>
 
 </template>
