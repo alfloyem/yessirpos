@@ -579,6 +579,7 @@ const completeOrder = async () => {
 </script>
 
 <template>
+  <div>
   <div class="flex flex-col lg:flex-row gap-6 font-sans h-[calc(100vh-120px)] pb-4">
     
     <!-- Left Section: Search & Products -->
@@ -810,7 +811,7 @@ const completeOrder = async () => {
       </div>
     </div>
   </Modal>
-
+  </div>
 </template>
 
 <style scoped>
