@@ -17,7 +17,8 @@ export default defineEventHandler(async (event) => {
       data: {
         name,
         icon: icon || 'lucide:credit-card',
-        color: color || 'blue'
+        color: color || 'blue',
+        isSystem: !!body.isSystem
       }
     })
   } catch (error: any) {

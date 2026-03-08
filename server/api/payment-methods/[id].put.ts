@@ -7,10 +7,11 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event)
     const { name, icon, color } = body
 
-    if (!id) {
+    const method = await prisma.paymentMethod.findUnique({ where: { id } })
+    if (method?.isSystem) {
       throw createError({
-        statusCode: 400,
-        statusMessage: 'Yalnış ID'
+        statusCode: 403,
+        statusMessage: 'Sistem tərəfindən qorunan ödəniş üsulunu redaktə etmək olmaz'
       })
     }
 
@@ -19,7 +20,8 @@ export default defineEventHandler(async (event) => {
       data: {
         name,
         icon,
-        color
+        color,
+        isSystem: body.isSystem
       }
     })
   } catch (error: any) {

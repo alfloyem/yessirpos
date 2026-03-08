@@ -5,10 +5,11 @@ export default defineEventHandler(async (event) => {
   try {
     const id = parseInt(getRouterParam(event, 'id') || '0')
 
-    if (!id) {
+    const method = await prisma.paymentMethod.findUnique({ where: { id } })
+    if (method?.isSystem) {
       throw createError({
-        statusCode: 400,
-        statusMessage: 'Yalnış ID'
+        statusCode: 403,
+        statusMessage: 'Sistem tərəfindən qorunan ödəniş üsulunu silmək olmaz'
       })
     }
 

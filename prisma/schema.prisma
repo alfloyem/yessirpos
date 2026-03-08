@@ -133,6 +133,7 @@ model PaymentMethod {
   name      String   @unique
   icon      String?  @default("lucide:credit-card")
   color     String?  @default("blue")
+  isSystem  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

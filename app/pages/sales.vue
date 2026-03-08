@@ -143,18 +143,31 @@ const loadPaymentMethods = async () => {
     const data = await $fetch('/api/payment-methods')
     paymentMethods.value = data as any[]
     
-    // Add default methods if none exist
-    if (paymentMethods.value.length === 0) {
-      const defaults = [
-        { name: 'Nəğd', icon: 'lucide:coins', color: 'green' },
-        { name: 'Bank Kartı', icon: 'lucide:credit-card', color: 'blue' }
-      ]
-      for (const d of defaults) {
-        await $fetch('/api/payment-methods', {
-          method: 'POST',
-          body: d
+    // System methods that are always required and protected
+    const systemDefaults = [
+      { name: 'Nəğd', icon: 'lucide:coins', color: 'green', isSystem: true },
+      { name: 'Bank Kartı', icon: 'lucide:credit-card', color: 'blue', isSystem: true },
+      { name: 'Bonus', icon: 'lucide:sparkles', color: 'amber', isSystem: true },
+      { name: 'Hədiyyə Kartı', icon: 'lucide:gift', color: 'purple', isSystem: true }
+    ]
+
+    let needsReload = false
+    for (const d of systemDefaults) {
+      const exists = paymentMethods.value.find(m => m.name === d.name)
+      if (!exists) {
+        await $fetch('/api/payment-methods', { method: 'POST', body: d })
+        needsReload = true
+      } else if (!exists.isSystem) {
+        // Force upgrade to system status if it's a default name
+        await $fetch(`/api/payment-methods/${exists.id}`, { 
+          method: 'PUT', 
+          body: { ...exists, isSystem: true } 
         })
+        needsReload = true
       }
+    }
+
+    if (needsReload) {
       const updated = await $fetch('/api/payment-methods')
       paymentMethods.value = updated as any[]
     }
@@ -442,45 +455,99 @@ const printReceipt = () => {
   }
 }
 
+const showGiftCardModal = ref(false)
+const giftCardBarcode = ref('')
+
 const completeOrder = async () => {
-  isSaving.value = true
   const isRefund = mode.value === 'refund'
-  const currentCashback = Number(cashbackAmount.value)
+  const total = finalTotal.value
   const customer = selectedCustomer.value
+  
+  // 1. Payment Method Specific Logic
+  if (paymentMethod.value === 'Bonus') {
+    if (!customer) {
+      toast.error('Bonus ilə ödəniş üçün müştəri seçilməlidir')
+      return
+    }
+    if ((Number(customer.bonus) || 0) < total) {
+      toast.error('Müştərinin balansında kifayət qədər bonus yoxdur')
+      return
+    }
+  }
+
+  if (paymentMethod.value === 'Hədiyyə Kartı' && !isRefund) {
+    if (!giftCardBarcode.value) {
+      showGiftCardModal.value = true
+      return
+    }
+    try {
+      const cards = await $fetch('/api/gift-cards') as any[]
+      const card = cards.find(c => c.barcode === giftCardBarcode.value)
+      if (!card) {
+        toast.error('Hədiyyə kartı tapılmadı')
+        giftCardBarcode.value = ''
+        return
+      }
+      if (card.value < total) {
+        toast.error(`Kartda kifayət qədər balans yoxdur (Mövcud: ${card.value.toFixed(2)} ₼)`)
+        return
+      }
+      // Deduct from gift card
+      await $fetch(`/api/gift-cards/${card.id}`, {
+        method: 'PUT',
+        body: { value: Number((card.value - total).toFixed(2)) }
+      })
+    } catch (err) {
+      toast.error('Hədiyyə kartı yoxlanılarkən xəta oldu')
+      return
+    }
+  }
+
+  isSaving.value = true
+  const currentCashback = Number(cashbackAmount.value)
   const customerName = customer ? `${customer.firstName} ${customer.lastName}` : null
 
-  // Process Actual API Update for Bonus
+  // 2. Bonus/Loyalty Update
   if (!isRefund && customer) {
     try {
-      const addedCashback = Number(currentCashback)
-      const baseBonus = Number(customer.bonus) || 0
-      const newBonus = Number((baseBonus + addedCashback).toFixed(2))
+      let finalBonusUpdate = Number(customer.bonus) || 0
       
+      if (paymentMethod.value === 'Bonus') {
+        finalBonusUpdate -= total // Spend bonus
+      } else {
+        finalBonusUpdate += currentCashback // Earn bonus
+      }
+
       await $fetch(`/api/customers/${customer.id}`, {
         method: 'PUT',
-        body: { bonus: newBonus },
+        body: { bonus: Number(finalBonusUpdate.toFixed(2)) },
         headers: { Authorization: `Bearer ${token.value}` }
       })
     } catch (err: any) {
       console.error('Failed to update customer bonus:', err)
-      const errMsg = err.statusMessage || err.message || ''
-      toast.error(`Bonus yenilənərkən xəta: ${errMsg}`)
+      toast.error('Bonus yenilənərkən xəta baş verdi')
     }
   }
 
-  // Mock processing time for the order itself
+  // 3. Complete and Reset
   setTimeout(() => {
-    let msg = isRefund ? 'Geri ödəniş uğurla tamamlandı!' : 'Satış uğurla tamamlandı və qeydə alındı!'
+    let msg = isRefund ? 'Geri ödəniş uğurla tamamlandı!' : 'Satış uğurla tamamlandı!'
     if (!isRefund && customerName) {
-      msg += `\n${customerName} hesabına ${currentCashback.toFixed(2)} ₼ keşbek əlavə edildi.`
+      if (paymentMethod.value === 'Bonus') {
+        msg += `\n${total.toFixed(2)} ₼ bonus balansından çıxıldı.`
+      } else {
+        msg += `\n${customerName} hesabına ${currentCashback.toFixed(2)} ₼ keşbek əlavə edildi.`
+      }
     }
     toast.success(msg)
     printReceipt()
     clearCart()
     selectedCustomer.value = null
+    giftCardBarcode.value = ''
     showPaymentModal.value = false
+    showGiftCardModal.value = false
     isSaving.value = false
-    loadCustomers() // Refresh customer list to see updated bonuses
+    loadCustomers()
   }, 800)
 }
 
@@ -818,6 +885,7 @@ const completeOrder = async () => {
             
             <div class="flex gap-2">
               <button 
+                v-if="!method.isSystem"
                 @click="editingMethod = method; methodForm = { ...method }"
                 class="p-2.5 rounded-xl bg-[var(--bg-app)] border border-[var(--border-app)] text-[var(--text-app)] hover:text-[var(--text-primary)] hover:border-[var(--text-primary)] hover:bg-[var(--text-primary)]/5 transition-all shadow-sm"
                 title="Düzəliş et"
@@ -825,12 +893,16 @@ const completeOrder = async () => {
                 <UiIcon name="lucide:edit-3" class="w-4 h-4" />
               </button>
               <button 
+                v-if="!method.isSystem"
                 @click="deletePaymentMethod(method.id)"
                 class="p-2.5 rounded-xl bg-[var(--bg-app)] border border-[var(--border-app)] text-[var(--text-app)] hover:text-red-500 hover:border-red-500/30 hover:bg-red-500/5 transition-all shadow-sm"
                 title="Sil"
               >
                 <UiIcon name="lucide:trash-2" class="w-4 h-4" />
               </button>
+              <div v-else class="px-3 py-1 bg-[var(--bg-app)] border border-[var(--border-app)] rounded-lg text-[10px] font-bold opacity-30 uppercase tracking-widest">
+                SİSTEM
+              </div>
             </div>
           </div>
           
@@ -839,6 +911,32 @@ const completeOrder = async () => {
             <p class="font-bold">Məlumat tapılmadı</p>
           </div>
         </div>
+      </div>
+    </div>
+  </Modal>
+
+  <!-- Gift Card Input Modal -->
+  <Modal v-model="showGiftCardModal" title="Hədiyyə Kartı Məlumatı" max-width="sm">
+    <div class="p-6 space-y-4">
+      <div class="text-center">
+        <div class="w-16 h-16 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <UiIcon name="lucide:gift" class="w-8 h-8 text-purple-500" />
+        </div>
+        <h4 class="font-bold text-[var(--text-app)]">Kartın Barkodunu Daxil Edin</h4>
+        <p class="text-xs opacity-50 mt-1">Ödənişi tamamlamaq üçün kart skan edilməlidir</p>
+      </div>
+
+      <UiInput 
+        v-model="giftCardBarcode" 
+        placeholder="GXXXXXXX" 
+        class="!bg-[var(--bg-app)] !text-center !text-lg !font-mono"
+        autofocus
+        @keyup.enter="completeOrder"
+      />
+
+      <div class="flex gap-3 pt-4">
+        <UiButton variant="outline" block @click="showGiftCardModal = false" class="flex-1">Ləğv Et</UiButton>
+        <UiButton variant="primary" block @click="completeOrder" class="flex-1" :disabled="!giftCardBarcode">Davam Et</UiButton>
       </div>
     </div>
   </Modal>
