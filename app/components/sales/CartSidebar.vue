@@ -40,6 +40,7 @@ const emit = defineEmits<{
   'remove': [item: CartItem]
   'clear': []
   'checkout': []
+  'save-draft': []
 }>()
 
 const { t } = useI18n()
@@ -105,13 +106,22 @@ const getItemTotal = (item: CartItem) => {
           </h2>
           <p class="text-[9px] font-medium opacity-30">{{ totalQty }} məhsul seçilib</p>
         </div>
-        <button 
-          v-if="cart.length > 0" 
-          @click="emit('clear')"
-          class="text-[10px] font-bold text-red-500 hover:text-red-600 transition-colors px-2.5 py-1.5 bg-red-500/5 rounded-lg border border-red-500/10"
-        >
-          {{ t('cart.clear', 'Təmizlə') }}
-        </button>
+        <div class="flex items-center gap-2">
+          <button 
+            v-if="cart.length > 0" 
+            @click="emit('save-draft')"
+            class="text-[10px] font-bold text-orange-500 hover:text-orange-600 transition-colors px-2.5 py-1.5 bg-orange-500/5 rounded-lg border border-orange-500/10"
+          >
+            Müvəqqəti Saxla
+          </button>
+          <button 
+            v-if="cart.length > 0" 
+            @click="emit('clear')"
+            class="text-[10px] font-bold text-red-500 hover:text-red-600 transition-colors px-2.5 py-1.5 bg-red-500/5 rounded-lg border border-red-500/10"
+          >
+            {{ t('cart.clear', 'Təmizlə') }}
+          </button>
+        </div>
       </div>
 
       <!-- Mode Selector -->

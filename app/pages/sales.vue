@@ -44,6 +44,68 @@ const isSaving = ref(false)
 // Manage Payment Methods State (Only storage, management moved to component)
 const paymentMethods = ref<any[]>([])
 
+// --- Draft Logic ---
+const drafts = ref<any[]>([])
+const showDraftsModal = ref(false)
+
+const loadDrafts = () => {
+  const saved = localStorage.getItem('yessir_pos_drafts')
+  if (saved) {
+    try {
+      drafts.value = JSON.parse(saved)
+    } catch (e) {
+      drafts.value = []
+    }
+  }
+}
+
+const saveDraft = () => {
+  if (cart.value.length === 0) return
+  
+  const draftName = selectedCustomer.value 
+    ? `Müştəri: ${selectedCustomer.value.firstName} ${selectedCustomer.value.lastName}`
+    : `Səbət (${cart.value.length} məhsul)`
+
+  const draft = {
+    id: Date.now(),
+    name: draftName,
+    time: new Date().toLocaleTimeString('az-AZ', { hour: '2-digit', minute: '2-digit' }),
+    cart: JSON.parse(JSON.stringify(cart.value)),
+    discount: discount.value,
+    discountType: discountType.value,
+    mode: mode.value,
+    selectedCustomer: selectedCustomer.value,
+    subtotal: subtotal.value,
+    finalTotal: finalTotal.value
+  }
+
+  drafts.value.push(draft)
+  localStorage.setItem('yessir_pos_drafts', JSON.stringify(drafts.value))
+  
+  clearCart()
+  selectedCustomer.value = null
+  toast.success('Satış müvəqqəti yadda saxlanıldı!')
+}
+
+const restoreDraft = (index: number) => {
+  const draft = drafts.value[index]
+  cart.value = draft.cart
+  discount.value = draft.discount
+  discountType.value = draft.discountType
+  mode.value = draft.mode
+  selectedCustomer.value = draft.selectedCustomer
+  
+  drafts.value.splice(index, 1)
+  localStorage.setItem('yessir_pos_drafts', JSON.stringify(drafts.value))
+  showDraftsModal.value = false
+  toast.success('Müvəqqəti satış geri qaytarıldı')
+}
+
+const deleteDraft = (index: number) => {
+  drafts.value.splice(index, 1)
+  localStorage.setItem('yessir_pos_drafts', JSON.stringify(drafts.value))
+}
+
 // --- Ghost Product Logic ---
 
 const ghostProduct = ref({
@@ -153,6 +215,7 @@ onMounted(() => {
   loadProducts()
   loadCustomers()
   loadPaymentMethods()
+  loadDrafts()
   // Ensure focus on load
   setTimeout(focusSearch, 500)
 })
@@ -532,6 +595,17 @@ const completeOrder = async () => {
         
         <div class="flex items-center gap-2">
           <UiButton 
+            v-if="drafts.length > 0"
+            variant="outline" 
+            size="sm" 
+            class="!rounded-xl !h-10 border-dashed border-orange-500/30 hover:border-orange-500 hover:bg-orange-500/5 text-orange-500 px-4 transition-all active:scale-95"
+            @click="showDraftsModal = true"
+          >
+            <UiIcon name="lucide:bookmark" class="w-3.5 h-3.5 mr-2" />
+            <span class="font-bold text-[12px]">Draftlar ({{ drafts.length }})</span>
+          </UiButton>
+
+          <UiButton 
             variant="outline" 
             size="sm" 
             class="!rounded-xl !h-10 border-dashed border-[var(--text-primary)]/30 hover:border-[var(--text-primary)] hover:bg-[var(--text-primary)]/5 text-[var(--text-primary)] px-4 transition-all active:scale-95"
@@ -611,6 +685,7 @@ const completeOrder = async () => {
         @remove="removeFromCart"
         @clear="clearCart"
         @checkout="handlePayment"
+        @save-draft="saveDraft"
         @update-item-discount="updateItemDiscount"
         @update-item-discount-type="updateItemDiscountType"
       />
@@ -618,7 +693,6 @@ const completeOrder = async () => {
     
   </div>
 
-  <!-- Unified Payment Modal Component -->
   <SalesPaymentModal
     v-model="showPaymentModal"
     v-model:selectedMethod="paymentMethod"
@@ -629,6 +703,48 @@ const completeOrder = async () => {
     @refresh-methods="loadPaymentMethods"
   />
   
+  <!-- Drafts Modal -->
+  <Modal
+    v-model="showDraftsModal"
+    title="Müvəqqəti Saxlanılanlar"
+    max-width="md"
+  >
+    <div class="space-y-3">
+      <div v-if="drafts.length === 0" class="text-center py-6 text-[var(--text-app)] opacity-50">
+        <UiIcon name="lucide:inbox" class="w-12 h-12 mx-auto mb-2 opacity-50" />
+        <p class="font-bold">Müvəqqəti yadda saxlanılan satış yoxdur</p>
+      </div>
+
+      <div 
+        v-for="(draft, idx) in drafts" 
+        :key="draft.id"
+        class="flex items-center justify-between p-3 rounded-xl border border-[var(--border-app)] hover:border-[var(--text-primary)]/30 transition-all bg-[var(--bg-app)]"
+      >
+        <div class="flex flex-col">
+          <span class="font-bold text-[13px] text-[var(--text-app)]">{{ draft.name }}</span>
+          <div class="flex gap-3 text-[10px] font-bold opacity-50 mt-1">
+            <span class="flex items-center gap-1"><UiIcon name="lucide:clock" class="w-3 h-3" /> {{ draft.time }}</span>
+            <span class="flex items-center gap-1"><UiIcon name="lucide:credit-card" class="w-3 h-3" /> {{ draft.finalTotal }} ₼</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button 
+            @click="restoreDraft(idx)" 
+            class="h-8 px-3 text-[11px] font-bold bg-[var(--text-primary)] text-white rounded-lg hover:shadow-md hover:shadow-[var(--text-primary)]/20 transition-all"
+          >
+            Yüklə
+          </button>
+          <button 
+            @click="deleteDraft(idx)" 
+            class="w-8 h-8 flex items-center justify-center text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+          >
+            <UiIcon name="lucide:trash-2" class="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  </Modal>
+
   <!-- Ghost Product Modal -->
   <Modal
     v-model="showGhostModal"
