@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useI18n } from '#i18n'
 import { useHead, useToast, useAuth } from '#imports'
 import UiButton from '~/components/ui/Button.vue'
@@ -7,7 +7,8 @@ import UiInput from '~/components/ui/Input.vue'
 import UiIcon from '~/components/ui/Icon.vue'
 import Modal from '~/components/ui/Modal.vue'
 
-import ProductSaleCard from '~/components/sales/ProductSaleCard.vue'
+import SalesProductSaleCard from '~/components/sales/ProductSaleCard.vue'
+import SalesCartSidebar from '~/components/sales/CartSidebar.vue'
 
 const { t } = useI18n()
 const { token } = useAuth()
@@ -29,10 +30,24 @@ const discount = ref<number | string>(0)
 const discountType = ref<'amount' | 'percent'>('amount')
 const mode = ref<'sale' | 'refund'>('sale')
 
+// DOM refs
+const searchInput = ref<any>(null)
+
 // Modal states
 const showPaymentModal = ref(false)
 const paymentMethod = ref('cash')
 const isSaving = ref(false)
+
+const focusSearch = () => {
+  if (searchInput.value) {
+    // If it's a component, try focus method or $el
+    if (typeof searchInput.value.focus === 'function') {
+      searchInput.value.focus()
+    } else {
+      searchInput.value.$el?.querySelector('input')?.focus()
+    }
+  }
+}
 
 // --- Load Products ---
 const loadProducts = async () => {
@@ -51,6 +66,24 @@ const loadProducts = async () => {
 
 onMounted(() => {
   loadProducts()
+  // Ensure focus on load
+  setTimeout(focusSearch, 500)
+})
+
+// --- Barcode Auto-Add Logic ---
+watch(searchQuery, (newVal) => {
+  if (!newVal || newVal.length < 3) return // Barcodes are usually longer
+
+  // Check if it's an exact match in the raw products list
+  const matched = products.value.find(p => String(p.barcode) === newVal)
+  
+  if (matched) {
+    addToCart(matched)
+    searchQuery.value = ''
+    nextTick(() => {
+      focusSearch()
+    })
+  }
 })
 
 // --- Computed ---
@@ -322,11 +355,13 @@ const completeOrder = async () => {
         
         <div class="w-64 relative">
           <UiInput 
+            ref="searchInput"
             v-model="searchQuery" 
             placeholder="Axtar..." 
             icon="lucide:search" 
             clearable
             class="!py-1.5"
+            @keyup.enter="focusSearch"
           />
         </div>
       </div>
