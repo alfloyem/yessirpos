@@ -356,6 +356,10 @@ const increaseQty = (item: any) => {
   item.qty++
 }
 
+const updateQty = (item: any, val: number) => {
+  item.qty = Math.max(1, val)
+}
+
 const decreaseQty = (item: any) => {
   if (item.qty > 1) {
     item.qty--
@@ -587,12 +591,9 @@ const completeOrder = async () => {
       
       <!-- Top Action Bar - Compact -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5 shrink-0">
-        <div>
-          <h1 class="text-xl md:text-2xl font-black text-[var(--text-app)] tracking-tight leading-none mb-1">
+        <h1 class="text-xl md:text-2xl font-black text-[var(--text-app)] tracking-tight leading-none mb-1">
             {{ t('menu.salesTerminal', 'Satış Terminalı') }}
-          </h1>
-          <p class="text-[10px] font-bold opacity-30">Mağaza Satış Nöqtəsi</p>
-        </div>
+        </h1>
         
         <div class="flex items-center gap-2">
           <UiButton 
@@ -677,6 +678,7 @@ const completeOrder = async () => {
         :customers="customers"
         :cashbackAmount="cashbackAmount"
         @increase="increaseQty"
+        @update-qty="updateQty"
         @decrease="decreaseQty"
         @remove="removeFromCart"
         @clear="clearCart"
