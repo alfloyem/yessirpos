@@ -67,31 +67,31 @@ const formatPrice = (price: number | string) => {
     <!-- Main Product Section - Refined Proportions -->
     <div 
       @click="toggleExpand"
-      class="p-4 cursor-pointer flex items-center gap-4 relative"
+      class="p-3.5 cursor-pointer flex items-center gap-3.5 relative"
     >
       <!-- Image Area - Balanced Size -->
-      <div class="w-20 h-20 bg-[var(--text-primary)]/5 rounded-xl flex items-center justify-center p-2 relative overflow-hidden group-hover:bg-[var(--text-primary)]/10 transition-colors shrink-0">
+      <div class="w-16 h-16 bg-[var(--text-primary)]/5 rounded-2xl flex items-center justify-center p-1.5 relative overflow-hidden group-hover:bg-[var(--text-primary)]/10 transition-colors shrink-0 border border-[var(--border-app)]/50">
         <img 
           v-if="product.images && product.images.length > 0" 
           :src="product.images[0]" 
-          class="w-full h-full object-cover rounded-lg group-hover:scale-110 transition-transform duration-500" 
+          class="w-full h-full object-cover rounded-xl group-hover:scale-110 transition-transform duration-500" 
           alt="Product" 
         />
-        <UiIcon v-else name="lucide:shirt" class="w-8 h-8 text-[var(--text-app)] opacity-20 group-hover:scale-110 transition-transform duration-500" />
+        <UiIcon v-else name="lucide:shirt" class="w-6 h-6 text-[var(--text-app)] opacity-20 group-hover:scale-110 transition-transform duration-500" />
       </div>
 
       <!-- Info Area -->
-      <div class="flex-1 min-w-0 pr-10">
-        <h3 class="font-bold text-[var(--text-app)] text-sm md:text-base mb-1.5 leading-tight line-clamp-2 group-hover:text-[var(--text-primary)] transition-colors">
+      <div class="flex-1 min-w-0 pr-8">
+        <h3 class="font-bold text-[var(--text-app)] text-[14px] mb-1 leading-snug line-clamp-2 group-hover:text-[var(--text-primary)] transition-colors tracking-tight">
           {{ product.productName }}
         </h3>
         
         <div class="flex items-center gap-2">
-          <span v-if="product.retailPrice" class="text-lg font-black text-[var(--text-primary)]">
+          <span v-if="product.retailPrice" class="text-base font-black text-[var(--text-primary)] tabular-nums">
             {{ formatPrice(product.retailPrice) }} ₼
           </span>
-          <span v-if="product.variants.length > 0" class="text-[10px] font-black bg-[var(--text-primary)]/10 text-[var(--text-primary)] px-2 py-0.5 rounded-lg whitespace-nowrap">
-            {{ product.variants.length }} Variantlar
+          <span v-if="product.variants.length > 0" class="text-[9px] font-black uppercase tracking-wider bg-[var(--text-primary)]/10 text-[var(--text-primary)] px-2 py-0.5 rounded-[6px] whitespace-nowrap">
+            {{ product.variants.length }} Variant
           </span>
         </div>
       </div>
@@ -99,10 +99,10 @@ const formatPrice = (price: number | string) => {
       <!-- Arrow Indicator -->
       <div 
         v-if="product.variants.length > 0"
-        class="absolute top-1/2 -translate-y-1/2 right-4 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 border border-[var(--border-app)]"
-        :class="isExpanded ? 'bg-[var(--text-primary)] text-white rotate-180 border-transparent' : 'bg-[var(--bg-app)] text-[var(--text-app)] opacity-60'"
+        class="absolute top-1/2 -translate-y-1/2 right-3.5 w-7 h-7 rounded-xl flex items-center justify-center transition-all duration-300 border border-[var(--border-app)]/50"
+        :class="isExpanded ? 'bg-[var(--text-primary)] text-white rotate-180 border-transparent shadow-lg shadow-[var(--text-primary)]/20' : 'bg-[var(--bg-app)] text-[var(--text-app)] opacity-40'"
       >
-        <UiIcon name="lucide:chevron-down" class="w-4 h-4" />
+        <UiIcon name="lucide:chevron-down" class="w-3.5 h-3.5" />
       </div>
     </div>
 

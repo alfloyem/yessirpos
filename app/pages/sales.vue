@@ -127,10 +127,10 @@ const focusSearch = () => {
 const loadProducts = async () => {
   loading.value = true
   try {
-    const data = await $fetch('/api/products', {
+    const data = await $fetch<any[]>('/api/products', {
       headers: { Authorization: `Bearer ${token.value}` }
     })
-    products.value = data as any[]
+    products.value = data || []
   } catch (err: any) {
     toast.error(t('toast.loadingError', 'Mallar yüklənərkən xəta baş verdi'))
   } finally {
@@ -140,8 +140,8 @@ const loadProducts = async () => {
 
 const loadPaymentMethods = async () => {
   try {
-    const data = await $fetch('/api/payment-methods')
-    paymentMethods.value = data as any[]
+    const data = await $fetch<any[]>('/api/payment-methods')
+    paymentMethods.value = data || []
     
     // System methods that are always required and protected
     const systemDefaults = [
@@ -155,11 +155,11 @@ const loadPaymentMethods = async () => {
     for (const d of systemDefaults) {
       const exists = paymentMethods.value.find(m => m.name === d.name)
       if (!exists) {
-        await $fetch('/api/payment-methods', { method: 'POST', body: d })
+        await $fetch<any>('/api/payment-methods', { method: 'POST', body: d })
         needsReload = true
       } else if (!exists.isSystem) {
         // Force upgrade to system status if it's a default name
-        await $fetch(`/api/payment-methods/${exists.id}`, { 
+        await $fetch<any>(`/api/payment-methods/${exists.id}`, { 
           method: 'PUT', 
           body: { ...exists, isSystem: true } 
         })
@@ -168,8 +168,8 @@ const loadPaymentMethods = async () => {
     }
 
     if (needsReload) {
-      const updated = await $fetch('/api/payment-methods')
-      paymentMethods.value = updated as any[]
+      const updated = await $fetch<any[]>('/api/payment-methods')
+      paymentMethods.value = updated || []
     }
   } catch (err) {
     console.error('Failed to load payment methods:', err)
@@ -178,10 +178,10 @@ const loadPaymentMethods = async () => {
 
 const loadCustomers = async () => {
   try {
-    const data = await $fetch('/api/customers', {
+    const data = await $fetch<any[]>('/api/customers', {
       headers: { Authorization: `Bearer ${token.value}` }
     })
-    customers.value = data as any[]
+    customers.value = data || []
   } catch (err) {
     console.error('Failed to load customers')
   }
@@ -481,8 +481,8 @@ const completeOrder = async () => {
       return
     }
     try {
-      const cards = await $fetch('/api/gift-cards') as any[]
-      const card = cards.find(c => c.barcode === giftCardBarcode.value)
+      const cards = await $fetch<any[]>('/api/gift-cards')
+      const card = (cards || []).find(c => c.barcode === giftCardBarcode.value)
       if (!card) {
         toast.error('Hədiyyə kartı tapılmadı')
         giftCardBarcode.value = ''
@@ -493,7 +493,7 @@ const completeOrder = async () => {
         return
       }
       // Deduct from gift card
-      await $fetch(`/api/gift-cards/${card.id}`, {
+      await $fetch<any>(`/api/gift-cards/${card.id}`, {
         method: 'PUT',
         body: { value: Number((card.value - total).toFixed(2)) }
       })
@@ -518,7 +518,7 @@ const completeOrder = async () => {
         finalBonusUpdate += currentCashback // Earn bonus
       }
 
-      await $fetch(`/api/customers/${customer.id}`, {
+      await $fetch<any>(`/api/customers/${customer.id}`, {
         method: 'PUT',
         body: { bonus: Number(finalBonusUpdate.toFixed(2)) },
         headers: { Authorization: `Bearer ${token.value}` }
@@ -560,30 +560,33 @@ const completeOrder = async () => {
     <div class="flex-1 flex flex-col min-w-0 bg-[var(--bg-app)]">
       
       <!-- Top Action Bar - Compact -->
-      <div class="flex items-center justify-between gap-4 mb-3 shrink-0">
-        <h1 class="text-xl md:text-2xl font-bold text-[var(--text-app)] tracking-tight">
-          {{ t('menu.salesTerminal', 'Satış Terminalı') }}
-        </h1>
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5 shrink-0">
+        <div>
+          <h1 class="text-xl md:text-2xl font-black text-[var(--text-app)] tracking-tight leading-none mb-1">
+            {{ t('menu.salesTerminal', 'Satış Terminalı') }}
+          </h1>
+          <p class="text-[10px] font-black uppercase tracking-[0.2em] opacity-30">Mağaza Satış Nöqtəsi</p>
+        </div>
         
         <div class="flex items-center gap-3">
           <UiButton 
             variant="outline" 
             size="sm" 
-            class="!rounded-xl !h-10 border-dashed border-[var(--text-primary)]/40 hover:border-[var(--text-primary)] hover:bg-[var(--text-primary)]/5 text-[var(--text-primary)]"
+            class="!rounded-2xl !h-11 border-dashed border-[var(--text-primary)]/30 hover:border-[var(--text-primary)] hover:bg-[var(--text-primary)]/5 text-[var(--text-primary)] px-5 transition-all active:scale-95"
             @click="showGhostModal = true"
           >
             <UiIcon name="lucide:plus-circle" class="w-4 h-4 mr-2" />
-            Keçici Məhsul
+            <span class="font-bold text-[13px]">Keçici Məhsul</span>
           </UiButton>
 
-          <div class="w-64 relative">
+          <div class="w-full md:w-72 relative">
             <UiInput 
               ref="searchInput"
               v-model="searchQuery" 
-              placeholder="Axtar..." 
+              placeholder="Barkod və ya ad axtar..." 
               icon="lucide:search" 
               clearable
-              class="!py-1.5"
+              class="!rounded-2xl !bg-[var(--input-bg)] !border-[var(--border-app)]/50 !h-11 !text-[14px] !pl-11"
               @keyup.enter="focusSearch"
             />
           </div>
@@ -591,18 +594,20 @@ const completeOrder = async () => {
       </div>
 
       <!-- Categories Filter - Compact -->
-      <div class="flex gap-1.5 mb-3 overflow-x-auto custom-scrollbar pb-1 shrink-0">
-        <button 
-          v-for="cat in categories" 
-          :key="cat"
-          @click="selectedCategory = cat"
-          class="px-3 py-1.5 font-bold text-[12px] rounded-lg whitespace-nowrap transition-all border border-[var(--border-app)] hover:shadow-sm cursor-pointer"
-          :class="selectedCategory === cat 
-            ? 'bg-[var(--text-primary)] text-white border-transparent' 
-            : 'bg-[var(--input-bg)] text-[var(--text-app)] opacity-70 hover:opacity-100'"
-        >
-          {{ cat }}
-        </button>
+      <div class="flex items-center gap-2 mb-5 shrink-0">
+        <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar-hide pb-1 -mx-2 px-2">
+          <button 
+            v-for="cat in categories" 
+            :key="cat"
+            @click="selectedCategory = cat"
+            class="px-4 py-2 font-black text-[11px] uppercase tracking-wider rounded-xl whitespace-nowrap transition-all border cursor-pointer hover:shadow-sm"
+            :class="selectedCategory === cat 
+              ? 'bg-[var(--text-primary)] text-white border-transparent' 
+              : 'bg-[var(--bg-app)] text-[var(--text-app)] opacity-50 border-[var(--border-app)] hover:opacity-100 hover:border-[var(--text-primary)]/40'"
+          >
+            {{ cat }}
+          </button>
+        </div>
       </div>
 
       <!-- Products Grid -->
@@ -616,7 +621,7 @@ const completeOrder = async () => {
           <p class="font-bold text-lg">Məhsul tapılmadı.</p>
         </div>
 
-        <div v-else class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(340px,1fr))]">
+        <div v-else class="grid gap-3 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]">
           <SalesProductSaleCard 
             v-for="root in filteredProductGroups" 
             :key="root.id"
@@ -628,7 +633,7 @@ const completeOrder = async () => {
     </div>
 
     <!-- Right Section: Cart / Checkout -->
-    <div class="w-full lg:w-[380px] shrink-0 h-full border-l border-[var(--border-app)] pl-4">
+    <div class="w-full lg:w-[400px] shrink-0 h-full border-l border-[var(--border-app)] pl-4">
       <SalesCartSidebar 
         v-model:discount="discount"
         v-model:discountType="discountType"
@@ -655,54 +660,56 @@ const completeOrder = async () => {
   <Modal v-model="showPaymentModal" title="Ödəniş Təsdiqi və Çap" max-width="md">
     <div class="p-4 space-y-6">
       
-      <div class="bg-[var(--text-primary)]/5 border border-[var(--text-primary)]/20 p-6 rounded-2xl flex flex-col items-center justify-center relative overflow-hidden">
-        <UiIcon name="lucide:banknote" class="w-24 h-24 absolute right-[-10px] bottom-[-10px] opacity-[0.03] text-[var(--text-primary)]" />
-        <span class="text-[var(--text-app)] font-bold opacity-80 tracking-widest text-xs mb-2">Yekun Məbləğ</span>
-        <span class="text-4xl font-black text-[var(--text-primary)] drop-shadow-sm">{{ finalTotal.toFixed(2) }} ₼</span>
+      <div class="bg-[var(--text-primary)] shadow-2xl shadow-[var(--text-primary)]/20 p-8 rounded-[32px] flex flex-col items-center justify-center relative overflow-hidden group">
+        <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none"></div>
+        <UiIcon name="lucide:banknote" class="w-32 h-32 absolute right-[-20px] bottom-[-20px] opacity-[0.05] text-white group-hover:scale-110 transition-transform duration-700" />
+        <span class="text-white/50 font-black uppercase tracking-[0.3em] text-[10px] mb-2">Ödəniləcək Məbləğ</span>
+        <span class="text-5xl font-black text-white drop-shadow-md tabular-nums">{{ finalTotal.toFixed(2) }} ₼</span>
       </div>
 
-      <div class="space-y-4">
-        <div class="flex items-center justify-between px-1">
-          <h4 class="text-[11px] font-black uppercase tracking-[0.2em] text-[var(--text-app)] opacity-50">Ödəniş Metodu</h4>
+      <div class="space-y-5">
+        <div class="flex items-center justify-between px-2">
+          <div>
+            <h4 class="text-[11px] font-black uppercase tracking-[0.2em] text-[var(--text-app)]">Ödəniş Metodu</h4>
+            <div class="h-1 w-6 bg-[var(--text-primary)] rounded-full mt-1"></div>
+          </div>
           <button 
             @click="showManageMethodsModal = true"
-            class="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-[var(--text-primary)]/10 text-[var(--text-primary)] transition-all group"
+            class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[var(--input-bg)] border border-[var(--border-app)] hover:border-[var(--text-primary)]/40 text-[var(--text-app)] opacity-60 hover:opacity-100 transition-all group"
           >
-            <UiIcon name="lucide:settings-2" class="w-3.5 h-3.5 group-hover:rotate-45 transition-transform" />
-            <span class="text-[10px] font-bold">İDARƏ ET</span>
+            <UiIcon name="lucide:settings-2" class="w-3.5 h-3.5 group-hover:rotate-90 transition-transform" />
+            <span class="text-[10px] font-black uppercase tracking-widest">İdarə Et</span>
           </button>
         </div>
         
-        <div class="grid grid-cols-2 gap-3 max-h-[280px] overflow-y-auto p-1 custom-scrollbar">
+        <div class="grid grid-cols-2 gap-3.5 max-h-[320px] overflow-y-auto p-1 custom-scrollbar">
           <button 
             v-for="method in paymentMethods"
             :key="method.id"
             @click="paymentMethod = method.name"
-            class="group relative flex flex-col items-center justify-center p-5 rounded-2xl border-2 transition-all duration-300 overflow-hidden"
+            class="group relative flex flex-col items-start p-5 rounded-[24px] border-2 transition-all duration-500 overflow-hidden"
             :class="paymentMethod === method.name 
-              ? 'border-[var(--text-primary)] bg-[var(--text-primary)]/5 text-[var(--text-primary)] shadow-md' 
-              : 'border-[var(--border-app)] hover:border-[var(--text-primary)]/30 text-[var(--text-app)] opacity-60 hover:opacity-100 bg-[var(--bg-app)]'"
+              ? 'border-[var(--text-primary)] bg-[var(--text-primary)]/[0.03] text-[var(--text-primary)] shadow-xl shadow-[var(--text-primary)]/5 scale-[1.02]' 
+              : 'border-[var(--border-app)] hover:border-[var(--text-primary)]/20 text-[var(--text-app)] bg-[var(--bg-app)] opacity-60 hover:opacity-100'"
           >
-            <!-- Animated background on hover -->
-            <div class="absolute inset-0 bg-gradient-to-br from-[var(--text-primary)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            
-            <div class="relative z-10 flex flex-col items-center">
+            <div class="relative z-10 w-full">
               <div 
-                class="w-12 h-12 rounded-xl mb-3 flex items-center justify-center transition-transform group-hover:scale-110"
-                :class="paymentMethod === method.name ? 'bg-[var(--text-primary)]/10' : 'bg-[var(--bg-app)]'"
+                class="w-12 h-12 rounded-2xl mb-4 flex items-center justify-center transition-all duration-500 shadow-sm"
+                :class="paymentMethod === method.name ? 'bg-[var(--text-primary)] text-white' : 'bg-[var(--input-bg)] group-hover:bg-[var(--text-primary)]/10'"
               >
                 <UiIcon :name="method.icon || 'lucide:credit-card'" class="w-6 h-6" />
               </div>
-              <span class="text-[13px] font-bold tracking-tight text-center leading-tight">{{ method.name }}</span>
+              <span class="text-[15px] font-black tracking-tight leading-tight block">{{ method.name }}</span>
+              <p class="text-[9px] font-bold opacity-40 uppercase tracking-widest mt-1">Ödənişi tamamla</p>
             </div>
 
             <!-- Selection Indicator -->
             <div 
               v-if="paymentMethod === method.name"
-              class="absolute top-2 right-2"
+              class="absolute top-4 right-4"
             >
-              <div class="w-5 h-5 rounded-full bg-[var(--text-primary)] flex items-center justify-center text-white shadow-sm">
-                <UiIcon name="lucide:check" class="w-3 h-3 stroke-[3]" />
+              <div class="w-6 h-6 rounded-full bg-[var(--text-primary)] flex items-center justify-center text-white shadow-lg animate-in zoom-in duration-300">
+                <UiIcon name="lucide:check" class="w-3.5 h-3.5 stroke-[3]" />
               </div>
             </div>
           </button>
@@ -790,127 +797,152 @@ const completeOrder = async () => {
     max-width="md"
     :show-header="false"
   >
-    <div class="flex flex-col h-[550px]">
+    <div class="flex flex-col h-[600px] bg-[var(--bg-app)]">
       <!-- Header -->
-      <div class="p-6 border-b border-[var(--border-app)] bg-[var(--bg-app)]/50 backdrop-blur-xl shrink-0">
-        <div class="flex items-center gap-4">
-          <button 
-            @click="showManageMethodsModal = false"
-            class="w-10 h-10 rounded-xl bg-[var(--input-bg)] border border-[var(--border-app)] flex items-center justify-center text-[var(--text-app)] hover:border-[var(--text-primary)] hover:text-[var(--text-primary)] transition-all shadow-sm group"
-          >
-            <UiIcon name="lucide:arrow-left" class="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
-          </button>
-          <div class="flex-1 min-w-0">
-            <h3 class="text-xl font-black text-[var(--text-app)] tracking-tight leading-none mb-1">Ödəniş Üsulları</h3>
-            <p class="text-[11px] font-bold uppercase tracking-wider opacity-40">Konfiqurasiya paneli</p>
+      <div class="px-8 py-6 border-b border-[var(--border-app)] bg-[var(--bg-app)]/80 backdrop-blur-md shrink-0">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-5">
+            <button 
+              @click="showManageMethodsModal = false"
+              class="w-11 h-11 rounded-2xl bg-[var(--input-bg)] border border-[var(--border-app)] flex items-center justify-center text-[var(--text-app)] hover:border-[var(--text-primary)] hover:text-[var(--text-primary)] transition-all duration-300 shadow-sm group"
+            >
+              <UiIcon name="lucide:arrow-left" class="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            </button>
+            <div>
+              <h3 class="text-2xl font-black text-[var(--text-app)] tracking-tight leading-none mb-1.5">Ödəniş Üsulları</h3>
+              <p class="text-[10px] font-black uppercase tracking-[0.2em] opacity-30">Sistem Konfiqurasiyası</p>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
-        <!-- Add/Edit Form -->
-        <div class="relative group">
-          <div class="absolute -inset-0.5 bg-gradient-to-r from-[var(--text-primary)]/20 to-transparent rounded-[26px] blur opacity-30 group-hover:opacity-50 transition duration-500"></div>
-          <div class="relative bg-[var(--input-bg)] border border-[var(--border-app)] p-6 rounded-[24px] shadow-sm space-y-5">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <div class="w-2 h-2 rounded-full bg-[var(--text-primary)] animate-pulse"></div>
-                <span class="text-[10px] font-black uppercase tracking-[0.2em] opacity-50">{{ editingMethod ? 'Üsulu Redaktə Et' : 'Yeni Üsul Əlavə Et' }}</span>
-              </div>
-              <button 
-                v-if="editingMethod" 
-                @click="editingMethod = null; methodForm = { name: '', icon: 'lucide:credit-card', color: 'blue' }" 
-                class="text-[10px] font-extrabold text-[var(--text-primary)] hover:bg-[var(--text-primary)]/10 px-2 py-1 rounded-md transition-colors"
-              >
-                LƏĞV ET
-              </button>
-            </div>
-            
-            <div class="flex gap-3">
-              <div class="flex-1 relative">
-                <UiInput 
-                  v-model="methodForm.name" 
-                  placeholder="Üsulun adı (məs: MilliÖN)" 
-                  class="w-full !bg-[var(--bg-app)] !rounded-xl !h-12 !pl-4" 
-                />
-              </div>
-              <UiButton 
-                variant="primary" 
-                @click="savePaymentMethod"
-                class="shrink-0 !rounded-xl !h-12 !px-6 shadow-lg shadow-[var(--text-primary)]/10"
-              >
-                <div class="flex items-center gap-2">
-                  <UiIcon :name="editingMethod ? 'lucide:save' : 'lucide:plus'" class="w-4 h-4" />
-                  <span class="font-bold">Yadda Saxla</span>
-                </div>
-              </UiButton>
-            </div>
-            
-            <div class="grid grid-cols-4 gap-2">
-              <button 
-                v-for="icon in ['lucide:credit-card', 'lucide:coins', 'lucide:banknote', 'lucide:wallet']"
-                :key="icon"
-                @click="methodForm.icon = icon"
-                class="flex items-center justify-center p-2 rounded-lg border transition-all"
-                :class="methodForm.icon === icon ? 'bg-[var(--text-primary)]/10 border-[var(--text-primary)] text-[var(--text-primary)]' : 'bg-[var(--bg-app)] border-transparent text-[var(--text-app)] opacity-40 hover:opacity-100'"
-              >
-                <UiIcon :name="icon" class="w-5 h-5" />
-              </button>
-            </div>
+      <div class="flex-1 overflow-y-auto custom-scrollbar px-8 py-6 space-y-10">
+        <!-- Add/Edit Section -->
+        <section class="space-y-4">
+          <div class="flex items-center gap-3 px-1">
+            <div class="w-1.5 h-4 bg-[var(--text-primary)] rounded-full"></div>
+            <h4 class="text-[11px] font-black uppercase tracking-[0.2em] opacity-40">
+              {{ editingMethod ? 'Üsulu Redaktə Et' : 'Yeni Üsul Əlavə Et' }}
+            </h4>
           </div>
-        </div>
 
-        <!-- Methods List -->
-        <div class="space-y-4">
-          <div class="flex items-center gap-3 mb-2 px-1">
-            <UiIcon name="lucide:list" class="w-4 h-4 opacity-40" />
-            <span class="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">Mövcud Üsulların Siyahısı</span>
-          </div>
-          
-          <div 
-            v-for="(method, idx) in paymentMethods" 
-            :key="method.id"
-            class="flex items-center justify-between p-4 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-2xl group hover:border-[var(--text-primary)]/40 hover:shadow-md transition-all duration-300"
-            :style="{ transitionDelay: `${idx * 50}ms` }"
-          >
-            <div class="flex items-center gap-4">
-              <div class="w-12 h-12 rounded-xl bg-[var(--bg-app)] border border-[var(--border-app)] flex items-center justify-center text-[var(--text-primary)] shadow-inner transition-transform group-hover:scale-105">
-                <UiIcon :name="method.icon || 'lucide:credit-card'" class="w-6 h-6" />
-              </div>
-              <div>
-                <span class="font-bold text-[var(--text-app)] block mb-0.5">{{ method.name }}</span>
-                <span class="text-[10px] opacity-40 font-medium">ID: #00{{ method.id }}</span>
-              </div>
-            </div>
+          <div class="bg-[var(--input-bg)] border border-[var(--border-app)] p-7 rounded-[32px] shadow-sm relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-[var(--text-primary)]/5 rounded-full -mr-16 -mt-16 blur-3xl transition-opacity group-hover:opacity-100 opacity-50"></div>
             
-            <div class="flex gap-2">
-              <button 
-                v-if="!method.isSystem"
-                @click="editingMethod = method; methodForm = { ...method }"
-                class="p-2.5 rounded-xl bg-[var(--bg-app)] border border-[var(--border-app)] text-[var(--text-app)] hover:text-[var(--text-primary)] hover:border-[var(--text-primary)] hover:bg-[var(--text-primary)]/5 transition-all shadow-sm"
-                title="Düzəliş et"
-              >
-                <UiIcon name="lucide:edit-3" class="w-4 h-4" />
-              </button>
-              <button 
-                v-if="!method.isSystem"
-                @click="deletePaymentMethod(method.id)"
-                class="p-2.5 rounded-xl bg-[var(--bg-app)] border border-[var(--border-app)] text-[var(--text-app)] hover:text-red-500 hover:border-red-500/30 hover:bg-red-500/5 transition-all shadow-sm"
-                title="Sil"
-              >
-                <UiIcon name="lucide:trash-2" class="w-4 h-4" />
-              </button>
-              <div v-else class="px-3 py-1 bg-[var(--bg-app)] border border-[var(--border-app)] rounded-lg text-[10px] font-bold opacity-30 uppercase tracking-widest">
-                SİSTEM
+            <div class="relative space-y-6">
+              <div class="flex gap-4">
+                <div class="flex-1 relative">
+                  <UiInput 
+                    v-model="methodForm.name" 
+                    placeholder="Üsulun adı (məs: MilliÖN)" 
+                    class="w-full !bg-[var(--bg-app)] !rounded-[18px] !h-14 !pl-5 !text-[15px] !font-bold" 
+                    :disabled="editingMethod?.isSystem"
+                  />
+                  <div v-if="editingMethod?.isSystem" class="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-[var(--text-primary)] bg-[var(--text-primary)]/10 px-2 py-1 rounded-md">
+                    SİSTEM ADI
+                  </div>
+                </div>
+                <UiButton 
+                  variant="primary" 
+                  @click="savePaymentMethod"
+                  class="shrink-0 !rounded-[18px] !h-14 !px-8 shadow-xl shadow-[var(--text-primary)]/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                >
+                  <div class="flex items-center gap-2.5">
+                    <UiIcon :name="editingMethod ? 'lucide:save' : 'lucide:plus'" class="w-5 h-5" />
+                    <span class="font-black text-sm">{{ editingMethod ? 'Yadda Saxla' : 'Əlavə Et' }}</span>
+                  </div>
+                </UiButton>
+              </div>
+
+              <!-- Icon Selector -->
+              <div class="flex items-center gap-3 overflow-x-auto pb-1 custom-scrollbar">
+                <button 
+                  v-for="icon in ['lucide:credit-card', 'lucide:coins', 'lucide:banknote', 'lucide:wallet', 'lucide:smartphone', 'lucide:qr-code', 'lucide:sparkles', 'lucide:gift']"
+                  :key="icon"
+                  @click="methodForm.icon = icon"
+                  class="flex-shrink-0 w-12 h-12 rounded-xl border-2 transition-all duration-300 flex items-center justify-center group/icon"
+                  :class="methodForm.icon === icon 
+                    ? 'bg-[var(--text-primary)] border-[var(--text-primary)] text-white shadow-lg shadow-[var(--text-primary)]/30 scale-110' 
+                    : 'bg-[var(--bg-app)] border-transparent text-[var(--text-app)] opacity-40 hover:opacity-100 hover:border-[var(--border-app)] hover:bg-[var(--input-bg)]'"
+                >
+                  <UiIcon :name="icon" class="w-5 h-5 transition-transform group-hover/icon:scale-110" />
+                </button>
+              </div>
+
+              <div v-if="editingMethod" class="flex justify-start">
+                <button 
+                  @click="editingMethod = null; methodForm = { name: '', icon: 'lucide:credit-card', color: 'blue' }" 
+                  class="text-[10px] font-black text-[var(--text-primary)] bg-[var(--text-primary)]/10 px-4 py-2 rounded-xl hover:bg-[var(--text-primary)]/20 transition-colors uppercase tracking-widest"
+                >
+                  Dəyişiklikləri ləğv et
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- List Section -->
+        <section class="space-y-4">
+          <div class="flex items-center justify-between px-1">
+            <div class="flex items-center gap-3">
+              <div class="w-1.5 h-4 bg-[var(--text-app)] opacity-20 rounded-full"></div>
+              <h4 class="text-[11px] font-black uppercase tracking-[0.2em] opacity-40">Mövcud Üsullar</h4>
+            </div>
+            <span class="text-[10px] font-bold opacity-30">{{ paymentMethods.length }} Üsul</span>
+          </div>
+          
+          <div class="grid gap-3">
+            <div 
+              v-for="(method, idx) in paymentMethods" 
+              :key="method.id"
+              class="flex items-center justify-between p-5 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-[24px] group hover:border-[var(--text-primary)]/40 hover:bg-[var(--input-bg)]/80 transition-all duration-300"
+              :style="{ transitionDelay: `${idx * 40}ms` }"
+            >
+              <div class="flex items-center gap-5">
+                <div 
+                  class="w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 shadow-sm"
+                  :class="method.isSystem ? 'bg-[var(--text-primary)]/5 text-[var(--text-primary)]' : 'bg-[var(--bg-app)] border border-[var(--border-app)] text-[var(--text-app)]'"
+                >
+                  <UiIcon :name="method.icon || 'lucide:credit-card'" class="w-7 h-7" />
+                </div>
+                <div>
+                  <span class="font-bold text-[16px] text-[var(--text-app)] block mb-0.5 tracking-tight">{{ method.name }}</span>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] opacity-30 font-black uppercase tracking-widest">ID: #00{{ method.id }}</span>
+                    <span v-if="method.isSystem" class="w-1 h-1 rounded-full bg-[var(--text-primary)] opacity-40"></span>
+                    <span v-if="method.isSystem" class="text-[9px] text-[var(--text-primary)] font-black uppercase tracking-wider opacity-60">Sistem Üsulu</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="flex gap-2.5">
+                <button 
+                  v-if="!method.isSystem"
+                  @click="editingMethod = method; methodForm = { ...method }"
+                  class="w-10 h-10 rounded-[14px] bg-[var(--bg-app)] border border-[var(--border-app)] text-[var(--text-app)] hover:text-[var(--text-primary)] hover:border-[var(--text-primary)] hover:shadow-lg hover:shadow-[var(--text-primary)]/10 transition-all group/btn"
+                >
+                  <UiIcon name="lucide:edit-3" class="w-4 h-4 transition-transform group-hover/btn:scale-110" />
+                </button>
+                <button 
+                  v-if="!method.isSystem"
+                  @click="deletePaymentMethod(method.id)"
+                  class="w-10 h-10 rounded-[14px] bg-[var(--bg-app)] border border-[var(--border-app)] text-[var(--text-app)] hover:text-red-500 hover:border-red-500/30 hover:shadow-lg hover:shadow-red-500/10 transition-all group/btn"
+                >
+                  <UiIcon name="lucide:trash-2" class="w-4 h-4 transition-transform group-hover/btn:scale-110" />
+                </button>
+                <div v-else class="flex items-center gap-2 px-3 py-1.5 bg-[var(--text-primary)]/5 border border-[var(--text-primary)]/10 rounded-xl text-[9px] font-black text-[var(--text-primary)]/50 uppercase tracking-widest">
+                  <UiIcon name="lucide:lock" class="w-3 h-3" />
+                  QORUNUR
+                </div>
               </div>
             </div>
           </div>
           
-          <div v-if="paymentMethods.length === 0" class="flex flex-col items-center justify-center py-10 opacity-30 text-center">
-            <UiIcon name="lucide:layers" class="w-12 h-12 mb-3" />
-            <p class="font-bold">Məlumat tapılmadı</p>
+          <div v-if="paymentMethods.length === 0" class="flex flex-col items-center justify-center py-20 opacity-20 text-center grayscale">
+            <UiIcon name="lucide:layout-template" class="w-20 h-20 mb-5 stroke-[1]" />
+            <p class="font-black text-sm uppercase tracking-[0.2em]">Heç bir ödəniş üsulu yoxdur</p>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   </Modal>
@@ -957,6 +989,14 @@ const completeOrder = async () => {
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: var(--text-primary);
+}
+
+.custom-scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.custom-scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .list-enter-active,

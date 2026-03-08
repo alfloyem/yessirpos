@@ -96,35 +96,38 @@ const getItemTotal = (item: CartItem) => {
 <template>
   <div class="flex flex-col bg-[var(--input-bg)] rounded-[24px] border border-[var(--border-app)] shadow-sm h-full">
     <!-- Header with Mode Toggle -->
-    <div class="p-4 border-b border-[var(--border-app)] bg-[var(--bg-app)]/40 backdrop-blur-md shrink-0">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-base font-bold text-[var(--text-app)] flex items-center gap-2">
-          <UiIcon :name="mode === 'sale' ? 'lucide:shopping-bag' : 'lucide:rotate-ccw'" class="w-4 h-4 text-[var(--text-primary)]" />
-          {{ mode === 'sale' ? t('cart.title', 'Müştəri Səbəti') : t('cart.refund', 'Geri Ödəniş') }}
-        </h2>
+    <div class="p-5 border-b border-[var(--border-app)] bg-[var(--bg-app)]/40 backdrop-blur-md shrink-0">
+      <div class="flex justify-between items-center mb-5">
+        <div>
+          <h2 class="text-[13px] font-black uppercase tracking-[0.15em] text-[var(--text-app)] flex items-center gap-2 mb-0.5">
+            <UiIcon :name="mode === 'sale' ? 'lucide:shopping-bag' : 'lucide:rotate-ccw'" class="w-4 h-4 text-[var(--text-primary)]" />
+            {{ mode === 'sale' ? t('cart.title', 'Səbət') : t('cart.refund', 'Refund') }}
+          </h2>
+          <p class="text-[9px] font-bold opacity-30 uppercase tracking-widest">{{ totalQty }} Məhsul seçilib</p>
+        </div>
         <button 
           v-if="cart.length > 0" 
           @click="emit('clear')"
-          class="text-[11px] font-bold text-[var(--color-brand-danger)] hover:underline opacity-80 hover:opacity-100 transition-opacity px-2 py-1"
+          class="text-[10px] font-black uppercase tracking-widest text-red-500 hover:text-red-600 transition-colors px-3 py-1.5 bg-red-500/5 rounded-lg border border-red-500/10"
         >
-          {{ t('cart.clear', 'Səbəti Boşalt') }}
+          {{ t('cart.clear', 'Təmizlə') }}
         </button>
       </div>
 
       <!-- Mode Selector -->
-      <div class="flex p-1 bg-[var(--input-bg)] rounded-xl border border-[var(--border-app)] shadow-inner mb-4">
+      <div class="flex p-1.5 bg-[var(--bg-app)] rounded-2xl border border-[var(--border-app)]/50 shadow-sm mb-5">
         <button 
           @click="toggleMode('sale')"
-          class="flex-1 py-2 px-3 rounded-lg text-[12px] font-bold transition-all flex items-center justify-center gap-2"
-          :class="mode === 'sale' ? 'bg-[var(--bg-app)] text-[var(--text-primary)] shadow-sm border border-[var(--border-app)]' : 'text-[var(--text-app)] opacity-60 hover:opacity-100'"
+          class="flex-1 py-2.5 px-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+          :class="mode === 'sale' ? 'bg-[var(--text-primary)] text-white shadow-lg shadow-[var(--text-primary)]/20' : 'text-[var(--text-app)] opacity-40 hover:opacity-100'"
         >
           <UiIcon name="lucide:shopping-cart" class="w-3.5 h-3.5" />
           {{ t('cart.modeSale', 'Satış') }}
         </button>
         <button 
           @click="toggleMode('refund')"
-          class="flex-1 py-2 px-3 rounded-lg text-[12px] font-bold transition-all flex items-center justify-center gap-2"
-          :class="mode === 'refund' ? 'bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)] shadow-sm border border-[var(--color-brand-danger)]/20' : 'text-[var(--text-app)] opacity-60 hover:opacity-100'"
+          class="flex-1 py-2.5 px-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+          :class="mode === 'refund' ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'text-[var(--text-app)] opacity-40 hover:opacity-100'"
         >
           <UiIcon name="lucide:rotate-ccw" class="w-3.5 h-3.5" />
           {{ t('cart.modeRefund', 'Refund') }}
@@ -133,21 +136,25 @@ const getItemTotal = (item: CartItem) => {
 
       <!-- Customer Search/Selection -->
       <div class="relative">
-        <div v-if="selectedCustomer" class="flex items-center justify-between p-3 bg-[var(--text-primary)]/5 border border-[var(--text-primary)]/20 rounded-xl">
-          <div class="flex items-center gap-3 overflow-hidden">
-            <div class="w-9 h-9 rounded-full bg-[var(--text-primary)]/10 flex items-center justify-center shrink-0">
+        <div v-if="selectedCustomer" class="flex items-center justify-between p-4 bg-[var(--text-primary)]/[0.03] border border-[var(--text-primary)]/10 rounded-2xl relative overflow-hidden group">
+          <div class="absolute inset-0 bg-gradient-to-r from-[var(--text-primary)]/[0.02] to-transparent pointer-events-none"></div>
+          <div class="flex items-center gap-3.5 overflow-hidden relative z-10">
+            <div class="w-10 h-10 rounded-xl bg-[var(--text-primary)]/10 flex items-center justify-center shrink-0 border border-[var(--text-primary)]/10 group-hover:scale-105 transition-transform duration-500">
               <UiIcon name="lucide:user" class="w-5 h-5 text-[var(--text-primary)]" />
             </div>
             <div class="flex flex-col min-w-0">
-              <span class="text-[13px] font-black text-[var(--text-app)] truncate leading-tight">{{ selectedCustomer.firstName }} {{ selectedCustomer.lastName }}</span>
-              <span class="text-[10px] font-bold text-[var(--text-primary)] flex items-center gap-1">
-                <UiIcon name="lucide:coins" class="w-3 h-3" />
-                Bonus: {{ selectedCustomer.bonus || 0 }} ₼
-              </span>
+              <span class="text-[13px] font-black text-[var(--text-app)] truncate leading-tight tracking-tight uppercase">{{ selectedCustomer.firstName }} {{ selectedCustomer.lastName }}</span>
+              <div class="flex items-center gap-2 mt-0.5">
+                <span class="text-[9px] font-black text-[var(--text-primary)] flex items-center gap-1 bg-[var(--text-primary)]/10 px-1.5 py-0.5 rounded-md">
+                  <UiIcon name="lucide:coins" class="w-3 h-3" />
+                  {{ selectedCustomer.bonus || 0 }} ₼
+                </span>
+                <span v-if="selectedCustomer.phone" class="text-[9px] font-bold opacity-30">{{ selectedCustomer.phone }}</span>
+              </div>
             </div>
           </div>
-          <button @click="emit('update:selectedCustomer', null)" class="p-1.5 hover:bg-[var(--text-primary)]/10 rounded-lg transition-colors text-[var(--text-app)] opacity-40 hover:opacity-100">
-            <UiIcon name="lucide:x" class="w-3.5 h-3.5" />
+          <button @click="emit('update:selectedCustomer', null)" class="relative z-10 w-8 h-8 flex items-center justify-center hover:bg-red-500/10 rounded-xl transition-colors text-[var(--text-app)] opacity-20 hover:opacity-100 group/btn">
+            <UiIcon name="lucide:x" class="w-4 h-4 group-hover/btn:rotate-90 transition-transform" />
           </button>
         </div>
         
@@ -163,68 +170,69 @@ const getItemTotal = (item: CartItem) => {
               value: c.id,
               extra: c.phone ? `${c.phone}${c.barcode ? ' • ' + c.barcode : ''}` : c.barcode
             }))"
-            placeholder="Müştəri axtar (Ad, tel, barkod)..." 
+            placeholder="Müştəri axtar (...)" 
             icon="lucide:user-search" 
+            class="!rounded-2xl !bg-[var(--bg-app)] !border-[var(--border-app)]/50 !h-12 !text-[13px] !pl-12"
           />
         </div>
       </div>
     </div>
 
     <!-- Items List -->
-    <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
-      <div v-if="cart.length === 0" class="h-full flex flex-col items-center justify-center text-[var(--text-app)] opacity-30 text-center p-6">
-        <UiIcon :name="mode === 'sale' ? 'lucide:shopping-cart' : 'lucide:package-x'" class="w-12 h-12 mb-3 stroke-[1.5]" />
-        <p class="font-bold text-sm">{{ mode === 'sale' ? t('cart.empty', 'Səbət boşdur') : t('cart.refundEmpty', 'Refund siyahısı boşdur') }}</p>
-        <p class="text-[11px] mt-1">{{ t('cart.emptySubtitle', 'Məhsul əlavə etmək üçün sol tərəfdən seçim edin') }}</p>
+    <div class="flex-1 overflow-y-auto custom-scrollbar p-2.5 space-y-1.5">
+      <div v-if="cart.length === 0" class="h-full flex flex-col items-center justify-center text-[var(--text-app)] opacity-30 text-center p-6 grayscale">
+        <UiIcon :name="mode === 'sale' ? 'lucide:shopping-cart' : 'lucide:package-x'" class="w-10 h-10 mb-3 stroke-[1]" />
+        <p class="font-black text-[12px] uppercase tracking-widest">{{ mode === 'sale' ? t('cart.empty', 'Səbət boşdur') : t('cart.refundEmpty', 'Refund siyahısı boşdur') }}</p>
+        <p class="text-[10px] mt-1 opacity-60">{{ t('cart.emptySubtitle', 'Məhsul əlavə etmək üçün sol tərəfdən seçim edin') }}</p>
       </div>
 
       <TransitionGroup name="cart-list">
         <div 
           v-for="item in cart" 
           :key="item.id"
-          class="bg-[var(--bg-app)] border border-[var(--border-app)] rounded-xl p-2.5 flex flex-col gap-2 group relative transition-all hover:border-[var(--text-primary)]/20 shadow-sm"
+          class="bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl p-2 flex flex-col gap-2 group relative transition-all hover:border-[var(--text-primary)]/30 hover:shadow-md"
         >
           <!-- Top Row: Image & Title & Remove -->
-          <div class="flex gap-3">
+          <div class="flex gap-2.5">
             <!-- Mini Image -->
-            <div class="w-12 h-12 rounded-lg bg-[var(--input-bg)] overflow-hidden shrink-0 border border-[var(--border-app)]">
+            <div class="w-10 h-10 rounded-xl bg-[var(--input-bg)] overflow-hidden shrink-0 border border-[var(--border-app)]/50">
               <img v-if="item.images && item.images.length > 0" :src="item.images[0]" class="w-full h-full object-cover" />
-              <UiIcon v-else name="lucide:image" class="w-full h-full p-3 text-[var(--text-app)] opacity-20" />
+              <UiIcon v-else name="lucide:image" class="w-full h-full p-2.5 text-[var(--text-app)] opacity-10" />
             </div>
             
             <!-- Details -->
             <div class="flex-1 min-w-0">
               <div class="flex justify-between items-start gap-2">
-                <h4 class="font-bold text-[13px] text-[var(--text-app)] leading-tight truncate shrink">{{ item.productName }}</h4>
-                <button @click="emit('remove', item)" class="text-[var(--text-app)] opacity-40 hover:text-[var(--color-brand-danger)] hover:opacity-100 transition-all">
-                  <UiIcon name="lucide:x" class="w-3.5 h-3.5" />
+                <h4 class="font-bold text-[12px] text-[var(--text-app)] leading-tight truncate shrink tracking-tight">{{ item.productName }}</h4>
+                <button @click="emit('remove', item)" class="w-5 h-5 flex items-center justify-center rounded-lg text-[var(--text-app)] opacity-20 hover:text-white hover:bg-red-500 hover:opacity-100 transition-all">
+                  <UiIcon name="lucide:x" class="w-3 h-3" />
                 </button>
               </div>
-              <div class="text-[10px] font-bold text-[var(--text-app)] opacity-40 mt-0.5">
-                {{ item.retailPrice }} ₼ / ədəd
+              <div class="text-[9px] font-black text-[var(--text-app)] opacity-30 mt-0.5 uppercase tracking-tighter">
+                {{ item.retailPrice }} ₼ / vahid
               </div>
             </div>
           </div>
 
           <!-- Bottom Row: Qty & Price & Discount -->
-          <div class="flex items-center justify-between gap-2 pt-2 border-t border-[var(--border-app)] border-dashed mt-1">
+          <div class="flex items-center justify-between gap-1.5 pt-2 border-t border-[var(--border-app)] border-dashed mt-0.5">
             <!-- Qty Controls -->
-            <div class="flex items-center bg-[var(--input-bg)] rounded-lg border border-[var(--border-app)] overflow-hidden shrink-0">
-              <button @click="emit('decrease', item)" class="w-6 h-6 flex items-center justify-center text-[var(--text-app)] hover:bg-[var(--text-primary)]/10 transition-colors">
+            <div class="flex items-center bg-[var(--input-bg)] rounded-xl border border-[var(--border-app)]/50 overflow-hidden shrink-0">
+              <button @click="emit('decrease', item)" class="w-7 h-7 flex items-center justify-center text-[var(--text-app)] hover:bg-[var(--text-primary)]/10 transition-colors">
                 <UiIcon name="lucide:minus" class="w-2.5 h-2.5" />
               </button>
-              <span class="w-7 text-center text-[11px] font-bold text-[var(--text-app)]">{{ item.qty }}</span>
-              <button @click="emit('increase', item)" class="w-6 h-6 flex items-center justify-center text-[var(--text-app)] hover:bg-[var(--text-primary)]/10 transition-colors">
+              <span class="w-8 text-center text-[12px] font-black text-[var(--text-app)] tabular-nums">{{ item.qty }}</span>
+              <button @click="emit('increase', item)" class="w-7 h-7 flex items-center justify-center text-[var(--text-app)] hover:bg-[var(--text-primary)]/10 transition-colors relative">
                 <UiIcon name="lucide:plus" class="w-2.5 h-2.5" />
               </button>
             </div>
 
-            <!-- Individual Item Discount -->
-            <div class="flex items-center bg-[var(--input-bg)] rounded-lg border border-[var(--border-app)] p-0.5 shrink-0">
+            <!-- Discount -->
+            <div class="flex items-center bg-[var(--input-bg)] rounded-xl border border-[var(--border-app)]/50 p-0.5 shrink-0 group/disc">
               <button 
                 @click="emit('update-item-discount-type', item, item.itemDiscountType === 'amount' ? 'percent' : 'amount')"
-                class="w-5 h-5 flex items-center justify-center text-[9px] font-black rounded hover:bg-[var(--text-primary)]/10 transition-colors"
-                :class="item.itemDiscountType === 'percent' ? 'text-[var(--text-primary)]' : 'text-[var(--text-app)] opacity-40'"
+                class="w-6 h-6 flex items-center justify-center text-[9px] font-black rounded-lg transition-all"
+                :class="item.itemDiscountType === 'percent' ? 'bg-[var(--text-primary)] text-white shadow-sm' : 'text-[var(--text-app)] opacity-40 hover:opacity-100'"
               >
                 {{ item.itemDiscountType === 'percent' ? '%' : '₼' }}
               </button>
@@ -233,13 +241,13 @@ const getItemTotal = (item: CartItem) => {
                 :value="item.itemDiscount"
                 @input="(e: any) => emit('update-item-discount', item, e.target.value)"
                 placeholder="0"
-                class="w-10 bg-transparent border-none text-[11px] font-black text-right focus:ring-0 p-0 text-[var(--text-app)]"
+                class="w-10 bg-transparent border-none text-[12px] font-black text-right focus:ring-0 p-0 text-[var(--text-app)] tabular-nums px-1"
               />
             </div>
 
             <!-- Line Total -->
             <div class="flex-1 text-right">
-              <span class="font-black text-[13px]" :class="mode === 'sale' ? 'text-[var(--text-app)]' : 'text-[var(--color-brand-danger)]'">
+              <span class="font-black text-[14px] tracking-tight tabular-nums" :class="mode === 'sale' ? 'text-[var(--text-app)]' : 'text-[var(--color-brand-danger)]'">
                 <template v-if="mode === 'refund'">-</template>{{ getItemTotal(item).toFixed(2) }} ₼
               </span>
             </div>
