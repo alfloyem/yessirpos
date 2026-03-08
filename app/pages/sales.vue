@@ -597,7 +597,7 @@ const completeOrder = async () => {
         <div class="flex items-center gap-2">
           <UiButton 
             v-if="drafts.length > 0"
-            variant="warning" 
+            variant="soft-primary" 
             size="sm" 
             icon="lucide:bookmark"
             @click="showDraftsModal = true"

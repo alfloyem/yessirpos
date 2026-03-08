@@ -124,7 +124,7 @@ const getItemTotal = (item: CartItem) => {
             v-if="cart.length > 0" 
             variant="outline"
             size="sm"
-            class="!w-10 !h-10 !px-0 !rounded-xl text-orange-500 border-orange-500/20 hover:bg-orange-500/5 bg-[var(--bg-app)]"
+            class="!w-10 !h-10 !px-0 !rounded-xl text-[var(--text-primary)] border-[var(--text-primary)]/20 hover:bg-[var(--text-primary)]/5 bg-[var(--bg-app)]"
             @click="emit('save-draft')"
           >
             <UiIcon name="material-symbols:bookmark-outline" class="w-4.5 h-4.5" />
@@ -189,66 +189,59 @@ const getItemTotal = (item: CartItem) => {
         <div 
           v-for="item in cart" 
           :key="item.id"
-          class="bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl p-2 flex flex-col gap-2 group relative transition-all hover:border-[var(--text-primary)]/30 hover:shadow-md"
+          class="bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl p-2.5 flex items-center gap-3 transition-all hover:border-[var(--text-primary)]/40 group/item"
         >
-          <!-- Top Row: Image & Title & Remove -->
-          <div class="flex gap-2.5">
-            <!-- Mini Image -->
-            <div class="w-10 h-10 rounded-xl bg-[var(--input-bg)] overflow-hidden shrink-0 border border-[var(--border-app)]/50">
-              <img v-if="item.images && item.images.length > 0" :src="item.images[0]" class="w-full h-full object-cover" />
-              <UiIcon v-else name="lucide:image" class="w-full h-full p-2.5 text-[var(--text-app)] opacity-10" />
-            </div>
-            
-            <!-- Details -->
-            <div class="flex-1 min-w-0">
-              <div class="flex justify-between items-start gap-2">
-                <h4 class="font-bold text-[12px] text-[var(--text-app)] leading-tight truncate shrink tracking-tight">{{ item.productName }}</h4>
-                <button @click="emit('remove', item)" class="w-5 h-5 flex items-center justify-center rounded-lg text-[var(--text-app)] opacity-20 hover:text-white hover:bg-red-500 hover:opacity-100 transition-all">
-                  <UiIcon name="lucide:x" class="w-3 h-3" />
-                </button>
-              </div>
-              <div class="text-[9px] font-bold text-[var(--text-app)] opacity-30 mt-0.5">
-                {{ item.retailPrice }} ₼ / vahid
-              </div>
+          <!-- Mini Image -->
+          <div class="w-11 h-11 rounded-xl bg-[var(--input-bg)] overflow-hidden shrink-0 border border-[var(--border-app)] shadow-sm">
+            <img v-if="item.images && item.images.length > 0" :src="item.images[0]" class="w-full h-full object-cover" />
+            <div v-else class="w-full h-full flex items-center justify-center bg-[var(--bg-app)]">
+              <UiIcon name="lucide:package" class="w-5 h-5 text-[var(--text-app)] opacity-10" />
             </div>
           </div>
 
-          <!-- Bottom Row: Qty & Price & Discount -->
-          <div class="flex items-center justify-between gap-1.5 pt-2 border-t border-[var(--border-app)] border-dashed mt-0.5">
-            <!-- Qty Controls -->
-            <div class="flex items-center bg-[var(--input-bg)] rounded-xl border border-[var(--border-app)]/50 overflow-hidden shrink-0">
-              <button @click="emit('decrease', item)" class="w-7 h-7 flex items-center justify-center text-[var(--text-app)] hover:bg-[var(--text-primary)]/10 transition-colors">
-                <UiIcon name="lucide:minus" class="w-2.5 h-2.5" />
-              </button>
-              <span class="w-8 text-center text-[12px] font-black text-[var(--text-app)] tabular-nums">{{ item.qty }}</span>
-              <button @click="emit('increase', item)" class="w-7 h-7 flex items-center justify-center text-[var(--text-app)] hover:bg-[var(--text-primary)]/10 transition-colors relative">
-                <UiIcon name="lucide:plus" class="w-2.5 h-2.5" />
+          <!-- Content Area -->
+          <div class="flex-1 min-w-0 flex flex-col justify-center">
+            <!-- Row 1: Title and Remove -->
+            <div class="flex justify-between items-center gap-2 mb-1">
+              <h4 class="font-black text-[12px] text-[var(--text-app)] truncate uppercase opacity-90 tracking-tight">{{ item.productName }}</h4>
+              <button @click="emit('remove', item)" class="text-red-500/20 hover:text-red-500 transition-colors cursor-pointer group-hover/item:opacity-100">
+                <UiIcon name="lucide:trash-2" class="w-3.5 h-3.5" />
               </button>
             </div>
+            
+            <!-- Row 2: Controls and Total -->
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <!-- Qty -->
+                <div class="flex items-center bg-[var(--input-bg)] rounded-lg border border-[var(--border-app)] px-0.5 h-7">
+                  <button @click="emit('decrease', item)" class="w-6 h-6 flex items-center justify-center hover:text-red-500 transition-colors cursor-pointer"><UiIcon name="lucide:minus" class="w-2.5 h-2.5" /></button>
+                  <span class="min-w-[20px] text-center text-[12px] font-black text-[var(--text-app)] tabular-nums">{{ item.qty }}</span>
+                  <button @click="emit('increase', item)" class="w-6 h-6 flex items-center justify-center hover:text-[var(--text-primary)] transition-colors cursor-pointer"><UiIcon name="lucide:plus" class="w-2.5 h-2.5" /></button>
+                </div>
 
-            <!-- Discount -->
-            <div class="flex items-center bg-[var(--input-bg)] rounded-xl border border-[var(--border-app)]/50 p-0.5 shrink-0 group/disc">
-              <button 
-                @click="emit('update-item-discount-type', item, item.itemDiscountType === 'amount' ? 'percent' : 'amount')"
-                class="w-6 h-6 flex items-center justify-center text-[9px] font-black rounded-lg transition-all"
-                :class="item.itemDiscountType === 'percent' ? 'bg-[var(--text-primary)] text-white shadow-sm' : 'text-[var(--text-app)] opacity-40 hover:opacity-100'"
-              >
-                {{ item.itemDiscountType === 'percent' ? '%' : '₼' }}
-              </button>
-              <input 
-                type="number" 
-                :value="item.itemDiscount"
-                @input="(e: any) => emit('update-item-discount', item, e.target.value)"
-                placeholder="0"
-                class="w-10 bg-transparent border-none text-[12px] font-black text-right focus:ring-0 p-0 text-[var(--text-app)] tabular-nums px-1"
-              />
-            </div>
+                <!-- Discount -->
+                <div class="flex items-center bg-[var(--input-bg)] rounded-lg border border-[var(--border-app)] h-7 pl-0.5 pr-1 focus-within:border-[var(--text-primary)] transition-all">
+                  <button 
+                    @click="emit('update-item-discount-type', item, item.itemDiscountType === 'amount' ? 'percent' : 'amount')"
+                    class="h-5.5 px-1 flex items-center justify-center text-[9px] font-bold rounded transition-all cursor-pointer"
+                    :class="item.itemDiscountType === 'percent' ? 'bg-[var(--text-primary)] text-white' : 'opacity-40'"
+                  >
+                    {{ item.itemDiscountType === 'percent' ? '%' : '₼' }}
+                  </button>
+                  <input 
+                    type="number"
+                    :value="item.itemDiscount"
+                    @input="(e: any) => emit('update-item-discount', item, e.target.value)"
+                    class="w-8 bg-transparent border-none text-[12px] font-black text-center p-0 focus:ring-0 focus:outline-none outline-none no-spinners"
+                    style="box-shadow: none !important; outline: none !important; border: none !important;"
+                  />
+                </div>
+              </div>
 
-            <!-- Line Total -->
-            <div class="flex-1 text-right">
-              <span class="font-black text-[14px] tracking-tight tabular-nums" :class="mode === 'sale' ? 'text-[var(--text-app)]' : 'text-[var(--color-brand-danger)]'">
-                <template v-if="mode === 'refund'">-</template>{{ getItemTotal(item).toFixed(2) }} ₼
-              </span>
+              <!-- Line Total -->
+              <div class="text-right">
+                <span class="text-[14px] font-black text-[var(--text-app)] tabular-nums tracking-tight">{{ getItemTotal(item).toFixed(2) }} ₼</span>
+              </div>
             </div>
           </div>
         </div>
@@ -344,5 +337,17 @@ const getItemTotal = (item: CartItem) => {
 .cart-list-leave-to {
   opacity: 0;
   transform: translateX(-20px);
+}
+
+/* Hide spin buttons */
+.no-spinners::-webkit-inner-spin-button, 
+.no-spinners::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  appearance: none;
+  margin: 0; 
+}
+.no-spinners {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 </style>

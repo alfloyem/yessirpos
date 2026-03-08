@@ -380,7 +380,7 @@ const handleInputKeydown = (e: KeyboardEvent) => {
         :placeholder="computedPlaceholder"
         :disabled="disabled"
         :lang="locale"
-        class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] font-medium rounded-[14px] outline-none focus:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/10 hover:border-[var(--text-muted)] transition-all duration-300 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-[var(--border-app)] placeholder:font-normal"
+        class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] font-medium rounded-[14px] outline-none focus:border-[var(--text-primary)] focus:ring-2 focus:ring-[var(--text-primary)]/10 hover:border-[var(--text-muted)] transition-all duration-300 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-[var(--border-app)] placeholder:font-normal"
         :class="[
           size === 'sm' ? 'py-1.5 text-[13px]' : 'py-3 text-[15px]',
           computedIcon && type !== 'tel' ? (size === 'sm' ? 'pl-9' : 'pl-11') : (type === 'tel' ? 'pl-[115px]' : (size === 'sm' ? 'px-3' : 'px-5')), 
