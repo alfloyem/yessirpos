@@ -16,7 +16,7 @@ export default defineEventHandler(async (event: any) => {
       brandName: p.brandName ? (p.brandName.startsWith('[') ? JSON.parse(p.brandName) : [p.brandName]) : [],
       category: p.category ? (p.category.startsWith('[') ? JSON.parse(p.category) : [p.category]) : [],
       images: p.images ? (p.images.startsWith('[') ? JSON.parse(p.images) : []) : [],
-      attribute: p.attribute ? (p.attribute.startsWith('[') ? JSON.parse(p.attribute) : []) : []
+      attribute: p.attribute ? ((p.attribute.startsWith('[') || p.attribute.startsWith('{')) ? JSON.parse(p.attribute) : p.attribute) : null
     }))
   } catch (error: any) {
     console.error('Product GET Error:', error)

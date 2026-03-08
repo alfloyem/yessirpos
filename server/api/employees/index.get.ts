@@ -24,10 +24,24 @@ export default defineEventHandler(async (event: any) => {
       }
     })
 
-    return employees.map((e: any) => ({
-      ...e,
-      role: e.role ? JSON.parse(e.role) : []
-    }))
+    return employees.map((e: any) => {
+      let parsedRole = []
+      if (e.role) {
+        try {
+          if (e.role.startsWith('[') || e.role.startsWith('{') || e.role.startsWith('"')) {
+             parsedRole = JSON.parse(e.role)
+          } else {
+             parsedRole = [e.role]
+          }
+        } catch {
+          parsedRole = [e.role]
+        }
+      }
+      return {
+        ...e,
+        role: Array.isArray(parsedRole) ? parsedRole : [parsedRole]
+      }
+    })
   } catch (error: any) {
     console.error('Error in /api/employees GET:', error)
     throw createError({

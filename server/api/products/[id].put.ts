@@ -2,16 +2,25 @@ import { defineEventHandler, createError, readBody, getRouterParam } from 'h3'
 import prisma from '../../utils/prisma'
 import { saveBase64Image } from '../../utils/image'
 
-const processImages = async (images: any[], baseName: string, attributes?: string[]) => {
+const processImages = async (images: any[], baseName: string, attributes?: any) => {
   if (!Array.isArray(images)) return []
   
   const results = []
+  const safeBaseName = baseName || 'product'
   for (let i = 0; i < images.length; i++) {
     const img = images[i]
     if (img && typeof img === 'string' && img.startsWith('data:')) {
-      let filename = baseName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-      if (attributes && attributes.length > 0) {
-        filename += '_' + attributes.map(a => a.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')).join('_')
+      let filename = safeBaseName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+      if (attributes) {
+        let attrValues: string[] = []
+        if (Array.isArray(attributes)) {
+          attrValues = attributes.filter(a => typeof a === 'string')
+        } else if (typeof attributes === 'object' && attributes !== null) {
+          attrValues = Object.values(attributes).filter(a => typeof a === 'string') as string[]
+        }
+        if (attrValues.length > 0) {
+          filename += '_' + attrValues.map(a => a.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')).join('_')
+        }
       }
       if (i > 0) filename += `-${i}`
       
@@ -62,24 +71,25 @@ export default defineEventHandler(async (event: any) => {
       }
     }
 
-    const processedImages = await processImages(images, productName, attribute)
+    const processedImages = images !== undefined ? await processImages(images, productName || '', attribute) : undefined
+
+    const dataToUpdate: any = {}
+    if (productName !== undefined) dataToUpdate.productName = productName
+    if (brandName !== undefined) dataToUpdate.brandName = Array.isArray(brandName) ? JSON.stringify(brandName) : (brandName || null)
+    if (category !== undefined) dataToUpdate.category = Array.isArray(category) ? JSON.stringify(category) : (category || null)
+    if (barcode !== undefined) dataToUpdate.barcode = barcode
+    if (description !== undefined) dataToUpdate.description = description
+    if (processedImages !== undefined) dataToUpdate.images = Array.isArray(processedImages) ? JSON.stringify(processedImages) : null
+    if (wholesalePrice !== undefined) dataToUpdate.wholesalePrice = Number(wholesalePrice)
+    if (retailPrice !== undefined) dataToUpdate.retailPrice = Number(retailPrice)
+    if (stock !== undefined) dataToUpdate.stock = Number(stock)
+    if (reorderLevel !== undefined) dataToUpdate.reorderLevel = Number(reorderLevel)
+    if (attribute !== undefined) dataToUpdate.attribute = typeof attribute === 'object' && attribute !== null ? JSON.stringify(attribute) : (attribute || null)
+    if (parentProductId !== undefined) dataToUpdate.parentProductId = parentProductId || null
 
     const updated = await (prisma as any).product.update({
       where: { id },
-      data: {
-        productName,
-        brandName: Array.isArray(brandName) ? JSON.stringify(brandName) : (brandName || null),
-        category: Array.isArray(category) ? JSON.stringify(category) : (category || null),
-        barcode,
-        description,
-        images: Array.isArray(processedImages) ? JSON.stringify(processedImages) : (processedImages || null),
-        wholesalePrice: Number(wholesalePrice),
-        retailPrice: Number(retailPrice),
-        stock: Number(stock),
-        reorderLevel: Number(reorderLevel),
-        attribute: Array.isArray(attribute) ? JSON.stringify(attribute) : (attribute || null),
-        parentProductId: parentProductId || null
-      }
+      data: dataToUpdate
     })
 
     const parsedUpdated = {
@@ -87,7 +97,7 @@ export default defineEventHandler(async (event: any) => {
       brandName: updated.brandName ? (updated.brandName.startsWith('[') ? JSON.parse(updated.brandName) : [updated.brandName]) : [],
       category: updated.category ? (updated.category.startsWith('[') ? JSON.parse(updated.category) : [updated.category]) : [],
       images: updated.images ? (updated.images.startsWith('[') ? JSON.parse(updated.images) : []) : [],
-      attribute: updated.attribute ? (updated.attribute.startsWith('[') ? JSON.parse(updated.attribute) : []) : []
+      attribute: updated.attribute ? ((updated.attribute.startsWith('[') || updated.attribute.startsWith('{')) ? JSON.parse(updated.attribute) : updated.attribute) : null
     }
 
     return parsedUpdated

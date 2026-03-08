@@ -13,7 +13,7 @@ export default defineEventHandler(async (event: any) => {
     if (data.brandName !== undefined) data.brandName = Array.isArray(data.brandName) ? JSON.stringify(data.brandName) : data.brandName
     if (data.category !== undefined) data.category = Array.isArray(data.category) ? JSON.stringify(data.category) : data.category
     if (data.images !== undefined) data.images = Array.isArray(data.images) ? JSON.stringify(data.images) : data.images
-    if (data.attribute !== undefined) data.attribute = Array.isArray(data.attribute) ? JSON.stringify(data.attribute) : data.attribute
+    if (data.attribute !== undefined) data.attribute = typeof data.attribute === 'object' && data.attribute !== null ? JSON.stringify(data.attribute) : data.attribute
     
     if (data.wholesalePrice !== undefined) data.wholesalePrice = Number(data.wholesalePrice)
     if (data.retailPrice !== undefined) data.retailPrice = Number(data.retailPrice)

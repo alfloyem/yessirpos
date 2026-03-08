@@ -2,17 +2,26 @@ import { defineEventHandler, createError, readBody } from 'h3'
 import prisma from '../../utils/prisma'
 import { saveBase64Image } from '../../utils/image'
 
-const processImages = async (images: any[], baseName: string, attributes?: string[]) => {
+const processImages = async (images: any[], baseName: string, attributes?: any) => {
   if (!Array.isArray(images)) return []
   
   const results = []
+  const safeBaseName = baseName || 'product'
   for (let i = 0; i < images.length; i++) {
     const img = images[i]
-    if (img.startsWith('data:')) {
+    if (img && typeof img === 'string' && img.startsWith('data:')) {
       // It's a new upload
-      let filename = baseName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-      if (attributes && attributes.length > 0) {
-        filename += '_' + attributes.map(a => a.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')).join('_')
+      let filename = safeBaseName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+      if (attributes) {
+        let attrValues: string[] = []
+        if (Array.isArray(attributes)) {
+          attrValues = attributes.filter(a => typeof a === 'string')
+        } else if (typeof attributes === 'object' && attributes !== null) {
+          attrValues = Object.values(attributes).filter(a => typeof a === 'string') as string[]
+        }
+        if (attrValues.length > 0) {
+          filename += '_' + attrValues.map(a => a.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')).join('_')
+        }
       }
       if (i > 0) filename += `-${i}`
       
@@ -98,7 +107,7 @@ export default defineEventHandler(async (event: any) => {
         retailPrice: Number(retailPrice) || 0,
         stock: Number(stock) || 0,
         reorderLevel: Number(reorderLevel) || 0,
-        attribute: Array.isArray(attribute) ? JSON.stringify(attribute) : null,
+        attribute: typeof attribute === 'object' && attribute !== null ? JSON.stringify(attribute) : (attribute || null),
         parentProductId: parentProductId || null,
         createdBy: user?.name || user?.username || 'Admin',
         createdAt: createdAt ? new Date(createdAt) : undefined
@@ -110,7 +119,7 @@ export default defineEventHandler(async (event: any) => {
       brandName: product.brandName ? (product.brandName.startsWith('[') ? JSON.parse(product.brandName) : [product.brandName]) : [],
       category: product.category ? (product.category.startsWith('[') ? JSON.parse(product.category) : [product.category]) : [],
       images: product.images ? (product.images.startsWith('[') ? JSON.parse(product.images) : []) : [],
-      attribute: product.attribute ? (product.attribute.startsWith('[') ? JSON.parse(product.attribute) : []) : []
+      attribute: product.attribute ? ((product.attribute.startsWith('[') || product.attribute.startsWith('{')) ? JSON.parse(product.attribute) : product.attribute) : null
     }
 
     return parsedProduct
