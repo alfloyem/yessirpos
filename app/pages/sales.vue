@@ -35,8 +35,39 @@ const searchInput = ref<any>(null)
 
 // Modal states
 const showPaymentModal = ref(false)
+const showGhostModal = ref(false)
 const paymentMethod = ref('cash')
 const isSaving = ref(false)
+
+const ghostProduct = ref({
+  productName: '',
+  retailPrice: ''
+})
+
+const addGhostProduct = () => {
+  if (!ghostProduct.value.productName || !ghostProduct.value.retailPrice) {
+    toast.error('Ad və qiymət daxil edilməlidir')
+    return
+  }
+
+  const id = `ghost-${Date.now()}`
+  const product = {
+    id,
+    productName: ghostProduct.value.productName,
+    retailPrice: Number(ghostProduct.value.retailPrice),
+    barcode: 'GHOST',
+    qty: 1,
+    itemDiscount: 0,
+    itemDiscountType: 'amount'
+  }
+
+  addToCart(product)
+  showGhostModal.value = false
+  ghostProduct.value = { productName: '', retailPrice: '' }
+  nextTick(() => {
+    focusSearch()
+  })
+}
 
 const focusSearch = () => {
   if (searchInput.value) {
@@ -353,16 +384,28 @@ const completeOrder = async () => {
           {{ t('menu.salesTerminal', 'Satış Terminalı') }}
         </h1>
         
-        <div class="w-64 relative">
-          <UiInput 
-            ref="searchInput"
-            v-model="searchQuery" 
-            placeholder="Axtar..." 
-            icon="lucide:search" 
-            clearable
-            class="!py-1.5"
-            @keyup.enter="focusSearch"
-          />
+        <div class="flex items-center gap-3">
+          <UiButton 
+            variant="outline" 
+            size="sm" 
+            class="!rounded-xl !h-10 border-dashed border-[var(--text-primary)]/40 hover:border-[var(--text-primary)] hover:bg-[var(--text-primary)]/5 text-[var(--text-primary)]"
+            @click="showGhostModal = true"
+          >
+            <UiIcon name="lucide:plus-circle" class="w-4 h-4 mr-2" />
+            Keçici Məhsul
+          </UiButton>
+
+          <div class="w-64 relative">
+            <UiInput 
+              ref="searchInput"
+              v-model="searchQuery" 
+              placeholder="Axtar..." 
+              icon="lucide:search" 
+              clearable
+              class="!py-1.5"
+              @keyup.enter="focusSearch"
+            />
+          </div>
         </div>
       </div>
 
@@ -480,6 +523,54 @@ const completeOrder = async () => {
       </div>
 
     </div>
+  </Modal>
+  
+  <!-- Ghost Product Modal -->
+  <Modal
+    v-model="showGhostModal"
+    :title="t('sales.addGhost', 'Keçici Məhsul Əlavə Et')"
+    max-width="md"
+  >
+    <div class="space-y-4">
+      <div>
+        <label class="block text-xs font-black uppercase tracking-widest text-[var(--text-app)] opacity-40 mb-1.5">Məhsulun Adı</label>
+        <UiInput 
+          v-model="ghostProduct.productName" 
+          placeholder="Məs: Paket, Xidmət və s." 
+          class="!bg-[var(--bg-app)]"
+          autofocus
+        />
+      </div>
+      <div>
+        <label class="block text-xs font-black uppercase tracking-widest text-[var(--text-app)] opacity-40 mb-1.5">Qiymət (₼)</label>
+        <UiInput 
+          v-model="ghostProduct.retailPrice" 
+          type="number"
+          placeholder="0.00" 
+          class="!bg-[var(--bg-app)]"
+        />
+      </div>
+    </div>
+    <template #footer>
+      <div class="flex gap-3 w-full">
+        <UiButton 
+          variant="outline" 
+          block 
+          class="!rounded-xl"
+          @click="showGhostModal = false"
+        >
+          Ləğv Et
+        </UiButton>
+        <UiButton 
+          variant="primary" 
+          block 
+          class="!rounded-xl shadow-lg shadow-[var(--text-primary)]/20"
+          @click="addGhostProduct"
+        >
+          Səbətə Əlavə Et
+        </UiButton>
+      </div>
+    </template>
   </Modal>
 
 </template>
