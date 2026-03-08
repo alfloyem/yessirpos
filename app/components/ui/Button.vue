@@ -12,7 +12,7 @@ const props = defineProps<{
   type?: 'button' | 'submit' | 'reset'
 }>()
 
-const baseClasses = "inline-flex items-center justify-center font-medium transition-colors duration-200 outline-none disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-[var(--text-primary)]/20"
+const baseClasses = "inline-flex items-center justify-center font-bold tracking-wide transition-all duration-200 outline-none disabled:opacity-30 disabled:cursor-not-allowed disabled:grayscale cursor-pointer focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-[var(--text-primary)]/20 active:scale-[0.97] active:brightness-90"
 
 const sizeClasses = computed(() => {
   switch (props.size) {

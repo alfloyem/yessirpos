@@ -39,6 +39,7 @@ const searchInput = ref<any>(null)
 const showPaymentModal = ref(false)
 const showGhostModal = ref(false)
 const paymentMethod = ref('Nəğd')
+const paymentDetails = ref<any>(null)
 const isSaving = ref(false)
 
 // Manage Payment Methods State (Only storage, management moved to component)
@@ -456,10 +457,35 @@ const printReceipt = () => {
           <span>${isRefund ? 'ÖDƏNİLMƏLİ:' : 'YEKUN ÖDƏNİŞ:'}</span>
           <span>${isRefund ? '-' : ''}${finalTotal.value.toFixed(2)} ₼</span>
         </div>
-        <div class="summary-row" style="margin-top: 8px;">
-          <span>Ödəniş Növü:</span>
-          <span>${paymentMethod.value === 'cash' ? 'Nəğd' : 'Kart'}</span>
-        </div>
+
+        <div class="divider" style="margin: 10px 0; border-style: dotted; border-width: 1px;"></div>
+
+        ${paymentDetails.value?.isMulti ? 
+          Object.entries(paymentDetails.value.payments)
+            .filter(([_, amt]) => (amt as number) > 0)
+            .map(([name, amt]) => `
+              <div class="summary-row">
+                <span>${name}:</span>
+                <span>${(amt as number).toFixed(2)} ₼</span>
+              </div>
+            `).join('')
+          : `
+            <div class="summary-row">
+              <span>Ödəniş Üsulu:</span>
+              <span>${paymentDetails.value?.method || paymentMethod.value}</span>
+            </div>
+            ${paymentDetails.value?.received ? `
+              <div class="summary-row">
+                <span>Alınan:</span>
+                <span>${Number(paymentDetails.value.received).toFixed(2)} ₼</span>
+              </div>
+              <div class="summary-row" style="font-weight: bold;">
+                <span>Qalıq:</span>
+                <span>${Number(paymentDetails.value.change).toFixed(2)} ₼</span>
+              </div>
+            ` : ''}
+          `
+        }
         
         <div class="divider"></div>
         
@@ -487,48 +513,58 @@ const printReceipt = () => {
 const showGiftCardModal = ref(false)
 const giftCardBarcode = ref('')
 
-const completeOrder = async () => {
+const completeOrder = async (details?: any) => {
   const isRefund = mode.value === 'refund'
   const total = finalTotal.value
   const customer = selectedCustomer.value
   
-  // 1. Payment Method Specific Logic
-  if (paymentMethod.value === 'Bonus') {
-    if (!customer) {
-      toast.error('Bonus ilə ödəniş üçün müştəri seçilməlidir')
-      return
-    }
-    if ((Number(customer.bonus) || 0) < total) {
-      toast.error('Müştərinin balansında kifayət qədər bonus yoxdur')
-      return
-    }
-  }
+  // Store details for receipt
+  paymentDetails.value = details || { isMulti: false, method: paymentMethod.value }
+  
+  // 1. Validate Payments
+  const payments = details?.isMulti ? details.payments : { [paymentMethod.value]: total }
+  
+  for (const [method, amount] of Object.entries(payments)) {
+    const amt = Number(amount)
+    if (amt <= 0) continue
 
-  if (paymentMethod.value === 'Hədiyyə Kartı' && !isRefund) {
-    if (!giftCardBarcode.value) {
-      showGiftCardModal.value = true
-      return
+    if (method === 'Bonus') {
+      if (!customer) {
+        toast.error('Bonus ilə ödəniş üçün müştəri seçilməlidir')
+        return
+      }
+      if ((Number(customer.bonus) || 0) < amt) {
+        toast.error('Müştərinin balansında kifayət qədər bonus yoxdur')
+        return
+      }
     }
-    try {
-      const cards = await $fetch<any[]>('/api/gift-cards')
-      const card = (cards || []).find(c => c.barcode === giftCardBarcode.value)
-      if (!card) {
-        toast.error('Hədiyyə kartı tapılmadı')
-        giftCardBarcode.value = ''
+
+    if (method === 'Hədiyyə Kartı' && !isRefund) {
+      const barcodeToUse = details?.giftCardBarcode || giftCardBarcode.value
+      if (!barcodeToUse) {
+        toast.error('Hədiyyə kartı barkodu daxil edilməlidir')
         return
       }
-      if (card.value < total) {
-        toast.error(`Kartda kifayət qədər balans yoxdur (Mövcud: ${card.value.toFixed(2)} ₼)`)
+      try {
+        const cards = await $fetch<any[]>('/api/gift-cards')
+        const card = (cards || []).find(c => c.barcode === barcodeToUse)
+        if (!card) {
+          toast.error('Hədiyyə kartı tapılmadı')
+          return
+        }
+        if (card.value < amt) {
+          toast.error(`Kartda kifayət qədər balans yoxdur (Mövcud: ${card.value.toFixed(2)} ₼)`)
+          return
+        }
+        // Deduct from gift card
+        await $fetch<any>(`/api/gift-cards/${card.id}`, {
+          method: 'PUT',
+          body: { value: Number((card.value - amt).toFixed(2)) }
+        })
+      } catch (err) {
+        toast.error('Hədiyyə kartı yoxlanılarkən xəta oldu')
         return
       }
-      // Deduct from gift card
-      await $fetch<any>(`/api/gift-cards/${card.id}`, {
-        method: 'PUT',
-        body: { value: Number((card.value - total).toFixed(2)) }
-      })
-    } catch (err) {
-      toast.error('Hədiyyə kartı yoxlanılarkən xəta oldu')
-      return
     }
   }
 
@@ -541,10 +577,17 @@ const completeOrder = async () => {
     try {
       let finalBonusUpdate = Number(customer.bonus) || 0
       
-      if (paymentMethod.value === 'Bonus') {
-        finalBonusUpdate -= total // Spend bonus
-      } else {
-        finalBonusUpdate += currentCashback // Earn bonus
+      // Calculate total bonus spent across all payments
+      const bonusSpent = payments['Bonus'] ? Number(payments['Bonus']) : 0
+      
+      if (bonusSpent > 0) {
+        finalBonusUpdate -= bonusSpent
+      }
+      
+      // Keşbek is earned only on non-bonus payments?
+      // For now, let's keep it simple: gain cashback on total if not fully bonus
+      if (bonusSpent < total) {
+        finalBonusUpdate += currentCashback
       }
 
       await $fetch<any>(`/api/customers/${customer.id}`, {
@@ -562,9 +605,11 @@ const completeOrder = async () => {
   setTimeout(() => {
     let msg = isRefund ? 'Geri ödəniş uğurla tamamlandı!' : 'Satış uğurla tamamlandı!'
     if (!isRefund && customerName) {
-      if (paymentMethod.value === 'Bonus') {
-        msg += `\n${total.toFixed(2)} ₼ bonus balansından çıxıldı.`
-      } else {
+      const bonusSpent = payments['Bonus'] ? Number(payments['Bonus']) : 0
+      if (bonusSpent > 0) {
+        msg += `\n${bonusSpent.toFixed(2)} ₼ bonus balansından çıxıldı.`
+      }
+      if (bonusSpent < total) {
         msg += `\n${customerName} hesabına ${currentCashback.toFixed(2)} ₼ keşbek əlavə edildi.`
       }
     }
@@ -697,6 +742,7 @@ const completeOrder = async () => {
     :total="finalTotal"
     :dbMethods="paymentMethods"
     :isSaving="isSaving"
+    :customer="selectedCustomer"
     @confirm="completeOrder"
     @refresh-methods="loadPaymentMethods"
   />
@@ -787,32 +833,6 @@ const completeOrder = async () => {
     </template>
   </Modal>
 
-
-  <!-- Gift Card Input Modal -->
-  <Modal v-model="showGiftCardModal" title="Hədiyyə Kartı Məlumatı" max-width="sm">
-    <div class="p-6 space-y-4">
-      <div class="text-center">
-        <div class="w-16 h-16 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-          <UiIcon name="lucide:gift" class="w-8 h-8 text-purple-500" />
-        </div>
-        <h4 class="font-bold text-[var(--text-app)]">Kartın Barkodunu Daxil Edin</h4>
-        <p class="text-xs opacity-50 mt-1">Ödənişi tamamlamaq üçün kart skan edilməlidir</p>
-      </div>
-
-      <UiInput 
-        v-model="giftCardBarcode" 
-        placeholder="GXXXXXXX" 
-        class="!bg-[var(--bg-app)] !text-center !text-lg !font-mono"
-        autofocus
-        @keyup.enter="completeOrder"
-      />
-
-      <div class="flex gap-3 pt-4">
-        <UiButton variant="outline" block @click="showGiftCardModal = false" class="flex-1">Ləğv Et</UiButton>
-        <UiButton variant="primary" block @click="completeOrder" class="flex-1" :disabled="!giftCardBarcode">Davam Et</UiButton>
-      </div>
-    </div>
-  </Modal>
   </div>
 </template>
 
