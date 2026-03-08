@@ -255,12 +255,9 @@ const completeOrder = async () => {
       
       <!-- Top Action Bar -->
       <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-6 shrink-0">
-        <div>
-          <h1 class="text-2xl md:text-3xl font-bold text-[var(--text-app)] tracking-tight">
-            {{ t('menu.salesTerminal', 'Satış Terminalı') }}
-          </h1>
-          <p class="text-[var(--text-app)] opacity-60 mt-0.5 text-sm font-medium">Bu ekrandan sürətli məhsul satışı edə bilərsiniz.</p>
-        </div>
+        <h1 class="text-2xl md:text-3xl font-bold text-[var(--text-app)] tracking-tight">
+          {{ t('menu.salesTerminal', 'Satış Terminalı') }}
+        </h1>
         
         <div class="w-full md:w-80 relative shadow-sm rounded-2xl">
           <UiInput 
@@ -337,9 +334,6 @@ const completeOrder = async () => {
                 <span class="text-lg font-black text-[var(--text-primary)]">
                   {{ Number(product.retailPrice || 0).toFixed(2) }} ₼
                 </span>
-                <UiButton size="icon" variant="soft-primary" class="h-8 w-8 !rounded-lg !hidden group-hover:!flex shrink-0">
-                  <UiIcon name="lucide:plus" class="w-4 h-4" />
-                </UiButton>
               </div>
             </div>
           </div>
