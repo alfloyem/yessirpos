@@ -9,10 +9,24 @@ export default defineEventHandler(async (event: any) => {
       }
     })
 
-    return attributes.map((a: any) => ({
-      ...a,
-      values: a.values ? JSON.parse(a.values) : []
-    }))
+    return attributes.map((a: any) => {
+      let parsedValues = []
+      if (a.values) {
+        if (Array.isArray(a.values)) {
+          parsedValues = a.values
+        } else if (typeof a.values === 'string') {
+          try {
+            parsedValues = a.values.startsWith('[') ? JSON.parse(a.values) : [a.values]
+          } catch {
+            parsedValues = [a.values]
+          }
+        }
+      }
+      return {
+        ...a,
+        values: Array.isArray(parsedValues) ? parsedValues : [parsedValues]
+      }
+    })
   } catch (error) {
     console.error('Attributes GET Error:', error)
     throw createError({

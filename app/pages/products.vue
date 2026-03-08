@@ -376,13 +376,28 @@ const handleEdit = (row: any) => {
     variantImages.value = [...(row.images || [])]
     
     // Parse attributes like "Color: Red" back to {id, name, value}
-    selectedVariantAttr.value = (row.attribute || []).map((attrStr: string) => {
-      const [name, value] = attrStr.split(':').map(s => s.trim())
+    let rawAttrs = []
+    if (row.attribute) {
+      if (Array.isArray(row.attribute)) {
+        rawAttrs = row.attribute
+      } else if (typeof row.attribute === 'string') {
+        try {
+          const parsed = JSON.parse(row.attribute)
+          rawAttrs = Array.isArray(parsed) ? parsed : [parsed]
+        } catch {
+          rawAttrs = [row.attribute]
+        }
+      }
+    }
+
+    selectedVariantAttr.value = rawAttrs.map((attrStr: any) => {
+      const str = String(attrStr)
+      const [name, value] = str.split(':').map(s => s.trim())
       const attrDef = availableAttributes.value.find(a => a.name === name)
       return {
         id: attrDef?.id || Math.random().toString(),
         name: name,
-        value: value
+        value: value || ''
       }
     })
     
