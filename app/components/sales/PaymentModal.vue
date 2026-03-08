@@ -159,16 +159,19 @@ const availableIcons = [
             <UiButton 
               variant="success" 
               block 
-              class="!h-11 !rounded-xl !text-[13px] font-bold text-white shadow-lg shadow-emerald-500/20 bg-gradient-to-r from-emerald-500 to-green-600 border-none transition-all hover:scale-[1.01] active:scale-[0.99]"
+              icon="lucide:printer"
               @click="emit('confirm')"
               :loading="isSaving"
             >
-              <span class="flex items-center justify-center gap-2.5">
-                <UiIcon name="lucide:printer" class="w-4.5 h-4.5" />
-                Təsdiqlə və Çap Et
-              </span>
+              Təsdiqlə və Çap Et
             </UiButton>
-            <button @click="emit('update:modelValue', false)" class="w-full h-10 rounded-xl text-xs font-bold text-[var(--text-app)] opacity-40 hover:opacity-100 transition-all">Ləğv et</button>
+            <UiButton 
+              variant="ghost" 
+              block 
+              @click="emit('update:modelValue', false)"
+            >
+              Ləğv et
+            </UiButton>
           </div>
         </div>
 
@@ -186,9 +189,9 @@ const availableIcons = [
             <h5 class="text-[10px] font-bold opacity-40 tracking-wider">{{ editingMethod ? 'Metodu yenilə' : 'Yeni ödəniş növü' }}</h5>
             <div class="flex gap-3">
               <div class="flex-1 relative">
-                <UiInput v-model="methodForm.name" placeholder="Məs: Bank Transfer" class="!h-10 !rounded-xl !text-xs !bg-[var(--bg-app)]" :disabled="editingMethod?.isSystem" />
+                <UiInput v-model="methodForm.name" placeholder="Məs: Bank Transfer" :disabled="editingMethod?.isSystem" />
               </div>
-              <UiButton variant="primary" size="sm" class="!h-10 !rounded-xl !px-6" @click="saveMethod">
+              <UiButton variant="primary" size="md" @click="saveMethod">
                 {{ editingMethod ? 'Yadda saxla' : 'Əlavə et' }}
               </UiButton>
             </div>

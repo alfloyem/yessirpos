@@ -14,6 +14,7 @@ const props = defineProps<{
   clearable?: boolean
   showPassword?: boolean
   barcodePrefix?: string
+  size?: 'sm' | 'md'
 }>()
 
 const emit = defineEmits(['update:modelValue', 'clear', 'update:showPassword'])

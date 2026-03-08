@@ -104,7 +104,6 @@ const getItemTotal = (item: CartItem) => {
             <UiIcon :name="mode === 'sale' ? 'lucide:shopping-bag' : 'lucide:rotate-ccw'" class="w-4 h-4 text-[var(--text-primary)]" />
             {{ mode === 'sale' ? t('cart.title', 'Səbət') : t('cart.refund', 'Refund') }}
           </h2>
-          <p class="text-[9px] font-medium opacity-30">{{ totalQty }} məhsul seçilib</p>
         </div>
         <div class="flex items-center gap-2">
           <button 
@@ -182,7 +181,6 @@ const getItemTotal = (item: CartItem) => {
             }))"
             placeholder="Müştəri axtar (...)" 
             icon="lucide:user-search" 
-            class="!rounded-2xl !bg-[var(--bg-app)] !border-[var(--border-app)]/50 !h-12 !text-[13px] !pl-12"
           />
         </div>
       </div>
@@ -269,15 +267,15 @@ const getItemTotal = (item: CartItem) => {
     <!-- Summary & Checkout -->
     <div class="bg-[var(--bg-app)]/60 border-t border-[var(--border-app)] p-4 pt-3 space-y-3 shrink-0">
       <div class="space-y-1.5">
+
         <div class="flex justify-between text-[12px] font-bold text-[var(--text-app)] opacity-50">
-          <span>{{ mode === 'sale' ? t('cart.subtotal', 'Alt Toplam') : t('cart.refundSubtotal', 'Refund Alt Toplam') }}:</span>
-          <span class="tabular-nums font-black">{{ mode === 'refund' ? '-' : '' }}{{ subtotal.toFixed(2) }} ₼</span>
+          <span>{{ totalQty }} ədəd</span>
+          <span>{{ subtotal.toFixed(2) }} ₼</span>
         </div>
 
-        <div v-if="selectedCustomer && mode === 'sale'" class="flex justify-between text-[11px] font-bold text-[var(--text-primary)] animate-pulse">
+        <div v-if="selectedCustomer && mode === 'sale'" class="flex justify-between text-[12px] font-bold text-[var(--text-app)] opacity-50">
           <span class="flex items-center gap-1.5">
-            <UiIcon name="lucide:plus-circle" class="w-3 h-3" />
-            {{ t('cart.cashbackEarned', 'Qazanılacaq Keşbek (5%)') }}:
+            {{ t('cart.cashbackEarned') }}:
           </span>
           <span class="tabular-nums font-black">+{{ cashbackAmount }} ₼</span>
         </div>
@@ -305,30 +303,22 @@ const getItemTotal = (item: CartItem) => {
             </div>
           </div>
           
-          <div class="w-24">
-            <UiInput 
-              :model-value="discount" 
-              @update:model-value="handleDiscountInput"
-              type="number" 
-              placeholder="0.00" 
-              class="!py-1.5 !text-right font-black !text-[13px] !rounded-xl !bg-[var(--bg-app)]" 
-            />
-          </div>
+          <UiInput 
+            :model-value="discount" 
+            @update:model-value="handleDiscountInput"
+            type="number" 
+            placeholder="0.00"
+          />
         </div>
       </div>
       
-      <div class="border-t border-[var(--border-app)] border-dashed pt-3 flex justify-between items-end">
-        <div class="flex flex-col">
-          <span class="text-[9px] font-black tracking-widest text-[var(--text-app)] opacity-40 mb-1 uppercase">
-            {{ mode === 'sale' ? t('cart.toPay', 'Yekun Ödəniş') : t('cart.toRefund', 'Geri Ödəniləcək') }}
+      <div class="border-t border-[var(--border-app)] border-dashed pt-3 flex justify-between items-center gap-2">
+          <span class="text-sm font-medium text-[var(--text-app)] opacity-40 shrink-0">
+            {{ mode === 'sale' ? t('cart.toPay', 'Yekun Ödəniş') : t('cart.toRefund', 'Geri Ödəniləcək') }}:
           </span>
-          <span class="text-2xl font-black tabular-nums transition-colors" :class="mode === 'sale' ? 'text-[var(--text-primary)]' : 'text-[var(--color-brand-danger)]'">
+          <span class="text-xl font-black tabular-nums transition-colors whitespace-nowrap" :class="mode === 'sale' ? 'text-[var(--text-primary)]' : 'text-[var(--color-brand-danger)]'">
             {{ mode === 'refund' ? '-' : '' }}{{ finalTotal.toFixed(2) }} ₼
           </span>
-        </div>
-        <div class="text-[9px] font-black px-2 py-1 bg-[var(--text-app)]/5 text-[var(--text-app)] rounded-md border border-[var(--text-app)]/10">
-          {{ totalQty }} ƏDƏD
-        </div>
       </div>
 
       <UiButton 
@@ -337,13 +327,9 @@ const getItemTotal = (item: CartItem) => {
         :variant="mode === 'sale' ? 'primary' : 'danger'"
         @click="emit('checkout')" 
         :disabled="cart.length === 0"
-        class="!rounded-xl !h-11 shadow-md active:scale-[0.98] transition-all"
-        :class="mode === 'sale' ? 'shadow-[var(--text-primary)]/10' : 'shadow-red-500/10'"
+        :icon-right="mode === 'sale' ? 'lucide:chevron-right' : 'lucide:rotate-ccw'"
       >
-        <span class="flex items-center justify-center gap-2 font-bold text-sm">
-          {{ mode === 'sale' ? t('cart.proceed', 'Ödənişi tamamla') : t('cart.refundSubmit', 'Refund tamamla') }}
-          <UiIcon :name="mode === 'sale' ? 'lucide:chevron-right' : 'lucide:rotate-ccw'" class="w-4 h-4" />
-        </span>
+        {{ mode === 'sale' ? t('cart.proceed', 'Ödənişi tamamla') : t('cart.refundSubmit', 'Refund tamamla') }}
       </UiButton>
     </div>
   </div>

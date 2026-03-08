@@ -596,40 +596,31 @@ const completeOrder = async () => {
         <div class="flex items-center gap-2">
           <UiButton 
             v-if="drafts.length > 0"
-            variant="outline" 
+            variant="warning" 
             size="sm" 
-            class="!rounded-xl !h-10 border-dashed border-orange-500/30 hover:border-orange-500 hover:bg-orange-500/5 !text-orange-500 hover:!text-orange-500 px-4 transition-all active:scale-95"
+            icon="lucide:bookmark"
             @click="showDraftsModal = true"
           >
-            <span class="flex items-center justify-center gap-1.5">
-              <UiIcon name="lucide:bookmark" class="w-3.5 h-3.5" />
-              <span class="font-bold text-[12px]">Draftlar ({{ drafts.length }})</span>
-            </span>
+            Draftlar ({{ drafts.length }})
           </UiButton>
 
           <UiButton 
-            variant="outline" 
+            variant="soft-primary" 
             size="sm" 
-            class="!rounded-xl !h-10 border-dashed border-[var(--text-primary)]/30 hover:border-[var(--text-primary)] hover:bg-[var(--text-primary)]/5 text-[var(--text-primary)] px-4 transition-all active:scale-95"
+            icon="lucide:plus-circle"
             @click="showGhostModal = true"
           >
-            <span class="flex items-center justify-center gap-1.5">
-              <UiIcon name="lucide:plus-circle" class="w-3.5 h-3.5" />
-              <span class="font-bold text-[12px]">Keçici Məhsul</span>
-            </span>
+            Keçici Məhsul
           </UiButton>
 
-          <div class="w-full md:w-64 relative">
-            <UiInput 
-              ref="searchInput"
-              v-model="searchQuery" 
-              placeholder="Barkod və ya ad..." 
-              icon="lucide:search" 
-              clearable
-              class="!rounded-xl !bg-[var(--input-bg)] !border-[var(--border-app)]/50 !h-10 !text-[13px] !pl-10"
-              @keyup.enter="focusSearch"
-            />
-          </div>
+          <UiInput 
+            ref="searchInput"
+            v-model="searchQuery" 
+            placeholder="Barkod və ya ad..." 
+            icon="lucide:search" 
+            clearable
+            @keyup.enter="focusSearch"
+          />
         </div>
       </div>
 
@@ -661,7 +652,7 @@ const completeOrder = async () => {
           <p class="font-bold text-lg">Məhsul tapılmadı.</p>
         </div>
 
-        <div v-else class="grid gap-3 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]">
+        <div v-else class="pt-2 grid gap-3 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]">
           <SalesProductSaleCard 
             v-for="root in filteredProductGroups" 
             :key="root.id"
@@ -761,7 +752,6 @@ const completeOrder = async () => {
         <UiInput 
           v-model="ghostProduct.productName" 
           placeholder="Məs: Paket, Xidmət və s." 
-          class="!bg-[var(--bg-app)] !h-10 !text-[13px]"
           autofocus
         />
       </div>
@@ -771,7 +761,6 @@ const completeOrder = async () => {
           v-model="ghostProduct.retailPrice" 
           type="number"
           placeholder="0.00" 
-          class="!bg-[var(--bg-app)] !h-10 !text-[13px]"
         />
       </div>
     </div>
@@ -780,7 +769,6 @@ const completeOrder = async () => {
         <UiButton 
           variant="outline" 
           block 
-          class="!rounded-xl"
           @click="showGhostModal = false"
         >
           Ləğv Et
@@ -788,7 +776,6 @@ const completeOrder = async () => {
         <UiButton 
           variant="primary" 
           block 
-          class="!rounded-xl shadow-lg shadow-[var(--text-primary)]/20"
           @click="addGhostProduct"
         >
           Səbətə Əlavə Et
