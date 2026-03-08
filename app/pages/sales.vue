@@ -419,7 +419,7 @@ const printReceipt = () => {
       <body>
         <div class="text-center mb-4">
           <h2 class="header-title">YESSIR POS</h2>
-          <p style="margin: 4px 0; font-size: 12px;">Salash Giyim Mağazası</p>
+          <p style="margin: 4px 0; font-size: 12px;">BakuStreet</p>
           <div class="mode-badge">${isRefund ? 'GERİ ÖDƏNİŞ (REFUND)' : 'SATIŞ QƏBZİ'}</div>
           <p style="margin: 4px 0; font-size: 12px;">Tarix: ${currentDate}</p>
         </div>
