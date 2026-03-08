@@ -41,7 +41,7 @@ const loadData = async () => {
     customersOptions.value = (customersRes as any[]).map(c => ({
       label: `${c.firstName} ${c.lastName}`,
       value: c.id,
-      extra: c.barcode
+      extra: c.phone ? `${c.phone}${c.barcode ? ' • ' + c.barcode : ''}` : c.barcode
     }))
 
   } catch (err: any) {

@@ -23,12 +23,16 @@ const props = defineProps<{
   mode: 'sale' | 'refund'
   subtotal: number
   finalTotal: number
+  customers: any[]
+  selectedCustomer: any
+  cashbackAmount: string | number
 }>()
 
 const emit = defineEmits<{
   'update:discount': [val: number | string]
   'update:discountType': [val: 'amount' | 'percent']
   'update:mode': [val: 'sale' | 'refund']
+  'update:selectedCustomer': [val: any]
   'update-item-discount': [item: CartItem, val: number | string]
   'update-item-discount-type': [item: CartItem, val: 'amount' | 'percent']
   'increase': [item: CartItem]
@@ -39,6 +43,26 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+
+const customerSearch = ref('')
+const showCustomerResults = ref(false)
+
+const filteredCustomers = computed(() => {
+  if (!customerSearch.value) return []
+  const q = customerSearch.value.toLowerCase()
+  return props.customers.filter(c => 
+    (c.firstName && c.firstName.toLowerCase().includes(q)) || 
+    (c.lastName && c.lastName.toLowerCase().includes(q)) || 
+    (c.phone && String(c.phone).includes(q)) ||
+    (c.barcode && String(c.barcode).toLowerCase().includes(q))
+  ).slice(0, 5)
+})
+
+const selectCustomer = (customer: any) => {
+  emit('update:selectedCustomer', customer)
+  customerSearch.value = ''
+  showCustomerResults.value = false
+}
 
 const totalQty = computed(() => {
   return props.cart.reduce((sum, item) => sum + item.qty, 0)
@@ -70,7 +94,7 @@ const getItemTotal = (item: CartItem) => {
 </script>
 
 <template>
-  <div class="flex flex-col bg-[var(--input-bg)] rounded-[24px] border border-[var(--border-app)] shadow-sm overflow-hidden h-full">
+  <div class="flex flex-col bg-[var(--input-bg)] rounded-[24px] border border-[var(--border-app)] shadow-sm h-full">
     <!-- Header with Mode Toggle -->
     <div class="p-4 border-b border-[var(--border-app)] bg-[var(--bg-app)]/40 backdrop-blur-md shrink-0">
       <div class="flex justify-between items-center mb-4">
@@ -88,7 +112,7 @@ const getItemTotal = (item: CartItem) => {
       </div>
 
       <!-- Mode Selector -->
-      <div class="flex p-1 bg-[var(--input-bg)] rounded-xl border border-[var(--border-app)] shadow-inner">
+      <div class="flex p-1 bg-[var(--input-bg)] rounded-xl border border-[var(--border-app)] shadow-inner mb-4">
         <button 
           @click="toggleMode('sale')"
           class="flex-1 py-2 px-3 rounded-lg text-[12px] font-bold transition-all flex items-center justify-center gap-2"
@@ -105,6 +129,44 @@ const getItemTotal = (item: CartItem) => {
           <UiIcon name="lucide:rotate-ccw" class="w-3.5 h-3.5" />
           {{ t('cart.modeRefund', 'Refund') }}
         </button>
+      </div>
+
+      <!-- Customer Search/Selection -->
+      <div class="relative">
+        <div v-if="selectedCustomer" class="flex items-center justify-between p-3 bg-[var(--text-primary)]/5 border border-[var(--text-primary)]/20 rounded-xl">
+          <div class="flex items-center gap-3 overflow-hidden">
+            <div class="w-9 h-9 rounded-full bg-[var(--text-primary)]/10 flex items-center justify-center shrink-0">
+              <UiIcon name="lucide:user" class="w-5 h-5 text-[var(--text-primary)]" />
+            </div>
+            <div class="flex flex-col min-w-0">
+              <span class="text-[13px] font-black text-[var(--text-app)] truncate leading-tight">{{ selectedCustomer.firstName }} {{ selectedCustomer.lastName }}</span>
+              <span class="text-[10px] font-bold text-[var(--text-primary)] flex items-center gap-1">
+                <UiIcon name="lucide:coins" class="w-3 h-3" />
+                Bonus: {{ selectedCustomer.bonus || 0 }} ₼
+              </span>
+            </div>
+          </div>
+          <button @click="emit('update:selectedCustomer', null)" class="p-1.5 hover:bg-[var(--text-primary)]/10 rounded-lg transition-colors text-[var(--text-app)] opacity-40 hover:opacity-100">
+            <UiIcon name="lucide:x" class="w-3.5 h-3.5" />
+          </button>
+        </div>
+        
+        <div v-else class="relative">
+          <UiAutocomplete
+            :modelValue="selectedCustomer?.id"
+            @update:modelValue="(val: any) => {
+              const customer = customers.find(c => c.id === val)
+              emit('update:selectedCustomer', customer)
+            }"
+            :options="customers.map(c => ({
+              label: `${c.firstName} ${c.lastName}`,
+              value: c.id,
+              extra: c.phone ? `${c.phone}${c.barcode ? ' • ' + c.barcode : ''}` : c.barcode
+            }))"
+            placeholder="Müştəri axtar (Ad, tel, barkod)..." 
+            icon="lucide:user-search" 
+          />
+        </div>
       </div>
     </div>
 
@@ -192,6 +254,14 @@ const getItemTotal = (item: CartItem) => {
         <div class="flex justify-between text-[12px] font-bold text-[var(--text-app)] opacity-50">
           <span>{{ mode === 'sale' ? t('cart.subtotal', 'Alt Toplam') : t('cart.refundSubtotal', 'Refund Alt Toplam') }}:</span>
           <span class="tabular-nums font-black">{{ mode === 'refund' ? '-' : '' }}{{ subtotal.toFixed(2) }} ₼</span>
+        </div>
+
+        <div v-if="selectedCustomer && mode === 'sale'" class="flex justify-between text-[11px] font-bold text-[var(--text-primary)] animate-pulse">
+          <span class="flex items-center gap-1.5">
+            <UiIcon name="lucide:plus-circle" class="w-3 h-3" />
+            {{ t('cart.cashbackEarned', 'Qazanılacaq Keşbek (5%)') }}:
+          </span>
+          <span class="tabular-nums font-black">+{{ cashbackAmount }} ₼</span>
         </div>
         
         <!-- Discount Section - More Compact & Smart -->

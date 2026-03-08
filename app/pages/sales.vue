@@ -23,6 +23,8 @@ const products = ref<any[]>([])
 const loading = ref(false)
 const searchQuery = ref('')
 const selectedCategory = ref('Bütün Mallar')
+const customers = ref<any[]>([])
+const selectedCustomer = ref<any>(null)
 
 // Cart state
 const cart = ref<any[]>([])
@@ -95,8 +97,20 @@ const loadProducts = async () => {
   }
 }
 
+const loadCustomers = async () => {
+  try {
+    const data = await $fetch('/api/customers', {
+      headers: { Authorization: `Bearer ${token.value}` }
+    })
+    customers.value = data as any[]
+  } catch (err) {
+    console.error('Failed to load customers')
+  }
+}
+
 onMounted(() => {
   loadProducts()
+  loadCustomers()
   // Ensure focus on load
   setTimeout(focusSearch, 500)
 })
@@ -198,6 +212,11 @@ const finalTotal = computed(() => {
     return Math.max(0, subtotal.value * (1 - d / 100))
   }
   return Math.max(0, subtotal.value - d)
+})
+
+const cashbackAmount = computed(() => {
+  if (mode.value === 'refund') return 0
+  return (finalTotal.value * 0.05).toFixed(2)
 })
 
 // --- Cart Handlers ---
@@ -359,14 +378,39 @@ const printReceipt = () => {
 const completeOrder = async () => {
   isSaving.value = true
   const isRefund = mode.value === 'refund'
-  // Mock API call for completing order
-  // In a real app we would await $fetch('/api/sales', {...})
+  const currentCashback = Number(cashbackAmount.value)
+  const customer = selectedCustomer.value
+  const customerName = customer ? `${customer.firstName} ${customer.lastName}` : null
+
+  // Process Actual API Update for Bonus
+  if (!isRefund && customer) {
+    try {
+      const addedCashback = Number(currentCashback)
+      const newBonus = Number((Number(customer.bonus || 0) + addedCashback).toFixed(2))
+      await $fetch(`/api/customers/${customer.id}`, {
+        method: 'PUT',
+        body: { bonus: newBonus },
+        headers: { Authorization: `Bearer ${token.value}` }
+      })
+    } catch (err) {
+      console.error('Failed to update customer bonus:', err)
+      toast.error('Bonus məbləği yenilənərkən xəta baş verdi')
+    }
+  }
+
+  // Mock processing time for the order itself
   setTimeout(() => {
-    toast.success(isRefund ? 'Geri ödəniş uğurla tamamlandı!' : 'Satış uğurla tamamlandı və qeydə alındı!')
+    let msg = isRefund ? 'Geri ödəniş uğurla tamamlandı!' : 'Satış uğurla tamamlandı və qeydə alındı!'
+    if (!isRefund && customerName) {
+      msg += `\n${customerName} hesabına ${currentCashback.toFixed(2)} ₼ keşbek əlavə edildi.`
+    }
+    toast.success(msg)
     printReceipt()
     clearCart()
+    selectedCustomer.value = null
     showPaymentModal.value = false
     isSaving.value = false
+    loadCustomers() // Refresh customer list to see updated bonuses
   }, 800)
 }
 
@@ -452,9 +496,12 @@ const completeOrder = async () => {
         v-model:discount="discount"
         v-model:discountType="discountType"
         v-model:mode="mode"
+        v-model:selectedCustomer="selectedCustomer"
         :cart="cart"
         :subtotal="subtotal"
         :finalTotal="finalTotal"
+        :customers="customers"
+        :cashbackAmount="cashbackAmount"
         @increase="increaseQty"
         @decrease="decreaseQty"
         @remove="removeFromCart"

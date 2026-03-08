@@ -43,7 +43,7 @@ export default defineEventHandler(async (event: any) => {
     if (firstName) updateData.firstName = firstName
     if (lastName) updateData.lastName = lastName
     if (barcode) updateData.barcode = barcode
-    if (bonus !== undefined) updateData.bonus = bonus
+    if (bonus !== undefined) updateData.bonus = Number(bonus)
     if (email !== undefined) updateData.email = email
     if (phone !== undefined) updateData.phone = phone
     if (gender !== undefined) updateData.gender = gender

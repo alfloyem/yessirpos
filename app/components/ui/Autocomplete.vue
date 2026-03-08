@@ -18,8 +18,32 @@ const { t } = useI18n()
 
 const containerRef = ref<HTMLElement | null>(null)
 const inputRef = ref<HTMLInputElement | null>(null)
+const dropdownRef = ref<HTMLElement | null>(null)
 const isOpen = ref(false)
 const searchTerm = ref('')
+const dropdownStyle = ref({ top: '0px', left: '0px', width: '0px' })
+
+// Normalize function for Turkish/Azeri support
+const normalizeText = (text: any) => {
+  if (text === null || text === undefined) return ''
+  return String(text)
+    .replace(/İ/g, 'I')
+    .replace(/ı/g, 'i')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, "")
+}
+
+const updateDropdownPosition = () => {
+  if (containerRef.value) {
+    const rect = containerRef.value.getBoundingClientRect()
+    dropdownStyle.value = {
+      top: `${rect.bottom + window.scrollY}px`,
+      left: `${rect.left + window.scrollX}px`,
+      width: `${rect.width}px`
+    }
+  }
+}
 
 // Initialize searchTerm if modelValue exists
 watch(() => props.modelValue, (newVal) => {
@@ -55,13 +79,15 @@ onMounted(() => {
 
 onUnmounted(() => document.removeEventListener('click', handleClickOutside))
 
-// Filter logic: lazy load visually means only show matches alphabetically
+// Filter logic
 const filteredOptions = computed(() => {
-  const q = searchTerm.value.toLowerCase()
+  const q = normalizeText(searchTerm.value)
+  if (!q) return (props.options || []).sort((a, b) => a.label.localeCompare(b.label))
+  
   return (props.options || [])
     .filter(opt => {
-      const matchLabel = opt.label.toLowerCase().includes(q)
-      const matchExtra = (opt.extra || '').toLowerCase().includes(q)
+      const matchLabel = normalizeText(opt.label).includes(q)
+      const matchExtra = normalizeText(opt.extra).includes(q)
       return matchLabel || matchExtra
     })
     .sort((a, b) => a.label.localeCompare(b.label))
@@ -78,16 +104,22 @@ const handleInput = (e: Event) => {
   }
 
   const numericVal = val.replace(/\D/g, '')
+  // Auto-select for barcodes or full matches
   if (val.length >= 7) {
+    const isBarcode = /^C\d+$/i.test(val) || val.startsWith('C') || val.startsWith('c')
+    
     const exactMatch = (props.options || []).find(opt => {
       if (!opt.extra) return false
-      const extStr = String(opt.extra).toLowerCase()
-      const searchStr = val.toLowerCase()
+      const extStr = String(opt.extra)
       
-      if (extStr === searchStr) return true
+      // Direct match
+      if (normalizeText(extStr) === normalizeText(val)) return true
       
-      const numericExt = extStr.replace(/\D/g, '')
-      if (numericVal.length >= 7 && numericExt === numericVal) return true
+      // Numeric barcode match if numeric search
+      if (isBarcode && numericVal.length >= 4) {
+        const numericExt = extStr.replace(/\D/g, '')
+        if (numericExt.endsWith(numericVal)) return true
+      }
       return false
     })
 
@@ -103,10 +135,27 @@ const selectOption = (opt: { label: string, value: any, extra?: string }) => {
   isOpen.value = false
 }
 
-// Focus handling
 const handleFocus = () => {
   isOpen.value = true
+  updateDropdownPosition()
 }
+
+// Update position on scroll/resize if open
+onMounted(() => {
+  window.addEventListener('scroll', updateDropdownPosition, true)
+  window.addEventListener('resize', updateDropdownPosition)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', updateDropdownPosition, true)
+  window.removeEventListener('resize', updateDropdownPosition)
+})
+
+watch(isOpen, (newVal) => {
+  if (newVal) {
+    nextTick(updateDropdownPosition)
+  }
+})
 
 const handleKeydown = (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
@@ -126,8 +175,29 @@ const handleKeydown = (e: KeyboardEvent) => {
 
 const highlightMatch = (text: string | undefined | null) => {
   if (!text || !searchTerm.value || !isOpen.value) return text || ''
-  const regex = new RegExp(`(${searchTerm.value})`, 'gi')
-  return String(text).replace(regex, '<span class="text-[var(--text-primary)] font-bold bg-[var(--text-primary)]/10 px-0.5 rounded">$1</span>')
+  const query = searchTerm.value.trim()
+  if (!query) return String(text)
+  
+  const escapeRegExp = (string: string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const buildCharRegex = (char: string) => {
+    switch (char.toLowerCase()) {
+      case 'i': case 'ı': return '[iıİI]'
+      case 'g': case 'ğ': return '[gğGĞ]'
+      case 's': case 'ş': return '[sşSŞ]'
+      case 'c': case 'ç': return '[cçCÇ]'
+      case 'o': case 'ö': return '[oöOÖ]'
+      case 'u': case 'ü': return '[uüUÜ]'
+      default: return escapeRegExp(char)
+    }
+  }
+
+  const regexStr = Array.from(query).map(buildCharRegex).join('')
+  try {
+    const regex = new RegExp(`(${regexStr})`, 'gi')
+    return String(text).replace(regex, '<span class="text-[var(--text-primary)] font-bold bg-[var(--text-primary)]/10 px-0.5 rounded">$1</span>')
+  } catch (e) {
+    return String(text)
+  }
 }
 
 </script>
@@ -161,53 +231,62 @@ const highlightMatch = (text: string | undefined | null) => {
       :class="isOpen ? 'rotate-180' : ''"
     />
 
-    <!-- Dropdown Options -->
-    <Transition
-      enter-active-class="transition duration-200 ease-out"
-      enter-from-class="opacity-0 scale-95 -translate-y-2"
-      enter-to-class="opacity-100 scale-100 translate-y-0"
-      leave-active-class="transition duration-150 ease-in"
-      leave-from-class="opacity-100 scale-100 translate-y-0"
-      leave-to-class="opacity-0 scale-95 -translate-y-2"
-    >
-      <div 
-        v-if="isOpen && filteredOptions.length > 0"
-        class="absolute z-50 w-full mt-2 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-[14px] shadow-xl overflow-hidden"
+    <!-- Dropdown Options - Teleported to Body to fix z-index issues -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="opacity-0 scale-95 -translate-y-2"
+        enter-to-class="opacity-100 scale-100 translate-y-0"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="opacity-100 scale-100 translate-y-0"
+        leave-to-class="opacity-0 scale-95 -translate-y-2"
       >
-        <div class="max-h-48 overflow-y-auto overflow-x-hidden custom-scrollbar">
-          <button
-            v-for="opt in filteredOptions"
-            :key="opt.value"
-            type="button"
-            @click.prevent="selectOption(opt)"
-            class="w-full px-5 py-2 text-[15px] font-medium text-left hover:bg-[var(--text-primary)]/10 transition-colors cursor-pointer flex items-center gap-3"
-            :class="modelValue === opt.value ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)] font-semibold' : 'text-[var(--text-app)]'"
-          >
+        <div 
+          v-if="isOpen && (filteredOptions.length > 0 || (searchTerm && filteredOptions.length === 0))"
+          ref="dropdownRef"
+          class="absolute z-[999999] bg-[var(--bg-app)] border border-[var(--border-app)] rounded-[14px] shadow-2xl overflow-hidden pointer-events-auto"
+          :style="dropdownStyle"
+        >
+          <div v-if="filteredOptions.length > 0" class="max-h-48 overflow-y-auto overflow-x-hidden custom-scrollbar">
+            <button
+              v-for="opt in filteredOptions"
+              :key="opt.value"
+              type="button"
+              @click.prevent="selectOption(opt)"
+              class="w-full px-5 py-2 text-[15px] font-medium text-left hover:bg-[var(--text-primary)]/10 transition-colors cursor-pointer flex items-center gap-3"
+              :class="modelValue === opt.value ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)] font-semibold' : 'text-[var(--text-app)]'"
+            >
+            <div class="w-8 h-8 rounded-full bg-[var(--text-primary)]/10 flex items-center justify-center shrink-0" :class="modelValue === opt.value ? 'ring-2 ring-[var(--text-primary)] ring-offset-2' : ''">
+              <span v-if="opt.label" class="text-[11px] font-black text-[var(--text-primary)]">
+                {{ opt.label.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() }}
+              </span>
+              <UiIcon v-else name="lucide:user" class="w-4 h-4 text-[var(--text-primary)]" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <div 
+                class="text-[14px] font-bold truncate transition-colors" 
+                :class="modelValue === opt.value ? 'text-[var(--text-primary)]' : 'text-[var(--text-app)]'"
+                v-html="highlightMatch(opt.label)"
+              ></div>
+              <div v-if="opt.extra" class="flex items-center gap-1.5 opacity-40 text-[11px] font-medium" v-html="highlightMatch(opt.extra)"></div>
+            </div>
             <!-- Icon for selected item -->
             <UiIcon 
               v-if="modelValue === opt.value"
-              name="lucide:check" 
+              name="lucide:check-circle-2" 
               class="w-4 h-4 text-[var(--text-primary)] flex-shrink-0"
             />
-            <span 
-              class="flex-1 truncate" 
-              :class="modelValue === opt.value ? '' : 'ml-7'"
-              v-html="highlightMatch(opt.label)"
-            ></span>
-            <div v-if="opt.extra" class="flex items-center gap-1.5 opacity-60">
-              <UiIcon name="lucide:barcode" class="w-3.5 h-3.5" />
-              <span class="text-[13px] font-mono tracking-wider" v-html="highlightMatch(opt.extra)"></span>
-            </div>
           </button>
+          </div>
+          <div 
+            v-else-if="searchTerm && filteredOptions.length === 0"
+            class="px-5 py-4 text-center text-sm text-[var(--text-app)] opacity-60"
+          >
+            {{ t('common.noDataFound', 'Məlumat tapılmadı') }}
+          </div>
         </div>
-      </div>
-      <div 
-        v-else-if="isOpen && searchTerm && filteredOptions.length === 0"
-        class="absolute z-50 w-full mt-2 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-[14px] shadow-xl overflow-hidden px-5 py-2 text-center text-sm text-[var(--text-app)] opacity-60"
-      >
-        {{ t('common.noDataFound', 'Məlumat tapılmadı') }}
-      </div>
-    </Transition>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
