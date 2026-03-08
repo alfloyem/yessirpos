@@ -261,10 +261,10 @@ const currentImageMeta = computed(() => {
           <!-- Metadata Overlay -->
           <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between pointer-events-none">
             <div v-if="currentImageMeta" class="flex gap-2">
-              <span class="px-2 py-1 bg-black/60 backdrop-blur-md text-white text-[10px] rounded-md font-bold uppercase tracking-wider">
+              <span class="px-2 py-1 bg-black/60 backdrop-blur-md text-white text-[10px] rounded-md font-bold tracking-wider">
                 {{ currentImageMeta.originalFormat }} <span v-if="currentImageMeta.originalFormat !== 'SVG'">→ WebP</span>
               </span>
-              <span class="px-2 py-1 bg-black/60 backdrop-blur-md text-white text-[10px] rounded-md font-bold uppercase tracking-wider">
+              <span class="px-2 py-1 bg-black/60 backdrop-blur-md text-white text-[10px] rounded-md font-bold tracking-wider">
                 {{ formatBytes(currentImageMeta.processedSize) }} 
                 <span v-if="currentImageMeta.originalFormat !== 'SVG'" class="text-green-400 ml-1">
                   ↓{{ Math.round((1 - currentImageMeta.processedSize / currentImageMeta.originalSize) * 100) }}%
@@ -301,7 +301,7 @@ const currentImageMeta = computed(() => {
             <UiIcon name="lucide:cloud-upload" class="w-10 h-10 text-[var(--text-primary)] opacity-40 shadow-sm" />
           </div>
           <h4 class="text-lg font-bold text-[var(--text-app)] mb-2">{{ t('products.dropImgs', 'Şəkilləri bura dartın və ya klikləyin') }}</h4>
-          <p class="text-xs font-medium text-[var(--text-app)] opacity-40 uppercase tracking-widest">{{ t('products.supportFormats', 'JPG, PNG, WEBP, GIF, SVG (MAX 20MB)') }}</p>
+          <p class="text-xs font-medium text-[var(--text-app)] opacity-40 tracking-widest">{{ t('products.supportFormats', 'JPG, PNG, WEBP, GIF, SVG (MAX 20MB)') }}</p>
         </div>
       </template>
 

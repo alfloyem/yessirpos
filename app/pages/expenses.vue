@@ -284,7 +284,7 @@ const saveForm = async () => {
             <span 
               v-for="(tag, idx) in value" 
               :key="idx"
-              class="px-2 py-0.5 bg-[var(--text-primary)]/10 text-[var(--text-primary)] rounded-[6px] text-[11px] font-bold uppercase tracking-wider"
+              class="px-2 py-0.5 bg-[var(--text-primary)]/10 text-[var(--text-primary)] rounded-[6px] text-[11px] font-bold tracking-wider"
               v-html="highlight(tag)"
             ></span>
           </template>

@@ -134,7 +134,7 @@ const formatPrice = (price: number | string) => {
                 {{ variant.barcode }}
               </span>
               <div 
-                class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest bg-[var(--text-app)]/5 text-[var(--text-app)] border border-[var(--text-app)]/5"
+                class="px-2 py-0.5 rounded-md text-[9px] font-black tracking-widest bg-[var(--text-app)]/5 text-[var(--text-app)] border border-[var(--text-app)]/5"
               >
                 <span class="opacity-50">Stok:</span> 
                 <span :class="Number(variant.stock || 0) > 5 ? 'text-[var(--text-primary)]' : 'text-[var(--text-app)]'">{{ variant.stock || 0 }}</span>

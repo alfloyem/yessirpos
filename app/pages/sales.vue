@@ -26,6 +26,8 @@ const selectedCategory = ref('Bütün Mallar')
 // Cart state
 const cart = ref<any[]>([])
 const discount = ref<number | string>(0)
+const discountType = ref<'amount' | 'percent'>('amount')
+const mode = ref<'sale' | 'refund'>('sale')
 
 // Modal states
 const showPaymentModal = ref(false)
@@ -118,6 +120,9 @@ const subtotal = computed(() => {
 
 const finalTotal = computed(() => {
   const d = Number(discount.value) || 0
+  if (discountType.value === 'percent') {
+    return Math.max(0, subtotal.value * (1 - d / 100))
+  }
   return Math.max(0, subtotal.value - d)
 })
 
@@ -169,11 +174,12 @@ const handlePayment = () => {
 // --- Print Receipt Feature ---
 const printReceipt = () => {
   const currentDate = new Date().toLocaleString('az-AZ')
+  const isRefund = mode.value === 'refund'
   const itemsHtml = cart.value.map(item => `
     <tr>
       <td style="padding: 6px 0; border-bottom: 1px dashed #ccc;">${item.productName}</td>
       <td style="text-align: center; border-bottom: 1px dashed #ccc;">${item.qty}</td>
-      <td style="text-align: right; border-bottom: 1px dashed #ccc;">${(item.retailPrice * item.qty).toFixed(2)} ₼</td>
+      <td style="text-align: right; border-bottom: 1px dashed #ccc;">${isRefund ? '-' : ''}${(item.retailPrice * item.qty).toFixed(2)} ₼</td>
     </tr>
   `).join('')
 
@@ -187,16 +193,19 @@ const printReceipt = () => {
           .font-bold { font-weight: bold; }
           .mb-1 { margin-bottom: 4px; }
           .mb-4 { margin-bottom: 16px; }
-          table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 14px; }
-          .total-row { display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; margin-top: 8px; }
-          .discount-row { display: flex; justify-content: space-between; font-size: 14px; margin-top: 4px; }
+          .header-title { margin: 0; font-size: 22px; font-weight: 900; }
+          .mode-badge { display: inline-block; padding: 4px 12px; border: 2px solid #000; font-weight: bold; margin: 10px 0; font-size: 14px; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 13px; }
+          .total-row { display: flex; justify-content: space-between; font-size: 18px; font-weight: 900; margin-top: 8px; border-top: 1px solid #000; padding-top: 8px; }
+          .summary-row { display: flex; justify-content: space-between; font-size: 13px; margin-top: 4px; }
           .divider { border-top: 2px dashed #000; margin: 16px 0; }
         </style>
       </head>
       <body>
         <div class="text-center mb-4">
-          <h2 style="margin: 0; font-size: 24px;">YESSIR POS</h2>
+          <h2 class="header-title">YESSIR POS</h2>
           <p style="margin: 4px 0; font-size: 12px;">Salash Giyim Mağazası</p>
+          <div class="mode-badge">${isRefund ? 'GERİ ÖDƏNİŞ (REFUND)' : 'SATIŞ QƏBZİ'}</div>
           <p style="margin: 4px 0; font-size: 12px;">Tarix: ${currentDate}</p>
         </div>
         
@@ -217,22 +226,22 @@ const printReceipt = () => {
         
         <div class="divider"></div>
         
-        <div class="discount-row">
+        <div class="summary-row">
           <span>Alt Toplam:</span>
-          <span>${subtotal.value.toFixed(2)} ₼</span>
+          <span>${isRefund ? '-' : ''}${subtotal.value.toFixed(2)} ₼</span>
         </div>
         ${discount.value ? `
-        <div class="discount-row">
-          <span>Endirim:</span>
-          <span>-${Number(discount.value).toFixed(2)} ₼</span>
+        <div class="summary-row">
+          <span>Endirim (${discountType.value === 'percent' ? discount.value + '%' : discount.value + ' ₼'}):</span>
+          <span>-${(subtotal.value - finalTotal.value).toFixed(2)} ₼</span>
         </div>
         ` : ''}
         
         <div class="total-row">
-          <span>ÖDƏNİLƏCƏK:</span>
-          <span>${finalTotal.value.toFixed(2)} ₼</span>
+          <span>${isRefund ? 'ÖDƏNİLMƏLİ:' : 'YEKUN ÖDƏNİŞ:'}</span>
+          <span>${isRefund ? '-' : ''}${finalTotal.value.toFixed(2)} ₼</span>
         </div>
-        <div class="discount-row" style="margin-top: 8px;">
+        <div class="summary-row" style="margin-top: 8px;">
           <span>Ödəniş Növü:</span>
           <span>${paymentMethod.value === 'cash' ? 'Nəğd' : 'Kart'}</span>
         </div>
@@ -240,8 +249,8 @@ const printReceipt = () => {
         <div class="divider"></div>
         
         <div class="text-center" style="margin-top: 20px;">
-          <p class="font-bold">Bizi seçdiyiniz üçün təşəkkürlər!</p>
-          <p style="font-size: 12px; margin-top: 8px;">Məhsulu dəyişmək üçün qəbzi saxlayın (14 gün).</p>
+          <p class="font-bold">${isRefund ? 'Qəbul edildi.' : 'Bizi seçdiyiniz üçün təşəkkürlər!'}</p>
+          <p style="font-size: 11px; margin-top: 8px;">${isRefund ? 'Geri qaytarılan məhsullar yoxlanıldı.' : 'Məhsulu dəyişmək üçün qəbzi saxlayın (14 gün).'}</p>
         </div>
       </body>
     </html>
@@ -262,10 +271,11 @@ const printReceipt = () => {
 
 const completeOrder = async () => {
   isSaving.value = true
+  const isRefund = mode.value === 'refund'
   // Mock API call for completing order
   // In a real app we would await $fetch('/api/sales', {...})
   setTimeout(() => {
-    toast.success('Satış uğurla tamamlandı və qeydə alındı!')
+    toast.success(isRefund ? 'Geri ödəniş uğurla tamamlandı!' : 'Satış uğurla tamamlandı və qeydə alındı!')
     printReceipt()
     clearCart()
     showPaymentModal.value = false
@@ -339,6 +349,8 @@ const completeOrder = async () => {
     <div class="w-full lg:w-[380px] shrink-0 h-full border-l border-[var(--border-app)] pl-4">
       <SalesCartSidebar 
         v-model:discount="discount"
+        v-model:discountType="discountType"
+        v-model:mode="mode"
         :cart="cart"
         :subtotal="subtotal"
         :finalTotal="finalTotal"
@@ -358,7 +370,7 @@ const completeOrder = async () => {
       
       <div class="bg-[var(--text-primary)]/5 border border-[var(--text-primary)]/20 p-6 rounded-2xl flex flex-col items-center justify-center relative overflow-hidden">
         <UiIcon name="lucide:banknote" class="w-24 h-24 absolute right-[-10px] bottom-[-10px] opacity-[0.03] text-[var(--text-primary)]" />
-        <span class="text-[var(--text-app)] font-bold opacity-80 uppercase tracking-widest text-xs mb-2">Yekun Məbləğ</span>
+        <span class="text-[var(--text-app)] font-bold opacity-80 tracking-widest text-xs mb-2">Yekun Məbləğ</span>
         <span class="text-4xl font-black text-[var(--text-primary)] drop-shadow-sm">{{ finalTotal.toFixed(2) }} ₼</span>
       </div>
 
