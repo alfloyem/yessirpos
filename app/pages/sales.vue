@@ -115,7 +115,17 @@ const filteredProductGroups = computed(() => {
 })
 
 const subtotal = computed(() => {
-  return cart.value.reduce((sum, item) => sum + (Number(item.retailPrice) * item.qty), 0)
+  return cart.value.reduce((sum, item) => {
+    const price = Number(item.retailPrice) || 0
+    const d = Number(item.itemDiscount) || 0
+    let linePrice = price
+    if (item.itemDiscountType === 'percent') {
+      linePrice = price * (1 - d / 100)
+    } else {
+      linePrice = price - d
+    }
+    return sum + (Math.max(0, linePrice) * item.qty)
+  }, 0)
 })
 
 const finalTotal = computed(() => {
@@ -137,8 +147,21 @@ const addToCart = (product: any) => {
   if (existing) {
     existing.qty++
   } else {
-    cart.value.push({ ...product, qty: 1 })
+    cart.value.push({ 
+      ...product, 
+      qty: 1,
+      itemDiscount: 0,
+      itemDiscountType: 'amount'
+    })
   }
+}
+
+const updateItemDiscount = (item: any, val: number | string) => {
+  item.itemDiscount = val
+}
+
+const updateItemDiscountType = (item: any, val: 'amount' | 'percent') => {
+  item.itemDiscountType = val
 }
 
 const increaseQty = (item: any) => {
@@ -359,6 +382,8 @@ const completeOrder = async () => {
         @remove="removeFromCart"
         @clear="clearCart"
         @checkout="handlePayment"
+        @update-item-discount="updateItemDiscount"
+        @update-item-discount-type="updateItemDiscountType"
       />
     </div>
     
