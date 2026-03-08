@@ -598,11 +598,13 @@ const completeOrder = async () => {
             v-if="drafts.length > 0"
             variant="outline" 
             size="sm" 
-            class="!rounded-xl !h-10 border-dashed border-orange-500/30 hover:border-orange-500 hover:bg-orange-500/5 text-orange-500 px-4 transition-all active:scale-95"
+            class="!rounded-xl !h-10 border-dashed border-orange-500/30 hover:border-orange-500 hover:bg-orange-500/5 !text-orange-500 hover:!text-orange-500 px-4 transition-all active:scale-95"
             @click="showDraftsModal = true"
           >
-            <UiIcon name="lucide:bookmark" class="w-3.5 h-3.5 mr-2" />
-            <span class="font-bold text-[12px]">Draftlar ({{ drafts.length }})</span>
+            <span class="flex items-center justify-center gap-1.5">
+              <UiIcon name="lucide:bookmark" class="w-3.5 h-3.5" />
+              <span class="font-bold text-[12px]">Draftlar ({{ drafts.length }})</span>
+            </span>
           </UiButton>
 
           <UiButton 
@@ -611,8 +613,10 @@ const completeOrder = async () => {
             class="!rounded-xl !h-10 border-dashed border-[var(--text-primary)]/30 hover:border-[var(--text-primary)] hover:bg-[var(--text-primary)]/5 text-[var(--text-primary)] px-4 transition-all active:scale-95"
             @click="showGhostModal = true"
           >
-            <UiIcon name="lucide:plus-circle" class="w-3.5 h-3.5 mr-2" />
-            <span class="font-bold text-[12px]">Keçici Məhsul</span>
+            <span class="flex items-center justify-center gap-1.5">
+              <UiIcon name="lucide:plus-circle" class="w-3.5 h-3.5" />
+              <span class="font-bold text-[12px]">Keçici Məhsul</span>
+            </span>
           </UiButton>
 
           <div class="w-full md:w-64 relative">
