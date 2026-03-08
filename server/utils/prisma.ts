@@ -8,7 +8,24 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 const connectionString = process.env.DATABASE_URL
-const pool = new Pool({ connectionString })
+
+if (!connectionString && process.env.NODE_ENV === 'production') {
+  console.error('DATABASE_URL is missing in production environment!')
+}
+
+const poolConfig: any = { 
+  connectionString,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
+}
+
+// Add SSL for production (usually required by Neon/Supabase/etc on Vercel)
+if (process.env.NODE_ENV === 'production' || connectionString?.includes('neon.tech') || connectionString?.includes('supabase')) {
+  poolConfig.ssl = { rejectUnauthorized: false }
+}
+
+const pool = new Pool(poolConfig)
 const adapter = new PrismaPg(pool)
 
 const prisma = globalForPrisma.prisma ?? new PrismaClient({
