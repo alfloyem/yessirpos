@@ -56,9 +56,9 @@ const formatPrice = (price: number | string) => {
 
 <template>
   <div 
-    class="bg-[var(--input-bg)] border border-[var(--border-app)] rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-xl group"
+    class="bg-[var(--input-bg)] border border-[var(--border-app)] rounded-2xl overflow-hidden transition-all duration-300 group"
     :class="[
-      isExpanded ? 'border-[var(--text-primary)] shadow-2xl ring-2 ring-[var(--text-primary)]/10' : 'hover:border-[var(--text-primary)]/40 hover:-translate-y-1'
+      isExpanded ? 'border-[var(--text-primary)] ring-2 ring-[var(--text-primary)]/10' : 'hover:border-[var(--text-primary)]/40'
     ]"
   >
     <!-- Main Product Section - Compact & Elegant -->
@@ -115,32 +115,23 @@ const formatPrice = (price: number | string) => {
           @click="emit('add-to-cart', variant)"
           class="p-2 flex items-center gap-3 rounded-xl hover:bg-[var(--text-primary)]/5 cursor-pointer border border-transparent hover:border-[var(--text-primary)]/15 transition-all group/v"
         >
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center justify-between gap-2 mb-0.5">
-              <span class="text-[12px] font-black text-[var(--text-app)] truncate pr-2 uppercase group-hover/v:text-[var(--text-primary)] transition-colors">
+          <div class="flex-1 flex items-center justify-between min-w-0">
+            <div class="flex items-center gap-2 min-w-0 flex-1 pr-3">
+              <span class="text-[12px] font-black text-[var(--text-app)] truncate uppercase group-hover/v:text-[var(--text-primary)] transition-colors flex-1 text-wrap">
                 {{ getVariantName(variant) }}
               </span>
-              <span class="text-[14px] font-black text-[var(--text-primary)] tabular-nums">
-                {{ formatPrice(variant.retailPrice) }} ₼
-              </span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="text-[9px] font-mono font-bold text-[var(--text-app)] opacity-20 flex items-center gap-1">
-                <UiIcon name="lucide:hash" class="w-3 h-3" />
+              <span class="text-[11px] font-mono text-[var(--text-app)] opacity-80 shrink-0">
                 {{ variant.barcode }}
               </span>
-              <div 
-                class="px-1.5 py-0.5 rounded-md text-[9px] font-black bg-[var(--bg-app)]/10 text-[var(--text-app)] border border-[var(--border-app)]/5"
-              >
-                <span class="opacity-30 uppercase tracking-tighter">Stok:</span> 
-                <span :class="Number(variant.stock || 0) > 0 ? 'text-[var(--text-primary)]' : 'text-red-500'">{{ variant.stock || 0 }}</span>
+              <div class="flex items-center gap-1 shrink-0 px-1.5 py-0.5 rounded-md text-[10px] font-black bg-[var(--bg-app)]/10 border border-[var(--border-app)]/5" :class="Number(variant.stock || 0) > 0 ? 'text-[var(--text-primary)]' : 'text-red-500'">
+                <UiIcon name="lucide:package" class="w-3 h-3" />
+                <span>{{ variant.stock || 0 }}</span>
               </div>
             </div>
-          </div>
-          
-          <!-- Quick Add Button -->
-          <div class="w-9 h-9 rounded-lg bg-[var(--bg-app)] border border-[var(--border-app)] flex items-center justify-center text-[var(--text-app)] opacity-50 group-hover/v:bg-[var(--text-primary)] group-hover/v:text-white group-hover/v:border-transparent group-hover/v:opacity-100 transition-all shadow-sm active:scale-90">
-            <UiIcon name="lucide:plus" class="w-5 h-5 stroke-[3]" />
+            
+            <span class="text-[14px] font-black text-[var(--text-primary)] tabular-nums shrink-0">
+              {{ formatPrice(variant.retailPrice) }} ₼
+            </span>
           </div>
         </div>
       </div>
