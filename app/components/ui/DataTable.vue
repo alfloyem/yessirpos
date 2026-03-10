@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from '#i18n'
 import { exportToCSV, exportToJSON, exportToXML, exportToPDF } from '~/utils/exportCsv'
 
@@ -31,6 +31,23 @@ const props = withDefaults(defineProps<Props>(), {
   actions: false,
   perPage: 10,
   canBulkEdit: true
+})
+
+const STORAGE_KEY = 'datatable_per_page'
+const localPerPage = ref(10)
+
+onMounted(() => {
+  const saved = localStorage.getItem(STORAGE_KEY)
+  if (saved) {
+    localPerPage.value = parseInt(saved, 10)
+  } else {
+    localPerPage.value = props.perPage
+  }
+})
+
+watch(localPerPage, (newVal) => {
+  localStorage.setItem(STORAGE_KEY, newVal.toString())
+  currentPage.value = 1
 })
 
 const emit = defineEmits(['add', 'edit', 'delete', 'duplicate', 'bulk-edit', 'bulk-delete', 'row-click', 'update:selected-ids'])
@@ -208,12 +225,12 @@ const handleExport = (format: 'json' | 'xml' | 'csv' | 'pdf') => {
 
 // Pagination
 const currentPage = ref(1)
-const perPageOptions = [5, 10, 20, 50, 100]
+const perPageOptions = [10, 50, 100, 1000]
 
-const totalPages = computed(() => Math.ceil(filteredAndSortedData.value.length / props.perPage))
+const totalPages = computed(() => Math.ceil(filteredAndSortedData.value.length / localPerPage.value))
 const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * props.perPage
-  const end = start + props.perPage
+  const start = (currentPage.value - 1) * localPerPage.value
+  const end = start + localPerPage.value
   return filteredAndSortedData.value.slice(start, end)
 })
 
@@ -574,9 +591,21 @@ watch(() => selectedIds.value, (newSet) => {
           </button>
         </div>
 
-        <!-- Info -->
-        <div class="text-sm text-[var(--text-app)] opacity-60">
-          {{ ((currentPage - 1) * perPage) + 1 }} - {{ Math.min(currentPage * perPage, filteredAndSortedData.length) }} / {{ filteredAndSortedData.length }} nəticə
+        <!-- Info & Limit Selector -->
+        <div class="flex items-center gap-6">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-medium text-[var(--text-app)] opacity-60">{{ t('common.show', 'Göstər') }}:</span>
+            <select 
+              v-model="localPerPage"
+              class="bg-[var(--bg-app)] border border-[var(--border-app)] text-[var(--text-app)] text-xs rounded-lg px-2 py-1 outline-none focus:border-[var(--text-primary)] transition-colors cursor-pointer"
+            >
+              <option v-for="opt in perPageOptions" :key="opt" :value="opt">{{ opt }}</option>
+            </select>
+          </div>
+          
+          <div class="text-sm text-[var(--text-app)] opacity-60 whitespace-nowrap">
+            {{ ((currentPage - 1) * localPerPage) + 1 }} - {{ Math.min(currentPage * localPerPage, filteredAndSortedData.length) }} / {{ filteredAndSortedData.length }} {{ t('common.results', 'nəticə') }}
+          </div>
         </div>
       </div>
     </div>

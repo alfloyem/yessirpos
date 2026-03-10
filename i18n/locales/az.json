@@ -165,7 +165,9 @@
     "passwordsMinLength": "Şifrə minimum {count} simvol olmalıdır",
     "noData": "Axtarışınıza uyğun nəticə tapılmadı",
     "rowNumber": "Sıra sayı",
-    "clickToCopy": "Kopyalamaq üçün klikləyin"
+    "clickToCopy": "Kopyalamaq üçün klikləyin",
+    "show": "Göstər",
+    "results": "nəticə"
   },
   "toast": {
     "employeeAdded": "Əməkdaş uğurla əlavə edildi",

@@ -163,7 +163,9 @@
     "passwordsMinLength": "Password must be at least {count} characters",
     "noData": "No results found for your search",
     "rowNumber": "Row number",
-    "clickToCopy": "Click to copy"
+    "clickToCopy": "Click to copy",
+    "show": "Show",
+    "results": "results"
   },
   "toast": {
     "employeeAdded": "Employee added successfully",
