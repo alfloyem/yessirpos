@@ -32,7 +32,7 @@ export default defineEventHandler(async (event: any) => {
         firstName,
         lastName,
         barcode,
-        bonus: typeof bonus === 'number' ? bonus : 0,
+        bonus: Number(bonus) || 0,
         gender,
         email,
         phone,
