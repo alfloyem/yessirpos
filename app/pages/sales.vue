@@ -647,8 +647,9 @@ const completeOrder = async (details?: any) => {
             size="sm" 
             icon="lucide:bookmark"
             @click="showDraftsModal = true"
+            class="!px-3"
           >
-            Draftlar ({{ drafts.length }})
+            {{ drafts.length }}
           </UiButton>
 
           <UiButton 
