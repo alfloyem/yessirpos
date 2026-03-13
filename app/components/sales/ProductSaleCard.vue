@@ -34,9 +34,13 @@ const toggleExpand = () => {
   if (props.product.variants.length > 0) {
     isExpanded.value = !isExpanded.value
   } else {
-    // If no variants, add the product itself if it's actionable
-    emit('add-to-cart', props.product as any)
+    // If no variants, add the product itself
+    emit('add-to-cart', { ...props.product, parentName: props.product.productName } as any)
   }
+}
+
+const addVariantToCart = (variant: ProductVariant) => {
+  emit('add-to-cart', { ...variant, parentName: props.product.productName })
 }
 
 const getVariantName = (variant: ProductVariant) => {
@@ -58,7 +62,7 @@ const formatPrice = (price: number | string) => {
   <div 
     class="bg-[var(--input-bg)] border border-[var(--border-app)] rounded-2xl overflow-hidden transition-all duration-300 group"
     :class="[
-      isExpanded ? 'border-[var(--text-primary)] ring-2 ring-[var(--text-primary)]/10' : 'hover:border-[var(--text-primary)]/40'
+      isExpanded ? 'border-[var(--text-primary)] ring-2 ring-[var(--text-primary)]/10' : 'hover:border-[var(--text-primary)]/40 shadow-sm hover:shadow-md'
     ]"
   >
     <!-- Main Product Section - Compact & Elegant -->
@@ -84,10 +88,10 @@ const formatPrice = (price: number | string) => {
         </h3>
         
         <div class="flex items-center gap-2">
-          <span v-if="product.retailPrice" class="text-sm font-black text-[var(--text-primary)] tabular-nums">
+          <span v-if="product.variants && product.variants.length === 0" class="text-sm font-black text-[var(--text-primary)] tabular-nums">
             {{ formatPrice(product.retailPrice) }} ₼
           </span>
-          <span v-if="product.variants.length > 0" class="text-[9px] font-black uppercase tracking-widest bg-[var(--text-primary)]/10 text-[var(--text-primary)] px-2 py-0.5 rounded-lg">
+          <span v-if="product.variants && product.variants.length > 0" class="text-[9px] font-black uppercase tracking-widest bg-[var(--text-primary)]/10 text-[var(--text-primary)] px-2 py-0.5 rounded-lg">
             {{ product.variants.length }} Variant
           </span>
         </div>
@@ -95,7 +99,7 @@ const formatPrice = (price: number | string) => {
 
       <!-- Arrow Indicator - Minimal -->
       <div 
-        v-if="product.variants.length > 0"
+        v-if="product.variants && product.variants.length > 0"
         class="absolute top-1/2 -translate-y-1/2 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300"
         :class="isExpanded ? 'bg-[var(--text-primary)] text-white rotate-180 shadow-lg shadow-[var(--text-primary)]/20' : 'bg-[var(--bg-app)] text-[var(--text-app)] opacity-20 hover:opacity-100'"
       >
@@ -112,7 +116,7 @@ const formatPrice = (price: number | string) => {
         <div 
           v-for="variant in product.variants" 
           :key="variant.id"
-          @click="emit('add-to-cart', variant)"
+          @click="addVariantToCart(variant)"
           class="p-2 flex items-center gap-3 rounded-xl hover:bg-[var(--text-primary)]/5 cursor-pointer border border-transparent hover:border-[var(--text-primary)]/15 transition-all group/v"
         >
           <div class="flex-1 flex items-center justify-between min-w-0">

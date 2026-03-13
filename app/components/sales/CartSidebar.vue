@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from '#i18n'
 import UiIcon from '~/components/ui/Icon.vue'
 import UiButton from '~/components/ui/Button.vue'
@@ -93,26 +93,38 @@ const getItemTotal = (item: CartItem) => {
   }
   return Math.max(0, lineTotal * item.qty)
 }
+
+const getItemDisplayName = (item: CartItem) => {
+  const baseName = item.parentName || item.productName
+  if (item.attribute && Array.isArray(item.attribute) && item.attribute.length > 0) {
+    const attrs = item.attribute.map(attr => {
+      const parts = attr.split(':')
+      return parts.length > 1 ? parts[1].trim() : attr
+    }).join(', ')
+    return `${baseName} | ${attrs}`
+  }
+  return baseName
+}
 </script>
 
 <template>
-  <div class="flex flex-col bg-[var(--input-bg)] rounded-[24px] border border-[var(--border-app)] shadow-sm h-full overflow-hidden">
-    <div class="p-5 border-b border-[var(--border-app)] bg-[var(--bg-app)]/40 backdrop-blur-md shrink-0 space-y-4">
+  <div class="flex flex-col bg-[var(--input-bg)] rounded-[28px] border border-[var(--border-app)] shadow-xl h-full overflow-hidden">
+    <div class="p-4 border-b border-[var(--border-app)] bg-[var(--bg-app)]/40 backdrop-blur-xl shrink-0 space-y-4">
       <div class="flex items-center gap-3">
         <!-- Mode Selector -->
-        <div class="flex flex-1">
+        <div class="flex flex-1 bg-[var(--bg-app)] p-0.5 rounded-xl border border-[var(--border-app)]">
           <button 
             @click="toggleMode('sale')"
-            class="flex-1 py-2 px-3 rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-2"
+            class="flex-1 py-2 px-3 rounded-lg text-[11px] font-black transition-all duration-300 flex items-center justify-center gap-2"
             :class="mode === 'sale' ? 'bg-[var(--text-primary)] text-white shadow-md shadow-[var(--text-primary)]/20' : 'text-[var(--text-app)] opacity-40 hover:opacity-100'"
           >
-            <UiIcon name="lucide:shopping-cart" class="w-3.5 h-3.5" />
+            <UiIcon name="lucide:shopping-bag" class="w-3.5 h-3.5" />
             {{ t('cart.modeSale', 'Satış') }}
           </button>
           <button 
             @click="toggleMode('refund')"
-            class="flex-1 py-2 px-3 rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-2"
-            :class="mode === 'refund' ? 'bg-red-500 text-white shadow-md' : 'text-[var(--text-app)] opacity-40 hover:opacity-100'"
+            class="flex-1 py-2 px-3 rounded-lg text-[11px] font-black transition-all duration-300 flex items-center justify-center gap-2"
+            :class="mode === 'refund' ? 'bg-red-500 text-white shadow-md shadow-red-500/10' : 'text-[var(--text-app)] opacity-40 hover:opacity-100'"
           >
             <UiIcon name="lucide:rotate-ccw" class="w-3.5 h-3.5" />
             {{ t('cart.modeRefund', 'Refund') }}
@@ -120,42 +132,40 @@ const getItemTotal = (item: CartItem) => {
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5">
           <UiButton 
             v-if="cart.length > 0" 
             variant="outline"
             size="sm"
-            class="!w-10 !h-10 !px-0 !rounded-xl text-[var(--text-primary)] border-[var(--text-primary)]/20 hover:bg-[var(--text-primary)]/5 bg-[var(--bg-app)]"
+            class="!w-9 !h-9 !px-0 !rounded-xl text-[var(--text-primary)] border-[var(--text-primary)]/10 hover:bg-[var(--text-primary)]/5 bg-[var(--bg-app)]"
             @click="emit('save-draft')"
           >
-            <UiIcon name="material-symbols:bookmark-outline" class="w-4.5 h-4.5" />
+            <UiIcon name="lucide:bookmark" class="w-4 h-4" />
           </UiButton>
           <UiButton 
             v-if="cart.length > 0" 
             variant="outline"
             size="sm"
-            class="!w-10 !h-10 !px-0 !rounded-xl text-red-500 border-red-500/20 hover:bg-red-500/5 bg-[var(--bg-app)]"
+            class="!w-9 !h-9 !px-0 !rounded-xl text-red-500 border-red-500/10 hover:bg-red-500/5 bg-[var(--bg-app)]"
             @click="emit('clear')"
           >
-            <UiIcon name="lucide:trash-2" class="w-4.5 h-4.5" />
+            <UiIcon name="lucide:trash-2" class="w-4 h-4" />
           </UiButton>
         </div>
       </div>
 
-
-
       <!-- Customer Search/Selection -->
       <div class="relative">
-        <div v-if="selectedCustomer" class="flex items-center gap-2 p-2 bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl">
-          <span class="pl-2">{{ selectedCustomer.firstName }} {{ selectedCustomer.lastName }}</span>
-          <!-- Balance -->
-          <span class="text-[16px] font-black text-[var(--text-primary)] tabular-nums">{{ selectedCustomer.bonus || 0 }} ₼</span>
-
-          <div class="flex-1"></div>
-
-          <!-- Remove -->
-          <button @click="emit('update:selectedCustomer', null)" class="relative z-10 w-8 h-8 flex items-center justify-center hover:bg-red-500/10 rounded-xl transition-all text-[var(--text-app)] opacity-20 hover:opacity-100 group/btn">
-            <UiIcon name="lucide:x" class="w-4 h-4 group-hover/btn:rotate-90 transition-transform" />
+        <div v-if="selectedCustomer" class="flex items-center gap-2.5 p-2 bg-[var(--text-primary)]/5 border border-[var(--text-primary)]/10 rounded-xl transition-all hover:bg-[var(--text-primary)]/10">
+          <div class="w-8 h-8 rounded-lg bg-[var(--text-primary)] text-white flex items-center justify-center font-bold text-[11px] shadow-sm">
+            {{ selectedCustomer.firstName?.[0] }}{{ selectedCustomer.lastName?.[0] }}
+          </div>
+          <div class="flex flex-col flex-1 min-w-0">
+            <span class="text-[12px] font-black text-[var(--text-app)] truncate leading-tight">{{ selectedCustomer.firstName }} {{ selectedCustomer.lastName }}</span>
+            <span class="text-[10px] font-bold text-[var(--text-primary)] tabular-nums opacity-80">{{ selectedCustomer.bonus || 0 }} ₼ Bonus</span>
+          </div>
+          <button @click="emit('update:selectedCustomer', null)" class="w-7 h-7 flex items-center justify-center hover:bg-red-500/10 rounded-lg transition-all text-red-500/40 hover:text-red-500 group/btn">
+            <UiIcon name="lucide:x" class="w-3.5 h-3.5 group-hover/btn:rotate-90 transition-transform" />
           </button>
         </div>
         
@@ -171,93 +181,101 @@ const getItemTotal = (item: CartItem) => {
               value: c.id,
               extra: c.phone ? `${c.phone}${c.barcode ? ' • ' + c.barcode : ''}` : c.barcode
             }))"
-            placeholder="Müştəri axtar (...)" 
+            placeholder="Müştəri axtar..." 
             icon="lucide:user-search" 
+            class="!rounded-xl"
+            size="sm"
           />
         </div>
       </div>
     </div>
 
     <!-- Items List -->
-    <div class="flex-1 overflow-y-auto custom-scrollbar p-2.5 space-y-1.5">
-      <div v-if="cart.length === 0" class="h-full flex flex-col items-center justify-center text-[var(--text-app)] opacity-30 text-center p-6 grayscale">
-        <UiIcon :name="mode === 'sale' ? 'lucide:shopping-cart' : 'lucide:package-x'" class="w-9 h-9 mb-2 stroke-[1]" />
-        <p class="font-bold text-[12px]">{{ mode === 'sale' ? t('cart.empty', 'Səbət boşdur') : t('cart.refundEmpty', 'Refund siyahısı boşdur') }}</p>
-        <p class="text-[10px] mt-1 opacity-60">{{ t('cart.emptySubtitle', 'Məhsul əlavə etmək üçün seçim edin') }}</p>
+    <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
+      <div v-if="cart.length === 0" class="h-full flex flex-col items-center justify-center text-[var(--text-app)] opacity-30 text-center p-6">
+        <div class="w-16 h-16 rounded-full bg-[var(--border-app)]/20 flex items-center justify-center mb-4">
+          <UiIcon :name="mode === 'sale' ? 'lucide:shopping-cart' : 'lucide:package-x'" class="w-8 h-8 stroke-[1.5]" />
+        </div>
+        <p class="font-black text-[13px] uppercase tracking-wider mb-1">{{ mode === 'sale' ? t('cart.empty', 'Səbət boşdur') : t('cart.refundEmpty', 'Refund siyahısı boşdur') }}</p>
+        <p class="text-[10px] font-bold opacity-60">{{ t('cart.emptySubtitle', 'Məhsul əlavə etmək üçün seçim edin') }}</p>
       </div>
 
       <TransitionGroup name="cart-list">
         <div 
           v-for="item in cart" 
           :key="item.id"
-          class="relative bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl p-2.5 flex items-center gap-3 transition-all hover:border-[var(--text-primary)]/40 hover:shadow-lg hover:shadow-[var(--text-primary)]/5 group/item"
+          class="relative bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl p-3 flex flex-col gap-3 transition-all duration-300 hover:border-[var(--text-primary)]/30 hover:shadow-lg group/item"
         >
-          <!-- Delete Button (Top Right) -->
-          <button 
-            @click="emit('remove', item)" 
-            class="absolute top-1.5 right-1.5 w-7 h-7 flex items-center justify-center rounded-lg transition-all cursor-pointer text-red-500/10 hover:text-white hover:bg-red-500 group-hover/item:text-red-500/30"
-            title="Sil"
-          >
-            <UiIcon name="lucide:trash-2" class="w-3.5 h-3.5" />
-          </button>
+          <!-- Top Row: Img, Name, Delete -->
+          <div class="flex items-center gap-2.5">
+            <!-- Mini Image -->
+            <div class="w-10 h-10 rounded-xl bg-[var(--input-bg)] overflow-hidden shrink-0 border border-[var(--border-app)]/50 flex items-center justify-center shadow-sm">
+              <img v-if="item.images && item.images.length > 0" :src="item.images[0]" class="w-full h-full object-cover" />
+              <UiIcon v-else name="lucide:package" class="w-5 h-5 text-[var(--text-app)] opacity-10" />
+            </div>
 
-          <!-- Mini Image -->
-          <div class="w-12 h-12 rounded-xl bg-[var(--input-bg)] overflow-hidden shrink-0 border border-[var(--border-app)] flex items-center justify-center shadow-inner">
-            <img v-if="item.images && item.images.length > 0" :src="item.images[0]" class="w-full h-full object-cover" />
-            <UiIcon v-else name="lucide:package" class="w-6 h-6 text-[var(--text-app)] opacity-10" />
-          </div>
-
-          <!-- Content Area -->
-          <div class="flex-1 min-w-0 pr-6">
-            <div class="flex flex-col mb-1.5">
-              <h4 class="font-black text-[12px] text-[var(--text-app)] truncate uppercase opacity-90 tracking-tight leading-tight mb-0.5">{{ item.productName }}</h4>
-              <div class="flex items-center gap-1.5 font-black text-[10px] text-[var(--text-primary)]">
-                <span>{{ item.retailPrice.toFixed(2) }} ₼</span>
+            <div class="flex-1 min-w-0 pr-6">
+              <h4 class="font-black text-[12px] text-[var(--text-app)] truncate tracking-tight leading-tight group-hover:text-[var(--text-primary)] transition-colors">
+                {{ getItemDisplayName(item) }}
+              </h4>
+              <div class="flex items-center gap-2 mt-0.5">
+                <span class="text-[12px] font-black text-[var(--text-app)]/60 tabular-nums">
+                  {{ item.retailPrice.toFixed(2) }} ₼
+                </span>
+                <span class="text-[9px] font-bold uppercase tracking-widest bg-[var(--border-app)] px-1.5 py-0.5 rounded-md opacity-60">X {{ item.qty }}</span>
               </div>
             </div>
-            
-            <div class="flex items-center gap-2">
+
+            <!-- Delete Button -->
+            <button 
+              @click="emit('remove', item)" 
+              class="w-7 h-7 flex items-center justify-center rounded-lg transition-all duration-300 text-red-500 hover:text-white hover:bg-red-500 opacity-20 group-hover/item:opacity-100"
+            >
+              <UiIcon name="lucide:trash-2" class="w-3.5 h-3.5" />
+            </button>
+          </div>
+          
+          <!-- Bottom Row: Controls & Total -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
               <!-- Qty Input with Buttons -->
-              <div class="flex items-center bg-[var(--input-bg)] rounded-[10px] border border-[var(--border-app)] h-8 px-0.5 focus-within:border-[var(--text-primary)]/50 transition-colors">
-                <button @click="emit('decrease', item)" class="w-7 h-7 flex items-center justify-center text-[var(--text-app)] opacity-40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all cursor-pointer">
+              <div class="flex items-center bg-[var(--bg-app)] rounded-lg border border-[var(--border-app)] h-8 px-0.5 transition-all focus-within:border-[var(--text-primary)]/40">
+                <button @click="emit('decrease', item)" class="w-6 h-6 flex items-center justify-center text-[var(--text-app)]/40 hover:text-red-500 hover:bg-red-500/5 rounded transition-all">
                   <UiIcon name="lucide:minus" class="w-3 h-3" />
                 </button>
                 <input 
                   type="number"
                   :value="item.qty"
                   @input="(e: any) => emit('update-qty', item, parseInt(e.target.value) || 1)"
-                  class="w-8 text-center text-[13px] font-black bg-transparent border-none p-0 focus:ring-0 tabular-nums no-spinners"
+                  class="w-7 text-center text-[12px] font-black bg-transparent border-none p-0 focus:ring-0 tabular-nums no-spinners"
                   min="1"
                 />
-                <button @click="emit('increase', item)" class="w-7 h-7 flex items-center justify-center text-[var(--text-app)] opacity-40 hover:text-[var(--text-primary)] hover:bg-[var(--text-primary)]/10 rounded-lg transition-all cursor-pointer">
+                <button @click="emit('increase', item)" class="w-6 h-6 flex items-center justify-center text-[var(--text-app)]/40 hover:text-[var(--text-primary)] hover:bg-[var(--text-primary)]/5 rounded transition-all">
                   <UiIcon name="lucide:plus" class="w-3 h-3" />
                 </button>
               </div>
 
               <!-- Discount Toggle & Input -->
-              <div class="flex items-center bg-[var(--input-bg)] rounded-[10px] border border-[var(--border-app)] h-8  focus-within:border-[var(--text-primary)] transition-all">
+              <div class="flex items-center bg-[var(--bg-app)] rounded-lg border border-[var(--border-app)] h-8 px-0.5 transition-all focus-within:border-[var(--text-primary)]/40">
                 <button 
                   @click="emit('update-item-discount-type', item, item.itemDiscountType === 'amount' ? 'percent' : 'amount')"
-                  class="p-2 flex text-m font-black rounded-md transition-all cursor-pointer active:scale-95"
-                  :class="item.itemDiscountType === 'percent' ? 'text-white' : 'text-[var(--text-app)] opacity-60 hover:opacity-100'"
+                  class="w-6 h-6 flex items-center justify-center font-black rounded transition-all active:scale-90"
+                  :class="item.itemDiscountType === 'percent' ? 'bg-[var(--text-primary)] text-white shadow-sm' : 'text-[var(--text-app)]/40 hover:text-[var(--text-app)]'"
                 >
-                  {{ item.itemDiscountType === 'percent' ? '%' : '₼' }}
+                  <span class="text-[11px]">{{ item.itemDiscountType === 'percent' ? '%' : '₼' }}</span>
                 </button>
                 <input 
                   type="number"
                   :value="item.itemDiscount"
                   @input="(e: any) => emit('update-item-discount', item, e.target.value)"
-                  class="bg-transparent border-none text-m w-10 font-black text-center p-0 focus:ring-0 focus:outline-none outline-none no-spinners"
+                  class="bg-transparent border-none text-[12px] w-8 font-black text-center p-0 focus:ring-0 no-spinners"
                   placeholder="0"
-                  style="box-shadow: none !important; outline: none !important; border: none !important;"
                 />
               </div>
             </div>
-          </div>
 
-          <!-- Total (Bottom Right) -->
-          <div class="absolute bottom-3 right-3 text-right">
-            <span class="text-[15px] font-black text-[var(--text-app)] tabular-nums tracking-tighter">
+            <!-- Total -->
+            <span class="text-[16px] font-black text-[var(--text-app)] tabular-nums tracking-tighter">
               {{ getItemTotal(item).toFixed(2) }} ₼
             </span>
           </div>
@@ -266,59 +284,64 @@ const getItemTotal = (item: CartItem) => {
     </div>
 
     <!-- Summary & Checkout -->
-    <div class="bg-[var(--bg-app)]/60 border-t border-[var(--border-app)] p-3 space-y-2 shrink-0">
-      <div class="space-y-1">
-        <div class="flex justify-between text-[11px] font-bold text-[var(--text-app)]">
-          <span>{{ totalQty }} ədəd</span>
-          <span>{{ subtotal.toFixed(2) }} ₼</span>
+    <div class="bg-[var(--bg-app)]/80 backdrop-blur-2xl border-t border-[var(--border-app)] p-2.5 space-y-2 shrink-0 shadow-[0_-8px_30px_rgba(0,0,0,0.05)]">
+      <div class="space-y-1.5 px-0.5">
+        <div class="flex justify-between items-center text-xs font-bold text-[var(--text-app)]">
+          <span>{{ totalQty }} məhsul</span>
+          <span class="text-xs font-black text-[var(--text-app)]">{{ subtotal.toFixed(2) }} ₼</span>
         </div>
 
-        <div v-if="selectedCustomer && mode === 'sale'" class="flex justify-between text-[11px] font-bold text-[var(--text-app)]">
-          <span class="flex items-center gap-1.5">{{ t('cart.cashbackEarned', 'Qazanılacaq Keşbek') }}:</span>
-          <span class="tabular-nums font-black text-[var(--text-primary)]">+{{ cashbackAmount }} ₼</span>
+        <div v-if="selectedCustomer && mode === 'sale'" class="flex justify-between items-center p-1.5 rounded-lg bg-[var(--text-primary)]/5 border border-[var(--text-primary)]/10">
+          <span class="text-[9px] font-black text-[var(--text-primary)] leading-none">{{ t('cart.cashbackEarned', 'Qazanılacaq keşbek') }}</span>
+          <span class="text-[11px] font-black text-[var(--text-primary)] tabular-nums">+{{ cashbackAmount }} ₼</span>
         </div>
         
-        <!-- Discount Section - Minimal -->
-        <div class="flex items-center justify-between gap-3 pt-0.5">
+        <!-- Discount Section -->
+        <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-1.5">
-            <span class="text-[11px] font-bold text-[var(--text-app)] opacity-40">{{ t('cart.discount', 'Endirim') }}:</span>
+            <span class="text-xs font-bold text-[var(--text-app)]">{{ t('cart.discount', 'Endirim') }}</span>
             <button 
               @click="setDiscountType(discountType === 'amount' ? 'percent' : 'amount')"
-              class="w-8 h-8 flex items-center justify-center bg-[var(--text-primary)] text-white rounded-lg shadow-sm active:scale-95 transition-all font-black text-[13px] border border-transparent"
+              class="w-6.5 h-6.5 flex items-center justify-center bg-[var(--text-primary)] text-white rounded-lg shadow-md active:scale-90 transition-all font-black text-xs"
             >
               {{ discountType === 'amount' ? '₼' : '%' }}
             </button>
           </div>
           
-          <div class="relative max-w-[80px]">
+          <div class="relative flex-1 max-w-[80px]">
             <input 
               type="number" 
               :value="discount" 
               @input="(e: any) => handleDiscountInput(e.target.value)"
               placeholder="0"
-              class="w-full h-8 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg px-2 text-center text-[13px] font-black focus:border-[var(--text-primary)] focus:ring-0 no-spinners transition-colors"
+              class="w-full h-7.5 bg-[var(--bg-app)] border border-[var(--border-app)] rounded-xl px-3 text-center text-[12px] font-black focus:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/5 no-spinners transition-all"
             />
           </div>
         </div>
       </div>
       
-      <div class="border-t border-[var(--border-app)] border-dashed pt-2.5 flex justify-between items-center gap-2">
-          <span class="text-[12px] font-bold text-[var(--text-app)] opacity-40 shrink-0 uppercase tracking-wider">
-            {{ mode === 'sale' ? t('cart.toPay', 'Yekun') : t('cart.toRefund', 'Refund') }}:
-          </span>
-          <span class="text-[18px] font-black tabular-nums tracking-tighter transition-colors whitespace-nowrap" :class="mode === 'sale' ? 'text-[var(--text-primary)]' : 'text-red-500'">
-            {{ mode === 'refund' ? '-' : '' }}{{ finalTotal.toFixed(2) }} ₼
-          </span>
+      <div class="border-t border-[var(--border-app)] border-dashed pt-2 flex justify-between items-end px-0.5">
+          <div class="flex items-center justify-between flex-1">
+            <span class="text-x font-bold text-[var(--text-app)] mb-0">
+              {{ mode === 'sale' ? t('cart.toPay', 'Yekun məbləğ') : t('cart.toRefund', 'Refund məbləğ') }}
+            </span>
+            <div class="flex items-baseline gap-1">
+              <span class="text-[20px] font-black tabular-nums tracking-tighter" :class="mode === 'sale' ? 'text-[var(--text-primary)]' : 'text-red-500'">
+                {{ mode === 'refund' ? '-' : '' }}{{ finalTotal.toFixed(2) }}
+              </span>
+              <span class="text-[12px] font-black" :class="mode === 'sale' ? 'text-[var(--text-primary)]' : 'text-red-500'">₼</span>
+            </div>
+          </div>
       </div>
 
       <UiButton 
-        size="md" 
+        size="sm" 
         block 
         :variant="mode === 'sale' ? 'primary' : 'danger'"
         @click="emit('checkout')" 
         :disabled="cart.length === 0"
-        class="!h-10 !text-[13px] font-black"
-        :icon-right="mode === 'sale' ? 'lucide:chevron-right' : 'lucide:rotate-ccw'"
+        class="!h-10.5 !rounded-xl !text-[12px] font-black shadow-lg shadow-[var(--text-primary)]/10 transition-all active:scale-[0.98]"
+        :icon-right="mode === 'sale' ? 'lucide:arrow-right' : 'lucide:rotate-ccw'"
       >
         {{ mode === 'sale' ? t('cart.proceed', 'Ödənişi tamamla') : t('cart.refundSubmit', 'Refund tamamla') }}
       </UiButton>
