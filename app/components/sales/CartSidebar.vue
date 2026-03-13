@@ -96,11 +96,11 @@ const getItemTotal = (item: CartItem) => {
 </script>
 
 <template>
-  <div class="flex flex-col bg-[var(--input-bg)] rounded-[24px] border border-[var(--border-app)] shadow-sm h-full">
+  <div class="flex flex-col bg-[var(--input-bg)] rounded-[24px] border border-[var(--border-app)] shadow-sm h-full overflow-hidden">
     <div class="p-5 border-b border-[var(--border-app)] bg-[var(--bg-app)]/40 backdrop-blur-md shrink-0 space-y-4">
       <div class="flex items-center gap-3">
         <!-- Mode Selector -->
-        <div class="flex flex-1 p-1 bg-[var(--bg-app)] rounded-xl border border-[var(--border-app)]/50 shadow-sm">
+        <div class="flex flex-1">
           <button 
             @click="toggleMode('sale')"
             class="flex-1 py-2 px-3 rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-2"
@@ -112,7 +112,7 @@ const getItemTotal = (item: CartItem) => {
           <button 
             @click="toggleMode('refund')"
             class="flex-1 py-2 px-3 rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-2"
-            :class="mode === 'refund' ? 'bg-red-500 text-white shadow-md shadow-red-500/20' : 'text-[var(--text-app)] opacity-40 hover:opacity-100'"
+            :class="mode === 'refund' ? 'bg-red-500 text-white shadow-md' : 'text-[var(--text-app)] opacity-40 hover:opacity-100'"
           >
             <UiIcon name="lucide:rotate-ccw" class="w-3.5 h-3.5" />
             {{ t('cart.modeRefund', 'Refund') }}
@@ -213,7 +213,6 @@ const getItemTotal = (item: CartItem) => {
               <h4 class="font-black text-[12px] text-[var(--text-app)] truncate uppercase opacity-90 tracking-tight leading-tight mb-0.5">{{ item.productName }}</h4>
               <div class="flex items-center gap-1.5 font-black text-[10px] text-[var(--text-primary)]">
                 <span>{{ item.retailPrice.toFixed(2) }} ₼</span>
-                <span class="opacity-40">/ vahid</span>
               </div>
             </div>
             
@@ -236,11 +235,11 @@ const getItemTotal = (item: CartItem) => {
               </div>
 
               <!-- Discount Toggle & Input -->
-              <div class="flex items-center bg-[var(--input-bg)] rounded-[10px] border border-[var(--border-app)] h-8 pl-1 pr-1.5 gap-1.5 focus-within:border-[var(--text-primary)] transition-all">
+              <div class="flex items-center bg-[var(--input-bg)] rounded-[10px] border border-[var(--border-app)] h-8  focus-within:border-[var(--text-primary)] transition-all">
                 <button 
                   @click="emit('update-item-discount-type', item, item.itemDiscountType === 'amount' ? 'percent' : 'amount')"
-                  class="w-7 h-6.5 flex items-center justify-center text-[9px] font-black rounded-md transition-all cursor-pointer shadow-sm active:scale-95 border border-[var(--border-app)]"
-                  :class="item.itemDiscountType === 'percent' ? 'bg-[var(--text-primary)] text-white' : 'bg-[var(--bg-app)] text-[var(--text-app)] opacity-60 hover:opacity-100'"
+                  class="p-2 flex text-m font-black rounded-md transition-all cursor-pointer active:scale-95"
+                  :class="item.itemDiscountType === 'percent' ? 'text-white' : 'text-[var(--text-app)] opacity-60 hover:opacity-100'"
                 >
                   {{ item.itemDiscountType === 'percent' ? '%' : '₼' }}
                 </button>
@@ -248,7 +247,7 @@ const getItemTotal = (item: CartItem) => {
                   type="number"
                   :value="item.itemDiscount"
                   @input="(e: any) => emit('update-item-discount', item, e.target.value)"
-                  class="w-10 bg-transparent border-none text-[13px] font-black text-center p-0 focus:ring-0 focus:outline-none outline-none no-spinners"
+                  class="bg-transparent border-none text-m w-10 font-black text-center p-0 focus:ring-0 focus:outline-none outline-none no-spinners"
                   placeholder="0"
                   style="box-shadow: none !important; outline: none !important; border: none !important;"
                 />

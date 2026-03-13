@@ -712,7 +712,7 @@ const completeOrder = async (details?: any) => {
     </div>
 
     <!-- Right Section: Cart / Checkout -->
-    <div class="w-full lg:w-[400px] shrink-0 h-full border-l border-[var(--border-app)] pl-4">
+    <div class="w-full lg:w-[400px] shrink-0 h-full">
       <SalesCartSidebar 
         v-model:discount="discount"
         v-model:discountType="discountType"
