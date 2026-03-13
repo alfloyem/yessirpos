@@ -20,7 +20,6 @@ const props = defineProps<{
   cart: CartItem[]
   discount: number | string
   discountType: 'amount' | 'percent'
-  mode: 'sale' | 'refund'
   subtotal: number
   finalTotal: number
   customers: any[]
@@ -31,7 +30,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:discount': [val: number | string]
   'update:discountType': [val: 'amount' | 'percent']
-  'update:mode': [val: 'sale' | 'refund']
   'update:selectedCustomer': [val: any]
   'update-item-discount': [item: CartItem, val: number | string]
   'update-item-discount-type': [item: CartItem, val: 'amount' | 'percent']
@@ -74,9 +72,6 @@ const handleDiscountInput = (e: any) => {
   emit('update:discount', e)
 }
 
-const toggleMode = (newMode: 'sale' | 'refund') => {
-  emit('update:mode', newMode)
-}
 
 const setDiscountType = (type: 'amount' | 'percent') => {
   emit('update:discountType', type)
@@ -108,63 +103,14 @@ const getItemDisplayName = (item: CartItem) => {
 </script>
 
 <template>
-  <div class="flex flex-col bg-[var(--input-bg)] rounded-[28px] border border-[var(--border-app)] shadow-xl h-full overflow-hidden">
-    <div class="p-4 border-b border-[var(--border-app)] bg-[var(--bg-app)]/40 backdrop-blur-xl shrink-0 space-y-4">
-      <div class="flex items-center gap-3">
-        <!-- Mode Selector -->
-        <div class="flex flex-1 bg-[var(--bg-app)] p-0.5 rounded-xl border border-[var(--border-app)]">
-          <button 
-            @click="toggleMode('sale')"
-            class="flex-1 py-2 px-3 rounded-lg text-[11px] font-black transition-all duration-300 flex items-center justify-center gap-2"
-            :class="mode === 'sale' ? 'bg-[var(--text-primary)] text-white shadow-md shadow-[var(--text-primary)]/20' : 'text-[var(--text-app)] opacity-40 hover:opacity-100'"
-          >
-            <UiIcon name="lucide:shopping-bag" class="w-3.5 h-3.5" />
-            {{ t('cart.modeSale', 'Satış') }}
-          </button>
-          <button 
-            @click="toggleMode('refund')"
-            class="flex-1 py-2 px-3 rounded-lg text-[11px] font-black transition-all duration-300 flex items-center justify-center gap-2"
-            :class="mode === 'refund' ? 'bg-red-500 text-white shadow-md shadow-red-500/10' : 'text-[var(--text-app)] opacity-40 hover:opacity-100'"
-          >
-            <UiIcon name="lucide:rotate-ccw" class="w-3.5 h-3.5" />
-            {{ t('cart.modeRefund', 'Refund') }}
-          </button>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="flex items-center gap-1.5">
-          <UiButton 
-            v-if="cart.length > 0" 
-            variant="outline"
-            size="sm"
-            class="!w-9 !h-9 !px-0 !rounded-xl text-[var(--text-primary)] border-[var(--text-primary)]/10 hover:bg-[var(--text-primary)]/5 bg-[var(--bg-app)]"
-            @click="emit('save-draft')"
-          >
-            <UiIcon name="lucide:bookmark" class="w-4 h-4" />
-          </UiButton>
-          <UiButton 
-            v-if="cart.length > 0" 
-            variant="outline"
-            size="sm"
-            class="!w-9 !h-9 !px-0 !rounded-xl text-red-500 border-red-500/10 hover:bg-red-500/5 bg-[var(--bg-app)]"
-            @click="emit('clear')"
-          >
-            <UiIcon name="lucide:trash-2" class="w-4 h-4" />
-          </UiButton>
-        </div>
-      </div>
-
+  <div class="flex flex-col bg-[var(--input-bg)] rounded-[28px] border border-[var(--border-app)] h-full overflow-hidden">
+    <div class="p-4 border-b border-[var(--border-app)] bg-[var(--bg-app)]/40 backdrop-blur-xl shrink-0 space-y-4 flex items-center justify-between gap-2">
       <!-- Customer Search/Selection -->
-      <div class="relative">
-        <div v-if="selectedCustomer" class="flex items-center gap-2.5 p-2 bg-[var(--text-primary)]/5 border border-[var(--text-primary)]/10 rounded-xl transition-all hover:bg-[var(--text-primary)]/10">
-          <div class="w-8 h-8 rounded-lg bg-[var(--text-primary)] text-white flex items-center justify-center font-bold text-[11px] shadow-sm">
-            {{ selectedCustomer.firstName?.[0] }}{{ selectedCustomer.lastName?.[0] }}
-          </div>
-          <div class="flex flex-col flex-1 min-w-0">
-            <span class="text-[12px] font-black text-[var(--text-app)] truncate leading-tight">{{ selectedCustomer.firstName }} {{ selectedCustomer.lastName }}</span>
-            <span class="text-[10px] font-bold text-[var(--text-primary)] tabular-nums opacity-80">{{ selectedCustomer.bonus || 0 }} ₼ Bonus</span>
-          </div>
-          <button @click="emit('update:selectedCustomer', null)" class="w-7 h-7 flex items-center justify-center hover:bg-red-500/10 rounded-lg transition-all text-red-500/40 hover:text-red-500 group/btn">
+      <div class="relative m-0 flex-1">
+        <div v-if="selectedCustomer" class="flex items-center gap-2.5 pl-4 p-2 border border-[var(--text-primary)]/10 rounded-xl transition-all hover:bg-[var(--text-primary)]/10">
+          <span class="text-x font-black text-[var(--text-app)] truncate leading-tight">{{ selectedCustomer.firstName }} {{ selectedCustomer.lastName }}</span>
+          <span class="text-x font-bold text-[var(--text-primary)] tabular-nums opacity-80 flex-1">{{ selectedCustomer.bonus || 0 }} ₼</span>
+          <button @click="emit('update:selectedCustomer', null)" class="w-6 h-6 flex items-center justify-center hover:bg-red-500/10 rounded-lg transition-all text-red-500/40 hover:text-red-500 group/btn">
             <UiIcon name="lucide:x" class="w-3.5 h-3.5 group-hover/btn:rotate-90 transition-transform" />
           </button>
         </div>
@@ -186,7 +132,27 @@ const getItemDisplayName = (item: CartItem) => {
             class="!rounded-xl"
             size="sm"
           />
-        </div>
+        </div>       
+      </div>
+      <div class="flex items-center gap-1.5">
+          <UiButton 
+            v-if="cart.length > 0" 
+            variant="outline"
+            size="sm"
+            class="!w-9 !h-9 !px-0 !rounded-xl text-[var(--text-primary)] border-[var(--text-primary)]/10 hover:bg-[var(--text-primary)]/5 bg-[var(--bg-app)]"
+            @click="emit('save-draft')"
+          >
+            <UiIcon name="lucide:bookmark" class="w-4 h-4" />
+          </UiButton>
+          <UiButton 
+            v-if="cart.length > 0" 
+            variant="outline"
+            size="sm"
+            class="!w-9 !h-9 !px-0 !rounded-xl text-red-500 border-red-500/10 hover:bg-red-500/5 bg-[var(--bg-app)]"
+            @click="emit('clear')"
+          >
+            <UiIcon name="lucide:trash-2" class="w-4 h-4" />
+          </UiButton>
       </div>
     </div>
 
@@ -194,9 +160,9 @@ const getItemDisplayName = (item: CartItem) => {
     <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
       <div v-if="cart.length === 0" class="h-full flex flex-col items-center justify-center text-[var(--text-app)] opacity-30 text-center p-6">
         <div class="w-16 h-16 rounded-full bg-[var(--border-app)]/20 flex items-center justify-center mb-4">
-          <UiIcon :name="mode === 'sale' ? 'lucide:shopping-cart' : 'lucide:package-x'" class="w-8 h-8 stroke-[1.5]" />
+          <UiIcon name="lucide:shopping-cart" class="w-8 h-8 stroke-[1.5]" />
         </div>
-        <p class="font-black text-[13px] uppercase tracking-wider mb-1">{{ mode === 'sale' ? t('cart.empty', 'Səbət boşdur') : t('cart.refundEmpty', 'Refund siyahısı boşdur') }}</p>
+        <p class="font-black text-[13px] uppercase tracking-wider mb-1">{{ t('cart.empty', 'Səbət boşdur') }}</p>
         <p class="text-[10px] font-bold opacity-60">{{ t('cart.emptySubtitle', 'Məhsul əlavə etmək üçün seçim edin') }}</p>
       </div>
 
@@ -287,28 +253,27 @@ const getItemDisplayName = (item: CartItem) => {
     <div class="bg-[var(--bg-app)]/80 backdrop-blur-2xl border-t border-[var(--border-app)] p-2.5 space-y-2 shrink-0 shadow-[0_-8px_30px_rgba(0,0,0,0.05)]">
       <div class="space-y-1.5 px-0.5">
         <div class="flex justify-between items-center text-xs font-bold text-[var(--text-app)]">
-          <span>{{ totalQty }} məhsul</span>
-          <span class="text-xs font-black text-[var(--text-app)]">{{ subtotal.toFixed(2) }} ₼</span>
+          <span class="text-sm">{{ totalQty }} məhsul</span>
+          <span class="text-sm font-black text-[var(--text-app)]">{{ subtotal.toFixed(2) }} ₼</span>
         </div>
 
-        <div v-if="selectedCustomer && mode === 'sale'" class="flex justify-between items-center p-1.5 rounded-lg bg-[var(--text-primary)]/5 border border-[var(--text-primary)]/10">
-          <span class="text-[9px] font-black text-[var(--text-primary)] leading-none">{{ t('cart.cashbackEarned', 'Qazanılacaq keşbek') }}</span>
-          <span class="text-[11px] font-black text-[var(--text-primary)] tabular-nums">+{{ cashbackAmount }} ₼</span>
+        <div v-if="selectedCustomer" class="flex justify-between items-center rounded-lg">
+          <span class="text-sm font-black text-[var(--text-primary)] leading-none">{{ t('cart.cashbackEarned', 'Qazanılacaq keşbek') }}</span>
+          <span class="text-sm font-black text-[var(--text-primary)] tabular-nums">+{{ cashbackAmount }} ₼</span>
         </div>
         
         <!-- Discount Section -->
-        <div class="flex items-center justify-between gap-2">
-          <div class="flex items-center gap-1.5">
-            <span class="text-xs font-bold text-[var(--text-app)]">{{ t('cart.discount', 'Endirim') }}</span>
-            <button 
-              @click="setDiscountType(discountType === 'amount' ? 'percent' : 'amount')"
-              class="w-6.5 h-6.5 flex items-center justify-center bg-[var(--text-primary)] text-white rounded-lg shadow-md active:scale-90 transition-all font-black text-xs"
-            >
-              {{ discountType === 'amount' ? '₼' : '%' }}
-            </button>
-          </div>
+        <div class="flex items-center justify-between gap-1">
+          <span class="text-sm flex-1 font-bold text-[var(--text-app)]">{{ t('cart.discount', 'Endirim') }}</span>
           
-          <div class="relative flex-1 max-w-[80px]">
+          <button 
+            @click="setDiscountType(discountType === 'amount' ? 'percent' : 'amount')"
+            class="w-6.5 h-6.5 flex items-center justify-center bg-[var(--text-primary)] text-white rounded-lg shadow-md active:scale-90 transition-all font-black text-xs"
+          >
+            {{ discountType === 'amount' ? '₼' : '%' }}
+          </button>
+
+          <div class="relative flex-1 max-w-[60px]">
             <input 
               type="number" 
               :value="discount" 
@@ -323,13 +288,13 @@ const getItemDisplayName = (item: CartItem) => {
       <div class="border-t border-[var(--border-app)] border-dashed pt-2 flex justify-between items-end px-0.5">
           <div class="flex items-center justify-between flex-1">
             <span class="text-x font-bold text-[var(--text-app)] mb-0">
-              {{ mode === 'sale' ? t('cart.toPay', 'Yekun məbləğ') : t('cart.toRefund', 'Refund məbləğ') }}
+              {{ t('cart.toPay', 'Yekun məbləğ') }}
             </span>
             <div class="flex items-baseline gap-1">
-              <span class="text-[20px] font-black tabular-nums tracking-tighter" :class="mode === 'sale' ? 'text-[var(--text-primary)]' : 'text-red-500'">
-                {{ mode === 'refund' ? '-' : '' }}{{ finalTotal.toFixed(2) }}
+              <span class="text-[20px] font-black tabular-nums tracking-tighter text-[var(--text-primary)]">
+                {{ finalTotal.toFixed(2) }}
               </span>
-              <span class="text-[12px] font-black" :class="mode === 'sale' ? 'text-[var(--text-primary)]' : 'text-red-500'">₼</span>
+              <span class="text-[12px] font-black text-[var(--text-primary)]">₼</span>
             </div>
           </div>
       </div>
@@ -337,13 +302,13 @@ const getItemDisplayName = (item: CartItem) => {
       <UiButton 
         size="sm" 
         block 
-        :variant="mode === 'sale' ? 'primary' : 'danger'"
+        variant="primary"
         @click="emit('checkout')" 
         :disabled="cart.length === 0"
         class="!h-10.5 !rounded-xl !text-[12px] font-black shadow-lg shadow-[var(--text-primary)]/10 transition-all active:scale-[0.98]"
-        :icon-right="mode === 'sale' ? 'lucide:arrow-right' : 'lucide:rotate-ccw'"
+        icon-right="lucide:arrow-right"
       >
-        {{ mode === 'sale' ? t('cart.proceed', 'Ödənişi tamamla') : t('cart.refundSubmit', 'Refund tamamla') }}
+        {{ t('cart.proceed', 'Ödənişi tamamla') }}
       </UiButton>
     </div>
   </div>

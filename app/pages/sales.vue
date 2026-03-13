@@ -30,7 +30,6 @@ const selectedCustomer = ref<any>(null)
 const cart = ref<any[]>([])
 const discount = ref<number | string>(0)
 const discountType = ref<'amount' | 'percent'>('amount')
-const mode = ref<'sale' | 'refund'>('sale')
 
 // DOM refs
 const searchInput = ref<any>(null)
@@ -74,7 +73,6 @@ const saveDraft = () => {
     cart: JSON.parse(JSON.stringify(cart.value)),
     discount: discount.value,
     discountType: discountType.value,
-    mode: mode.value,
     selectedCustomer: selectedCustomer.value,
     subtotal: subtotal.value,
     finalTotal: finalTotal.value
@@ -93,8 +91,7 @@ const restoreDraft = (index: number) => {
   cart.value = draft.cart
   discount.value = draft.discount
   discountType.value = draft.discountType
-  mode.value = draft.mode
-  selectedCustomer.value = draft.selectedCustomer
+  discountType.value = draft.discountType
   
   drafts.value.splice(index, 1)
   localStorage.setItem('yessir_pos_drafts', JSON.stringify(drafts.value))
@@ -321,7 +318,6 @@ const finalTotal = computed(() => {
 })
 
 const cashbackAmount = computed(() => {
-  if (mode.value === 'refund') return 0
   return (finalTotal.value * 0.05).toFixed(2)
 })
 
@@ -390,12 +386,11 @@ const handlePayment = () => {
 // --- Print Receipt Feature ---
 const printReceipt = () => {
   const currentDate = new Date().toLocaleString('az-AZ')
-  const isRefund = mode.value === 'refund'
   const itemsHtml = cart.value.map(item => `
     <tr>
       <td style="padding: 6px 0; border-bottom: 1px dashed #ccc;">${item.productName}</td>
       <td style="text-align: center; border-bottom: 1px dashed #ccc;">${item.qty}</td>
-      <td style="text-align: right; border-bottom: 1px dashed #ccc;">${isRefund ? '-' : ''}${(item.retailPrice * item.qty).toFixed(2)} ₼</td>
+      <td style="text-align: right; border-bottom: 1px dashed #ccc;">${(item.retailPrice * item.qty).toFixed(2)} ₼</td>
     </tr>
   `).join('')
 
@@ -421,7 +416,7 @@ const printReceipt = () => {
         <div class="text-center mb-4">
           <h2 class="header-title">YESSIR POS</h2>
           <p style="margin: 4px 0; font-size: 12px;">BakuStreet</p>
-          <div class="mode-badge">${isRefund ? 'GERİ ÖDƏNİŞ (REFUND)' : 'SATIŞ QƏBZİ'}</div>
+          <div class="mode-badge">SATIŞ QƏBZİ</div>
           <p style="margin: 4px 0; font-size: 12px;">Tarix: ${currentDate}</p>
         </div>
         
@@ -444,7 +439,7 @@ const printReceipt = () => {
         
         <div class="summary-row">
           <span>Alt Toplam:</span>
-          <span>${isRefund ? '-' : ''}${subtotal.value.toFixed(2)} ₼</span>
+          <span>${subtotal.value.toFixed(2)} ₼</span>
         </div>
         ${discount.value ? `
         <div class="summary-row">
@@ -454,8 +449,8 @@ const printReceipt = () => {
         ` : ''}
         
         <div class="total-row">
-          <span>${isRefund ? 'ÖDƏNİLMƏLİ:' : 'YEKUN ÖDƏNİŞ:'}</span>
-          <span>${isRefund ? '-' : ''}${finalTotal.value.toFixed(2)} ₼</span>
+          <span>YEKUN ÖDƏNİŞ:</span>
+          <span>${finalTotal.value.toFixed(2)} ₼</span>
         </div>
 
         <div class="divider" style="margin: 10px 0; border-style: dotted; border-width: 1px;"></div>
@@ -490,8 +485,8 @@ const printReceipt = () => {
         <div class="divider"></div>
         
         <div class="text-center" style="margin-top: 20px;">
-          <p class="font-bold">${isRefund ? 'Qəbul edildi.' : 'Bizi seçdiyiniz üçün təşəkkürlər!'}</p>
-          <p style="font-size: 11px; margin-top: 8px;">${isRefund ? 'Geri qaytarılan məhsullar yoxlanıldı.' : 'Məhsulu dəyişmək üçün qəbzi saxlayın (14 gün).'}</p>
+          <p class="font-bold">Bizi seçdiyiniz üçün təşəkkürlər!</p>
+          <p style="font-size: 11px; margin-top: 8px;">Məhsulu dəyişmək üçün qəbzi saxlayın (14 gün).</p>
         </div>
       </body>
     </html>
@@ -514,7 +509,6 @@ const showGiftCardModal = ref(false)
 const giftCardBarcode = ref('')
 
 const completeOrder = async (details?: any) => {
-  const isRefund = mode.value === 'refund'
   const total = finalTotal.value
   const customer = selectedCustomer.value
   
@@ -539,7 +533,7 @@ const completeOrder = async (details?: any) => {
       }
     }
 
-    if (method === 'Hədiyyə Kartı' && !isRefund) {
+    if (method === 'Hədiyyə Kartı') {
       const barcodeToUse = details?.giftCardBarcode || giftCardBarcode.value
       if (!barcodeToUse) {
         toast.error('Hədiyyə kartı barkodu daxil edilməlidir')
@@ -573,7 +567,7 @@ const completeOrder = async (details?: any) => {
   const customerName = customer ? `${customer.firstName} ${customer.lastName}` : null
 
   // 2. Bonus/Loyalty Update
-  if (!isRefund && customer) {
+  if (customer) {
     try {
       let finalBonusUpdate = Number(customer.bonus) || 0
       
@@ -603,8 +597,8 @@ const completeOrder = async (details?: any) => {
 
   // 3. Complete and Reset
   setTimeout(() => {
-    let msg = isRefund ? 'Geri ödəniş uğurla tamamlandı!' : 'Satış uğurla tamamlandı!'
-    if (!isRefund && customerName) {
+    let msg = 'Satış uğurla tamamlandı!'
+    if (customerName) {
       const bonusSpent = payments['Bonus'] ? Number(payments['Bonus']) : 0
       if (bonusSpent > 0) {
         msg += `\n${bonusSpent.toFixed(2)} ₼ bonus balansından çıxıldı.`
@@ -716,7 +710,6 @@ const completeOrder = async (details?: any) => {
       <SalesCartSidebar 
         v-model:discount="discount"
         v-model:discountType="discountType"
-        v-model:mode="mode"
         v-model:selectedCustomer="selectedCustomer"
         :cart="cart"
         :subtotal="subtotal"
