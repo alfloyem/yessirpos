@@ -223,17 +223,15 @@ const userRoles = computed(() => {
       <!-- Logo Area -->
       <div 
         class="flex items-center shrink-0 border-b border-[var(--border-app)] h-[64px] py-3 w-full transition-all duration-300 px-5"
-        :class="isSidebarCollapsed && !isMobileMenuOpen ? 'justify-center' : 'justify-between'"
       >
         <div 
-          class="h-full flex items-center overflow-hidden h-full transition-all duration-300" 
-          :class="isSidebarCollapsed && !isMobileMenuOpen ? 'gap-0 w-auto justify-center' : 'gap-[10px] w-full'"
+          class="h-full flex items-center overflow-hidden h-full transition-all duration-300 px-4"
         >
           <!-- Emblem Always Visible -->
           <img 
             :src="yessirIcon" 
             alt="Logo Icon" 
-            class="h-full w-fit object-contain transition-all duration-300 cursor-pointer select-none"
+            class="h-full w-fit object-contain transition-all duration-300 cursor-pointer select-none !h-[42px] !w-[42px] flex-shrink-0"
             @click="handleLogoClick"
           />
           <!-- Text Smoothly Hides without Scale -->
@@ -266,20 +264,19 @@ const userRoles = computed(() => {
             <!-- Parent Category Button -->
             <button 
               @click="toggleMenu(index)"
-              class="flex items-center rounded-[12px] text-[var(--text-app)] bg-transparent hover:bg-[var(--text-primary)]/10 hover:text-[var(--text-primary)] transition-all duration-300 ease-in-out cursor-pointer outline-none overflow-hidden font-sans"
+              class="flex items-center rounded-[12px] text-[var(--text-app)] bg-transparent hover:bg-[var(--text-primary)]/10 hover:text-[var(--text-primary)] transition-all duration-300 ease-in-out cursor-pointer outline-none overflow-hidden font-sans px-6 w-full"
               :class="[
                 (item.isOpen || isActiveMenu(item)) && !isSidebarCollapsed ? 'text-[var(--text-primary)] font-medium' : 'opacity-80',
-                'w-full h-[48px] px-4',
-                isSidebarCollapsed && !isMobileMenuOpen ? 'justify-center' : 'justify-between'
+                'h-[48px]'
               ]"
             >
               <div 
-                class="flex items-center overflow-visible" 
+                class="flex items-center overflow-visible flex-1" 
                 :class="(isSidebarCollapsed && !isMobileMenuOpen) ? 'justify-center' : ''"
               >
                 <Icon 
                   :name="item.icon" 
-                  class="flex-shrink-0 transition-all duration-300 group-hover/sidebaritem:scale-110"
+                  class="flex-shrink-0 transition-all duration-300 group-hover/sidebaritem:scale-110 mx-auto"
                   :class="[
                     isSidebarCollapsed && !isMobileMenuOpen ? 'w-[26px] h-[26px]' : 'w-6 h-6',
                     (item.isOpen || isActiveMenu(item)) && !isSidebarCollapsed ? 'text-[var(--text-primary)]' : 'opacity-80 group-hover/sidebaritem:opacity-100'
@@ -345,7 +342,7 @@ const userRoles = computed(() => {
             <!-- Inline Accordion (Expanded State) -->
             <div 
               v-else
-              class="grid overflow-hidden transition-all duration-300 ease-in-out"
+              class="hidden grid overflow-hidden transition-all duration-300 ease-in-out"
               :class="item.isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 pointer-events-none'"
             >
               <!-- Inner wrapper for smooth grid transition (needs min-h-0) -->
