@@ -21,6 +21,8 @@ interface Props {
   customSearch?: (item: any, query: string) => boolean // custom search function
   rowClass?: (row: any) => string
   canBulkEdit?: boolean
+  showAdd?: boolean
+  showDefaultActions?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -29,7 +31,9 @@ const props = withDefaults(defineProps<Props>(), {
   selectable: false,
   actions: false,
   perPage: 10,
-  canBulkEdit: true
+  canBulkEdit: true,
+  showAdd: true,
+  showDefaultActions: true
 })
 
 const STORAGE_KEY = 'datatable_per_page'
@@ -37,8 +41,9 @@ const localPerPage = ref(10)
 
 onMounted(() => {
   const saved = localStorage.getItem(STORAGE_KEY)
-  if (saved) {
-    localPerPage.value = parseInt(saved, 10)
+  const savedVal = saved ? parseInt(saved, 10) : null
+  if (savedVal && !isNaN(savedVal) && perPageOptions.includes(savedVal)) {
+    localPerPage.value = savedVal
   } else {
     localPerPage.value = props.perPage
   }
@@ -334,6 +339,7 @@ watch(() => selectedIds.value, (newSet: Set<string | number>) => {
 
         <!-- Add New -->
         <UiButton 
+          v-if="showAdd"
           variant="primary"
           size="sm"
           icon="gravity-ui:plus"
@@ -464,10 +470,11 @@ watch(() => selectedIds.value, (newSet: Set<string | number>) => {
                 </td>
 
                 <!-- Actions Cell -->
-                <td v-if="actions" class="px-6 py-3 text-right" @click.stop>
+                 <td v-if="actions" class="px-6 py-3 text-right" @click.stop>
                   <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <slot name="row-actions" :row="row"></slot>
-                    <div class="relative group/duplicate">
+                    <template v-if="showDefaultActions">
+                      <div class="relative group/duplicate">
                       <UiButton 
                         variant="ghost"
                         size="icon"
@@ -503,6 +510,7 @@ watch(() => selectedIds.value, (newSet: Set<string | number>) => {
                         {{ t('common.delete', 'Sil') }}
                       </div>
                     </div>
+                  </template>
                   </div>
                 </td>
               </tr>

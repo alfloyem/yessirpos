@@ -169,6 +169,8 @@ const customSearch = (item: any, query: string) => {
       :data="orders" 
       :columns="columns"
       :actions="true"
+      :show-add="false"
+      :show-default-actions="false"
       :loading="loading"
       :custom-search="customSearch"
       @refresh="loadOrders"
@@ -207,13 +209,6 @@ const customSearch = (item: any, query: string) => {
             icon="lucide:eye" 
             @click="handleViewDetails(row)"
             class="hover:text-[var(--text-primary)]"
-          />
-          <UiButton 
-            variant="ghost" 
-            size="icon" 
-            icon="lucide:printer" 
-            @click="printOrder(row)"
-            class="hover:text-amber-500"
           />
         </div>
       </template>
