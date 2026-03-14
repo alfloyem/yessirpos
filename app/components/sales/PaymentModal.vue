@@ -369,15 +369,15 @@ const handleFocus = (event: Event) => {
             <div class="relative space-y-1">
               <div class="flex justify-between items-center px-1">
                 <div v-if="m.id === 'Bonus' && customer" class="flex items-center gap-2">
-                  <span class="text-[8px] opacity-40 uppercase font-black">Maks: {{ (Number(customer.bonus) || 0).toFixed(2) }} ₼</span>
+                  <span class="text-[8px] opacity-40 font-black">Maks: {{ (Number(customer.bonus) || 0).toFixed(2) }} ₼</span>
                   <span v-if="showMaxError['Bonus']" class="text-[8px] text-red-500 font-bold animate-pulse">! Maksimum</span>
                 </div>
                 <div v-else-if="m.id === 'Hədiyyə Kartı' && selectedGiftCard" class="flex items-center gap-2">
-                  <span class="text-[8px] opacity-40 uppercase font-black">Maks: {{ (Number(selectedGiftCard.value) || 0).toFixed(2) }} ₼</span>
+                  <span class="text-[8px] opacity-40 font-black">Maks: {{ (Number(selectedGiftCard.value) || 0).toFixed(2) }} ₼</span>
                   <span v-if="showMaxError['Hədiyyə Kartı']" class="text-[8px] text-red-500 font-bold animate-pulse">! Maksimum</span>
                 </div>
-                <span v-else-if="m.id === 'Bonus' && !customer" class="text-[8px] opacity-40 uppercase italic">Müştəri seçin</span>
-                <span v-else-if="m.id === 'Hədiyyə Kartı' && !selectedGiftCard" class="text-[8px] opacity-40 uppercase italic">Kart seçin</span>
+                <span v-else-if="m.id === 'Bonus' && !customer" class="text-[8px] opacity-40 italic">Müştəri seçin</span>
+                <span v-else-if="m.id === 'Hədiyyə Kartı' && !selectedGiftCard" class="text-[8px] opacity-40 italic">Kart seçin</span>
                 <div class="flex-1"></div>
               </div>
               
@@ -403,7 +403,7 @@ const handleFocus = (event: Event) => {
       <!-- Balance Info for Multi -->
       <div v-if="isMultiPayment" class="p-4 rounded-2xl bg-[var(--text-primary)]/5 border border-[var(--text-primary)]/10 flex justify-between items-center mt-2 animate-in fade-in zoom-in duration-300">
         <div class="flex flex-col">
-          <span class="text-[10px] font-bold opacity-40 uppercase tracking-widest">
+          <span class="text-[10px] font-bold opacity-40 tracking-widest">
             {{ remainingMultiTotal < -0.01 ? 'Qaytarılacaq qalıq' : 'Qalıq Balans' }}
           </span>
           <span class="text-lg font-black" :class="remainingMultiTotal < -0.01 ? 'text-green-500' : (Math.abs(remainingMultiTotal) < 0.01 ? 'text-green-500' : 'text-[var(--text-primary)]')">
@@ -411,7 +411,7 @@ const handleFocus = (event: Event) => {
           </span>
         </div>
         <div class="text-right">
-          <span class="text-[10px] font-bold opacity-40 uppercase tracking-widest">Daxil edilən</span>
+          <span class="text-[10px] font-bold opacity-40 tracking-widest">Daxil edilən</span>
           <span class="block text-sm font-black opacity-80">{{ multiTotal.toFixed(2) }} ₼</span>
         </div>
       </div>

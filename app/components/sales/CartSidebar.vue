@@ -198,7 +198,7 @@ const getItemDisplayName = (item: CartItem) => {
         <div class="w-16 h-16 rounded-full bg-[var(--border-app)]/20 flex items-center justify-center mb-4">
           <UiIcon name="lucide:shopping-cart" class="w-8 h-8 stroke-[1.5]" />
         </div>
-        <p class="font-black text-[13px] uppercase tracking-wider mb-1">{{ t('cart.empty', 'Səbət boşdur') }}</p>
+        <p class="font-black text-base tracking-wider mb-1">{{ t('cart.empty', 'Səbət boşdur') }}</p>
         <p class="text-[10px] font-bold opacity-60">{{ t('cart.emptySubtitle', 'Məhsul əlavə etmək üçün seçim edin') }}</p>
       </div>
 
@@ -224,7 +224,7 @@ const getItemDisplayName = (item: CartItem) => {
                 <span class="text-[12px] font-black text-[var(--text-app)]/60 tabular-nums">
                   {{ item.retailPrice.toFixed(2) }} ₼
                 </span>
-                <span class="text-[9px] font-bold uppercase tracking-widest bg-[var(--border-app)] px-1.5 py-0.5 rounded-md opacity-60">X {{ item.qty }}</span>
+                <span class="text-[9px] font-bold tracking-widest bg-[var(--border-app)] px-1.5 py-0.5 rounded-md opacity-60">X {{ item.qty }}</span>
               </div>
             </div>
 

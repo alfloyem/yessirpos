@@ -83,7 +83,7 @@ const formatPrice = (price: number | string) => {
 
       <!-- Info Area -->
       <div class="flex-1 min-w-0 pr-8">
-        <h3 class="font-black text-[var(--text-app)] text-[13px] mb-0.5 leading-tight truncate uppercase tracking-tight group-hover:text-[var(--text-primary)] transition-colors">
+        <h3 class="font-black text-[var(--text-app)] text-[13px] mb-0.5 leading-tight truncate tracking-tight group-hover:text-[var(--text-primary)] transition-colors">
           {{ product.productName }}
         </h3>
         
@@ -91,7 +91,7 @@ const formatPrice = (price: number | string) => {
           <span v-if="product.variants && product.variants.length === 0" class="text-sm font-black text-[var(--text-primary)] tabular-nums">
             {{ formatPrice(product.retailPrice) }} ₼
           </span>
-          <span v-if="product.variants && product.variants.length > 0" class="text-[9px] font-black uppercase tracking-widest bg-[var(--text-primary)]/10 text-[var(--text-primary)] px-2 py-0.5 rounded-lg">
+          <span v-if="product.variants && product.variants.length > 0" class="text-[9px] font-black tracking-widest bg-[var(--text-primary)]/10 text-[var(--text-primary)] px-2 py-0.5 rounded-lg">
             {{ product.variants.length }} Variant
           </span>
         </div>
@@ -121,7 +121,7 @@ const formatPrice = (price: number | string) => {
         >
           <div class="flex-1 flex items-center justify-between min-w-0">
             <div class="flex items-center gap-2 min-w-0 flex-1 pr-3">
-              <span class="text-[12px] font-black text-[var(--text-app)] truncate uppercase group-hover/v:text-[var(--text-primary)] transition-colors flex-1 text-wrap">
+              <span class="text-[12px] font-black text-[var(--text-app)] truncate group-hover/v:text-[var(--text-primary)] transition-colors flex-1 text-wrap">
                 {{ getVariantName(variant) }}
               </span>
               <span class="text-[11px] font-mono text-[var(--text-app)] opacity-80 shrink-0">
