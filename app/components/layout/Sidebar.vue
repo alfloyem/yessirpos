@@ -20,7 +20,7 @@ const menu = ref([
   {
     title: 'Əsas',
     titleKey: 'menu.main_category',
-    icon: 'lucide:calendar',
+    icon: 'iconamoon:home',
     isOpen: false,
     children: [
       { title: 'Ana Səhifə', titleKey: 'menu.home', to: '/' },
