@@ -54,8 +54,9 @@ const showDraftsModal = ref(false)
 
 const loadShiftCount = () => {
   const today = new Date().toISOString().split('T')[0]
-  const saved = localStorage.getItem(`shift_count_${today}`)
-  shiftReceiptCount.value = saved ? parseInt(saved) : 0
+  // Reset for a fresh start as requested
+  localStorage.removeItem(`shift_count_${today}`)
+  shiftReceiptCount.value = 0
 }
 
 const loadDrafts = () => {
@@ -385,7 +386,7 @@ const handlePayment = () => {
 }
 
 // --- Print Receipt Feature ---
-const printReceipt = () => {
+const printReceipt = (manualReceiptNo?: string) => {
   const currentDate = new Date().toLocaleString('az-AZ', {
     day: '2-digit',
     month: '2-digit',
@@ -395,7 +396,7 @@ const printReceipt = () => {
     second: '2-digit'
   })
   
-  const receiptNo = `S${Date.now().toString().slice(-8)}`
+  const receiptNo = manualReceiptNo || `S${Date.now().toString().slice(-8)}`
   const cashierName = selectedEmployee.value?.name || user.value?.name || 'Məlum deyil'
 
   const itemsHtml = cart.value.map(item => {
@@ -580,6 +581,7 @@ const printReceipt = () => {
           .footer-note { font-style: italic; font-size: 11px; margin-top: 15px; }
           .shift-info { font-size: 10px; margin-top: 20px; opacity: 0.7; }
         </style>
+        </style>
       </head>
       <body>
         <div class="center">
@@ -627,8 +629,28 @@ const printReceipt = () => {
           
           <div class="shift-info">Növbə ərzində vurulmuş çek sayı: ${shiftReceiptCount.value}</div>
           
+          <div style="margin-top: 10px;">
+            <svg id="barcode-receipt"></svg>
+          </div>
+
           <div style="margin-top: 15px; font-size: 10px;">TEŞEKKÜR EDİRİK!</div>
         </div>
+
+        \x3cscript src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js">\x3c/script>
+        \x3cscript>
+          setTimeout(function() {
+            if (typeof JsBarcode === 'function') {
+              JsBarcode("#barcode-receipt", "${receiptNo}", {
+                format: "CODE128",
+                width: 1.5,
+                height: 40,
+                displayValue: true,
+                fontSize: 12,
+                margin: 0
+              });
+            }
+          }, 100);
+        \x3c/script>
       </body>
     </html>
   `
@@ -711,19 +733,12 @@ const completeOrder = async (details?: any) => {
   const currentCashback = Number(cashbackAmount.value)
   const customerName = customer ? `${customer.firstName} ${customer.lastName}` : null
 
-  // 2. Bonus/Loyalty Update
-  if (customer) {
-    try {
+  try {
+    // 2. Bonus/Loyalty Update
+    if (customer) {
       let finalBonusUpdate = Number(customer.bonus) || 0
-      
-      // Calculate total bonus spent across all payments
       const bonusSpent = payments['Bonus'] ? Number(payments['Bonus']) : 0
-      
-      if (bonusSpent > 0) {
-        finalBonusUpdate -= bonusSpent
-      }
-      
-      // Cashback is always added if a customer is selected
+      if (bonusSpent > 0) finalBonusUpdate -= bonusSpent
       finalBonusUpdate += currentCashback
 
       await $fetch<any>(`/api/customers/${customer.id}`, {
@@ -731,14 +746,56 @@ const completeOrder = async (details?: any) => {
         body: { bonus: Number(finalBonusUpdate.toFixed(2)) },
         headers: { Authorization: `Bearer ${token.value}` }
       })
-    } catch (err: any) {
-      console.error('Failed to update customer bonus:', err)
-      toast.error('Bonus yenilənərkən xəta baş verdi')
     }
-  }
 
-  // 3. Complete and Reset
-  setTimeout(() => {
+    // 3. Save detailed Sale to DB
+    const saleData = {
+      subtotal: subtotal.value,
+      discountTotal: subtotal.value - finalTotal.value,
+      finalTotal: finalTotal.value,
+      cashbackEarned: currentCashback,
+      paymentDetails: {
+        isMulti: paymentDetails.value?.isMulti,
+        method: paymentDetails.value?.method || paymentMethod.value,
+        payments: payments,
+        received: paymentDetails.value?.received,
+        change: paymentDetails.value?.change,
+        giftCardBarcode: details?.giftCardBarcode || giftCardBarcode.value,
+        bonusBarcode: customer?.barcode
+      },
+      cashierId: selectedEmployee.value?.id,
+      cashierName: selectedEmployee.value?.name,
+      customerId: customer?.id,
+      customerName: customerName,
+      customerBarcode: customer?.barcode,
+      items: cart.value.map(item => {
+        const price = Number(item.retailPrice) || 0
+        const d = Number(item.itemDiscount) || 0
+        let finalP = price
+        if (item.itemDiscountType === 'percent') finalP = price * (1 - d / 100)
+        else finalP = price - d
+        
+        return {
+          productId: item.id,
+          productName: item.productName,
+          barcode: item.barcode,
+          qty: item.qty,
+          retailPrice: price,
+          wholesalePrice: Number(item.wholesalePrice) || 0,
+          itemDiscount: d,
+          itemDiscountType: item.itemDiscountType,
+          finalPrice: Math.max(0, finalP),
+          attribute: item.attribute
+        }
+      })
+    }
+
+    const savedSale = await $fetch<any>('/api/sales', {
+      method: 'POST',
+      body: saleData
+    })
+
+    // 4. Complete and Reset
     let msg = 'Satış uğurla tamamlandı!'
     if (customerName) {
       const bonusSpent = payments['Bonus'] ? Number(payments['Bonus']) : 0
@@ -747,8 +804,10 @@ const completeOrder = async (details?: any) => {
       }
       msg += `\n${customerName} hesabına ${currentCashback.toFixed(2)} ₼ keşbek əlavə edildi.`
     }
+    
     toast.success(msg)
-    printReceipt()
+    printReceipt(savedSale.receiptNo) // Pass the 13-digit receiptNo from DB
+    
     clearCart()
     selectedCustomer.value = null
     giftCardBarcode.value = ''
@@ -760,7 +819,11 @@ const completeOrder = async (details?: any) => {
     localStorage.setItem(`shift_count_${todayShift}`, String(shiftReceiptCount.value))
 
     loadCustomers()
-  }, 800)
+  } catch (err: any) {
+    console.error('Finalizing sale error:', err)
+    toast.error('Satış tamamlanarkən xəta baş verdi: ' + (err.message || ''))
+    isSaving.value = false
+  }
 }
 
 </script>
