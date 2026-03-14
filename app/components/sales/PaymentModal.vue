@@ -640,8 +640,6 @@ const handleFocus = (event: Event) => {
       </div>
     </div>
   </Modal>
-
-
 </template>
 
 <style scoped>
