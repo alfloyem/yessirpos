@@ -1,52 +1,41 @@
 <template>
-  <div class="bg-[#111111] border border-white/10 rounded-2xl shadow-2xl overflow-hidden w-[280px] font-sans">
+  <div class="bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)] overflow-hidden w-[260px] font-sans antialiased">
     <!-- Search Bar -->
-    <div class="p-3">
+    <div class="p-2.5">
       <div class="relative group">
-        <UiIcon name="lucide:search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-30 group-focus-within:opacity-100 transition-opacity" />
+        <UiIcon name="lucide:search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 opacity-40 group-focus-within:opacity-100 transition-opacity" />
         <input 
           v-model="searchQuery"
           type="text"
-          placeholder="İkon ara..."
-          class="w-full bg-[#1A1A1A] border border-white/5 rounded-xl py-2 pl-9 pr-3 text-[11px] font-medium text-white/90 outline-none focus:border-[var(--text-primary)]/30 transition-all placeholder:text-white/20"
+          placeholder="Axtar..."
+          class="w-full bg-[var(--bg-app)] border border-[var(--border-app)] rounded-xl py-1.5 pl-8 pr-3 text-[11px] font-medium text-[var(--text-app)] outline-none focus:border-[var(--text-primary)]/40 transition-all placeholder:text-[var(--text-app)]/20"
         />
         <div v-if="loading" class="absolute right-3 top-1/2 -translate-y-1/2">
-          <UiIcon name="lucide:loader-2" class="w-3.5 h-3.5 animate-spin text-[var(--text-primary)]" />
+          <UiIcon name="lucide:loader-2" class="w-3 h-3 animate-spin text-[var(--text-primary)]" />
         </div>
       </div>
     </div>
 
-    <div class="h-[1px] bg-white/5"></div>
+    <div class="h-[1px] bg-[var(--border-app)] opacity-40"></div>
 
     <!-- Content -->
-    <div class="p-4 space-y-3">
-      <div class="text-[10px] font-bold text-white/20 tracking-wide pl-1">
-        {{ searchQuery.length >= 2 ? 'Axtarış nəticələri' : 'Favorit ikonlar' }}
-      </div>
-
-      <div v-if="displayIcons.length > 0" class="grid grid-cols-4 gap-3 max-h-[220px] overflow-y-auto custom-scrollbar pr-1">
+    <div class="p-3 space-y-2">
+      <div v-if="displayIcons.length > 0" class="grid grid-cols-5 gap-2 max-h-[180px] overflow-y-auto custom-scrollbar pr-1">
         <button 
           v-for="icon in displayIcons" 
           :key="icon"
           @click="selectIcon(icon)"
-          class="aspect-square flex items-center justify-center rounded-xl border border-white/5 bg-white/[0.02] text-white/60 transition-all hover:bg-[var(--text-primary)] hover:text-white hover:border-transparent active:scale-90"
-          :class="modelValue === icon ? 'bg-[var(--text-primary)] text-white border-transparent shadow-lg shadow-[var(--text-primary)]/20' : ''"
+          class="aspect-square flex items-center justify-center rounded-lg border border-[var(--border-app)] bg-white/[0.03] text-[var(--text-app)] transition-all hover:bg-[var(--text-primary)] hover:text-white hover:border-transparent active:scale-90"
+          :class="modelValue === icon ? 'bg-[var(--text-primary)] text-white border-transparent shadow-lg shadow-[var(--text-primary)]/10 opacity-100 scale-105' : 'opacity-80 hover:opacity-100'"
+          :title="icon"
         >
-          <UiIcon :name="icon" class="w-5 h-5" />
+          <UiIcon :name="icon" class="w-4 h-4" />
         </button>
       </div>
       
-      <div v-else-if="searchQuery.length >= 2 && !loading" class="text-center py-6 opacity-20 italic text-[11px]">
+      <div v-else-if="searchQuery.length >= 2 && !loading" class="text-center py-6 opacity-20 italic text-[10px]">
         İkon tapılmadı
       </div>
-    </div>
-
-    <!-- Footer -->
-    <div class="bg-white/[0.02] border-t border-white/5 p-3 flex justify-center">
-      <a href="https://icon-sets.iconify.design/" target="_blank" class="flex items-center gap-2 text-[10px] font-bold text-white/10 hover:text-[var(--text-primary)] transition-colors">
-        <UiIcon name="lucide:external-link" class="w-3 h-3" />
-        Bütün ikonlara göz at
-      </a>
     </div>
   </div>
 </template>
@@ -116,7 +105,7 @@ const selectIcon = (icon: string) => {
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--border-app);
   border-radius: 10px;
 }
 </style>

@@ -156,26 +156,31 @@ const deleteMethod = async (id: string) => {
 const activeIconPickerId = ref<string | null>(null)
 const tempEditIcon = ref('')
 
-const toggleIconPicker = (method: any) => {
-  if (activeIconPickerId.value === method.id) {
+const toggleIconPicker = (id: string, currentIcon: string) => {
+  if (activeIconPickerId.value === id) {
     activeIconPickerId.value = null
   } else {
-    activeIconPickerId.value = method.id
-    tempEditIcon.value = method.icon || 'lucide:credit-card'
+    activeIconPickerId.value = id
+    tempEditIcon.value = currentIcon || 'lucide:credit-card'
   }
 }
 
-const updateMethodIcon = async (method: any, newIcon: string) => {
+const updateMethod = async (method: any) => {
   try {
     await $fetch(`/api/payment-methods/${method.id}`, {
       method: 'PUT',
-      body: { ...method, icon: newIcon }
+      body: method
     })
-    activeIconPickerId.value = null
     emit('refresh-methods')
   } catch (err) {
     console.error(err)
   }
+}
+
+const updateMethodIcon = async (method: any, newIcon: string) => {
+  method.icon = newIcon
+  await updateMethod(method)
+  activeIconPickerId.value = null
 }
 
 // Reset everything when modal opens
@@ -233,7 +238,7 @@ const selectMethod = (methodId: string) => {
     <div class="py-6 space-y-4">
       <!-- Methods Header -->
       <div class="opacity-50 flex items-center justify-between hover:text-[var(--text-primary)] hover:opacity-100 transition-all">
-        <h3 class="text-xs font-bold uppercase tracking-widest">Ödəniş Yöntəmi</h3>
+        <h3 class="text-xs font-bold tracking-widest">Ödəniş Yöntəmi</h3>
         <button @click="showManageMethodsModal = true" title="Yöntəmləri Redaktə Et" class="p-1 hover:bg-[var(--text-primary)]/10 rounded-lg transition-colors">
           <UiIcon name="lucide:settings-2" class="w-4 h-4" />
         </button>
@@ -287,12 +292,12 @@ const selectMethod = (methodId: string) => {
               <UiIcon name="lucide:gift" class="w-5 h-5" />
             </div>
             <div>
-              <div class="text-[11px] font-bold opacity-50 uppercase tracking-widest mb-0.5">Seçilmiş Kart</div>
+              <div class="text-[11px] font-bold opacity-50 tracking-widest mb-0.5">Seçilmiş Kart</div>
               <div class="font-black text-sm">{{ selectedGiftCard.barcode }}</div>
             </div>
           </div>
           <div class="text-right">
-            <div class="text-[11px] font-bold opacity-50 uppercase tracking-widest mb-0.5">Kartın Balansı</div>
+            <div class="text-[11px] font-bold opacity-50 tracking-widest mb-0.5">Kartın Balansı</div>
             <div class="font-black text-lg text-[var(--text-primary)]" :class="(selectedGiftCard.value || 0) < total ? 'text-red-500' : ''">
               {{ (selectedGiftCard.value || 0).toFixed(2) }} ₼
             </div>
@@ -311,12 +316,12 @@ const selectMethod = (methodId: string) => {
               <UiIcon name="lucide:star" class="w-5 h-5" />
             </div>
             <div>
-              <div class="text-[11px] font-bold opacity-50 uppercase tracking-widest mb-0.5">Müştəri</div>
+              <div class="text-[11px] font-bold opacity-50 tracking-widest mb-0.5">Müştəri</div>
               <div class="font-black text-sm">{{ customer.firstName }} {{ customer.lastName }}</div>
             </div>
           </div>
           <div class="text-right">
-            <div class="text-[11px] font-bold opacity-50 uppercase tracking-widest mb-0.5">Bonus Balansı</div>
+            <div class="text-[11px] font-bold opacity-50 tracking-widest mb-0.5">Bonus Balansı</div>
             <div class="font-black text-lg text-[var(--text-primary)]" :class="(customer.bonus || 0) < total ? 'text-red-500' : ''">
               {{ (Number(customer.bonus) || 0).toFixed(2) }} ₼
             </div>
@@ -350,7 +355,7 @@ const selectMethod = (methodId: string) => {
   >
     <div class="space-y-6 pt-2 pb-2">
       <div class="space-y-2">
-        <label class="block text-[11px] font-bold text-[var(--text-app)] opacity-50 uppercase tracking-widest">Barkodla Axtar</label>
+        <label class="block text-[11px] font-bold text-[var(--text-app)] opacity-50 tracking-widest">Barkodla Axtar</label>
         <UiAutocomplete
           :modelValue="tempSelectedGiftCard?.id"
           @update:modelValue="(val: any) => {
@@ -397,7 +402,7 @@ const selectMethod = (methodId: string) => {
   >
     <div class="space-y-6 pt-2 pb-2">
       <div class="space-y-2">
-        <label class="block text-[11px] font-bold text-[var(--text-app)] opacity-50 uppercase tracking-widest">Müştəri Axtar</label>
+        <label class="block text-[11px] font-bold text-[var(--text-app)] opacity-50 tracking-widest">Müştəri Axtar</label>
         <UiAutocomplete
           :modelValue="tempSelectedCustomer?.id"
           @update:modelValue="(val: any) => {
@@ -439,64 +444,88 @@ const selectMethod = (methodId: string) => {
   <!-- Manage Payment Methods Modal -->
   <Modal
     v-model="showManageMethodsModal"
-    title="Yöntəmləri idarə et"
+    title="Ödəniş Üsulları"
     max-width="sm"
   >
-    <div class="space-y-6 pt-2 pb-2 min-h-[400px]">
-      <div class="flex gap-2">
+    <div class="space-y-5 pt-1 pb-2 min-h-[400px]">
+      <!-- Add New Row -->
+      <div class="relative flex items-center gap-2 p-2 rounded-xl bg-[var(--text-primary)]/5 border border-[var(--text-primary)]/10 mx-1">
+        <div class="relative">
+          <button 
+            @click="toggleIconPicker('new', newMethodIcon)"
+            class="w-9 h-9 flex items-center justify-center rounded-lg bg-[var(--bg-app)] text-[var(--text-primary)] border border-[var(--text-primary)]/20 hover:border-[var(--text-primary)] transition-all shadow-sm active:scale-95"
+          >
+            <UiIcon :name="newMethodIcon" class="w-4 h-4" />
+          </button>
+          
+          <!-- New Icon Picker Popover -->
+          <div v-if="activeIconPickerId === 'new'" class="fixed z-[999] mt-2 shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in duration-200">
+            <UiIconSelector v-model="newMethodIcon" @update:modelValue="activeIconPickerId = null" />
+            <button @click="activeIconPickerId = null" class="fixed inset-0 z-[-1] cursor-default bg-transparent"></button>
+          </div>
+        </div>
+
         <input 
           v-model="newMethodName"
           type="text"
-          placeholder="Yeni üsul adı..."
-          class="flex-1 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-xl px-4 py-2 text-sm font-bold focus:border-[var(--text-primary)] outline-none"
+          placeholder="Yeni..."
+          class="flex-1 bg-transparent border-none px-1 py-1 text-sm font-bold placeholder:text-[var(--text-app)]/20 outline-none"
+          @keyup.enter="addMethod"
         />
-        <UiButton variant="primary" size="sm" class="!rounded-xl font-black" @click="addMethod" :loading="isAddingMethod">
-          Əlavə et
-        </UiButton>
+
+        <button 
+          @click="addMethod"
+          class="w-9 h-9 flex items-center justify-center rounded-lg bg-[var(--text-primary)] text-white shadow-lg shadow-[var(--text-primary)]/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:scale-100"
+          :disabled="isAddingMethod || !newMethodName.trim()"
+        >
+          <UiIcon v-if="!isAddingMethod" name="lucide:plus" class="w-5 h-5" />
+          <UiIcon v-else name="lucide:loader-2" class="w-4 h-4 animate-spin" />
+        </button>
       </div>
 
-      <div class="h-[1px] bg-white/5 mx-2"></div>
+      <div class="h-[1px] bg-[var(--border-app)] opacity-40 mx-4"></div>
 
-      <div class="space-y-2">
+      <!-- List of Existing Methods -->
+      <div class="space-y-2 max-h-[380px] overflow-y-auto custom-scrollbar px-1 pb-6">
         <div 
           v-for="m in dbMethods?.filter(item => !item.isSystem)" 
           :key="m.id"
-          class="relative flex items-center justify-between p-2 rounded-xl border border-white/5 bg-white/[0.02] hover:border-[var(--text-primary)]/20 transition-all"
+          class="group flex items-center justify-between p-1.5 rounded-xl border border-transparent hover:border-[var(--border-app)] hover:bg-white/[0.04] transition-all"
         >
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-3 flex-1">
             <div class="relative">
               <button 
-                @click="toggleIconPicker(m)"
-                class="w-10 h-10 flex items-center justify-center rounded-lg bg-[var(--text-primary)]/5 text-[var(--text-primary)] border border-[var(--text-primary)]/10 hover:bg-[var(--text-primary)] hover:text-white transition-all shadow-sm"
+                @click="toggleIconPicker(m.id, m.icon)"
+                class="w-9 h-9 flex items-center justify-center rounded-lg bg-[var(--bg-app)] text-[var(--text-app)] opacity-80 border border-[var(--border-app)] hover:opacity-100 hover:border-[var(--text-primary)]/40 transition-all active:scale-95 shadow-sm"
               >
-                <UiIcon :name="m.icon || 'lucide:credit-card'" class="w-5 h-5" />
+                <UiIcon :name="m.icon || 'lucide:credit-card'" class="w-4 h-4" />
               </button>
               
               <!-- Popover Picker -->
-              <div v-if="activeIconPickerId === m.id" class="absolute z-[100] top-0 left-12 animate-in fade-in zoom-in duration-200 origin-left w-[280px]">
+              <div v-if="activeIconPickerId === m.id" class="fixed z-[999] mt-2 shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in duration-200">
                 <UiIconSelector 
                   v-model="tempEditIcon" 
                   @update:modelValue="(val) => updateMethodIcon(m, val)"
                 />
-                <button @click="activeIconPickerId = null" class="fixed inset-0 z-[-1] cursor-default"></button>
+                <button @click="activeIconPickerId = null" class="fixed inset-0 z-[-1] cursor-default bg-transparent"></button>
               </div>
             </div>
-            <span class="text-sm font-bold opacity-80">{{ m.name }}</span>
+
+            <input 
+              v-model="m.name"
+              class="flex-1 bg-transparent border-none text-sm font-bold opacity-80 focus:opacity-100 outline-none transition-all"
+              @blur="updateMethod(m)"
+              @keyup.enter="($event.target as HTMLInputElement).blur()"
+            />
           </div>
           
           <button 
             @click="deleteMethod(m.id)"
-            class="w-8 h-8 flex items-center justify-center text-red-500/20 hover:text-red-500 hover:bg-red-500/5 rounded-lg transition-all"
+            class="w-8 h-8 flex items-center justify-center text-red-500/20 group-hover:text-red-500/60 hover:!text-red-500 hover:bg-red-500/5 rounded-lg transition-all"
           >
-            <UiIcon name="lucide:trash-2" class="w-4 h-4" />
+            <UiIcon name="lucide:trash-2" class="w-3.5 h-3.5" />
           </button>
         </div>
-      </div>
-      
-      <!-- New Method Icon Selector (Only if name is being typed) -->
-      <div v-if="newMethodName" class="pt-2 animate-in slide-in-from-top-2 duration-300">
-        <div class="text-[10px] font-bold text-white/20 uppercase tracking-widest mb-2 pl-1">Yeni üsul üçün ikon</div>
-        <UiIconSelector v-model="newMethodIcon" />
       </div>
     </div>
   </Modal>
