@@ -60,18 +60,38 @@ const changeAmount = computed(() => {
   return received - props.total
 })
 
+// Multi-payment Logic
+const isMultiPayment = ref(false)
+const multiPayments = ref<Record<string, number>>({})
+
+const multiTotal = computed(() => {
+  return Object.values(multiPayments.value).reduce((sum, val) => sum + (val || 0), 0)
+})
+
+const remainingMultiTotal = computed(() => {
+  return props.total - multiTotal.value
+})
+
 const handleConfirm = () => {
   let details: any = {
-    isMulti: false,
-    method: internalMethod.value,
+    isMulti: isMultiPayment.value,
   }
   
-  if (internalMethod.value === 'Nəğd') {
-    const r = parseFloat(receivedAmount.value) || 0
-    details.received = r
-    details.change = changeAmount.value
-  } else if (internalMethod.value === 'Hədiyyə Kartı') {
-    details.giftCardBarcode = selectedGiftCard.value?.barcode
+  if (isMultiPayment.value) {
+    details.payments = { ...multiPayments.value }
+    // Ensure total matches
+    if (Math.abs(remainingMultiTotal.value) > 0.01) {
+      return // Show some error in UI maybe?
+    }
+  } else {
+    details.method = internalMethod.value
+    if (internalMethod.value === 'Nəğd') {
+      const r = parseFloat(receivedAmount.value) || 0
+      details.received = r
+      details.change = changeAmount.value
+    } else if (internalMethod.value === 'Hədiyyə Kartı') {
+      details.giftCardBarcode = selectedGiftCard.value?.barcode
+    }
   }
 
   emit('confirm', details)
@@ -189,6 +209,8 @@ watch(() => props.modelValue, (isOpen) => {
     receivedAmount.value = ''
     selectedGiftCard.value = null
     tempSelectedGiftCard.value = null
+    isMultiPayment.value = false
+    multiPayments.value = {}
     fetchGiftCards()
     fetchCustomers()
   }
@@ -211,6 +233,15 @@ const selectMethod = (methodId: string) => {
       showCustomerModal.value = true
     }
   }
+
+  if (isMultiPayment.value) {
+    // In multi-mode, clicking a button sets it to current remaining or toggles it?
+    // Let's just focus the input for that method or something
+  }
+}
+
+const updateMultiPayment = (methodName: string, amount: number) => {
+  multiPayments.value[methodName] = amount
 }
 </script>
 
@@ -237,15 +268,38 @@ const selectMethod = (methodId: string) => {
 
     <div class="py-6 space-y-4">
       <!-- Methods Header -->
-      <div class="opacity-50 flex items-center justify-between hover:text-[var(--text-primary)] hover:opacity-100 transition-all">
-        <h3 class="text-xs font-bold tracking-widest">Ödəniş Yöntəmi</h3>
-        <button @click="showManageMethodsModal = true" title="Yöntəmləri Redaktə Et" class="p-1 hover:bg-[var(--text-primary)]/10 rounded-lg transition-colors">
-          <UiIcon name="lucide:settings-2" class="w-4 h-4" />
+      <div class="flex items-center justify-between">
+        <div class="opacity-50 flex items-center gap-2 hover:text-[var(--text-primary)] hover:opacity-100 transition-all cursor-default">
+          <h3 class="text-xs font-bold tracking-widest">Ödəniş Yöntəmi</h3>
+          <button @click="showManageMethodsModal = true" title="Yöntəmləri Redaktə Et" class="p-1 hover:bg-[var(--text-primary)]/10 rounded-lg transition-colors">
+            <UiIcon name="lucide:settings-2" class="w-4 h-4" />
+          </button>
+        </div>
+
+        <!-- Multi-Payment Switch -->
+        <button 
+          @click="isMultiPayment = !isMultiPayment"
+          class="flex items-center gap-2 px-3 py-1.5 rounded-full transition-all border shrink-0"
+          :class="isMultiPayment 
+            ? 'bg-[var(--text-primary)]/10 border-[var(--text-primary)]/30 text-[var(--text-primary)]' 
+            : 'bg-[var(--bg-app)] border-[var(--border-app)] text-[var(--text-app)] opacity-60'"
+        >
+          <UiIcon :name="isMultiPayment ? 'lucide:layers' : 'lucide:layer-base'" class="w-3.5 h-3.5" />
+          <span class="text-[10px] font-black tracking-widest uppercase">Multi Ödəniş</span>
+          <div 
+            class="w-6 h-3.5 rounded-full relative transition-all"
+            :class="isMultiPayment ? 'bg-[var(--text-primary)]' : 'bg-gray-500/30'"
+          >
+            <div 
+              class="w-2.5 h-2.5 bg-white rounded-full absolute top-0.5 transition-all shadow-sm"
+              :class="isMultiPayment ? 'right-0.5' : 'left-0.5'"
+            ></div>
+          </div>
         </button>
       </div>
 
-      <!-- Method Selection -->
-      <div class="grid grid-cols-2 gap-2 sm:gap-3">
+      <!-- Method Selection (Single) -->
+      <div v-if="!isMultiPayment" class="grid grid-cols-2 gap-2 sm:gap-3">
         <button
           v-for="m in combinedMethods"
           :key="m.id"
@@ -260,8 +314,51 @@ const selectMethod = (methodId: string) => {
         </button>
       </div>
 
+      <!-- Multi-Payment Inputs -->
+      <div v-else class="space-y-3 pt-2">
+        <div 
+          v-for="m in combinedMethods" 
+          :key="m.id"
+          class="flex items-center gap-4 p-3 rounded-xl border border-[var(--border-app)] bg-[var(--bg-app)]/50 transition-all group focus-within:border-[var(--text-primary)]/40"
+        >
+          <div class="w-9 h-9 flex items-center justify-center rounded-lg bg-[var(--bg-app)] border border-[var(--border-app)] text-[var(--text-app)] opacity-40 group-focus-within:opacity-100 group-focus-within:border-[var(--text-primary)]/20 transition-all">
+            <UiIcon :name="m.icon" class="w-4 h-4" />
+          </div>
+          
+          <div class="flex-1">
+            <div class="text-[10px] font-bold opacity-30 uppercase tracking-tighter">{{ m.name }}</div>
+            <input 
+              v-model="multiPayments[m.name]"
+              type="number"
+              placeholder="0.00"
+              class="w-full bg-transparent border-none p-0 text-sm font-black outline-none placeholder:opacity-10"
+              @focus="($event.target as HTMLInputElement).select()"
+              @click="if(!multiPayments[m.name]) multiPayments[m.name] = remainingMultiTotal > 0 ? Number(remainingMultiTotal.toFixed(2)) : 0"
+            />
+          </div>
+
+          <div v-if="multiPayments[m.name] && Number(multiPayments[m.name]) > 0" class="text-xs font-black text-[var(--text-primary)] opacity-80 pl-2">
+            {{ Number(multiPayments[m.name]).toFixed(2) }} ₼
+          </div>
+        </div>
+
+        <!-- Balance Info for Multi -->
+        <div class="p-4 rounded-2xl bg-[var(--text-primary)]/5 border border-[var(--text-primary)]/10 flex justify-between items-center mt-4">
+          <div class="flex flex-col">
+            <span class="text-[10px] font-bold opacity-40 uppercase tracking-widest">Qalıq Balans</span>
+            <span class="text-lg font-black" :class="remainingMultiTotal === 0 ? 'text-green-500' : remainingMultiTotal < 0 ? 'text-red-500' : 'text-[var(--text-primary)]'">
+              {{ Math.abs(remainingMultiTotal).toFixed(2) }} ₼
+            </span>
+          </div>
+          <div class="text-right">
+            <span class="text-[10px] font-bold opacity-40 uppercase tracking-widest">Daxil edilən</span>
+            <span class="block text-sm font-black opacity-80">{{ multiTotal.toFixed(2) }} ₼</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Cash Details (Only if Nəğd is selected) -->
-      <div v-if="internalMethod === 'Nəğd'" class="pt-4 mt-2 border-t border-[var(--border-app)] border-dashed">
+      <div v-if="!isMultiPayment && internalMethod === 'Nəğd'" class="pt-4 mt-2 border-t border-[var(--border-app)] border-dashed">
         <div class="flex items-center gap-6 flex-col">
           <div class="w-full">
             <label class="block text-[11px] font-bold text-[var(--text-app)] opacity-50 tracking-widest mb-1.5">Alınan Məbləğ (₼)</label>
@@ -285,7 +382,7 @@ const selectMethod = (methodId: string) => {
       </div>
 
       <!-- Gift Card Details -->
-      <div v-if="internalMethod === 'Hədiyyə Kartı'" class="pt-4 mt-2 border-t border-[var(--border-app)] border-dashed">
+      <div v-if="!isMultiPayment && internalMethod === 'Hədiyyə Kartı'" class="pt-4 mt-2 border-t border-[var(--border-app)] border-dashed">
         <div v-if="selectedGiftCard" class="flex items-center justify-between p-4 bg-[var(--text-primary)]/5 border border-[var(--text-primary)]/20 rounded-xl">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-full bg-[var(--text-primary)]/10 flex items-center justify-center text-[var(--text-primary)]">
@@ -309,7 +406,7 @@ const selectMethod = (methodId: string) => {
       </div>
 
       <!-- Bonus Details -->
-      <div v-if="internalMethod === 'Bonus'" class="pt-4 mt-2 border-t border-[var(--border-app)] border-dashed">
+      <div v-if="!isMultiPayment && internalMethod === 'Bonus'" class="pt-4 mt-2 border-t border-[var(--border-app)] border-dashed">
         <div v-if="customer" class="flex items-center justify-between p-4 bg-[var(--text-primary)]/5 border border-[var(--text-primary)]/20 rounded-xl">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-full bg-[var(--text-primary)]/10 flex items-center justify-center text-[var(--text-primary)]">
@@ -338,6 +435,7 @@ const selectMethod = (methodId: string) => {
         size="lg"
         variant="primary"
         :loading="isSaving"
+        :disabled="isMultiPayment && Math.abs(remainingMultiTotal) > 0.01"
         @click="handleConfirm"
       >
         <div class="flex items-center gap-2">

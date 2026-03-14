@@ -24,6 +24,8 @@ const props = defineProps<{
   finalTotal: number
   customers: any[]
   selectedCustomer: any
+  employees: any[]
+  selectedEmployee: any
   cashbackAmount: string | number
 }>()
 
@@ -31,6 +33,7 @@ const emit = defineEmits<{
   'update:discount': [val: number | string]
   'update:discountType': [val: 'amount' | 'percent']
   'update:selectedCustomer': [val: any]
+  'update:selectedEmployee': [val: any]
   'update-item-discount': [item: CartItem, val: number | string]
   'update-item-discount-type': [item: CartItem, val: 'amount' | 'percent']
   'increase': [item: CartItem]
@@ -104,55 +107,88 @@ const getItemDisplayName = (item: CartItem) => {
 
 <template>
   <div class="flex flex-col bg-[var(--input-bg)] rounded-[28px] border border-[var(--border-app)] h-full overflow-hidden">
-    <div class="p-4 border-b border-[var(--border-app)] bg-[var(--bg-app)]/40 backdrop-blur-xl shrink-0 space-y-4 flex items-center justify-between gap-2">
-      <!-- Customer Search/Selection -->
-      <div class="relative m-0 flex-1">
-        <div v-if="selectedCustomer" class="flex items-center gap-2.5 pl-4 p-2 border border-[var(--text-primary)]/10 rounded-xl transition-all hover:bg-[var(--text-primary)]/10">
-          <span class="text-x font-black text-[var(--text-app)] truncate leading-tight">{{ selectedCustomer.firstName }} {{ selectedCustomer.lastName }}</span>
-          <span class="text-x font-bold text-[var(--text-primary)] tabular-nums opacity-80 flex-1">{{ selectedCustomer.bonus || 0 }} ₼</span>
-          <button @click="emit('update:selectedCustomer', null)" class="w-6 h-6 flex items-center justify-center hover:bg-red-500/10 rounded-lg transition-all text-red-500/40 hover:text-red-500 group/btn">
+    <div class="p-4 border-b border-[var(--border-app)] bg-[var(--bg-app)]/40 backdrop-blur-xl shrink-0 space-y-4">
+      <div class="flex items-center justify-between gap-2">
+        <!-- Customer Search/Selection -->
+        <div class="relative m-0 flex-1">
+          <div v-if="selectedCustomer" class="flex items-center gap-2.5 pl-4 p-2 border border-[var(--text-primary)]/10 rounded-xl transition-all hover:bg-[var(--text-primary)]/10">
+            <span class="text-xs font-black text-[var(--text-app)] truncate leading-tight">{{ selectedCustomer.firstName }} {{ selectedCustomer.lastName }}</span>
+            <span class="text-xs font-bold text-[var(--text-primary)] tabular-nums opacity-80 flex-1">{{ selectedCustomer.bonus || 0 }} ₼</span>
+            <button @click="emit('update:selectedCustomer', null)" class="w-6 h-6 flex items-center justify-center hover:bg-red-500/10 rounded-lg transition-all text-red-500/40 hover:text-red-500 group/btn">
+              <UiIcon name="lucide:x" class="w-3.5 h-3.5 group-hover/btn:rotate-90 transition-transform" />
+            </button>
+          </div>
+          
+          <div v-else class="relative">
+            <UiAutocomplete
+              :modelValue="selectedCustomer?.id"
+              @update:modelValue="(val: any) => {
+                const customer = customers.find(c => c.id === val)
+                emit('update:selectedCustomer', customer)
+              }"
+              :options="customers.map(c => ({
+                label: `${c.firstName} ${c.lastName}`,
+                value: c.id,
+                extra: c.phone || c.barcode
+              }))"
+              placeholder="Müştəri axtar..." 
+              icon="lucide:user-search" 
+              class="!rounded-xl"
+              size="sm"
+            />
+          </div>       
+        </div>
+
+        <div v-if="cart.length > 0"  class="flex items-center gap-1.5 self-center">
+            <UiButton 
+              v-if="cart.length > 0" 
+              variant="outline"
+              size="sm"
+              class="!w-9 !h-9 !px-0 !rounded-xl text-[var(--text-primary)] border-[var(--text-primary)]/10 hover:bg-[var(--text-primary)]/5 bg-[var(--bg-app)]"
+              @click="emit('save-draft')"
+            >
+              <UiIcon name="lucide:bookmark" class="w-4 h-4" />
+            </UiButton>
+            <UiButton 
+              v-if="cart.length > 0" 
+              variant="outline"
+              size="sm"
+              class="!w-9 !h-9 !px-0 !rounded-xl text-red-500 border-red-500/10 hover:bg-red-500/5 bg-[var(--bg-app)]"
+              @click="emit('clear')"
+            >
+              <UiIcon name="lucide:trash-2" class="w-4 h-4 !hover:text-red-500" />
+            </UiButton>
+        </div>
+      </div>
+
+      <!-- Employee Search/Selection -->
+      <div class="relative m-0">
+        <div v-if="selectedEmployee" class="flex items-center gap-2.5 pl-4 p-2 border border-[var(--text-primary)]/10 rounded-xl transition-all hover:bg-[var(--text-primary)]/10 w-full">
+          <span class="text-xs font-black text-[var(--text-app)] truncate leading-tight">{{ selectedEmployee.firstName }} {{ selectedEmployee.lastName }}</span>
+          <span class="text-[10px] font-bold text-[var(--text-primary)] opacity-50 flex-1 italic">{{ t("menu.employee", "İşci") }}</span>
+          <button @click="emit('update:selectedEmployee', null)" class="w-6 h-6 flex items-center justify-center hover:bg-red-500/10 rounded-lg transition-all text-red-500/40 hover:text-red-500 group/btn">
             <UiIcon name="lucide:x" class="w-3.5 h-3.5 group-hover/btn:rotate-90 transition-transform" />
           </button>
         </div>
         
         <div v-else class="relative">
           <UiAutocomplete
-            :modelValue="selectedCustomer?.id"
+            :modelValue="selectedEmployee?.id"
             @update:modelValue="(val: any) => {
-              const customer = customers.find(c => c.id === val)
-              emit('update:selectedCustomer', customer)
+              const emp = employees.find(e => e.id === val)
+              emit('update:selectedEmployee', emp)
             }"
-            :options="customers.map(c => ({
-              label: `${c.firstName} ${c.lastName}`,
-              value: c.id,
-              extra: c.phone ? `${c.phone}${c.barcode ? ' • ' + c.barcode : ''}` : c.barcode
+            :options="employees.map(e => ({
+              label: `${e.firstName} ${e.lastName}`,
+              value: e.id,
+              extra: e.phone || e.position
             }))"
-            placeholder="Müştəri axtar..." 
-            icon="lucide:user-search" 
+            placeholder="İşçi seçin..." 
+            icon="lucide:briefcase" 
             class="!rounded-xl"
             size="sm"
           />
         </div>       
-      </div>
-      <div class="flex items-center gap-1.5">
-          <UiButton 
-            v-if="cart.length > 0" 
-            variant="outline"
-            size="sm"
-            class="!w-9 !h-9 !px-0 !rounded-xl text-[var(--text-primary)] border-[var(--text-primary)]/10 hover:bg-[var(--text-primary)]/5 bg-[var(--bg-app)]"
-            @click="emit('save-draft')"
-          >
-            <UiIcon name="lucide:bookmark" class="w-4 h-4" />
-          </UiButton>
-          <UiButton 
-            v-if="cart.length > 0" 
-            variant="outline"
-            size="sm"
-            class="!w-9 !h-9 !px-0 !rounded-xl text-red-500 border-red-500/10 hover:bg-red-500/5 bg-[var(--bg-app)]"
-            @click="emit('clear')"
-          >
-            <UiIcon name="lucide:trash-2" class="w-4 h-4" />
-          </UiButton>
       </div>
     </div>
 

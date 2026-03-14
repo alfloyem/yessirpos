@@ -25,6 +25,8 @@ const searchQuery = ref('')
 const selectedCategory = ref('Bütün Mallar')
 const customers = ref<any[]>([])
 const selectedCustomer = ref<any>(null)
+const employees = ref<any[]>([])
+const selectedEmployee = ref<any>(null)
 
 // Cart state
 const cart = ref<any[]>([])
@@ -83,6 +85,7 @@ const saveDraft = () => {
   
   clearCart()
   selectedCustomer.value = null
+  selectedEmployee.value = null
   toast.success('Satış müvəqqəti yadda saxlanıldı!')
 }
 
@@ -182,9 +185,21 @@ const loadCustomers = async () => {
   }
 }
 
+const loadEmployees = async () => {
+  try {
+    const data = await $fetch<any[]>('/api/employees', {
+      headers: { Authorization: `Bearer ${token.value}` }
+    })
+    employees.value = data || []
+  } catch (err) {
+    console.error('Failed to load employees')
+  }
+}
+
 onMounted(() => {
   loadProducts()
   loadCustomers()
+  loadEmployees()
   loadPaymentMethods()
   loadDrafts()
   // Ensure focus on load
@@ -679,10 +694,12 @@ const completeOrder = async (details?: any) => {
         v-model:discount="discount"
         v-model:discountType="discountType"
         v-model:selectedCustomer="selectedCustomer"
+        v-model:selectedEmployee="selectedEmployee"
         :cart="cart"
         :subtotal="subtotal"
         :finalTotal="finalTotal"
         :customers="customers"
+        :employees="employees"
         :cashbackAmount="cashbackAmount"
         @increase="increaseQty"
         @update-qty="updateQty"
