@@ -578,11 +578,8 @@ const completeOrder = async (details?: any) => {
         finalBonusUpdate -= bonusSpent
       }
       
-      // Keşbek is earned only on non-bonus payments?
-      // For now, let's keep it simple: gain cashback on total if not fully bonus
-      if (bonusSpent < total) {
-        finalBonusUpdate += currentCashback
-      }
+      // Cashback is always added if a customer is selected
+      finalBonusUpdate += currentCashback
 
       await $fetch<any>(`/api/customers/${customer.id}`, {
         method: 'PUT',
@@ -603,9 +600,7 @@ const completeOrder = async (details?: any) => {
       if (bonusSpent > 0) {
         msg += `\n${bonusSpent.toFixed(2)} ₼ bonus balansından çıxıldı.`
       }
-      if (bonusSpent < total) {
-        msg += `\n${customerName} hesabına ${currentCashback.toFixed(2)} ₼ keşbek əlavə edildi.`
-      }
+      msg += `\n${customerName} hesabına ${currentCashback.toFixed(2)} ₼ keşbek əlavə edildi.`
     }
     toast.success(msg)
     printReceipt()
@@ -733,10 +728,10 @@ const completeOrder = async (details?: any) => {
   <SalesPaymentModal
     v-model="showPaymentModal"
     v-model:selectedMethod="paymentMethod"
+    v-model:customer="selectedCustomer"
     :total="finalTotal"
     :dbMethods="paymentMethods"
     :isSaving="isSaving"
-    :customer="selectedCustomer"
     @confirm="completeOrder"
     @refresh-methods="loadPaymentMethods"
   />

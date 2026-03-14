@@ -16,6 +16,7 @@ const props = defineProps<{
 const emit = defineEmits([
   'update:modelValue',
   'update:selectedMethod',
+  'update:customer',
   'confirm',
   'refresh-methods'
 ])
@@ -32,16 +33,6 @@ const internalMethod = ref(props.selectedMethod || 'Nəğd')
 watch(() => props.selectedMethod, (val) => {
   internalMethod.value = val || 'Nəğd'
 })
-
-const selectMethod = (methodId: string) => {
-  internalMethod.value = methodId
-  emit('update:selectedMethod', methodId)
-
-  if (methodId === 'Hədiyyə Kartı') {
-    tempSelectedGiftCard.value = selectedGiftCard.value
-    showGiftCardModal.value = true
-  }
-}
 
 // Cash Input
 const receivedAmount = ref<string>('')
@@ -89,6 +80,25 @@ const confirmGiftCard = () => {
   showGiftCardModal.value = false
 }
 
+// Customer Selection Logic
+const showCustomerModal = ref(false)
+const customersList = ref<any[]>([])
+const tempSelectedCustomer = ref<any>(null)
+
+const fetchCustomers = async () => {
+  try {
+    const data = await $fetch<any[]>('/api/customers')
+    customersList.value = data || []
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+const confirmCustomer = () => {
+  emit('update:customer', tempSelectedCustomer.value)
+  showCustomerModal.value = false
+}
+
 // Reset cash input and gift card choices when modal opens or total changes
 watch(() => props.modelValue, (isOpen) => {
   if (isOpen) {
@@ -96,8 +106,29 @@ watch(() => props.modelValue, (isOpen) => {
     selectedGiftCard.value = null
     tempSelectedGiftCard.value = null
     fetchGiftCards() // Always fetch fresh data from DB when modal opens
+    fetchCustomers() // Refresh customer data to get latest bonus
   }
 })
+
+const selectMethod = (methodId: string) => {
+  const isSecondClick = internalMethod.value === methodId
+  internalMethod.value = methodId
+  emit('update:selectedMethod', methodId)
+
+  if (methodId === 'Hədiyyə Kartı') {
+    tempSelectedGiftCard.value = selectedGiftCard.value
+    showGiftCardModal.value = true
+  }
+
+  if (methodId === 'Bonus') {
+    // Only open if no customer selected OR explicitly clicked a second time
+    if (!props.customer || isSecondClick) {
+      if (customersList.value.length === 0) fetchCustomers()
+      tempSelectedCustomer.value = props.customer
+      showCustomerModal.value = true
+    }
+  }
+}
 </script>
 
 <template>
@@ -193,6 +224,30 @@ watch(() => props.modelValue, (isOpen) => {
           Zəhmət olmasa hədiyyə kartı seçin
         </div>
       </div>
+
+      <!-- Bonus Details -->
+      <div v-if="internalMethod === 'Bonus'" class="pt-4 mt-2 border-t border-[var(--border-app)] border-dashed">
+        <div v-if="customer" class="flex items-center justify-between p-4 bg-[var(--text-primary)]/5 border border-[var(--text-primary)]/20 rounded-xl">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-[var(--text-primary)]/10 flex items-center justify-center text-[var(--text-primary)]">
+              <UiIcon name="lucide:star" class="w-5 h-5" />
+            </div>
+            <div>
+              <div class="text-[11px] font-bold opacity-50 uppercase tracking-widest mb-0.5">Müştəri</div>
+              <div class="font-black text-sm">{{ customer.firstName }} {{ customer.lastName }}</div>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-[11px] font-bold opacity-50 uppercase tracking-widest mb-0.5">Bonus Balansı</div>
+            <div class="font-black text-lg text-[var(--text-primary)]" :class="(customer.bonus || 0) < total ? 'text-red-500' : ''">
+              {{ (Number(customer.bonus) || 0).toFixed(2) }} ₼
+            </div>
+          </div>
+        </div>
+        <div v-else class="text-center py-6 opacity-50 font-bold text-sm bg-[var(--bg-app)] rounded-xl border border-[var(--border-app)]">
+          Zəhmət olmasa müştəri seçin
+        </div>
+      </div>
     </div>
 
     <UiButton 
@@ -252,6 +307,53 @@ watch(() => props.modelValue, (isOpen) => {
         :disabled="!tempSelectedGiftCard"
       >
         Seçimi Təsdiqlə
+      </UiButton>
+    </div>
+  </Modal>
+
+  <!-- Customer Selection Sub-Modal -->
+  <Modal
+    v-model="showCustomerModal"
+    title="Müştəri Seçin"
+    max-width="sm"
+  >
+    <div class="space-y-6 pt-2 pb-2">
+      <div class="space-y-2">
+        <label class="block text-[11px] font-bold text-[var(--text-app)] opacity-50 uppercase tracking-widest">Müştəri Axtar</label>
+        <UiAutocomplete
+          :modelValue="tempSelectedCustomer?.id"
+          @update:modelValue="(val: any) => {
+            tempSelectedCustomer = customersList.find(c => c.id === val)
+          }"
+          :options="customersList.map(c => ({
+            label: `${c.firstName} ${c.lastName}`,
+            value: c.id,
+            extra: `${c.bonus || 0} ₼`
+          }))"
+          placeholder="Ad, Soyad və ya Barkod..." 
+          icon="lucide:user" 
+          class="!rounded-xl"
+        />
+      </div>
+
+      <div v-if="tempSelectedCustomer" class="p-4 rounded-xl border border-[var(--border-app)] bg-[var(--bg-app)] flex justify-between items-center transition-all">
+        <div class="font-bold text-sm text-[var(--text-app)]">
+          {{ tempSelectedCustomer.firstName }} {{ tempSelectedCustomer.lastName }}
+        </div>
+        <div class="font-black text-[var(--text-primary)]">
+          {{ (Number(tempSelectedCustomer.bonus) || 0).toFixed(2) }} ₼
+        </div>
+      </div>
+
+      <UiButton 
+        variant="primary" 
+        block 
+        size="lg"
+        @click="confirmCustomer"
+        class="!rounded-xl font-black"
+        :disabled="!tempSelectedCustomer"
+      >
+        Müştərini Təsdiqlə
       </UiButton>
     </div>
   </Modal>
