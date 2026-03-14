@@ -165,7 +165,7 @@ const getItemDisplayName = (item: CartItem) => {
       <div class="relative m-0">
         <div v-if="selectedEmployee" class="flex items-center gap-2.5 pl-4 p-2 border border-[var(--text-primary)]/10 rounded-xl transition-all hover:bg-[var(--text-primary)]/10 w-full">
           <span class="text-xs font-black text-[var(--text-app)] truncate leading-tight">{{ selectedEmployee.firstName }} {{ selectedEmployee.lastName }}</span>
-          <span class="text-[10px] font-bold text-[var(--text-primary)] opacity-50 flex-1 italic">{{ t("menu.employee", "İşci") }}</span>
+          <span class="text-[10px] font-bold text-[var(--text-primary)] opacity-50 flex-1 italic">{{ t("sales.cashier", "Kassir") }}</span>
           <button @click="emit('update:selectedEmployee', null)" class="w-6 h-6 flex items-center justify-center hover:bg-red-500/10 rounded-lg transition-all text-red-500/40 hover:text-red-500 group/btn">
             <UiIcon name="lucide:x" class="w-3.5 h-3.5 group-hover/btn:rotate-90 transition-transform" />
           </button>
@@ -183,7 +183,7 @@ const getItemDisplayName = (item: CartItem) => {
               value: e.id,
               extra: e.phone || e.position
             }))"
-            placeholder="İşçi seçin..." 
+            placeholder="Kassir seçin..." 
             icon="lucide:briefcase" 
             class="!rounded-xl"
             size="sm"

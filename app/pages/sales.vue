@@ -397,7 +397,9 @@ const printReceipt = (manualReceiptNo?: string) => {
   })
   
   const receiptNo = manualReceiptNo || `S${Date.now().toString().slice(-8)}`
-  const cashierName = selectedEmployee.value?.name || user.value?.name || 'Məlum deyil'
+  const cashierName = selectedEmployee.value 
+    ? `${selectedEmployee.value.firstName} ${selectedEmployee.value.lastName}` 
+    : (user.value?.firstName ? `${user.value.firstName} ${user.value.lastName}` : 'Məlum deyil')
 
   const itemsHtml = cart.value.map(item => {
     const price = Number(item.retailPrice) || 0
@@ -764,7 +766,7 @@ const completeOrder = async (details?: any) => {
         bonusBarcode: customer?.barcode
       },
       cashierId: selectedEmployee.value?.id,
-      cashierName: selectedEmployee.value?.name,
+      cashierName: selectedEmployee.value ? `${selectedEmployee.value.firstName} ${selectedEmployee.value.lastName}` : null,
       customerId: customer?.id,
       customerName: customerName,
       customerBarcode: customer?.barcode,
