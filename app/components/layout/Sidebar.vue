@@ -64,6 +64,7 @@ const menu = ref([
     icon: 'lucide:pie-chart',
     isOpen: false,
     children: [
+      { title: 'Satış Arxivi', titleKey: 'menu.orders', to: '/orders' },
       { title: 'Xərclər', titleKey: 'menu.expenses', to: '/expenses' },
       { title: 'Qazanclar', titleKey: 'menu.earnings', to: '/earnings' },
       { title: 'Hesabatlar', titleKey: 'menu.reports', to: '/reports' }
