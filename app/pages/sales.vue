@@ -377,6 +377,10 @@ const handlePayment = () => {
     toast.error('Səbət boşdur!')
     return
   }
+  if (!selectedEmployee.value) {
+    toast.error('Zəhmət olmasa Kassir (əməkdaş) seçin!')
+    return
+  }
   showPaymentModal.value = true
 }
 
@@ -392,7 +396,7 @@ const printReceipt = () => {
   })
   
   const receiptNo = `S${Date.now().toString().slice(-8)}`
-  const cashierName = user.value?.name || user.value?.firstName || 'Məlum deyil'
+  const cashierName = selectedEmployee.value?.name || user.value?.name || 'Məlum deyil'
 
   const itemsHtml = cart.value.map(item => {
     const price = Number(item.retailPrice) || 0
@@ -424,7 +428,7 @@ const printReceipt = () => {
           <span>${(price * item.qty).toFixed(2)}</span>
         </div>
         ${hasDiscount ? `
-          <div style="display: flex; justify-content: space-between; font-size: 10px; color: #d32f2f; font-style: italic;">
+          <div style="display: flex; justify-content: space-between; font-size: 10px; color: #000; font-style: italic;">
             <span>Endirim (${item.itemDiscountType === 'percent' ? d + '%' : d.toFixed(2) + ' ₼'}):</span>
             <span>-${((price - finalPrice) * item.qty).toFixed(2)} ₼</span>
           </div>
@@ -440,7 +444,6 @@ const printReceipt = () => {
   const customerInfoHtml = selectedCustomer.value ? `
     <div style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 5px 0; margin-bottom: 10px; font-size: 11px;">
       <div style="font-weight: bold;">MÜŞTƏRİ: ${selectedCustomer.value.firstName} ${selectedCustomer.value.lastName}</div>
-      ${selectedCustomer.value.phone ? `<div>TEL: ${selectedCustomer.value.phone}</div>` : ''}
     </div>
   ` : ''
 
@@ -454,7 +457,7 @@ const printReceipt = () => {
         <span>${subtotal.value.toFixed(2)} ₼</span>
       </div>
       ${discountVal > 0 ? `
-        <div style="display: flex; justify-content: space-between; color: #d32f2f;">
+        <div style="display: flex; justify-content: space-between; color: #000;">
           <span>Ümumi Endirim (${discountType.value === 'percent' ? discountVal + '%' : discountVal + ' ₼'}):</span>
           <span>-${discountAmount.toFixed(2)} ₼</span>
         </div>
@@ -465,28 +468,66 @@ const printReceipt = () => {
   const paymentMethodsHtml = paymentDetails.value?.isMulti 
     ? Object.entries(paymentDetails.value.payments)
         .filter(([_, amt]) => (amt as number) > 0)
-        .map(([name, amt]) => `
-          <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
-            <span style="text-transform: capitalize;">${name}:</span>
-            <span>${(amt as number).toFixed(2)} ₼</span>
-          </div>
-        `).join('')
+        .map(([name, amt]) => {
+          let extra = ''
+          if (name === 'Bonus' && selectedCustomer.value) extra = `<div style="font-size: 9px; opacity: 0.7;">Bonus Kart: ${selectedCustomer.value.barcode || '---'}</div>`
+          if (name === 'Hədiyyə Kartı' && paymentDetails.value?.giftCard) {
+            const gc = paymentDetails.value.giftCard
+            const remaining = Math.max(0, gc.value - (amt as number))
+            extra = `<div style="font-size: 9px; opacity: 0.7;">Kart: ${gc.barcode} | Qalıq Balans: ${remaining.toFixed(2)} ₼</div>`
+          }
+          return `
+            <div style="margin-bottom: 4px;">
+              <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                <span style="text-transform: capitalize; font-weight: bold;">${name}:</span>
+                <span>${(amt as number).toFixed(2)} ₼</span>
+              </div>
+              ${extra}
+            </div>
+          `
+        }).join('')
     : `
       <div style="display: flex; justify-content: space-between; font-size: 11px;">
         <span>Ödəniş Üsulu:</span>
         <span style="font-weight: bold;">${paymentDetails.value?.method || paymentMethod.value}</span>
       </div>
+      ${(paymentMethod.value === 'Bonus' && selectedCustomer.value) ? `<div style="font-size: 9px; opacity: 0.7;">Bonus Kart: ${selectedCustomer.value.barcode || '---'}</div>` : ''}
+      ${(paymentMethod.value === 'Hədiyyə Kartı' && paymentDetails.value?.giftCard) ? `
+        <div style="font-size: 9px; opacity: 0.7;">
+          Kart: ${paymentDetails.value.giftCard.barcode} | Qalıq Balans: ${Math.max(0, paymentDetails.value.giftCard.value - finalTotal.value).toFixed(2)} ₼
+        </div>
+      ` : ''}
+      
       ${paymentDetails.value?.received ? `
-        <div style="display: flex; justify-content: space-between; font-size: 11px;">
+        <div style="display: flex; justify-content: space-between; font-size: 11px; margin-top: 2px;">
           <span>Alınan:</span>
           <span>${Number(paymentDetails.value.received).toFixed(2)} ₼</span>
         </div>
-        <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: bold;">
-          <span>Qalıq:</span>
-          <span>${Number(paymentDetails.value.change).toFixed(2)} ₼</span>
-        </div>
       ` : ''}
     `
+    
+  // Multi-payment change calculation
+  let multiChangeHtml = ''
+  if (paymentDetails.value?.isMulti) {
+    const paymentsArr = Object.values(paymentDetails.value.payments) as number[]
+    const totalPaid = paymentsArr.reduce((a, b) => a + (Number(b) || 0), 0)
+    const change = totalPaid - finalTotal.value
+    if (change > 0.01) {
+      multiChangeHtml = `
+        <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; margin-top: 5px; border-top: 1px dotted #000; padding-top: 3px;">
+          <span>Qalıq:</span>
+          <span>${change.toFixed(2)} ₼</span>
+        </div>
+      `
+    }
+  } else if (paymentDetails.value?.change > 0.01) {
+    multiChangeHtml = `
+      <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; margin-top: 5px; border-top: 1px dotted #000; padding-top: 3px;">
+        <span>Qalıq:</span>
+        <span>${Number(paymentDetails.value.change).toFixed(2)} ₼</span>
+      </div>
+    `
+  }
 
   // Loyalty/Bonus Info
   let loyaltyHtml = ''
@@ -575,6 +616,7 @@ const printReceipt = () => {
           <div style="margin-top: 10px; border-top: 1px dashed #000; padding-top: 5px;">
             <div style="font-size: 10px; font-weight: bold; margin-bottom: 4px; text-decoration: underline;">ÖDƏNİŞ DETALLARI:</div>
             ${paymentMethodsHtml}
+            ${multiChangeHtml}
           </div>
         </div>
 
@@ -649,6 +691,10 @@ const completeOrder = async (details?: any) => {
           toast.error(`Kartda kifayət qədər balans yoxdur (Mövcud: ${card.value.toFixed(2)} ₼)`)
           return
         }
+        
+        // Store card object for receipt before modifying balance
+        paymentDetails.value.giftCard = { ...card }
+
         // Deduct from gift card
         await $fetch<any>(`/api/gift-cards/${card.id}`, {
           method: 'PUT',
