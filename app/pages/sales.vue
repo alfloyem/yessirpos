@@ -523,7 +523,7 @@ const printReceipt = () => {
   } else if (paymentDetails.value?.change > 0.01) {
     multiChangeHtml = `
       <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; margin-top: 5px; border-top: 1px dotted #000; padding-top: 3px;">
-        <span>Qalıq:</span>
+        <span>Qaytarılan Məbləğ:</span>
         <span>${Number(paymentDetails.value.change).toFixed(2)} ₼</span>
       </div>
     `
