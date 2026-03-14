@@ -448,7 +448,7 @@ const handleFocus = (event: Event) => {
         size="lg"
         variant="primary"
         :loading="isSaving"
-        :disabled="isMultiPayment && Math.abs(remainingMultiTotal) > 0.01"
+        :disabled="isMultiPayment && remainingMultiTotal > 0.01"
         @click="handleConfirm"
       >
         <div class="flex items-center gap-2">
