@@ -166,33 +166,6 @@ const loadPaymentMethods = async () => {
   try {
     const data = await $fetch<any[]>('/api/payment-methods')
     paymentMethods.value = data || []
-    
-    // System methods that are always required and protected in DB
-    const systemDefaults = [
-      { name: 'Nəğd', icon: 'lucide:coins', color: 'green', isSystem: true },
-      { name: 'Bank Kartı', icon: 'lucide:credit-card', color: 'blue', isSystem: true }
-    ]
-
-    let needsReload = false
-    for (const d of systemDefaults) {
-      const exists = paymentMethods.value.find(m => m.name === d.name)
-      if (!exists) {
-        await $fetch<any>('/api/payment-methods', { method: 'POST', body: d })
-        needsReload = true
-      } else if (!exists.isSystem) {
-        // Force upgrade to system status if it's a default name
-        await $fetch<any>(`/api/payment-methods/${exists.id}`, { 
-          method: 'PUT', 
-          body: { ...exists, isSystem: true } 
-        })
-        needsReload = true
-      }
-    }
-
-    if (needsReload) {
-      const updated = await $fetch<any[]>('/api/payment-methods')
-      paymentMethods.value = updated || []
-    }
   } catch (err) {
     console.error('Failed to load payment methods:', err)
   }

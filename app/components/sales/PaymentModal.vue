@@ -3,6 +3,7 @@ import { ref, watch, computed } from 'vue'
 import Modal from '~/components/ui/Modal.vue'
 import UiIcon from '~/components/ui/Icon.vue'
 import UiButton from '~/components/ui/Button.vue'
+import UiIconSelector from '~/components/ui/IconSelector.vue'
 
 const props = defineProps<{
   modelValue: boolean
@@ -21,15 +22,31 @@ const emit = defineEmits([
   'refresh-methods'
 ])
 
-// Payment Methods
-const methods = [
-  { id: 'Nəğd', name: 'Nəğd', icon: 'lucide:coins', color: 'green' },
-  { id: 'Bank Kartı', name: 'Kart', icon: 'lucide:credit-card', color: 'blue' },
-  { id: 'Hədiyyə Kartı', name: 'Hədiyyə Kartı', icon: 'lucide:gift', color: 'purple' },
-  { id: 'Bonus', name: 'Bonus', icon: 'lucide:star', color: 'yellow' }
-]
-
+// Payment Methods Logic
 const internalMethod = ref(props.selectedMethod || 'Nəğd')
+
+const combinedMethods = computed(() => {
+  const db = props.dbMethods || []
+  const systemDefaults = [
+    { id: 'Nəğd', name: 'Nəğd', icon: 'lucide:coins', isSystem: true },
+    { id: 'Bank Kartı', name: 'Kart', icon: 'lucide:credit-card', isSystem: true },
+    { id: 'Hədiyyə Kartı', name: 'Hədiyyə Kartı', icon: 'lucide:gift', isSystem: true },
+    { id: 'Bonus', name: 'Bonus', icon: 'lucide:star', isSystem: true }
+  ]
+  
+  // Custom methods from DB (not in system defaults)
+  const systemNames = ['Nəğd', 'Bank Kartı', 'Hədiyyə Kartı', 'Bonus']
+  const customs = db.filter(m => !systemNames.includes(m.name)).map(m => ({
+    id: m.name,
+    name: m.name,
+    icon: m.icon || 'lucide:credit-card',
+    isSystem: false,
+    rawId: m.id
+  }))
+  
+  return [...systemDefaults, ...customs]
+})
+
 watch(() => props.selectedMethod, (val) => {
   internalMethod.value = val || 'Nəğd'
 })
@@ -99,14 +116,76 @@ const confirmCustomer = () => {
   showCustomerModal.value = false
 }
 
-// Reset cash input and gift card choices when modal opens or total changes
+// Manage Methods Logic
+const showManageMethodsModal = ref(false)
+const newMethodName = ref('')
+const newMethodIcon = ref('lucide:credit-card')
+const isAddingMethod = ref(false)
+
+const addMethod = async () => {
+  if (!newMethodName.value.trim()) return
+  isAddingMethod.value = true
+  try {
+    await $fetch('/api/payment-methods', {
+      method: 'POST',
+      body: {
+        name: newMethodName.value.trim(),
+        icon: newMethodIcon.value,
+        isSystem: false
+      }
+    })
+    newMethodName.value = ''
+    newMethodIcon.value = 'lucide:credit-card'
+    emit('refresh-methods')
+  } catch (err) {
+    console.error(err)
+  } finally {
+    isAddingMethod.value = false
+  }
+}
+
+const deleteMethod = async (id: string) => {
+  try {
+    await $fetch(`/api/payment-methods/${id}`, { method: 'DELETE' })
+    emit('refresh-methods')
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+const activeIconPickerId = ref<string | null>(null)
+const tempEditIcon = ref('')
+
+const toggleIconPicker = (method: any) => {
+  if (activeIconPickerId.value === method.id) {
+    activeIconPickerId.value = null
+  } else {
+    activeIconPickerId.value = method.id
+    tempEditIcon.value = method.icon || 'lucide:credit-card'
+  }
+}
+
+const updateMethodIcon = async (method: any, newIcon: string) => {
+  try {
+    await $fetch(`/api/payment-methods/${method.id}`, {
+      method: 'PUT',
+      body: { ...method, icon: newIcon }
+    })
+    activeIconPickerId.value = null
+    emit('refresh-methods')
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+// Reset everything when modal opens
 watch(() => props.modelValue, (isOpen) => {
   if (isOpen) {
     receivedAmount.value = ''
     selectedGiftCard.value = null
     tempSelectedGiftCard.value = null
-    fetchGiftCards() // Always fetch fresh data from DB when modal opens
-    fetchCustomers() // Refresh customer data to get latest bonus
+    fetchGiftCards()
+    fetchCustomers()
   }
 })
 
@@ -121,7 +200,6 @@ const selectMethod = (methodId: string) => {
   }
 
   if (methodId === 'Bonus') {
-    // Only open if no customer selected OR explicitly clicked a second time
     if (!props.customer || isSecondClick) {
       if (customersList.value.length === 0) fetchCustomers()
       tempSelectedCustomer.value = props.customer
@@ -155,16 +233,16 @@ const selectMethod = (methodId: string) => {
     <div class="py-6 space-y-4">
       <!-- Methods Header -->
       <div class="opacity-50 flex items-center justify-between hover:text-[var(--text-primary)] hover:opacity-100 transition-all">
-        <h3>Ödəniş Yöntəmi</h3>
-        <button title="Yöntəmləri Redaktə Et">
-          <UiIcon name="lucide:edit-3" class="w-4 h-4" />
+        <h3 class="text-xs font-bold uppercase tracking-widest">Ödəniş Yöntəmi</h3>
+        <button @click="showManageMethodsModal = true" title="Yöntəmləri Redaktə Et" class="p-1 hover:bg-[var(--text-primary)]/10 rounded-lg transition-colors">
+          <UiIcon name="lucide:settings-2" class="w-4 h-4" />
         </button>
       </div>
 
       <!-- Method Selection -->
       <div class="grid grid-cols-2 gap-2 sm:gap-3">
         <button
-          v-for="m in methods"
+          v-for="m in combinedMethods"
           :key="m.id"
           @click="selectMethod(m.id)"
           class="flex items-center justify-start gap-2.5 sm:gap-3 p-3 sm:p-4 border rounded-xl transition-all cursor-pointer font-bold relative"
@@ -357,4 +435,71 @@ const selectMethod = (methodId: string) => {
       </UiButton>
     </div>
   </Modal>
+
+  <!-- Manage Payment Methods Modal -->
+  <Modal
+    v-model="showManageMethodsModal"
+    title="Yöntəmləri idarə et"
+    max-width="sm"
+  >
+    <div class="space-y-6 pt-2 pb-2 min-h-[400px]">
+      <div class="flex gap-2">
+        <input 
+          v-model="newMethodName"
+          type="text"
+          placeholder="Yeni üsul adı..."
+          class="flex-1 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-xl px-4 py-2 text-sm font-bold focus:border-[var(--text-primary)] outline-none"
+        />
+        <UiButton variant="primary" size="sm" class="!rounded-xl font-black" @click="addMethod" :loading="isAddingMethod">
+          Əlavə et
+        </UiButton>
+      </div>
+
+      <div class="h-[1px] bg-white/5 mx-2"></div>
+
+      <div class="space-y-2">
+        <div 
+          v-for="m in dbMethods?.filter(item => !item.isSystem)" 
+          :key="m.id"
+          class="relative flex items-center justify-between p-2 rounded-xl border border-white/5 bg-white/[0.02] hover:border-[var(--text-primary)]/20 transition-all"
+        >
+          <div class="flex items-center gap-3">
+            <div class="relative">
+              <button 
+                @click="toggleIconPicker(m)"
+                class="w-10 h-10 flex items-center justify-center rounded-lg bg-[var(--text-primary)]/5 text-[var(--text-primary)] border border-[var(--text-primary)]/10 hover:bg-[var(--text-primary)] hover:text-white transition-all shadow-sm"
+              >
+                <UiIcon :name="m.icon || 'lucide:credit-card'" class="w-5 h-5" />
+              </button>
+              
+              <!-- Popover Picker -->
+              <div v-if="activeIconPickerId === m.id" class="absolute z-[100] top-0 left-12 animate-in fade-in zoom-in duration-200 origin-left w-[280px]">
+                <UiIconSelector 
+                  v-model="tempEditIcon" 
+                  @update:modelValue="(val) => updateMethodIcon(m, val)"
+                />
+                <button @click="activeIconPickerId = null" class="fixed inset-0 z-[-1] cursor-default"></button>
+              </div>
+            </div>
+            <span class="text-sm font-bold opacity-80">{{ m.name }}</span>
+          </div>
+          
+          <button 
+            @click="deleteMethod(m.id)"
+            class="w-8 h-8 flex items-center justify-center text-red-500/20 hover:text-red-500 hover:bg-red-500/5 rounded-lg transition-all"
+          >
+            <UiIcon name="lucide:trash-2" class="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+      
+      <!-- New Method Icon Selector (Only if name is being typed) -->
+      <div v-if="newMethodName" class="pt-2 animate-in slide-in-from-top-2 duration-300">
+        <div class="text-[10px] font-bold text-white/20 uppercase tracking-widest mb-2 pl-1">Yeni üsul üçün ikon</div>
+        <UiIconSelector v-model="newMethodIcon" />
+      </div>
+    </div>
+  </Modal>
+
+
 </template>
