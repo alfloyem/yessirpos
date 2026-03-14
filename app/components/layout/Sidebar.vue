@@ -285,7 +285,7 @@ const userRoles = computed(() => {
                 <span 
                   class="font-semibold text-[15px] text-left whitespace-nowrap overflow-hidden transition-all duration-300 ease-in-out flex-grow"
                   :style="{ transitionProperty: 'width, opacity, margin, transform' }"
-                  :class="isSidebarCollapsed && !isMobileMenuOpen ? 'w-0 opacity-0 ml-0 translate-x-[-10px]' : 'w-[124px] opacity-100 ml-3 translate-x-0'"
+                  :class="isSidebarCollapsed && !isMobileMenuOpen ? 'w-0 opacity-0' : 'w-[124px] opacity-100 ml-3 translate-x-0'"
                 >
                   {{ getTitle(item) }}
                 </span>
@@ -342,8 +342,8 @@ const userRoles = computed(() => {
             <!-- Inline Accordion (Expanded State) -->
             <div 
               v-else
-              class="hidden grid overflow-hidden transition-all duration-300 ease-in-out"
-              :class="item.isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 pointer-events-none'"
+              class="grid overflow-hidden transition-all duration-300 ease-in-out"
+              :class="item.isOpen ? 'grid-rows-[1fr] opacity-100 h-fit' : 'h-1 grid-rows-[0fr] opacity-0 pointer-events-none'"
             >
               <!-- Inner wrapper for smooth grid transition (needs min-h-0) -->
               <div class="min-h-0 flex flex-col items-end w-full pt-1">
