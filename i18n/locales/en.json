@@ -111,11 +111,12 @@
     "warehouse": "Warehouse",
     "supply": "Supply",
     "finance": "Finance",
-    "main_category": "Main",
-    "customers_category": "Customers",
-    "inventory_category": "Inventory",
-    "suppliers_category": "Supply",
-    "finance_category": "Finance"
+    "main_category": "Dashboard",
+    "sales_category": "Sales Operations",
+    "customers_category": "Client Portfolio",
+    "inventory_category": "Stock & Supply",
+    "finance_category": "Finance & Analytics",
+    "system_category": "System Admin"
   },
   "employees": {
     "firstName": "First Name",

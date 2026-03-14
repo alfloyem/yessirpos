@@ -111,11 +111,12 @@
     "warehouse": "Anbar",
     "supply": "Təchizat",
     "finance": "Maliyyə",
-    "main_category": "Əsas",
-    "customers_category": "Müştərilər",
-    "inventory_category": "Anbar",
-    "suppliers_category": "Təchizat",
-    "finance_category": "Maliyyə"
+    "main_category": "Panel",
+    "sales_category": "Satış Sistemi",
+    "customers_category": "Müştəri Portfeli",
+    "inventory_category": "Anbar və Təchizat",
+    "finance_category": "Maliyyə və Hesabat",
+    "system_category": "Sistem İdarəetmə"
   },
   "employees": {
     "firstName": "Ad",

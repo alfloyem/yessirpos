@@ -18,18 +18,27 @@ const isMobileMenuOpen = useState<boolean>('mobileMenuOpen', () => false)
 // Define menu structure with translation keys
 const menu = ref([
   {
-    title: 'Əsas',
+    title: 'Panel',
     titleKey: 'menu.main_category',
-    icon: 'iconamoon:home',
+    icon: 'heroicons:chart-bar',
     isOpen: false,
     children: [
       { title: 'Ana Səhifə', titleKey: 'menu.home', to: '/' },
-      { title: 'Satışlar', titleKey: 'menu.sales', to: '/sales' },
       { title: 'Əməkdaşlar', titleKey: 'menu.employees', to: '/employees' }
     ]
   },
   {
-    title: 'Müştərilər',
+    title: 'Satış Sistemi',
+    titleKey: 'menu.sales_category',
+    icon: 'lucide:shopping-bag',
+    isOpen: false,
+    children: [
+      { title: 'Satış Terminalı', titleKey: 'menu.sales', to: '/sales' },
+      { title: 'Satış Arxivi', titleKey: 'menu.orders', to: '/orders' }
+    ]
+  },
+  {
+    title: 'Müştəri Portfeli',
     titleKey: 'menu.customers_category',
     icon: 'lucide:users',
     isOpen: false,
@@ -39,35 +48,26 @@ const menu = ref([
     ]
   },
   {
-    title: 'Anbar',
+    title: 'Anbar və Təchizat',
     titleKey: 'menu.inventory_category',
     icon: 'lucide:package',
     isOpen: false,
     children: [
       { title: 'Mallar', titleKey: 'menu.products', to: '/products' },
-      { title: 'Atributlar', titleKey: 'menu.attributes', to: '/attributes' }
-    ]
-  },
-  {
-    title: 'Təchizat',
-    titleKey: 'menu.suppliers_category',
-    icon: 'lucide:truck',
-    isOpen: false,
-    children: [
+      { title: 'Atributlar', titleKey: 'menu.attributes', to: '/attributes' },
       { title: 'Tədarükçülər', titleKey: 'menu.suppliers', to: '/suppliers' },
       { title: 'Qəbul Edilənlər', titleKey: 'menu.intake', to: '/received' }
     ]
   },
   {
-    title: 'Maliyyə',
+    title: 'Maliyyə və Hesabat',
     titleKey: 'menu.finance_category',
     icon: 'lucide:pie-chart',
     isOpen: false,
     children: [
-      { title: 'Satış Arxivi', titleKey: 'menu.orders', to: '/orders' },
+      { title: 'Hesabatlar', titleKey: 'menu.reports', to: '/reports' },
       { title: 'Xərclər', titleKey: 'menu.expenses', to: '/expenses' },
-      { title: 'Qazanclar', titleKey: 'menu.earnings', to: '/earnings' },
-      { title: 'Hesabatlar', titleKey: 'menu.reports', to: '/reports' }
+      { title: 'Qazanclar', titleKey: 'menu.earnings', to: '/earnings' }
     ]
   }
 ])

@@ -111,11 +111,12 @@
     "warehouse": "Склад",
     "supply": "Снабжение",
     "finance": "Финансы",
-    "main_category": "Основное",
-    "customers_category": "Клиенты",
-    "inventory_category": "Склад",
-    "suppliers_category": "Снабжение",
-    "finance_category": "Финансы"
+    "main_category": "Панель",
+    "sales_category": "Система продаж",
+    "customers_category": "Клиентский портфель",
+    "inventory_category": "Склад и Снабжение",
+    "finance_category": "Финансы и Аналитика",
+    "system_category": "Системное админ."
   },
   "employees": {
     "firstName": "Имя",
