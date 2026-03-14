@@ -6,6 +6,7 @@ import DataTable from '~/components/ui/DataTable.vue'
 import Modal from '~/components/ui/Modal.vue'
 import UiButton from '~/components/ui/Button.vue'
 import UiIcon from '~/components/ui/Icon.vue'
+import { printReceipt as printReceiptGlobal, type ReceiptData } from '~/utils/receiptPrinter'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -27,8 +28,8 @@ const orderSchema = computed(() => [
 
 const columns = computed(() => 
   orderSchema.value
-    .filter(f => f.inTable)
-    .map(f => ({ key: f.key, label: f.label, sortable: f.sortable }))
+    .filter((f: any) => f.inTable)
+    .map((f: any) => ({ key: f.key, label: f.label, sortable: f.sortable }))
 )
 
 // --- Data ---
@@ -79,139 +80,44 @@ const getPaymentMethodLabel = (order: any) => {
 
 // --- Printing Logic (Mirrored from sales.vue but fixed for archive data) ---
 const printOrder = (order: any) => {
-  const receiptNo = order.receiptNo
-  const cashierName = order.cashierName || 'Məlum deyil'
-  const currentDate = order.createdAt
-  
-  const customerInfoHtml = order.customerName ? `
-    <div style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 5px 0; margin-bottom: 10px; font-size: 11px;">
-      <div style="font-weight: bold;">MÜŞTƏRİ: ${order.customerName}</div>
-    </div>
-  ` : ''
-
-  const itemsHtml = order.items.map((item: any) => {
-    const price = Number(item.price) || 0
-    const d = Number(item.discount) || 0
-    const qty = Number(item.qty) || 0
-    const total = Number(item.total) || 0
-    const cleanName = item.productName.replace(/\s+\d+$/, '')
-    
-    let attrStr = ''
-    if (item.attribute) {
-      if (Array.isArray(item.attribute)) {
-        attrStr = item.attribute.map((a: string) => a.split(':').pop()?.trim()).join(', ')
-      } else if (typeof item.attribute === 'string') {
-        attrStr = item.attribute
-      }
+  const receiptData: ReceiptData = {
+    receiptNo: order.receiptNo,
+    cashierName: order.cashierName || 'Məlum deyil',
+    currentDate: order.createdAt,
+    subtotal: Number(order.subtotal) || 0,
+    finalTotal: Number(order.finalTotal) || 0,
+    discountTotal: Number(order.discountTotal) || 0,
+    isArchive: true,
+    items: order.items.map((item: any) => ({
+      productName: item.productName,
+      barcode: item.barcode,
+      qty: Number(item.qty),
+      price: Number(item.price),
+      finalPrice: Number(item.price), // Archive stores final price usually
+      discount: Number(item.discount) || 0,
+      discountType: 'amount',
+      discountValue: Number(item.discount) || 0,
+      total: Number(item.total),
+      attribute: item.attribute
+    })),
+    customer: order.customerName ? {
+      name: order.customerName,
+      barcode: order.customerBarcode
+    } : undefined,
+    paymentDetails: {
+      isMulti: order.paymentDetails?.isMulti || false,
+      method: order.paymentDetails?.method || 'Nəğd',
+      payments: order.paymentDetails?.payments,
+      received: order.paymentDetails?.received,
+      change: order.paymentDetails?.change,
+      giftCard: order.paymentDetails?.giftCardBarcode ? {
+        barcode: order.paymentDetails.giftCardBarcode,
+        remaining: 0 // In archive we don't necessarily know current remaining
+      } : undefined
     }
-
-    return `
-      <div style="margin-bottom: 8px; border-bottom: 1px dotted #eee; padding-bottom: 4px;">
-        <div style="font-weight: bold; font-size: 13px;">${cleanName}</div>
-        <div style="font-size: 10px; color: #555;">${item.barcode || ''} ${attrStr ? ` | ${attrStr}` : ''}</div>
-        <div style="display: flex; justify-content: space-between; margin-top: 2px; font-family: monospace; font-size: 12px;">
-          <span>${qty.toFixed(2)} x ${price.toFixed(2)}</span>
-          <span>${total.toFixed(2)}</span>
-        </div>
-      </div>
-    `
-  }).join('')
-
-  const details = order.paymentDetails || {}
-  let paymentHtml = ''
-  if (details.isMulti) {
-    paymentHtml = Object.entries(details.payments)
-      .filter(([_, amt]) => (amt as number) > 0)
-      .map(([name, amt]) => {
-        let extra = ''
-        if (name === 'Bonus') extra = `<div style="font-size: 9px; opacity: 0.7;">Bonus Kart: ${order.customerBarcode || '---'}</div>`
-        if (name === 'Hədiyyə Kartı' && details.giftCardBarcode) {
-           extra = `<div style="font-size: 9px; opacity: 0.7;">Kart: ${details.giftCardBarcode}</div>`
-        }
-        return `
-          <div style="margin-bottom: 4px;">
-            <div style="display: flex; justify-content: space-between; font-size: 11px;">
-              <span style="text-transform: capitalize; font-weight: bold;">${name}:</span>
-              <span>${(amt as number).toFixed(2)} ₼</span>
-            </div>
-            ${extra}
-          </div>
-        `
-      }).join('')
-  } else {
-    paymentHtml = `
-      <div style="display: flex; justify-content: space-between; font-size: 11px;">
-        <span>Ödəniş Üsulu:</span>
-        <span style="font-weight: bold;">${details.method}</span>
-      </div>
-      ${details.method === 'Bonus' ? `<div style="font-size: 9px; opacity: 0.7;">Bonus Kart: ${order.customerBarcode || '---'}</div>` : ''}
-      ${details.method === 'Hədiyyə Kartı' ? `<div style="font-size: 9px; opacity: 0.7;">Kart: ${details.giftCardBarcode || '---'}</div>` : ''}
-    `
   }
 
-  const printContent = `
-    <html>
-      <head>
-        <title>Satış Çeki #${receiptNo}</title>
-        <style>
-          @page { margin: 0; size: 80mm auto; }
-          body { font-family: 'Courier New', Courier, monospace; width: 300px; margin: 0 auto; padding: 10px; color: #000; }
-          .center { text-align: center; }
-          .bold { font-weight: bold; }
-          .title { font-size: 16px; font-weight: bold; text-decoration: underline; margin: 15px 0; }
-          .info-block { font-size: 12px; text-align: left; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 10px; }
-          .yekun { display: flex; justify-content: space-between; font-size: 18px; font-weight: 900; margin-bottom: 10px; }
-        </style>
-        <${'script'} src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></${'script'}>
-      </head>
-      <body>
-        <div class="center">
-          <div class="title">ARAZ MARKET - SATIŞ ÇEKİ</div>
-          <div class="info-block">
-            <div>Çek no: ${receiptNo}</div>
-            <div>Kassir: ${cashierName}</div>
-            <div>Tarix: ${currentDate}</div>
-          </div>
-          <div class="items">
-            ${customerInfoHtml}
-            ${itemsHtml}
-          </div>
-          <div style="margin-top: 10px; border-top: 2px solid #000; padding-top: 5px;">
-            <div class="yekun">
-              <span>YEKUN:</span>
-              <span>${Number(order.finalTotal).toFixed(2)} ₼</span>
-            </div>
-          </div>
-          <div style="margin-top: 10px; border-top: 1px dashed #000; padding-top: 5px; text-align: left;">
-            <div style="font-size: 10px; font-weight: bold; margin-bottom: 4px;">ÖDƏNİŞ DETALLARI:</div>
-            ${paymentHtml}
-          </div>
-          <div style="margin-top: 20px;">
-            <svg id="barcode-receipt"></svg>
-          </div>
-          <div style="margin-top: 10px; font-size: 10px;">* ARXİV SURƏTİ *</div>
-        </div>
-        <${'script'}>
-          window.onload = function() {
-            if (typeof JsBarcode === 'function') {
-              JsBarcode("#barcode-receipt", "${receiptNo}", {
-                format: "CODE128", width: 1.5, height: 40, displayValue: true, fontSize: 12, margin: 0
-              });
-            }
-          };
-        </${'script'}>
-      </body>
-    </html>
-  `
-  const printWin = window.open('', '', 'width=400,height=600')
-  if (printWin) {
-    printWin.document.write(printContent)
-    printWin.document.close()
-    setTimeout(() => {
-      printWin.print()
-      printWin.close()
-    }, 300)
-  }
+  printReceiptGlobal(receiptData)
 }
 
 const getProfit = (order: any) => {
@@ -247,7 +153,7 @@ const customSearch = (item: any, query: string) => {
         <div class="px-4 py-2 bg-[var(--text-primary)]/5 rounded-xl border border-[var(--text-primary)]/10">
           <span class="text-xs font-bold opacity-50 uppercase tracking-wider block">Ümumi Satış</span>
           <span class="text-lg font-black text-[var(--text-primary)]">
-            {{ orders.reduce((sum, o) => sum + Number(o.finalTotal), 0).toFixed(2) }} ₼
+            {{ orders.reduce((sum: number, o: any) => sum + Number(o.finalTotal), 0).toFixed(2) }} ₼
           </span>
         </div>
         <div class="px-4 py-2 bg-green-500/5 rounded-xl border border-green-500/10">

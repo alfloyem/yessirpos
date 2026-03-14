@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from '#i18n'
-import { exportToCSV, exportToJSON, exportToXML, exportToPDF } from '~/utils/exportCsv'
 
 interface Column {
   key: string
@@ -45,7 +44,7 @@ onMounted(() => {
   }
 })
 
-watch(localPerPage, (newVal) => {
+watch(localPerPage, (newVal: number) => {
   localStorage.setItem(STORAGE_KEY, newVal.toString())
   currentPage.value = 1
 })
@@ -60,25 +59,25 @@ const searchQuery = ref('')
 // Columns Visiblity
 // Initially, set all columns to visible if not explicitly set to false
 const localColumns = ref(
-  props.columns.map(c => ({
+  props.columns.map((c: Column) => ({
     ...c,
     visible: c.visible !== false
   }))
 )
 
-watch(() => props.columns, (newCols) => {
+watch(() => props.columns, (newCols: Column[]) => {
   const visMap = new Map()
-  localColumns.value.forEach(c => visMap.set(c.key, c.visible))
-  localColumns.value = newCols.map(c => ({
+  localColumns.value.forEach((c: any) => visMap.set(c.key, c.visible))
+  localColumns.value = newCols.map((c: Column) => ({
     ...c,
     visible: visMap.has(c.key) ? visMap.get(c.key) : (c.visible !== false)
   }))
 }, { deep: true })
 
-const visibleColumns = computed(() => localColumns.value.filter(c => c.visible))
+const visibleColumns = computed(() => localColumns.value.filter((c: any) => c.visible))
 
 const toggleColumn = (col: Column) => {
-  const found = localColumns.value.find(c => c.key === col.key)
+  const found = localColumns.value.find((c: any) => c.key === col.key)
   if (found) found.visible = !found.visible
 }
 
@@ -87,7 +86,7 @@ const sortKey = ref('')
 const sortAsc = ref(true)
 
 const sortBy = (key: string) => {
-  const col = localColumns.value.find(c => c.key === key)
+  const col = localColumns.value.find((c: any) => c.key === key)
   if (!col || !col.sortable) return
 
   if (sortKey.value === key) {
@@ -101,19 +100,19 @@ const sortBy = (key: string) => {
 // Selection
 const selectedIds = ref<Set<string | number>>(new Set())
 const isAllSelected = computed(() => {
-  return paginatedData.value.length > 0 && paginatedData.value.every(item => selectedIds.value.has(item.id))
+  return paginatedData.value.length > 0 && paginatedData.value.every((item: any) => selectedIds.value.has(item.id))
 })
 const isIndeterminate = computed(() => {
-  const selectedCount = paginatedData.value.filter(item => selectedIds.value.has(item.id)).length
+  const selectedCount = paginatedData.value.filter((item: any) => selectedIds.value.has(item.id)).length
   return selectedCount > 0 && selectedCount < paginatedData.value.length
 })
 
 const toggleAll = (e: Event) => {
   const checked = (e.target as HTMLInputElement).checked
   if (checked) {
-    paginatedData.value.forEach(item => selectedIds.value.add(item.id))
+    paginatedData.value.forEach((item: any) => selectedIds.value.add(item.id))
   } else {
-    paginatedData.value.forEach(item => selectedIds.value.delete(item.id))
+    paginatedData.value.forEach((item: any) => selectedIds.value.delete(item.id))
   }
 }
 
@@ -192,7 +191,7 @@ const highlightText = (text: any) => {
     }
   }
 
-  const regexStr = Array.from(query).map(buildCharRegex).join('')
+  const regexStr = (Array.from(query) as string[]).map((char: string) => buildCharRegex(char)).join('')
   try {
     const regex = new RegExp(`(${regexStr})`, 'gi')
     return String(text).replace(regex, '<mark class="bg-[var(--text-primary)]/30 text-[var(--text-primary)] px-0.5 rounded">$1</mark>')
@@ -205,20 +204,20 @@ const highlightText = (text: any) => {
 const handleExport = (format: 'json' | 'xml' | 'csv' | 'pdf') => {
   const title = props.title || 'export'
   const columns = localColumns.value
-  const data = filteredAndSortedData.value
+  const exportData = filteredAndSortedData.value
 
   switch (format) {
     case 'json':
-      exportToJSON(title, columns, data)
+      exportToJSON(title, columns, exportData)
       break
     case 'xml':
-      exportToXML(title, columns, data)
+      exportToXML(title, columns, exportData)
       break
     case 'csv':
-      exportToCSV(title, columns, data)
+      exportToCSV(title, columns, exportData)
       break
     case 'pdf':
-      exportToPDF(title, columns, data)
+      exportToPDF(title, columns, exportData)
       break
   }
 }
@@ -266,7 +265,7 @@ watch(searchQuery, () => {
   currentPage.value = 1
 })
 
-watch(() => selectedIds.value, (newSet) => {
+watch(() => selectedIds.value, (newSet: Set<string | number>) => {
   emit('update:selected-ids', Array.from(newSet))
 }, { deep: true, immediate: true })
 </script>

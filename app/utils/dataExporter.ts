@@ -1,5 +1,5 @@
-export const exportToCSV = (filename: string, columns: any[], data: any[]) => {
-  if (!data || !data.length) return
+export const exportToCSV = (filename: string, columns: any[], items: any[]) => {
+  if (!items || !items.length) return
   
   // Sadece görünür kolonları filtrele
   const visibleColumns = columns.filter(c => c.visible !== false)
@@ -8,7 +8,7 @@ export const exportToCSV = (filename: string, columns: any[], data: any[]) => {
 
   let csvContent = headers.join(',') + '\n'
 
-  data.forEach(row => {
+  items.forEach(row => {
     const rowValues = keys.map(key => {
       let val = row[key]
       if (val === null || val === undefined) val = ''
@@ -35,13 +35,13 @@ export const exportToCSV = (filename: string, columns: any[], data: any[]) => {
   document.body.removeChild(link)
 }
 
-export const exportToJSON = (filename: string, columns: any[], data: any[]) => {
-  if (!data || !data.length) return
+export const exportToJSON = (filename: string, columns: any[], items: any[]) => {
+  if (!items || !items.length) return
   
   const visibleColumns = columns.filter(c => c.visible !== false)
   const keys = visibleColumns.map(c => c.key)
   
-  const cleanData = data.map(item => {
+  const cleanData = items.map(item => {
     const obj: any = {}
     keys.forEach(k => {
       obj[k] = item[k]
@@ -62,15 +62,15 @@ export const exportToJSON = (filename: string, columns: any[], data: any[]) => {
   document.body.removeChild(link)
 }
 
-export const exportToXML = (filename: string, columns: any[], data: any[]) => {
-  if (!data || !data.length) return
+export const exportToXML = (filename: string, columns: any[], items: any[]) => {
+  if (!items || !items.length) return
 
   const visibleColumns = columns.filter(c => c.visible !== false)
   const keys = visibleColumns.map(c => c.key)
 
   let xmlContent = '<?xml version="1.0" encoding="UTF-8"?>\n<Root>\n'
   
-  data.forEach((row, index) => {
+  items.forEach((row, index) => {
     xmlContent += `  <Item id="${index + 1}">\n`
     keys.forEach(key => {
       let val = row[key]
@@ -96,8 +96,8 @@ export const exportToXML = (filename: string, columns: any[], data: any[]) => {
   document.body.removeChild(link)
 }
 
-export const exportToPDF = (title: string, columns: any[], data: any[]) => {
-  if (!data || !data.length) return
+export const exportToPDF = (title: string, columns: any[], items: any[]) => {
+  if (!items || !items.length) return
 
   const visibleColumns = columns.filter(c => c.visible !== false)
   
@@ -122,7 +122,7 @@ export const exportToPDF = (title: string, columns: any[], data: any[]) => {
             </tr>
           </thead>
           <tbody>
-            ${data.map(row => `
+            ${items.map(row => `
               <tr>
                 ${visibleColumns.map(c => `<td>${row[c.key] || ''}</td>`).join('')}
               </tr>

@@ -26,7 +26,8 @@
     "vue-chartjs": "^5.3.3",
     "vue-easy-lightbox": "^1.19.0",
     "vue-router": "^4.6.4",
-    "vuedraggable": "^4.1.0"
+    "vuedraggable": "^4.1.0",
+    "jsbarcode": "^3.12.3"
   },
   "devDependencies": {
     "@nuxt/icon": "^2.2.1",
