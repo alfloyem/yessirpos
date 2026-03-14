@@ -86,6 +86,9 @@
       "sun": "Baz"
     }
   },
+  "total": "Yekun",
+  "receiptPrinter": "Çap Et",
+  "confirmRefund": "Geri Ödənişi Təsdiqlə",
   "slogan": "Premium satış nöqtəsi təcrübəsi.",
   "menu": {
     "home": "Ana Səhifə",
@@ -116,7 +119,8 @@
     "customers_category": "Müştəri Portfeli",
     "inventory_category": "Anbar və Təchizat",
     "finance_category": "Maliyyə və Hesabat",
-    "system_category": "Sistem İdarəetmə"
+    "system_category": "Sistem İdarəetmə",
+    "refund": "Geri Ödəniş"
   },
   "employees": {
     "firstName": "Ad",
@@ -275,5 +279,24 @@
     "edit": "Malı Redaktə Et",
     "description": "Açıqlama",
     "barcode": "Barkod"
+  },
+  "sales": {
+    "receiptNo": "Çek No",
+    "cashier": "Kassir",
+    "paymentMethod": "Ödəniş Üsulu",
+    "total": "Yekun",
+    "discount": "Endirim",
+    "subtotal": "Ara Cəmi"
+  },
+  "refund": {
+    "title": "Geri Ödəniş",
+    "scanReceipt": "Çeki skan edin və ya nömrəsini yazın",
+    "refundAmount": "Geri Ödəniləcək Məbləğ",
+    "refundSuccess": "Geri ödəniş uğurla tamamlandı!",
+    "itemsToRefund": "Geri qaytarılacaq məhsullar",
+    "noItems": "Heç bir məhsul seçilməyib",
+    "stockWarning": "Bu əməliyyatdan sonra stok sayı tənzimlənəcək.",
+    "error": "Geri ödəniş zamanı xəta baş verdi",
+    "confirmRefund": "Geri Ödənişi Təsdiqlə"
   }
 }

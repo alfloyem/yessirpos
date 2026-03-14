@@ -86,6 +86,9 @@
       "sun": "Sun"
     }
   },
+  "total": "Total",
+  "receiptPrinter": "Print Receipt",
+  "confirmRefund": "Confirm Refund",
   "slogan": "The premium point of sale experience.",
   "menu": {
     "home": "Home",
@@ -96,6 +99,7 @@
     "intake": "Intake",
     "sales": "Sales",
     "orders": "Sales Archive",
+    "refund": "Refund",
     "employees": "Employees",
     "employee": "Employee",
     "giftCard": "Gift Card",
@@ -113,7 +117,7 @@
     "finance": "Finance",
     "main_category": "Dashboard",
     "sales_category": "Sales Operations",
-    "customers_category": "Client Portfolio",
+    "customers_category": "Customer Portfolio",
     "inventory_category": "Stock & Supply",
     "finance_category": "Finance & Analytics",
     "system_category": "System Admin"
@@ -271,8 +275,27 @@
     "variantImage": "Variant Images",
     "saveVariant": "Save Variant",
     "addNew": "Add New Product",
-    "edit": "Edit Product",
+    "edit": "Edit Item",
     "description": "Description",
     "barcode": "Barcode"
+  },
+  "sales": {
+    "receiptNo": "Receipt No",
+    "cashier": "Cashier",
+    "paymentMethod": "Payment Method",
+    "total": "Total",
+    "discount": "Discount",
+    "subtotal": "Subtotal"
+  },
+  "refund": {
+    "title": "Refund",
+    "scanReceipt": "Scan receipt or enter number",
+    "refundAmount": "Refund Amount",
+    "confirmRefund": "Confirm Refund",
+    "refundSuccess": "Refund completed successfully!",
+    "itemsToRefund": "Items to refund",
+    "noItems": "No items selected",
+    "stockWarning": "Stock levels and customer balance will be adjusted.",
+    "error": "An error occurred during refund"
   }
 }

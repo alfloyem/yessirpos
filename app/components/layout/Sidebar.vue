@@ -34,7 +34,8 @@ const menu = ref([
     isOpen: false,
     children: [
       { title: 'Satış Terminalı', titleKey: 'menu.sales', to: '/sales' },
-      { title: 'Satış Arxivi', titleKey: 'menu.orders', to: '/orders' }
+      { title: 'Satış Arxivi', titleKey: 'menu.orders', to: '/orders' },
+      { title: 'Geri Ödəniş', titleKey: 'menu.refund', to: '/refund' }
     ]
   },
   {
