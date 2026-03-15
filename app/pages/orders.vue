@@ -96,7 +96,7 @@ const printOrder = (order: any) => {
       totalAmount: order.total,
       paidAmount: order.paymentDetails?.paidAmount || order.total,
       balanceDue: order.paymentDetails?.balanceDue || 0,
-      paymentMethod: order.paymentDetails?.method || 'Nəğd',
+      paymentMethod: order.paymentDetails?.method || t('sales.cash'),
       notes: order.paymentDetails?.notes || ''
     })
   } else {
@@ -104,14 +104,14 @@ const printOrder = (order: any) => {
     const isRefund = order.type === 'REFUND'
     const receiptData: ReceiptData = {
       receiptNo: order.receiptNo,
-      cashierName: order.operator || 'Məlum deyil',
+      cashierName: order.operator || t('sales.unknown'),
       currentDate: order.createdAtFormatted,
       subtotal: Number(order.subtotal) || 0,
       finalTotal: Number(order.total) || 0,
       discountTotal: Number(order.discountTotal) || 0,
       isArchive: true,
       items: order.items.map((item: any) => ({
-        productName: isRefund && !item.productName.includes('(GERİ)') ? `(GERİ) ${item.productName}` : item.productName,
+        productName: isRefund && !item.productName.includes(t('orders.refundLabel')) ? `${t('orders.refundLabel')} ${item.productName}` : item.productName,
         barcode: item.barcode,
         qty: Math.abs(Number(item.qty)),
         price: Number(item.price),
@@ -122,13 +122,13 @@ const printOrder = (order: any) => {
         total: Math.abs(Number(item.total)),
         attribute: item.attribute
       })),
-      customer: order.counterparty !== 'Anonim Müştəri' ? {
+      customer: order.counterparty !== t('orders.anonymousCustomer') ? {
         name: order.counterparty,
         barcode: order.paymentDetails?.customerBarcode
       } : undefined,
       paymentDetails: {
         isMulti: order.paymentDetails?.isMulti || false,
-        method: isRefund ? "GERİ ÖDƏNİŞ" : (order.paymentDetails?.method || 'Nəğd'),
+        method: isRefund ? t('orders.refundPayment') : (order.paymentDetails?.method || t('sales.cash')),
         payments: order.paymentDetails?.payments,
         received: order.paymentDetails?.received,
         change: order.paymentDetails?.change
@@ -172,9 +172,9 @@ const getTypeColor = (type: string) => {
 
 const getTypeText = (type: string) => {
   switch (type) {
-    case 'SALE': return 'Satış'
-    case 'REFUND': return 'Geri Qaytarma'
-    case 'INTAKE': return 'Məhsul Qəbulu'
+    case 'SALE': return t('orders.sale')
+    case 'REFUND': return t('orders.refund')
+    case 'INTAKE': return t('orders.intake')
     default: return type
   }
 }
@@ -189,13 +189,13 @@ const getTypeText = (type: string) => {
       
       <div class="flex items-center gap-3">
         <div class="px-4 py-2 bg-[var(--text-primary)]/5 rounded-xl border border-[var(--text-primary)]/10">
-          <span class="text-[10px] font-black opacity-40 uppercase tracking-widest block mb-1">Ümumi Dövriyyə</span>
+          <span class="text-[10px] font-black opacity-40 uppercase tracking-widest block mb-1">{{ t('orders.totalRevenue') }}</span>
           <span class="text-lg font-black text-[var(--text-primary)] font-mono">
             {{ orders.reduce((sum: number, o: any) => sum + Math.abs(Number(o.total)), 0).toFixed(2) }} ₼
           </span>
         </div>
         <div class="px-4 py-2 bg-[var(--bg-app)] rounded-xl border border-[var(--border-app)]">
-          <span class="text-[10px] font-black opacity-40 uppercase tracking-widest block mb-1">Əməliyyat Sayı</span>
+          <span class="text-[10px] font-black opacity-40 uppercase tracking-widest block mb-1">{{ t('orders.transactionCount') }}</span>
           <span class="text-lg font-black font-mono">{{ orders.length }}</span>
         </div>
       </div>
@@ -262,15 +262,15 @@ const getTypeText = (type: string) => {
         <!-- Header Info -->
         <div class="grid grid-cols-3 gap-4">
           <div class="p-4 rounded-2xl bg-[var(--bg-app)] border border-[var(--border-app)]">
-            <span class="text-[9px] font-black opacity-40 uppercase tracking-widest block mb-1">Məsul Şəxs</span>
+            <span class="text-[9px] font-black opacity-40 uppercase tracking-widest block mb-1">{{ t('common.operator') }}</span>
             <span class="font-black text-sm">{{ selectedOrder.operator }}</span>
           </div>
           <div class="p-4 rounded-2xl bg-[var(--bg-app)] border border-[var(--border-app)]">
-            <span class="text-[9px] font-black opacity-40 uppercase tracking-widest block mb-1">Tarix</span>
+            <span class="text-[9px] font-black opacity-40 uppercase tracking-widest block mb-1">{{ t('common.date') }}</span>
             <span class="font-black text-sm">{{ selectedOrder.createdAtFormatted }}</span>
           </div>
           <div class="p-4 rounded-2xl bg-[var(--bg-app)] border border-[var(--border-app)]">
-            <span class="text-[9px] font-black opacity-40 uppercase tracking-widest block mb-1">Tərəfdaş</span>
+            <span class="text-[9px] font-black opacity-40 uppercase tracking-widest block mb-1">{{ t('common.counterparty') }}</span>
             <span class="font-black text-sm">{{ selectedOrder.counterparty }}</span>
           </div>
         </div>
@@ -280,10 +280,10 @@ const getTypeText = (type: string) => {
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-[var(--input-bg)]">
-                <th class="px-4 py-3 text-[10px] font-black uppercase tracking-widest opacity-40">Məhsul</th>
-                <th class="px-4 py-3 text-[10px] font-black uppercase tracking-widest opacity-40">Say / Qiymət</th>
-                <th v-if="selectedOrder.type !== 'INTAKE'" class="px-4 py-3 text-[10px] font-black uppercase tracking-widest opacity-40">Qazanc</th>
-                <th class="px-4 py-3 text-[10px] font-black uppercase tracking-widest opacity-40 text-right">Cəmi</th>
+                <th class="px-4 py-3 text-[10px] font-black uppercase tracking-widest opacity-40">{{ t('orders.product') }}</th>
+                <th class="px-4 py-3 text-[10px] font-black uppercase tracking-widest opacity-40">{{ t('orders.qtyPrice') }}</th>
+                <th v-if="selectedOrder.type !== 'INTAKE'" class="px-4 py-3 text-[10px] font-black uppercase tracking-widest opacity-40">{{ t('orders.profit') }}</th>
+                <th class="px-4 py-3 text-[10px] font-black uppercase tracking-widest opacity-40 text-right">{{ t('intake.lineTotal') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-[var(--border-app)]">
@@ -297,7 +297,7 @@ const getTypeText = (type: string) => {
                 </td>
                 <td class="px-4 py-3">
                   <div class="text-sm font-black tabular-nums">{{ item.qty }} x {{ item.price.toFixed(2) }} ₼</div>
-                  <div v-if="item.discount > 0" class="text-[10px] text-red-500 font-bold">Endirim: -{{ item.discount.toFixed(2) }} ₼</div>
+                  <div v-if="item.discount > 0" class="text-[10px] text-red-500 font-bold">{{ t('sales.discount') }}: -{{ item.discount.toFixed(2) }} ₼</div>
                 </td>
                 <td v-if="selectedOrder.type !== 'INTAKE'" class="px-4 py-3">
                   <div class="text-sm font-black font-mono" :class="item.qty < 0 ? 'text-red-400' : 'text-green-600'">
@@ -315,33 +315,33 @@ const getTypeText = (type: string) => {
         <!-- Totals -->
         <div class="flex justify-between items-start">
           <div class="text-[11px] font-bold opacity-40 max-w-[200px]">
-             * Bu məlumatlar arxiv məqsədi daşıyır. Ödəniş üsulu: {{ getPaymentMethodLabel(selectedOrder) }}
-             <p v-if="selectedOrder.paymentDetails?.notes" class="mt-2 text-orange-600 italic">Qeyd: {{ selectedOrder.paymentDetails.notes }}</p>
+             * {{ t('orders.archiveNotice', { method: getPaymentMethodLabel(selectedOrder) }) }}
+             <p v-if="selectedOrder.paymentDetails?.notes" class="mt-2 text-orange-600 italic">{{ t('orders.note') }}: {{ selectedOrder.paymentDetails.notes }}</p>
           </div>
           
           <div class="space-y-2 min-w-[240px]">
             <div class="flex justify-between text-xs font-bold">
-              <span class="opacity-50">Ara Cəmi:</span>
+              <span class="opacity-50">{{ t('sales.subtotal') }}:</span>
               <span class="font-mono">{{ selectedOrder.subtotal.toFixed(2) }} ₼</span>
             </div>
             <div v-if="selectedOrder.discountTotal > 0" class="flex justify-between text-xs font-bold text-red-500">
-              <span>Toplam Endirim:</span>
+              <span>{{ t('orders.totalDiscount') }}:</span>
               <span class="font-mono">-{{ selectedOrder.discountTotal.toFixed(2) }} ₼</span>
             </div>
             <div v-if="selectedOrder.type !== 'INTAKE'" class="flex justify-between text-xs font-black text-green-600 p-2 bg-green-500/5 rounded-xl">
-              <span>Təxmini Mənfəət:</span>
+              <span>{{ t('orders.approxProfit') }}:</span>
               <span class="font-mono">{{ getProfit(selectedOrder).toFixed(2) }} ₼</span>
             </div>
             <div class="flex justify-between items-end pt-3 border-t border-[var(--border-app)]">
-              <span class="text-xs font-black uppercase tracking-widest">Yekun:</span>
+              <span class="text-xs font-black uppercase tracking-widest">{{ t('sales.total') }}:</span>
               <span class="text-2xl font-black text-[var(--text-primary)] font-mono">{{ selectedOrder.total.toFixed(2) }} ₼</span>
             </div>
           </div>
         </div>
       </div>
       <template #footer>
-        <UiButton variant="ghost" @click="showDetailsModal = false" class="!px-6">Bağla</UiButton>
-        <UiButton variant="primary" icon="lucide:printer" @click="printOrder(selectedOrder)" class="!px-8">Çap Et</UiButton>
+        <UiButton variant="ghost" @click="showDetailsModal = false" class="!px-6">{{ t('orders.close') }}</UiButton>
+        <UiButton variant="primary" icon="lucide:printer" @click="printOrder(selectedOrder)" class="!px-8">{{ t('orders.print') }}</UiButton>
       </template>
     </Modal>
   </div>

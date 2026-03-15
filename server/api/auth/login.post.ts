@@ -9,7 +9,7 @@ export default defineEventHandler(async (event: any) => {
   if (!username || !password) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Kullanıcı adı ve şifre gerekli'
+      statusMessage: 'İstifadəçi adı və şifrə mütləqdir'
     })
   }
 
@@ -21,7 +21,7 @@ export default defineEventHandler(async (event: any) => {
   if (!employee) {
     throw createError({
       statusCode: 401,
-      statusMessage: 'Kullanıcı adı veya şifre hatalı'
+      statusMessage: 'İstifadəçi adı və ya şifrə səhvdir'
     })
   }
 

@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from '#i18n'
 import UiIcon from '~/components/ui/Icon.vue'
+
+const { t } = useI18n()
 
 interface ProductVariant {
   id: string
@@ -92,7 +95,7 @@ const formatPrice = (price: number | string) => {
             {{ formatPrice(product.retailPrice) }} ₼
           </span>
           <span v-if="product.variants && product.variants.length > 0" class="text-[9px] font-black tracking-widest bg-[var(--text-primary)]/10 text-[var(--text-primary)] px-2 py-0.5 rounded-lg">
-            {{ product.variants.length }} Variant
+            {{ t('sales.variantCount', { count: product.variants.length }) }}
           </span>
         </div>
       </div>

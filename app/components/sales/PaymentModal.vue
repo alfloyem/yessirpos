@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
+import { useI18n } from '#i18n'
 import { useToast } from '#imports'
 import Modal from '~/components/ui/Modal.vue'
 import UiIcon from '~/components/ui/Icon.vue'
@@ -23,22 +24,23 @@ const emit = defineEmits([
   'refresh-methods'
 ])
 
+const { t } = useI18n()
 const toast = useToast()
 
 // Payment Methods Logic
-const internalMethod = ref(props.selectedMethod || 'Nəğd')
+const internalMethod = ref(props.selectedMethod || t('expenses.payCash'))
 
 const combinedMethods = computed(() => {
   const db = props.dbMethods || []
   const systemDefaults = [
-    { id: 'Nəğd', name: 'Nəğd', icon: 'lucide:coins', isSystem: true },
-    { id: 'Bank Kartı', name: 'Kart', icon: 'lucide:credit-card', isSystem: true },
-    { id: 'Hədiyyə Kartı', name: 'Hədiyyə Kartı', icon: 'lucide:gift', isSystem: true },
-    { id: 'Bonus', name: 'Bonus', icon: 'lucide:star', isSystem: true }
+    { id: 'Nəğd', name: t('sales.cash'), icon: 'lucide:coins', isSystem: true },
+    { id: 'Bank Kartı', name: t('sales.card'), icon: 'lucide:credit-card', isSystem: true },
+    { id: 'Hədiyyə Kartı', name: t('sales.giftCard'), icon: 'lucide:gift', isSystem: true },
+    { id: 'Bonus', name: t('sales.bonus'), icon: 'lucide:star', isSystem: true }
   ]
   
   // Custom methods from DB (not in system defaults)
-  const systemNames = ['Nəğd', 'Bank Kartı', 'Hədiyyə Kartı', 'Bonus']
+  const systemNames = [t('sales.cash'), t('sales.card'), t('sales.giftCard'), t('sales.bonus')]
   const customs = db.filter(m => !systemNames.includes(m.name)).map(m => ({
     id: m.name,
     name: m.name,
@@ -51,7 +53,7 @@ const combinedMethods = computed(() => {
 })
 
 watch(() => props.selectedMethod, (val) => {
-  internalMethod.value = val || 'Nəğd'
+  internalMethod.value = val || t('expenses.payCash')
 })
 
 // Cash Input
@@ -93,7 +95,7 @@ const handleConfirm = () => {
     }
   } else {
     details.method = internalMethod.value
-    if (internalMethod.value === 'Nəğd') {
+    if (internalMethod.value === t('expenses.payCash')) {
       const r = parseFloat(receivedAmount.value) || 0
       details.received = r
       details.change = changeAmount.value
@@ -248,22 +250,22 @@ const selectMethod = (methodId: string) => {
   }
 }
 
-const handleMultiInput = (methodName: string, value: any) => {
-  multiPayments.value[methodName] = parseFloat(value) || 0
-  showMaxError.value[methodName] = false
+const handleMultiInput = (methodId: string, value: any) => {
+  multiPayments.value[methodId] = parseFloat(value) || 0
+  showMaxError.value[methodId] = false
 }
 
-const handleBlur = (methodName: string) => {
-  let val = multiPayments.value[methodName] || 0
+const handleBlur = (methodId: string) => {
+  let val = multiPayments.value[methodId] || 0
   let clamped = false
   
-  if (methodName === 'Bonus' && props.customer) {
+  if (methodId === 'Bonus' && props.customer) {
     const max = Number(props.customer.bonus) || 0
     if (val > max) {
       val = max
       clamped = true
     }
-  } else if (methodName === 'Hədiyyə Kartı' && selectedGiftCard.value) {
+  } else if (methodId === 'Hədiyyə Kartı' && selectedGiftCard.value) {
     const max = Number(selectedGiftCard.value.value) || 0
     if (val > max) {
       val = max
@@ -272,12 +274,12 @@ const handleBlur = (methodName: string) => {
   }
 
   if (clamped) {
-    multiPayments.value[methodName] = val
-    toast.error('Maksimum balansdan çox məbləğ daxil edilə bilməz')
+    multiPayments.value[methodId] = val
+    toast.error(t('toast.errorMaxBalance'))
   }
 
-  if ((multiPayments.value[methodName] || 0) <= 0) {
-    delete multiPayments.value[methodName]
+  if ((multiPayments.value[methodId] || 0) <= 0) {
+    delete multiPayments.value[methodId]
   }
 }
 
@@ -311,8 +313,8 @@ const handleFocus = (event: Event) => {
       <!-- Methods Header -->
       <div class="flex items-center justify-between">
         <div class="opacity-50 flex items-center gap-2 hover:text-[var(--text-primary)] hover:opacity-100 transition-all cursor-default">
-          <h3 class="text-xs font-bold tracking-widest">Ödəniş Yöntəmi</h3>
-          <button @click="showManageMethodsModal = true" title="Yöntəmləri Redaktə Et" class="p-1 hover:bg-[var(--text-primary)]/10 rounded-lg transition-colors">
+          <h3 class="text-xs font-bold tracking-widest">{{ t('sales.paymentMethod') }}</h3>
+          <button @click="showManageMethodsModal = true" :title="t('sales.editMethods')" class="p-1 hover:bg-[var(--text-primary)]/10 rounded-lg transition-colors">
             <UiIcon name="lucide:settings-2" class="w-4 h-4" />
           </button>
         </div>
@@ -326,7 +328,7 @@ const handleFocus = (event: Event) => {
             : 'bg-[var(--bg-app)] border-[var(--border-app)] text-[var(--text-app)] opacity-60'"
         >
           <UiIcon :name="isMultiPayment ? 'lucide:layers' : 'lucide:layer-base'" class="w-3.5 h-3.5" />
-          <span class="text-[10px] font-black tracking-widest uppercase">Multi Ödəniş</span>
+          <span class="text-[10px] font-black tracking-widest uppercase">{{ t('sales.multiPayment') }}</span>
           <div 
             class="w-6 h-3.5 rounded-full relative transition-all"
             :class="isMultiPayment ? 'bg-[var(--text-primary)]' : 'bg-gray-500/30'"
@@ -347,16 +349,16 @@ const handleFocus = (event: Event) => {
           class="flex flex-col border rounded-xl transition-all font-bold relative group"
           :class="[
             !isMultiPayment ? (internalMethod === m.id ? 'border-[var(--text-primary)] bg-[var(--text-primary)]/5 text-[var(--text-primary)]' : 'border-[var(--border-app)] text-[var(--text-app)] opacity-60 hover:opacity-100 hover:border-[var(--text-primary)]/40 hover:bg-[var(--bg-app)]') : '',
-            isMultiPayment ? ((multiPayments[m.name] || 0) > 0 ? 'border-[var(--text-primary)] bg-[var(--text-primary)]/5' : 'border-[var(--border-app)] opacity-80') : ''
+            isMultiPayment ? ((multiPayments[m.id] || 0) > 0 ? 'border-[var(--text-primary)] bg-[var(--text-primary)]/5' : 'border-[var(--border-app)] opacity-80') : ''
           ]"
         >
           <div @click="selectMethod(m.id)" class="flex items-center gap-2.5 p-3 sm:p-4 cursor-pointer">
-            <UiIcon :name="m.icon" class="w-5 h-5 shrink-0" :class="(!isMultiPayment && internalMethod === m.id) || (isMultiPayment && (multiPayments[m.name] || 0) > 0) ? 'text-[var(--text-primary)]' : ''" />
+            <UiIcon :name="m.icon" class="w-5 h-5 shrink-0" :class="(!isMultiPayment && internalMethod === m.id) || (isMultiPayment && (multiPayments[m.id] || 0) > 0) ? 'text-[var(--text-primary)]' : ''" />
             <div class="flex flex-col items-start min-w-0">
               <span class="text-xs sm:text-sm whitespace-nowrap truncate w-full">{{ m.name }}</span>
               <!-- Balance inside select (Single Mode) -->
-              <span v-if="!isMultiPayment && m.id === 'Bonus' && customer" class="text-[9px] opacity-70 font-bold tabular-nums">Balans: {{ customer.bonus }} ₼</span>
-              <span v-if="!isMultiPayment && m.id === 'Hədiyyə Kartı' && selectedGiftCard" class="text-[9px] opacity-70 font-bold tabular-nums">Balans: {{ selectedGiftCard.value }} ₼</span>
+              <span v-if="!isMultiPayment && m.id === 'Bonus' && customer" class="text-[9px] opacity-70 font-bold tabular-nums">{{ t('sales.balance') }}: {{ Number(customer.bonus).toFixed(2) }} ₼</span>
+              <span v-if="!isMultiPayment && m.id === 'Hədiyyə Kartı' && selectedGiftCard" class="text-[9px] opacity-70 font-bold tabular-nums">{{ t('sales.balance') }}: {{ Number(selectedGiftCard.value).toFixed(2) }} ₼</span>
             </div>
           </div>
 
@@ -376,16 +378,16 @@ const handleFocus = (event: Event) => {
                   <span class="text-[8px] opacity-40 font-black">Maks: {{ (Number(selectedGiftCard.value) || 0).toFixed(2) }} ₼</span>
                   <span v-if="showMaxError['Hədiyyə Kartı']" class="text-[8px] text-red-500 font-bold animate-pulse">! Maksimum</span>
                 </div>
-                <span v-else-if="m.id === 'Bonus' && !customer" class="text-[8px] opacity-40 italic">Müştəri seçin</span>
-                <span v-else-if="m.id === 'Hədiyyə Kartı' && !selectedGiftCard" class="text-[8px] opacity-40 italic">Kart seçin</span>
+                <span v-else-if="m.id === 'Bonus' && !customer" class="text-[8px] opacity-40 italic">{{ t('sales.selectCustomer') }}</span>
+                <span v-else-if="m.id === 'Hədiyyə Kartı' && !selectedGiftCard" class="text-[8px] opacity-40 italic">{{ t('sales.selectCard') }}</span>
                 <div class="flex-1"></div>
               </div>
               
               <div class="relative">
                 <input 
-                  v-model.number="multiPayments[m.name]"
-                  @input="handleMultiInput(m.name, ($event.target as HTMLInputElement).value)"
-                  @blur="handleBlur(m.name)"
+                  v-model.number="multiPayments[m.id]"
+                  @input="handleMultiInput(m.id, ($event.target as HTMLInputElement).value)"
+                  @blur="handleBlur(m.id)"
                   type="number"
                   step="0.01"
                   inputmode="decimal"
@@ -393,7 +395,7 @@ const handleFocus = (event: Event) => {
                   class="w-full bg-white/5 rounded-lg border border-transparent focus:border-[var(--text-primary)] text-right text-xs font-black outline-none px-2 py-1.5 tabular-nums placeholder:opacity-20 no-spinner"
                   @focus="handleFocus"
                 />
-                <span v-if="(multiPayments[m.name] || 0) > 0" class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-[var(--text-primary)] opacity-50">₼</span>
+                <span v-if="(multiPayments[m.id] || 0) > 0" class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-[var(--text-primary)] opacity-50">₼</span>
               </div>
             </div>
           </div>
@@ -404,14 +406,14 @@ const handleFocus = (event: Event) => {
       <div v-if="isMultiPayment" class="p-4 rounded-2xl bg-[var(--text-primary)]/5 border border-[var(--text-primary)]/10 flex justify-between items-center mt-2 animate-in fade-in zoom-in duration-300">
         <div class="flex flex-col">
           <span class="text-[10px] font-bold opacity-40 tracking-widest">
-            {{ remainingMultiTotal < -0.01 ? 'Qaytarılacaq qalıq' : 'Qalıq Balans' }}
+            {{ remainingMultiTotal < -0.01 ? t('sales.returnBalance') : t('sales.remainingBalance') }}
           </span>
           <span class="text-lg font-black" :class="remainingMultiTotal < -0.01 ? 'text-green-500' : (Math.abs(remainingMultiTotal) < 0.01 ? 'text-green-500' : 'text-[var(--text-primary)]')">
             {{ Math.abs(remainingMultiTotal).toFixed(2) }} ₼
           </span>
         </div>
         <div class="text-right">
-          <span class="text-[10px] font-bold opacity-40 tracking-widest">Daxil edilən</span>
+          <span class="text-[10px] font-bold opacity-40 tracking-widest">{{ t('sales.receivedAmountLabel') }}</span>
           <span class="block text-sm font-black opacity-80">{{ multiTotal.toFixed(2) }} ₼</span>
         </div>
       </div>
@@ -420,7 +422,7 @@ const handleFocus = (event: Event) => {
       <div v-if="!isMultiPayment && internalMethod === 'Nəğd'" class="pt-4 mt-2 border-t border-[var(--border-app)] border-dashed">
         <div class="flex items-center gap-6 flex-col">
           <div class="w-full">
-            <label class="block text-[11px] font-bold text-[var(--text-app)] opacity-50 tracking-widest mb-1.5">Alınan Məbləğ (₼)</label>
+            <label class="block text-[11px] font-bold text-[var(--text-app)] opacity-50 tracking-widest mb-1.5">{{ t('sales.paymentAmountLabel') }} (₼)</label>
             <input 
               v-model="receivedAmount"
               type="number"
@@ -433,7 +435,7 @@ const handleFocus = (event: Event) => {
 
           <div class="w-full text-right">
             <span class="block text-[11px] font-bold tracking-widest mb-1.5" :class="changeAmount >= 0 ? 'text-green-500 opacity-80' : 'text-red-500 opacity-80'">
-              {{ changeAmount >= 0 ? 'Qaytarılacaq qalıq' : 'Çatışmayan məbləğ' }}
+              {{ changeAmount >= 0 ? t('sales.returnBalance') : t('sales.missingAmount') }}
             </span>
             <span class="font-black text-xl" :class="changeAmount >= 0 ? 'text-green-600' : 'text-red-600'">
               {{ Math.abs(changeAmount).toFixed(2) }} ₼
@@ -452,7 +454,7 @@ const handleFocus = (event: Event) => {
         @click="handleConfirm"
       >
         <div class="flex items-center gap-2">
-          <span>Ödənişi Tamamla</span>
+          <span>{{ t('sales.confirmPayment') }}</span>
           <UiIcon name="lucide:printer" class="w-5 h-5 opacity-80" />
         </div>
     </UiButton>
@@ -461,12 +463,12 @@ const handleFocus = (event: Event) => {
   <!-- Gift Card Selection Sub-Modal -->
   <Modal
     v-model="showGiftCardModal"
-    title="Hədiyyə Kartı Seçin"
+    :title="t('sales.selectGiftCard')"
     max-width="sm"
   >
     <div class="space-y-6 pt-2 pb-2">
       <div class="space-y-2">
-        <label class="block text-[11px] font-bold text-[var(--text-app)] opacity-50 tracking-widest">Barkodla Axtar</label>
+        <label class="block text-[11px] font-bold text-[var(--text-app)] opacity-50 tracking-widest">{{ t('sales.searchByBarcode') }}</label>
         <UiAutocomplete
           :modelValue="tempSelectedGiftCard?.id"
           @update:modelValue="(val: any) => {
@@ -500,7 +502,7 @@ const handleFocus = (event: Event) => {
         class="!rounded-xl font-black"
         :disabled="!tempSelectedGiftCard"
       >
-        Seçimi Təsdiqlə
+        {{ t('sales.confirmSelection') }}
       </UiButton>
     </div>
   </Modal>
@@ -508,12 +510,12 @@ const handleFocus = (event: Event) => {
   <!-- Customer Selection Sub-Modal -->
   <Modal
     v-model="showCustomerModal"
-    title="Müştəri Seçin"
+    :title="t('sales.selectCustomer')"
     max-width="sm"
   >
     <div class="space-y-6 pt-2 pb-2">
       <div class="space-y-2">
-        <label class="block text-[11px] font-bold text-[var(--text-app)] opacity-50 tracking-widest">Müştəri Axtar</label>
+        <label class="block text-[11px] font-bold text-[var(--text-app)] opacity-50 tracking-widest">{{ t('menu.customers_category') }}</label>
         <UiAutocomplete
           :modelValue="tempSelectedCustomer?.id"
           @update:modelValue="(val: any) => {
@@ -547,7 +549,7 @@ const handleFocus = (event: Event) => {
         class="!rounded-xl font-black"
         :disabled="!tempSelectedCustomer"
       >
-        Müştərini Təsdiqlə
+        {{ t('sales.confirmCustomer') }}
       </UiButton>
     </div>
   </Modal>
@@ -555,7 +557,7 @@ const handleFocus = (event: Event) => {
   <!-- Manage Payment Methods Modal -->
   <Modal
     v-model="showManageMethodsModal"
-    title="Ödəniş Üsulları"
+    :title="t('sales.paymentMethods')"
     max-width="sm"
   >
     <div class="space-y-5 pt-1 pb-2 min-h-[400px]">
@@ -579,7 +581,7 @@ const handleFocus = (event: Event) => {
         <input 
           v-model="newMethodName"
           type="text"
-          placeholder="Yeni..."
+          :placeholder="t('common.new') + '...'" 
           class="flex-1 bg-transparent border-none px-1 py-1 text-sm font-bold placeholder:text-[var(--text-app)]/20 outline-none"
           @keyup.enter="addMethod"
         />

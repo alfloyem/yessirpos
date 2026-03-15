@@ -25,7 +25,7 @@ useHead({
 const products = ref<any[]>([])
 const loading = ref(false)
 const searchQuery = ref('')
-const selectedCategory = ref('Bütün Mallar')
+const selectedCategory = ref('ALL')
 const customers = ref<any[]>([])
 const selectedCustomer = ref<any>(null)
 const employees = ref<any[]>([])
@@ -42,7 +42,7 @@ const searchInput = ref<any>(null)
 // Modal states
 const showPaymentModal = ref(false)
 const showGhostModal = ref(false)
-const paymentMethod = ref('Nəğd')
+const paymentMethod = ref(t('expenses.payCash'))
 const paymentDetails = ref<any>(null)
 const isSaving = ref(false)
 
@@ -75,8 +75,8 @@ const saveDraft = () => {
   if (cart.value.length === 0) return
   
   const draftName = selectedCustomer.value 
-    ? `Müştəri: ${selectedCustomer.value.firstName} ${selectedCustomer.value.lastName}`
-    : `Səbət (${cart.value.length} məhsul)`
+    ? t('sales.draftNameCustomer', { name: `${selectedCustomer.value.firstName} ${selectedCustomer.value.lastName}` })
+    : t('sales.draftNameCart', { count: cart.value.length })
 
   const draft = {
     id: Date.now(),
@@ -96,7 +96,7 @@ const saveDraft = () => {
   clearCart()
   selectedCustomer.value = null
   selectedEmployee.value = null
-  toast.success('Satış müvəqqəti yadda saxlanıldı!')
+  toast.success(t('toast.draftSaved'))
 }
 
 const restoreDraft = (index: number) => {
@@ -109,7 +109,7 @@ const restoreDraft = (index: number) => {
   drafts.value.splice(index, 1)
   localStorage.setItem('yessir_pos_drafts', JSON.stringify(drafts.value))
   showDraftsModal.value = false
-  toast.success('Müvəqqəti satış geri qaytarıldı')
+  toast.success(t('toast.draftRestored'))
 }
 
 const deleteDraft = (index: number) => {
@@ -126,7 +126,7 @@ const ghostProduct = ref({
 
 const addGhostProduct = () => {
   if (!ghostProduct.value.productName || !ghostProduct.value.retailPrice) {
-    toast.error('Ad və qiymət daxil edilməlidir')
+    toast.error(t('toast.ghostProductError'))
     return
   }
 
@@ -253,14 +253,14 @@ const categories = computed(() => {
       cats.add(p.category)
     }
   })
-  return ['Bütün Mallar', ...Array.from(cats)]
+  return ['ALL', ...Array.from(cats)]
 })
 
 const filteredProductGroups = computed(() => {
   let list = products.value
   
   // Category filter
-  if (selectedCategory.value !== 'Bütün Mallar') {
+  if (selectedCategory.value !== 'ALL') {
     list = list.filter((p: any) => {
       const cat = p.category
       if (Array.isArray(cat)) return cat.includes(selectedCategory.value)
@@ -323,7 +323,7 @@ const cashbackAmount = computed(() => {
 // --- Cart Handlers ---
 const addToCart = (product: any) => {
   if (!product.retailPrice && !product.wholesalePrice) {
-    toast.error('Bu məhsulun qiyməti yoxdur.')
+    toast.error(t('toast.noPriceError'))
     return
   }
   
@@ -376,11 +376,11 @@ const clearCart = () => {
 
 const handlePayment = () => {
   if (cart.value.length === 0) {
-    toast.error('Səbət boşdur!')
+    toast.error(t('toast.cartEmptyError'))
     return
   }
   if (!selectedEmployee.value) {
-    toast.error('Zəhmət olmasa Kassir (əməkdaş) seçin!')
+    toast.error(t('toast.cashierRequiredError'))
     return
   }
   showPaymentModal.value = true
@@ -395,7 +395,7 @@ const printReceipt = (manualReceiptNo?: string) => {
   const receiptNo = manualReceiptNo || `S${Date.now().toString().slice(-8)}`
   const cashierName = selectedEmployee.value 
     ? `${selectedEmployee.value.firstName} ${selectedEmployee.value.lastName}` 
-    : (user.value?.firstName ? `${user.value.firstName} ${user.value.lastName}` : 'Məlum deyil')
+    : (user.value?.firstName ? `${user.value.firstName} ${user.value.lastName}` : t('sales.unknown'))
 
   const bonusSpentArr = paymentDetails.value?.isMulti 
     ? (paymentDetails.value.payments['Bonus'] || 0) 
@@ -473,11 +473,11 @@ const completeOrder = async (details?: any) => {
 
     if (method === 'Bonus') {
       if (!customer) {
-        toast.error('Bonus ilə ödəniş üçün müştəri seçilməlidir')
+        toast.error(t('toast.bonusCustomerRequired'))
         return
       }
       if ((Number(customer.bonus) || 0) < amt) {
-        toast.error('Müştərinin balansında kifayət qədər bonus yoxdur')
+        toast.error(t('toast.insufficientBonus'))
         return
       }
     }
@@ -485,18 +485,18 @@ const completeOrder = async (details?: any) => {
     if (method === 'Hədiyyə Kartı') {
       const barcodeToUse = details?.giftCardBarcode || giftCardBarcode.value
       if (!barcodeToUse) {
-        toast.error('Hədiyyə kartı barkodu daxil edilməlidir')
+        toast.error(t('toast.giftCardBarcodeRequired'))
         return
       }
       try {
         const cards = await $fetch<any[]>('/api/gift-cards')
         const card = (cards || []).find(c => c.barcode === barcodeToUse)
         if (!card) {
-          toast.error('Hədiyyə kartı tapılmadı')
+          toast.error(t('toast.giftCardNotFound'))
           return
         }
         if (card.value < amt) {
-          toast.error(`Kartda kifayət qədər balans yoxdur (Mövcud: ${card.value.toFixed(2)} ₼)`)
+          toast.error(t('toast.insufficientGiftCardBalance', { amount: card.value.toFixed(2) }))
           return
         }
         
@@ -509,7 +509,7 @@ const completeOrder = async (details?: any) => {
           body: { value: Number((card.value - amt).toFixed(2)) }
         })
       } catch (err) {
-        toast.error('Hədiyyə kartı yoxlanılarkən xəta oldu')
+        toast.error(t('toast.giftCardCheckError'))
         return
       }
     }
@@ -582,13 +582,13 @@ const completeOrder = async (details?: any) => {
     })
 
     // 4. Complete and Reset
-    let msg = 'Satış uğurla tamamlandı!'
+    let msg = t('toast.saleSuccess')
     if (customerName) {
       const bonusSpent = payments['Bonus'] ? Number(payments['Bonus']) : 0
       if (bonusSpent > 0) {
-        msg += `\n${bonusSpent.toFixed(2)} ₼ bonus balansından çıxıldı.`
+        msg += `\n${t('toast.bonusDeducted', { amount: bonusSpent.toFixed(2) })}`
       }
-      msg += `\n${customerName} hesabına ${currentCashback.toFixed(2)} ₼ keşbek əlavə edildi.`
+      msg += `\n${t('toast.cashbackAdded', { name: customerName, amount: currentCashback.toFixed(2) })}`
     }
     
     toast.success(msg)
@@ -607,7 +607,7 @@ const completeOrder = async (details?: any) => {
     loadCustomers()
   } catch (err: any) {
     console.error('Finalizing sale error:', err)
-    toast.error('Satış tamamlanarkən xəta baş verdi: ' + (err.message || ''))
+    toast.error(t('toast.saleError', { error: err.message || '' }))
     isSaving.value = false
   }
 }
@@ -624,7 +624,7 @@ const completeOrder = async (details?: any) => {
       <!-- Top Action Bar - Compact -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5 shrink-0">
         <h1 class="text-xl md:text-2xl font-black text-[var(--text-app)] tracking-tight leading-none mb-1">
-            {{ t('menu.salesTerminal', 'Satış Terminalı') }}
+            {{ t('sales.salesTerminal') }}
         </h1>
         
         <div class="flex items-center gap-2">
@@ -645,13 +645,13 @@ const completeOrder = async (details?: any) => {
             icon="lucide:plus-circle"
             @click="showGhostModal = true"
           >
-            Keçici Məhsul
+            {{ t('sales.ghostProduct') }}
           </UiButton>
 
           <UiInput 
             ref="searchInput"
             v-model="searchQuery" 
-            placeholder="Barkod və ya ad..." 
+            :placeholder="t('sales.searchHint')" 
             icon="lucide:search" 
             clearable
             @keyup.enter="focusSearch"
@@ -671,7 +671,7 @@ const completeOrder = async (details?: any) => {
               ? 'bg-[var(--text-primary)] text-white border-transparent' 
               : 'bg-[var(--bg-app)] text-[var(--text-app)] opacity-50 border-[var(--border-app)] hover:opacity-100 hover:border-[var(--text-primary)]/40'"
           >
-            {{ cat }}
+            {{ cat === 'ALL' ? t('sales.allProducts') : cat }}
           </button>
         </div>
       </div>
@@ -684,7 +684,7 @@ const completeOrder = async (details?: any) => {
         
         <div v-else-if="filteredProductGroups.length === 0" class="flex flex-col items-center justify-center h-full text-[var(--text-app)] opacity-50">
           <UiIcon name="lucide:package-open" class="w-16 h-16 mb-4" />
-          <p class="font-bold text-lg">Məhsul tapılmadı.</p>
+          <p class="font-bold text-lg">{{ t('sales.noProductsFound') }}</p>
         </div>
 
         <div v-else class="pt-2 grid gap-3 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]">
@@ -739,13 +739,13 @@ const completeOrder = async (details?: any) => {
   <!-- Drafts Modal -->
   <Modal
     v-model="showDraftsModal"
-    title="Müvəqqəti Saxlanılanlar"
+    :title="t('sales.temporarySaved')"
     max-width="md"
   >
     <div class="space-y-3">
       <div v-if="drafts.length === 0" class="text-center py-6 text-[var(--text-app)] opacity-50">
         <UiIcon name="lucide:inbox" class="w-12 h-12 mx-auto mb-2 opacity-50" />
-        <p class="font-bold">Müvəqqəti yadda saxlanılan satış yoxdur</p>
+        <p class="font-bold">{{ t('sales.noDrafts') }}</p>
       </div>
 
       <div 
@@ -765,7 +765,7 @@ const completeOrder = async (details?: any) => {
             @click="restoreDraft(idx)" 
             class="h-8 px-3 text-[11px] font-bold bg-[var(--text-primary)] text-white rounded-lg hover:shadow-md hover:shadow-[var(--text-primary)]/20 transition-all"
           >
-            Yüklə
+            {{ t('sales.load') }}
           </button>
           <button 
             @click="deleteDraft(idx)" 
@@ -781,20 +781,20 @@ const completeOrder = async (details?: any) => {
   <!-- Ghost Product Modal -->
   <Modal
     v-model="showGhostModal"
-    :title="t('sales.addGhost', 'Keçici Məhsul Əlavə Et')"
+    :title="t('sales.addGhost')"
     max-width="md"
   >
     <div class="space-y-4">
       <div>
-        <label class="block text-[11px] font-bold text-[var(--text-app)] opacity-40 mb-1">Məhsulun adı</label>
+        <label class="block text-[11px] font-bold text-[var(--text-app)] opacity-40 mb-1">{{ t('products.name') }}</label>
         <UiInput 
           v-model="ghostProduct.productName" 
-          placeholder="Məs: Paket, Xidmət və s." 
+          :placeholder="t('sales.ghostProductNameHint')" 
           autofocus
         />
       </div>
       <div>
-        <label class="block text-[11px] font-bold text-[var(--text-app)] opacity-40 mb-1">Qiymət (₼)</label>
+        <label class="block text-[11px] font-bold text-[var(--text-app)] opacity-40 mb-1">{{ t('sales.price') }} (₼)</label>
         <UiInput 
           v-model="ghostProduct.retailPrice" 
           type="number"
@@ -809,14 +809,14 @@ const completeOrder = async (details?: any) => {
           block 
           @click="showGhostModal = false"
         >
-          Ləğv Et
+          {{ t('common.cancel') }}
         </UiButton>
         <UiButton 
           variant="primary" 
           block 
           @click="addGhostProduct"
         >
-          Səbətə Əlavə Et
+          {{ t('sales.addToCart') }}
         </UiButton>
       </div>
     </template>

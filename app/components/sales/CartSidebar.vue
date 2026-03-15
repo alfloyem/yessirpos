@@ -131,7 +131,7 @@ const getItemDisplayName = (item: CartItem) => {
                 value: c.id,
                 extra: c.phone || c.barcode
               }))"
-              placeholder="Müştəri axtar..." 
+              :placeholder="t('sales.customerSearchHint')" 
               icon="lucide:user-search" 
               class="!rounded-xl"
               size="sm"
@@ -165,7 +165,7 @@ const getItemDisplayName = (item: CartItem) => {
       <div class="relative m-0">
         <div v-if="selectedEmployee" class="flex items-center gap-2.5 pl-4 p-2 border border-[var(--text-primary)]/10 rounded-xl transition-all hover:bg-[var(--text-primary)]/10 w-full">
           <span class="text-xs font-black text-[var(--text-app)] truncate leading-tight">{{ selectedEmployee.firstName }} {{ selectedEmployee.lastName }}</span>
-          <span class="text-[10px] font-bold text-[var(--text-primary)] opacity-50 flex-1 italic">{{ t("sales.cashier", "Kassir") }}</span>
+          <span class="text-[10px] font-bold text-[var(--text-primary)] opacity-50 flex-1 italic">{{ t("sales.cashier") }}</span>
           <button @click="emit('update:selectedEmployee', null)" class="w-6 h-6 flex items-center justify-center hover:bg-red-500/10 rounded-lg transition-all text-red-500/40 hover:text-red-500 group/btn">
             <UiIcon name="lucide:x" class="w-3.5 h-3.5 group-hover/btn:rotate-90 transition-transform" />
           </button>
@@ -183,7 +183,7 @@ const getItemDisplayName = (item: CartItem) => {
               value: e.id,
               extra: e.phone || e.position
             }))"
-            placeholder="Kassir seçin..." 
+            :placeholder="t('sales.cashierSelectHint')" 
             icon="lucide:briefcase" 
             class="!rounded-xl"
             size="sm"
@@ -289,7 +289,7 @@ const getItemDisplayName = (item: CartItem) => {
     <div class="bg-[var(--bg-app)]/80 backdrop-blur-2xl border-t border-[var(--border-app)] p-2.5 space-y-2 shrink-0 shadow-[0_-8px_30px_rgba(0,0,0,0.05)]">
       <div class="space-y-1.5 px-0.5">
         <div class="flex justify-between items-center text-xs font-bold text-[var(--text-app)]">
-          <span class="text-sm">{{ totalQty }} məhsul</span>
+          <span class="text-sm">{{ t('sales.draftNameCart', { count: totalQty }) }}</span>
           <span class="text-sm font-black text-[var(--text-app)]">{{ subtotal.toFixed(2) }} ₼</span>
         </div>
 

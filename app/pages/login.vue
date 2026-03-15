@@ -91,7 +91,7 @@ const handleLogin = async () => {
             <!-- Divider -->
             <div class="flex items-center gap-4">
               <div class="flex-1 h-px bg-[var(--border-app)]"></div>
-              <span class="text-xs text-[var(--text-app)] opacity-40 font-medium">Giriş</span>
+              <span class="text-xs text-[var(--text-app)] opacity-40 font-medium">{{ t('loginPage.title') }}</span>
               <div class="flex-1 h-px bg-[var(--border-app)]"></div>
             </div>
           </div>
@@ -119,7 +119,7 @@ const handleLogin = async () => {
             <!-- Email Input -->
             <div class="space-y-2">
               <label class="text-sm font-medium text-[var(--text-app)] opacity-80">
-                İstifadəçi adı
+                {{ t('loginPage.username') }}
               </label>
               <div class="relative">
                 <div class="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-app)] opacity-40">
@@ -129,7 +129,7 @@ const handleLogin = async () => {
                   v-model="email"
                   type="text" 
                   class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] rounded-xl pl-12 pr-4 py-3.5 text-sm outline-none focus:border-[var(--text-primary)] focus:ring-2 focus:ring-[var(--text-primary)]/20 transition-all placeholder:opacity-40 disabled:opacity-50 disabled:cursor-not-allowed"
-                  placeholder="admin"
+                  :placeholder="t('loginPage.usernamePlaceholder')"
                   required
                   :disabled="loading"
                 />
@@ -139,7 +139,7 @@ const handleLogin = async () => {
             <!-- Password Input -->
             <div class="space-y-2">
               <label class="text-sm font-medium text-[var(--text-app)] opacity-80">
-                Şifrə
+                {{ t('loginPage.password') }}
               </label>
               <div class="relative">
                 <div class="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-app)] opacity-40">
@@ -149,7 +149,7 @@ const handleLogin = async () => {
                   v-model="password"
                   type="password" 
                   class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] rounded-xl pl-12 pr-4 py-3.5 text-sm outline-none focus:border-[var(--text-primary)] focus:ring-2 focus:ring-[var(--text-primary)]/20 transition-all placeholder:opacity-40 disabled:opacity-50 disabled:cursor-not-allowed"
-                  placeholder="••••••••"
+                  :placeholder="t('loginPage.passwordPlaceholder')"
                   required
                   :disabled="loading"
                 />
@@ -183,14 +183,14 @@ const handleLogin = async () => {
                   size="md"
                 />
               </Transition>
-              <span>{{ loading ? 'Gözləyin...' : 'Daxil ol' }}</span>
+              <span>{{ loading ? t('loginPage.loading') : t('loginPage.submit') }}</span>
             </button>
           </form>
 
           <!-- Footer Info -->
           <div class="pt-4 border-t border-[var(--border-app)]">
             <p class="text-xs text-center text-[var(--text-app)] opacity-50">
-              © {{ currentYear }} YESSIR POS. Bütün hüquqlar qorunur.
+              {{ t('loginPage.copyright', { year: currentYear }) }}
             </p>
           </div>
         </div>

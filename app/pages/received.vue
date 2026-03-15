@@ -19,20 +19,28 @@ useHead({
 // --- Data ---
 const suppliers = ref<any[]>([])
 const products = ref<any[]>([])
-const paymentMethods = ref<any[]>([
-  { id: 'static-cash', name: 'Nəğd', icon: 'lucide:banknote' },
-  { id: 'static-card', name: 'Kart', icon: 'lucide:credit-card' }
+const staticPaymentMethods = computed(() => [
+  { id: 'static-cash', name: t('sales.cash'), icon: 'lucide:banknote' },
+  { id: 'static-card', name: t('sales.card'), icon: 'lucide:credit-card' }
 ])
+const dbPaymentMethods = ref<any[]>([])
+const paymentMethods = computed(() => [...staticPaymentMethods.value, ...dbPaymentMethods.value])
 const loading = ref(false)
 const saving = ref(false)
 
 // --- Selections ---
 const selectedSupplier = ref<any>(null)
 const searchQuery = ref('')
-const selectedCategory = ref('Bütün Mallar')
+const selectedCategory = ref('ALL')
 const cart = ref<any[]>([])
 const notes = ref('')
-const selectedPaymentMethod = ref<any>(paymentMethods.value[0])
+const selectedPaymentMethod = ref<any>(null)
+
+watch(paymentMethods, (newMethods) => {
+  if (!selectedPaymentMethod.value && newMethods.length > 0) {
+    selectedPaymentMethod.value = newMethods[0]
+  }
+}, { immediate: true })
 const showPaymentModal = ref(false)
 const paidAmount = ref<number>(0)
 
@@ -81,7 +89,7 @@ const loadPaymentMethods = async () => {
     if (data && data.length > 0) {
       // Keep static ones, add DB ones if they are different names
       const dbMethods = data.filter(dm => !['Nəğd', 'Kart'].includes(dm.name))
-      paymentMethods.value = [...paymentMethods.value, ...dbMethods]
+      dbPaymentMethods.value = dbMethods
     }
   } catch (err) {
     console.error('Failed to load payment methods:', err)
@@ -108,14 +116,14 @@ const categories = computed(() => {
       cats.add(p.category)
     }
   })
-  return ['Bütün Mallar', ...Array.from(cats)]
+  return ['ALL', ...Array.from(cats)]
 })
 
 const filteredProductGroups = computed(() => {
   let list = products.value
   
   // Category filter
-  if (selectedCategory.value !== 'Bütün Mallar') {
+  if (selectedCategory.value !== 'ALL') {
     list = list.filter((p: any) => {
       const cat = p.category
       if (Array.isArray(cat)) return cat.includes(selectedCategory.value)
@@ -227,7 +235,7 @@ const submitIntake = async () => {
       totalAmount: subtotal.value,
       paidAmount: Number(paidAmount.value) || 0,
       balanceDue: balanceDue.value,
-      paymentMethod: selectedPaymentMethod.value?.name || 'Nəğd',
+      paymentMethod: selectedPaymentMethod.value?.name || t('sales.cash'),
       notes: notes.value,
       createdBy: user.value?.name,
       items: cart.value.map(item => ({
@@ -295,7 +303,7 @@ const submitIntake = async () => {
             <UiInput 
               ref="searchInput"
               v-model="searchQuery" 
-              placeholder="Barkod və ya ad..." 
+              :placeholder="t('sales.searchHint')" 
               icon="lucide:search" 
               clearable
               @keyup.enter="focusSearch"
@@ -315,7 +323,7 @@ const submitIntake = async () => {
                 ? 'bg-[var(--text-primary)] text-white border-transparent' 
                 : 'bg-[var(--bg-app)] text-[var(--text-app)] opacity-50 border-[var(--border-app)] hover:opacity-100 hover:border-[var(--text-primary)]/40'"
             >
-              {{ cat }}
+              {{ cat === 'ALL' ? t('sales.allProducts') : cat }}
             </button>
           </div>
         </div>
@@ -370,7 +378,7 @@ const submitIntake = async () => {
                       value: s.id,
                       extra: s.companyName || s.phone
                     }))"
-                    placeholder="Tədarükçü axtar..." 
+                    :placeholder="t('intake.supplierSearchHint', 'Tədarükçü axtar...')" 
                     icon="lucide:truck" 
                     class="!rounded-xl"
                     size="sm"
@@ -401,7 +409,7 @@ const submitIntake = async () => {
                     <UiIcon :name="selectedPaymentMethod?.icon || 'lucide:wallet'" class="w-4 h-4 text-[var(--text-primary)]" />
                   </div>
                   <div class="text-left min-w-0">
-                    <div class="text-xs font-black text-[var(--text-app)] truncate">{{ selectedPaymentMethod?.name || 'Seçilməyib' }}</div>
+                    <div class="text-xs font-black text-[var(--text-app)] truncate">{{ selectedPaymentMethod?.name || t('common.notSelected') }}</div>
                   </div>
                 </div>
                 <UiIcon name="lucide:chevron-right" class="w-3.5 h-3.5 opacity-20 group-hover:opacity-100 transition-opacity" />
@@ -415,8 +423,8 @@ const submitIntake = async () => {
               <div class="w-16 h-16 rounded-full bg-[var(--border-app)]/20 flex items-center justify-center mb-4">
                 <UiIcon name="lucide:shopping-cart" class="w-8 h-8 stroke-[1.5]" />
               </div>
-              <p class="font-black text-base tracking-wider mb-1">Səbət boşdur</p>
-              <p class="text-[10px] font-bold opacity-60">Məhsul əlavə etmək üçün seçim edin</p>
+              <p class="font-black text-base tracking-wider mb-1">{{ t('cart.empty') }}</p>
+              <p class="text-[10px] font-bold opacity-60">{{ t('cart.emptySubtitle') }}</p>
             </div>
 
             <TransitionGroup name="cart-list">
@@ -516,13 +524,13 @@ const submitIntake = async () => {
           <div class="bg-[var(--bg-app)]/80 backdrop-blur-2xl border-t border-[var(--border-app)] p-2.5 space-y-2 shrink-0 shadow-[0_-8px_30px_rgba(0,0,0,0.05)]">
             <div class="space-y-1.5 px-0.5">
               <div class="flex justify-between items-center text-xs font-bold text-[var(--text-app)]">
-                <span class="text-sm">{{ totalQty }} məhsul</span>
+                <span class="text-sm">{{ t('sales.draftNameCart', { count: totalQty }) }}</span>
                 <span class="text-sm font-black text-[var(--text-app)]">{{ subtotal.toFixed(2) }} ₼</span>
               </div>
 
               <!-- Paid Amount row (like Endirim row in CartSidebar) -->
               <div class="flex items-center justify-between gap-1">
-                <span class="text-sm flex-1 font-bold text-[var(--text-app)]">Ödənilən</span>
+                <span class="text-sm flex-1 font-bold text-[var(--text-app)]">{{ t('intake.paidAmount') }}</span>
                 
                 <div class="relative flex-1 max-w-[100px]">
                   <input 
@@ -537,7 +545,7 @@ const submitIntake = async () => {
 
               <!-- Balance Due row -->
               <div v-if="balanceDue > 0" class="flex justify-between items-center rounded-lg">
-                <span class="text-sm font-black text-orange-500 leading-none">Qalıq Borc</span>
+                <span class="text-sm font-black text-orange-500 leading-none">{{ t('intake.balanceDue') }}</span>
                 <span class="text-sm font-black text-orange-500 tabular-nums">{{ balanceDue.toFixed(2) }} ₼</span>
               </div>
             </div>
@@ -545,7 +553,7 @@ const submitIntake = async () => {
             <div class="border-t border-[var(--border-app)] border-dashed pt-2 flex justify-between items-end px-0.5">
               <div class="flex items-center justify-between flex-1">
                 <span class="text-x font-bold text-[var(--text-app)] mb-0">
-                  Yekun məbləğ
+                  {{ t('cart.toPay') }}
                 </span>
                 <div class="flex items-baseline gap-1">
                   <span class="text-[20px] font-black tabular-nums tracking-tighter text-[var(--text-primary)]">
