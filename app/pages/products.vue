@@ -13,7 +13,7 @@ const { token, logout } = useAuth()
 const toast = useToast()
 
 useHead({
-  title: t('menu.products', 'Mallar')
+  title: t('menu.products')
 })
 
 // --- Helper for Barcode Generation ---
@@ -44,28 +44,28 @@ const generateBarcode = (prefix = '') => {
 const goodsSchema = computed< (FormField & { inTable?: boolean, sortable?: boolean })[] >(() => [
   { 
     key: 'rowNumber', 
-    label: t('common.rowNumber', 'Sıra sayı'), 
+    label: t('common.rowNumber'), 
     type: 'text', 
     inTable: true, 
     sortable: false 
   },
   { 
     key: 'images', 
-    label: t('products.image', 'Məhsulun şəkli'), 
+    label: t('products.image'), 
     type: 'text', 
     inTable: true, 
     sortable: false 
   },
   { 
     key: 'parentProductName', 
-    label: t('products.parentProduct', 'Bağlı olduğu məhsul'), 
+    label: t('products.parentProduct'), 
     type: 'text', 
     inTable: false, 
     sortable: true 
   },
   { 
     key: 'productName', 
-    label: t('products.name', 'Məhsulun adı'), 
+    label: t('products.name'), 
     icon: 'lucide:package', 
     type: 'text', 
     inTable: true, 
@@ -74,7 +74,7 @@ const goodsSchema = computed< (FormField & { inTable?: boolean, sortable?: boole
   },
   { 
     key: 'brandName', 
-    label: t('products.brand', 'Brendin adı'), 
+    label: t('products.brand'), 
     icon: 'lucide:award', 
     type: 'autocomplete', 
     options: suppliersOptions.value,
@@ -84,7 +84,7 @@ const goodsSchema = computed< (FormField & { inTable?: boolean, sortable?: boole
   },
   { 
     key: 'category', 
-    label: t('products.category', 'Kateqoriyası'), 
+    label: t('products.category'), 
     icon: 'lucide:folder', 
     type: 'tags', 
     inTable: true, 
@@ -93,7 +93,7 @@ const goodsSchema = computed< (FormField & { inTable?: boolean, sortable?: boole
   },
   { 
     key: 'attribute', 
-    label: t('menu.attributes', 'Atributlar'), 
+    label: t('menu.attributes'), 
     icon: 'lucide:tag', 
     type: 'tags', 
     inTable: false, 
@@ -101,7 +101,7 @@ const goodsSchema = computed< (FormField & { inTable?: boolean, sortable?: boole
   },
   { 
     key: 'barcode', 
-    label: t('customers.barcode', 'Barkod'), 
+    label: t('products.barcode'), 
     icon: 'lucide:qr-code', 
     type: 'text', 
     inTable: true, 
@@ -110,35 +110,35 @@ const goodsSchema = computed< (FormField & { inTable?: boolean, sortable?: boole
   },
   { 
     key: 'wholesalePrice', 
-    label: t('products.wholesalePrice', 'Top. qiymət (₼)'), 
+    label: t('products.wholesalePrice'), 
     type: 'number', 
     inTable: true, 
     sortable: true 
   },
   { 
     key: 'retailPrice', 
-    label: t('products.retailPrice', 'Pər. qiymət (₼)'), 
+    label: t('products.retailPrice'), 
     type: 'number', 
     inTable: true, 
     sortable: true 
   },
   { 
     key: 'stock', 
-    label: t('dashboard.stock', 'Stok'), 
+    label: t('products.stock'), 
     type: 'integer', 
     inTable: true, 
     sortable: true 
   },
   { 
     key: 'reorderLevel', 
-    label: t('products.reorderLevel', 'Limit'), 
+    label: t('products.reorderLevel'), 
     type: 'integer', 
     inTable: true, 
     sortable: true 
   },
   { 
     key: 'description', 
-    label: t('products.description', 'Açıqlama'), 
+    label: t('products.description'), 
     icon: 'lucide:file-text', 
     type: 'textarea', 
     colSpan: 2, 
@@ -146,14 +146,14 @@ const goodsSchema = computed< (FormField & { inTable?: boolean, sortable?: boole
   },
   { 
     key: 'createdAt', 
-    label: t('customers.createdAt', 'Yaradılma tarixi'), 
+    label: t('customers.createdAt'), 
     type: 'text', 
     inTable: false, 
     sortable: true 
   },
   { 
     key: 'createdBy', 
-    label: t('customers.createdBy', 'Yaradan'), 
+    label: t('customers.createdBy'), 
     type: 'text', 
     inTable: false, 
     sortable: true 
@@ -173,17 +173,17 @@ const variantSchemaTop = computed<FormField[]>(() => {
     .map(p => ({ label: p.productName, value: p.id }))
 
   return [
-    { key: 'parentProductId', label: t('products.parentProduct', 'Asılı olduğu məhsul'), icon: 'lucide:box', type: 'select', required: true, options: productOptions, disabled: true },
+    { key: 'parentProductId', label: t('products.parentProduct'), icon: 'lucide:box', type: 'select', required: true, options: productOptions, disabled: true },
   ]
 })
 
 // --- Variant Schema Bottom ---
 const variantSchemaBottom = computed<FormField[]>(() => [
-  { key: 'barcode', label: t('customers.barcode', 'Barkod'), icon: 'lucide:qr-code', type: 'barcode', barcodePrefix: 'P', required: true },
-  { key: 'wholesalePrice', label: t('products.wholesalePrice', 'Topdan qiymət (₼)'), icon: 'lucide:coins', type: 'number', required: false },
-  { key: 'retailPrice', label: t('products.retailPrice', 'Pərakəndə qiyməti (₼)'), icon: 'lucide:banknote', type: 'number', required: true },
-  { key: 'stock', label: t('dashboard.stock', 'Stok (Say)'), icon: 'lucide:package-check', type: 'integer', placeholder: '0', required: true },
-  { key: 'reorderLevel', label: t('products.reorderLevel', 'Yenidən sifariş limiti'), icon: 'lucide:alert-circle', type: 'integer', placeholder: '0', required: false },
+  { key: 'barcode', label: t('products.barcode'), icon: 'lucide:qr-code', type: 'barcode', barcodePrefix: 'P', required: true },
+  { key: 'wholesalePrice', label: t('products.wholesalePrice'), icon: 'lucide:coins', type: 'number', required: false },
+  { key: 'retailPrice', label: t('products.retailPrice'), icon: 'lucide:banknote', type: 'number', required: true },
+  { key: 'stock', label: t('products.stockQty'), icon: 'lucide:package-check', type: 'integer', placeholder: '0', required: true },
+  { key: 'reorderLevel', label: t('products.reorderLevelHint'), icon: 'lucide:alert-circle', type: 'integer', placeholder: '0', required: false },
 ])
 
 // Extract table columns dynamically
@@ -262,7 +262,7 @@ const loadGoods = async () => {
       rowNumber: idx + 1
     }))
   } catch (err: any) {
-    toast.error(t('toast.loadingError', 'Məlumatlar yüklənərkən xəta baş verdi'))
+    toast.error(t('toast.loadingError'))
   } finally {
     loading.value = false
   }
@@ -427,7 +427,7 @@ const performDelete = async () => {
       const idToDelete = deleteTarget.value.id
       await $fetch(`/api/products/${idToDelete}`, { method: 'DELETE', headers })
       mockData.value = mockData.value.filter(p => p.id !== idToDelete)
-      toast.success(t('common.delete', 'Silindi'))
+      toast.success(t('products.deleted'))
     } else if (deleteTarget.value.type === 'bulk') {
       const idsToDelete = deleteTarget.value.ids || []
       await $fetch('/api/products/bulk-delete', { 
@@ -437,7 +437,7 @@ const performDelete = async () => {
       })
       mockData.value = mockData.value.filter(p => !idsToDelete.includes(p.id))
       currentSelectionIds.value = currentSelectionIds.value.filter(id => !idsToDelete.includes(id))
-      toast.success(t('common.delete', 'Toplu silindi'))
+      toast.success(t('products.bulkDeleted'))
     }
     
     showDeleteConfirmModal.value = false
@@ -453,7 +453,7 @@ const performDelete = async () => {
 const copyBarcode = (barcode: string) => {
   if (!barcode) return
   navigator.clipboard.writeText(barcode).then(() => {
-    toast.success(t('toast.barcodeCopied', 'Barkod kopyalandı!'))
+    toast.success(t('toast.barcodeCopied'))
   }).catch(() => {
     toast.error(t('toast.operationFailed', 'Xəta baş verdi'))
   })
@@ -486,7 +486,7 @@ const handleDuplicate = async (row: any) => {
     })
     
     mockData.value.unshift(newProduct)
-    toast.success(t('common.duplicate', 'Kopyalandı'))
+    toast.success(t('products.duplicated'))
   } catch (err: any) {
     toast.error(t('toast.operationFailed'))
   } finally {
@@ -581,7 +581,7 @@ const saveForm = async () => {
         headers
       })
       mockData.value.unshift(newProduct)
-      toast.success(t('toast.customerAdded', 'Əlavə edildi'))
+      toast.success(t('products.added'))
       showAddModal.value = false
     } else if (showEditModal.value) {
       if (bulkSelectedIds.value.length > 0) {
@@ -606,7 +606,7 @@ const saveForm = async () => {
         const idx = mockData.value.findIndex(p => p.id === formData.value.id)
         if (idx !== -1) mockData.value[idx] = updatedProduct
       }
-      toast.success(t('toast.customerUpdated', 'Yeniləndi'))
+      toast.success(t('products.updated'))
       showEditModal.value = false
     } else if (showVariantModal.value && !isVariantEdit.value) {
       const newVariant = await $fetch('/api/products', {
@@ -619,7 +619,7 @@ const saveForm = async () => {
         headers
       })
       mockData.value.unshift(newVariant)
-      toast.success(t('toast.customerAdded', 'Variant əlavə edildi'))
+      toast.success(t('products.variantAdded'))
       showVariantModal.value = false
     } else if (showVariantModal.value && isVariantEdit.value) {
       const updatedVariant = await $fetch(`/api/products/${variantFormData.value.id}`, {
@@ -633,7 +633,7 @@ const saveForm = async () => {
       })
       const idx = mockData.value.findIndex(p => p.id === variantFormData.value.id)
       if (idx !== -1) mockData.value[idx] = updatedVariant
-      toast.success(t('toast.customerUpdated', 'Yeniləndi'))
+      toast.success(t('products.variantUpdated'))
       showVariantModal.value = false
       isVariantEdit.value = false
     }
@@ -650,13 +650,13 @@ const saveForm = async () => {
   <div class="space-y-6 font-sans">
     <div class="flex items-center justify-between">
       <h1 class="text-2xl font-bold text-[var(--text-app)]">
-        {{ t('menu.products', 'Mallar') }}
+        {{ t('menu.products') }}
       </h1>
     </div>
 
     <!-- Smart Data Table -->
     <DataTable 
-      :title="t('menu.products', 'Mallar')"
+      :title="t('menu.products')"
       :data="orderedMockData" 
       :columns="columns"
       :selectable="true"
@@ -689,7 +689,7 @@ const saveForm = async () => {
             class="hover:text-[var(--color-brand-success)] hover:bg-[var(--color-brand-success)]/10 cursor-pointer"
           />
           <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-[var(--text-primary)] text-[var(--bg-app)] text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover/add-variant:opacity-100 pointer-events-none transition-all z-50">
-            {{ t('products.addVariant', 'Variant Əlavə Et') }}
+            {{ t('products.addVariant') }}
           </div>
         </div>
       </template>
@@ -766,7 +766,7 @@ const saveForm = async () => {
         <div 
           class="font-mono tracking-wider font-bold cursor-pointer hover:text-[var(--text-primary)] transition-colors inline-block"
           @click.stop="copyBarcode(value)"
-          :title="t('common.clickToCopy', 'Kopyalamaq üçün kliklə')"
+          :title="t('common.clickToCopy')"
         >
           <span v-html="highlight(value)"></span>
         </div>
@@ -812,7 +812,7 @@ const saveForm = async () => {
     <!-- Modal: Add / Edit Base Product -->
     <Modal 
       v-model="showAddModal" 
-      :title="t('products.addNew', 'Yeni Mal Əlavə Et')" 
+      :title="t('products.addNew')" 
       max-width="3xl" 
       is-top 
       max-height="90vh"
@@ -821,7 +821,7 @@ const saveForm = async () => {
         <!-- Left: Image Section (Expanded) -->
         <div class="w-full lg:w-[45%] shrink-0 space-y-4 lg:sticky lg:top-4">
           <div class="text-[10px] font-bold text-[var(--text-app)] tracking-[0.2em] opacity-40">
-            {{ t('products.image', 'Məhsulun şəkilləri') }}
+            {{ t('products.image') }}
           </div>
           <div class="w-full">
             <ImageCarousel 
@@ -844,15 +844,15 @@ const saveForm = async () => {
       </div>
 
       <template #footer>
-        <UiButton variant="ghost" @click="showAddModal = false">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
-        <UiButton variant="primary" icon="lucide:check" @click="saveForm">{{ t('common.save', 'Yadda saxla') }}</UiButton>
+        <UiButton variant="ghost" @click="showAddModal = false">{{ t('common.cancel') }}</UiButton>
+        <UiButton variant="primary" icon="lucide:check" @click="saveForm">{{ t('common.save') }}</UiButton>
       </template>
     </Modal>
 
     <!-- Modal: Edit -->
     <Modal 
       v-model="showEditModal" 
-      :title="bulkSelectedIds.length > 0 ? t('common.bulkEdit', 'Toplu Redaktə') : t('products.edit', 'Malı Redaktə Et')" 
+      :title="bulkSelectedIds.length > 0 ? t('common.bulkEdit') : t('products.edit')" 
       max-width="3xl" 
       is-top 
       max-height="90vh"
@@ -865,7 +865,7 @@ const saveForm = async () => {
         <!-- Left: Image Section (Expanded) -->
         <div v-if="bulkSelectedIds.length === 0" class="w-full lg:w-[45%] shrink-0 space-y-4 lg:sticky lg:top-4">
           <div class="text-[10px] font-bold text-[var(--text-app)] tracking-[0.2em] opacity-40">
-            {{ t('products.image', 'Məhsulun şəkilləri') }}
+            {{ t('products.image') }}
           </div>
           <div class="w-full">
             <ImageCarousel 
@@ -896,15 +896,15 @@ const saveForm = async () => {
       </div>
 
       <template #footer>
-        <UiButton variant="ghost" @click="showEditModal = false; bulkSelectedIds = []">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
-        <UiButton variant="primary" icon="lucide:check" @click="saveForm">{{ t('common.update', 'Yenilə') }}</UiButton>
+        <UiButton variant="ghost" @click="showEditModal = false; bulkSelectedIds = []">{{ t('common.cancel') }}</UiButton>
+        <UiButton variant="primary" icon="lucide:check" @click="saveForm">{{ t('common.update') }}</UiButton>
       </template>
     </Modal>
 
     <!-- Variant Modal (Add / Edit) -->
     <Modal 
       v-model="showVariantModal" 
-      :title="isVariantEdit ? t('products.editVariant', 'Variantı Redaktə Et') : t('products.addVariant', 'Variant Əlavə Et')" 
+      :title="isVariantEdit ? t('products.editVariant') : t('products.addVariant')" 
       max-width="3xl" 
       is-top 
       max-height="90vh"
@@ -914,7 +914,7 @@ const saveForm = async () => {
         <!-- Left: Image Section (Expanded) -->
         <div class="w-full lg:w-[45%] shrink-0 space-y-4 lg:sticky lg:top-4">
           <div class="text-[10px] font-bold text-[var(--text-app)] tracking-[0.2em] opacity-40">
-            {{ t('products.variantImage', 'Variant Şəkilləri') }}
+            {{ t('products.variantImage') }}
           </div>
           <div class="w-full">
             <ImageCarousel 
@@ -940,7 +940,7 @@ const saveForm = async () => {
           <div class="space-y-4 pt-4 border-t border-[var(--border-app)]">
             <div class="flex items-center justify-between">
               <label class="text-xs font-bold text-[var(--text-app)] tracking-wider">
-                {{ t('menu.attributes', 'Atributlar') }}
+                {{ t('menu.attributes') }}
               </label>
             </div>
 
@@ -973,7 +973,7 @@ const saveForm = async () => {
               <UiSelect 
                 v-if="availableAttributes.filter(a => !selectedVariantAttr.find(s => s.id === a.id)).length > 0"
                 modelValue=""
-                placeholder="+ Atribut əlavə et..."
+                :placeholder="t('products.addAttribute')"
                 :options="availableAttributes.filter(a => !selectedVariantAttr.find(s => s.id === a.id)).map(a => ({ label: a.name, value: a.id }))"
                 @update:modelValue="addAttributeToVariant"
               />
@@ -993,13 +993,13 @@ const saveForm = async () => {
       </div>
 
       <template #footer>
-        <UiButton variant="ghost" @click="showVariantModal = false; isVariantEdit = false">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
+        <UiButton variant="ghost" @click="showVariantModal = false; isVariantEdit = false">{{ t('common.cancel') }}</UiButton>
         <UiButton 
           variant="primary" 
           icon="lucide:check" 
           @click="saveForm"
         >
-          {{ isVariantEdit ? t('common.update', 'Yenilə') : t('products.saveVariant', 'Variantı Yadda Saxla') }}
+          {{ isVariantEdit ? t('common.update') : t('products.saveVariant') }}
         </UiButton>
       </template>
     </Modal>
@@ -1019,14 +1019,14 @@ const saveForm = async () => {
         
         <!-- Texts -->
         <h3 class="text-xl font-bold text-[var(--text-app)] mb-2 tracking-wide">
-          {{ t('common.delete', 'Sil') }}
+          {{ t('common.delete') }}
         </h3>
         
         <p class="text-[15px] font-medium text-[var(--text-app)] opacity-60 leading-relaxed mb-8 max-w-[280px]">
           {{ 
             deleteTarget?.type === 'bulk' 
-              ? t('employees.bulkDeleteWarning', { count: deleteTarget.ids?.length, default: `Seçilmiş ${deleteTarget.ids?.length} qeydi silmək istədiyinizə əminsiniz?` }) 
-              : t('employees.deleteWarning', 'Bu qeydi silmək istədiyinizə əminsiniz?') 
+              ? t('employees.bulkDeleteWarning', { count: deleteTarget.ids?.length }) 
+              : t('employees.deleteWarning') 
           }}
         </p>
 
@@ -1037,7 +1037,7 @@ const saveForm = async () => {
             class="flex-1 !h-12 text-[15px] font-semibold tracking-wide hover:bg-[var(--text-primary)]/5"
             @click="showDeleteConfirmModal = false"
           >
-            {{ t('common.cancel', 'Ləğv et') }}
+            {{ t('common.cancel') }}
           </UiButton>
           
           <UiButton 
@@ -1045,7 +1045,7 @@ const saveForm = async () => {
             class="flex-1 !h-12 text-[15px] font-semibold tracking-wide shadow-md shadow-[var(--color-brand-danger)]/20 hover:shadow-lg"
             @click="performDelete"
           >
-            {{ t('common.delete', 'Sil') }}
+            {{ t('common.delete') }}
           </UiButton>
         </div>
       </div>
