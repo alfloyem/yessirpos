@@ -7,10 +7,10 @@ import UiButton from '~/components/ui/Button.vue'
 import DynamicForm, { type FormField } from '~/components/ui/DynamicForm.vue'
 import { useAuth, useHead, useToast } from '#imports'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 useHead({
-  title: t('menu.giftCard') || 'Hədiyyə Kartı'
+  title: t('giftCards.title')
 })
 
 // --- API Calls ---
@@ -33,7 +33,7 @@ const loadData = async () => {
     mockData.value = (giftCards as any[]).map(d => ({
       ...d,
       _date: new Date(d.createdAt),
-      createdAt: new Date(d.createdAt).toLocaleString('tr-TR', {
+      createdAt: new Date(d.createdAt).toLocaleString(locale.value === 'az' ? 'az-AZ' : locale.value === 'ru' ? 'ru-RU' : 'en-US', {
         year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
       })
     }))
@@ -84,20 +84,40 @@ const generateCardNumber = () => {
 const giftCardSchema = computed< (FormField & { inTable?: boolean, sortable?: boolean })[] >(() => [
   { 
     key: 'customer', 
-    label: 'Müştəri adını axtar', 
+    label: t('giftCards.searchCustomer'), 
     type: 'autocomplete', 
-    inTable: false, // We will map it manually for the table to show full name
+    inTable: false,
     required: true,
     autofocus: true,
     icon: 'lucide:user',
     options: customersOptions.value,
-    colSpan: 2
+    colSpan: 2,
+    placeholder: t('common.search')
   },
-  { key: 'customerName', label: 'Müştəri Adı', type: 'text', inTable: true, sortable: true },
-  { key: 'barcode', label: 'Barkod (Kart nömrəsi)', icon: 'lucide:barcode', type: 'barcode', barcodePrefix: 'G', inTable: true, sortable: true, required: true },
-  { key: 'value', label: 'Dəyəri (AZN)', icon: 'lucide:wallet', type: 'number', inTable: true, sortable: true, required: true },
-  { key: 'createdAt', label: 'Tarix', type: 'text', inTable: true, sortable: true },
-  { key: 'createdBy', label: 'Əməkdaş', type: 'text', inTable: true, sortable: true }
+  { key: 'customerName', label: t('giftCards.customerName'), type: 'text', inTable: true, sortable: true },
+  { 
+    key: 'barcode', 
+    label: `${t('giftCards.barcode')} (${t('giftCards.cardNumber')})`, 
+    icon: 'lucide:barcode', 
+    type: 'barcode', 
+    barcodePrefix: 'G', 
+    inTable: true, 
+    sortable: true, 
+    required: true,
+    placeholder: 'G0000000'
+  },
+  { 
+    key: 'value', 
+    label: t('giftCards.value'), 
+    icon: 'lucide:wallet', 
+    type: 'number', 
+    inTable: true, 
+    sortable: true, 
+    required: true,
+    placeholder: '0.00'
+  },
+  { key: 'createdAt', label: t('common.date'), type: 'text', inTable: true, sortable: true },
+  { key: 'createdBy', label: t('common.operator'), type: 'text', inTable: true, sortable: true }
 ])
 
 // Modalda gösterilecek form alanları
@@ -182,7 +202,7 @@ const handleDuplicate = async (row: any) => {
       headers
     })
     
-    toast.success(t('toast.customerDuplicated', 'Hədiyyə kartı kopyalandı'))
+    toast.success(t('giftCards.duplicated'))
     await loadData()
   } catch (err: any) {
     const errorMsg = err.message || t('toast.operationFailed', 'Əməliyyat zamanı xəta baş verdi')
@@ -197,10 +217,10 @@ const handleDuplicate = async (row: any) => {
 const validateForm = () => {
   const errors: Record<string, string> = {}
   if (!formData.value.customer && bulkSelectedIds.value.length === 0) { // bulk edit doesn't require customer
-    errors.customer = 'Bu xana mütləqdir'
+    errors.customer = t('common.fieldRequired')
   }
   if (!formData.value.barcode && bulkSelectedIds.value.length === 0) {
-    errors.barcode = 'Bu xana mütləqdir'
+    errors.barcode = t('common.fieldRequired')
   }
   formErrors.value = errors
   return Object.keys(errors).length === 0
@@ -224,7 +244,7 @@ const saveForm = async () => {
         method: 'POST',
         body: { ids: bulkSelectedIds.value, updates }
       })
-      toast.success(t('toast.updated', 'Məlumatlar yeniləndi'))
+      toast.success(t('giftCards.updated'))
       bulkSelectedIds.value = []
       showEditModal.value = false
     } else if (isEdit) {
@@ -236,7 +256,7 @@ const saveForm = async () => {
           customer: formData.value.customer
         }
       })
-      toast.success(t('toast.updated', 'Yeniləndi'))
+      toast.success(t('giftCards.updated'))
       showEditModal.value = false
     } else {
       await $fetch('/api/gift-cards', {
@@ -247,12 +267,12 @@ const saveForm = async () => {
           customer: formData.value.customer
         }
       })
-      toast.success(t('toast.added', 'Əlavə edildi'))
+      toast.success(t('giftCards.added'))
       showAddModal.value = false
     }
     await loadData()
   } catch (err: any) {
-    const message = err.message || t('toast.error', 'Xəta baş verdi!')
+    const message = err.message || t('toast.error')
     if (err.statusCode === 409) {
       formErrors.value = { barcode: message }
     }
@@ -273,17 +293,17 @@ const confirmDelete = async () => {
         method: 'POST',
         body: { ids: deleteTarget.value.ids }
       })
-      toast.success(t('toast.deleted', 'Məlumatlar silindi'))
+      toast.success(t('giftCards.deleted'))
     } else {
       await $fetch(`/api/gift-cards/${deleteTarget.value.id}`, {
         method: 'DELETE'
       })
-      toast.success(t('toast.deleted', 'Silindi'))
+      toast.success(t('giftCards.deleted'))
     }
     showDeleteConfirmModal.value = false
     await loadData()
   } catch (err: any) {
-    toast.error(err.message || t('toast.error', 'Xəta baş verdi!'))
+    toast.error(err.message || t('toast.error'))
   } finally {
     loading.value = false
   }
@@ -305,13 +325,13 @@ const copyBarcode = (barcode: string) => {
   <div class="space-y-6 font-sans">
     <div class="flex items-center justify-between">
        <h1 class="text-2xl font-bold text-[var(--text-app)]">
-        {{ t('menu.giftCard', 'Hədiyyə Kartı') }}
+        {{ t('giftCards.title') }}
       </h1>
     </div>
 
     <!-- Smart Data Table -->
     <DataTable 
-      title="Hediyye_Kartlari"
+      title="GIFT_CARDS"
       :data="mockData" 
       :columns="columns"
       :loading="loading"
@@ -338,7 +358,7 @@ const copyBarcode = (barcode: string) => {
         <div 
           class="font-mono tracking-wider font-bold cursor-pointer hover:text-[var(--text-primary)] transition-colors inline-block"
           @click.stop="copyBarcode(value)"
-          :title="t('common.clickToCopy', 'Kopyalamaq üçün kliklə')"
+          :title="t('common.clickToCopy')"
         >
           <span v-html="highlight(value)"></span>
         </div>
@@ -346,7 +366,7 @@ const copyBarcode = (barcode: string) => {
     </DataTable>
 
     <!-- Modal: Add -->
-    <Modal v-model="showAddModal" :title="t('common.addNewCard', 'Yeni Hədiyyə Kartı Əlavə Et')" max-width="xl" min-height="500px">
+    <Modal v-model="showAddModal" :title="t('giftCards.addNew')" max-width="xl" min-height="500px">
       <DynamicForm 
         v-if="showAddModal"
         :fields="formFields"
@@ -355,21 +375,21 @@ const copyBarcode = (barcode: string) => {
         :grid-cols="1"
       />
       <template #footer>
-        <UiButton variant="ghost" @click="showAddModal = false" class="!px-6">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
-        <UiButton variant="primary" icon="lucide:check" @click="saveForm" class="!px-8 min-w-[120px]">{{ t('common.save', 'Yadda saxla') }}</UiButton>
+        <UiButton variant="ghost" @click="showAddModal = false" class="!px-6">{{ t('common.cancel') }}</UiButton>
+        <UiButton variant="primary" icon="lucide:check" @click="saveForm" class="!px-8 min-w-[120px]">{{ t('common.save') }}</UiButton>
       </template>
     </Modal>
 
     <!-- Modal: Edit -->
     <Modal 
       v-model="showEditModal" 
-      :title="bulkSelectedIds.length > 0 ? t('common.bulkEdit', 'Toplu Redaktə') : t('common.editCard', 'Hədiyyə Kartını Redaktə Et')" 
+      :title="bulkSelectedIds.length > 0 ? t('common.bulkEdit') : t('giftCards.edit')" 
       max-width="xl"
       min-height="500px"
       @update:model-value="(val) => { if (!val) bulkSelectedIds = [] }"
     >
       <div v-if="bulkSelectedIds.length > 0" class="mb-4 p-3 bg-[var(--color-brand-warning)]/10 text-[var(--color-brand-warning)] rounded-lg text-sm font-medium">
-        {{ t('employees.bulkEditWarning', { count: bulkSelectedIds.length, default: `Diqqət: Seçilmiş ${bulkSelectedIds.length} qeydin üzərinə yazılacaq.` }) }}
+        {{ t('employees.bulkEditWarning', { count: bulkSelectedIds.length }) }}
       </div>
 
       <DynamicForm 
@@ -380,8 +400,8 @@ const copyBarcode = (barcode: string) => {
         :grid-cols="1"
       />
       <template #footer>
-        <UiButton variant="ghost" @click="showEditModal = false; bulkSelectedIds = []" class="!px-6">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
-        <UiButton variant="primary" icon="lucide:check" @click="saveForm" class="!px-8 min-w-[120px]">{{ t('common.save', 'Yadda saxla') }}</UiButton>
+        <UiButton variant="ghost" @click="showEditModal = false; bulkSelectedIds = []" class="!px-6">{{ t('common.cancel') }}</UiButton>
+        <UiButton variant="primary" icon="lucide:check" @click="saveForm" class="!px-8 min-w-[120px]">{{ t('common.save') }}</UiButton>
       </template>
     </Modal>
 
@@ -400,14 +420,14 @@ const copyBarcode = (barcode: string) => {
         
         <!-- Texts -->
         <h3 class="text-xl font-bold text-[var(--text-app)] mb-2 tracking-wide">
-          {{ t('common.delete', 'Sil') }}
+          {{ t('common.delete') }}
         </h3>
         
         <p class="text-[15px] font-medium text-[var(--text-app)] opacity-60 leading-relaxed mb-8 max-w-[280px]">
           {{ 
             deleteTarget?.type === 'bulk' 
-              ? t('employees.bulkDeleteWarning', { count: deleteTarget.ids?.length, default: `Seçilmiş ${deleteTarget.ids?.length} qeydi silmək istədiyinizə əminsiniz?` }) 
-              : t('employees.deleteWarning', 'Bu qeydi silmək istədiyinizə əminsiniz?') 
+              ? t('giftCards.bulkDeleteWarning', { count: deleteTarget.ids?.length }) 
+              : t('giftCards.deleteWarning') 
           }}
         </p>
 
@@ -418,7 +438,7 @@ const copyBarcode = (barcode: string) => {
             class="flex-1 !h-12 text-[15px] font-semibold tracking-wide hover:bg-[var(--text-primary)]/5"
             @click="showDeleteConfirmModal = false"
           >
-            {{ t('common.cancel', 'Ləğv et') }}
+            {{ t('common.cancel') }}
           </UiButton>
           
           <UiButton 
@@ -426,7 +446,7 @@ const copyBarcode = (barcode: string) => {
             class="flex-1 !h-12 text-[15px] font-semibold tracking-wide shadow-md shadow-[var(--color-brand-danger)]/20 hover:shadow-lg"
             @click="confirmDelete"
           >
-            {{ t('common.delete', 'Sil') }}
+            {{ t('common.delete') }}
           </UiButton>
         </div>
       </div>

@@ -188,7 +188,9 @@
     "operator": "Məsul Şəxs",
     "counterparty": "Tərəfdaş",
     "date": "Tarix",
-    "notSelected": "Seçilməyib"
+    "notSelected": "Seçilməyib",
+    "search": "Axtar...",
+    "noDataFound": "Məlumat tapılmadı"
   },
   "orders": {
     "title": "Fiş Arxivi",
@@ -253,7 +255,27 @@
     "bonusDeducted": "{amount} ₼ bonus balansından çıxıldı.",
     "cashbackAdded": "{name} hesabına {amount} ₼ keşbek əlavə edildi.",
     "saleError": "Satış tamamlanarkən xəta baş verdi: {error}",
-    "errorMaxBalance": "Maksimum balansdan çox məbləğ daxil edilə bilməz"
+    "errorMaxBalance": "Maksimum balansdan çox məbləğ daxil edilə bilməz",
+    "updated": "Yeniləndi",
+    "added": "Əlavə edildi",
+    "deleted": "Silindi",
+    "error": "Xəta baş verdi!"
+  },
+  "giftCards": {
+    "title": "Hədiyyə Kartları",
+    "addNew": "Yeni Hədiyyə Kartı Əlavə Et",
+    "edit": "Hədiyyə Kartını Redaktə Et",
+    "searchCustomer": "Müştəri adını axtar",
+    "customerName": "Müştəri Adı",
+    "cardNumber": "Kart nömrəsi",
+    "value": "Dəyəri (AZN)",
+    "barcode": "Barkod",
+    "duplicated": "Hədiyyə kartı kopyalandı",
+    "added": "Hədiyyə kartı əlavə edildi",
+    "updated": "Hədiyyə kartı yeniləndi",
+    "deleted": "Hədiyyə kartı silindi",
+    "bulkDeleteWarning": "Seçilmiş {count} qeydi silmək istədiyinizə əminsiniz?",
+    "deleteWarning": "Bu qeydi silmək istədiyinizə əminsiniz?"
   },
   "expenses": {
     "subtitle": "Bütün xərclərin siyahısı və idarə edilməsi",

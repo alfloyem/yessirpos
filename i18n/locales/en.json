@@ -186,7 +186,9 @@
     "operator": "Operator",
     "counterparty": "Partner",
     "date": "Date",
-    "notSelected": "Not Selected"
+    "notSelected": "Not Selected",
+    "search": "Search...",
+    "noDataFound": "No data found"
   },
   "orders": {
     "title": "Receipt Archive",
@@ -252,7 +254,27 @@
     "bonusDeducted": "{amount} ₼ deducted from bonus balance.",
     "cashbackAdded": "+{amount} ₼ cashback added to {name}'s account.",
     "saleError": "Error while finalizing sale: {error}",
-    "errorMaxBalance": "Amount cannot exceed maximum balance"
+    "errorMaxBalance": "Amount cannot exceed maximum balance",
+    "updated": "Updated",
+    "added": "Added",
+    "deleted": "Deleted",
+    "error": "An error occurred!"
+  },
+  "giftCards": {
+    "title": "Gift Cards",
+    "addNew": "Add New Gift Card",
+    "edit": "Edit Gift Card",
+    "searchCustomer": "Search customer name",
+    "customerName": "Customer Name",
+    "cardNumber": "Card Number",
+    "value": "Value (AZN)",
+    "barcode": "Barcode",
+    "duplicated": "Gift card duplicated",
+    "added": "Gift card added",
+    "updated": "Gift card updated",
+    "deleted": "Gift card deleted",
+    "bulkDeleteWarning": "Are you sure you want to delete the selected {count} records?",
+    "deleteWarning": "Are you sure you want to delete this record?"
   },
   "expenses": {
     "subtitle": "List and management of all expenses",
