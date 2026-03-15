@@ -6,6 +6,7 @@ import UiButton from '~/components/ui/Button.vue'
 import UiInput from '~/components/ui/Input.vue'
 import UiIcon from '~/components/ui/Icon.vue'
 import SalesProductSaleCard from '~/components/sales/ProductSaleCard.vue'
+import { printIntakeReceipt } from '~/utils/receiptPrinter'
 
 const { t } = useI18n()
 const { user } = useAuth()
@@ -242,12 +243,29 @@ const submitIntake = async () => {
       }))
     }
 
-    await $fetch('/api/intake', {
+    const res: any = await $fetch('/api/intake', {
       method: 'POST',
       body: payload
     })
 
     toast.success(t('intake.success', 'Məhsul qəbulu uğurla tamamlandı!'))
+    
+    // Print Receipt
+    if (res && res.receiptNo) {
+      printIntakeReceipt({
+        receiptNo: res.receiptNo,
+        supplierName: selectedSupplier.value.brandName,
+        createdBy: user.value?.name || '---',
+        date: new Date().toLocaleString(),
+        items: payload.items,
+        totalAmount: payload.totalAmount,
+        paidAmount: payload.paidAmount,
+        balanceDue: payload.balanceDue,
+        paymentMethod: payload.paymentMethod,
+        notes: payload.notes
+      })
+    }
+
     cart.value = []
     selectedSupplier.value = null
     notes.value = ''

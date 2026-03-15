@@ -296,3 +296,178 @@ export const printReceipt = (data: ReceiptData) => {
     }, 350)
   }
 }
+
+export interface IntakeReceiptData {
+  receiptNo: string
+  supplierName: string
+  createdBy: string
+  date: string
+  items: any[]
+  totalAmount: number
+  paidAmount: number
+  balanceDue: number
+  paymentMethod: string
+  notes?: string
+}
+
+export const printIntakeReceipt = (data: IntakeReceiptData) => {
+  const {
+    receiptNo,
+    supplierName,
+    createdBy,
+    date,
+    items,
+    totalAmount,
+    paidAmount,
+    balanceDue,
+    paymentMethod,
+    notes
+  } = data
+
+  let barcodeDataUrl = ''
+  try {
+    const canvas = document.createElement('canvas')
+    JsBarcode(canvas, receiptNo, {
+      format: 'CODE128',
+      width: 2,
+      height: 40,
+      displayValue: true,
+      fontSize: 12,
+      margin: 5
+    })
+    barcodeDataUrl = canvas.toDataURL('image/png')
+  } catch (err) {
+    console.error('Barcode generation error:', err)
+  }
+
+  const itemsHtml = items.map(item => {
+    let attrStr = ''
+    if (item.attribute) {
+      if (Array.isArray(item.attribute)) {
+        attrStr = item.attribute.join(', ')
+      } else if (typeof item.attribute === 'string' && item.attribute.startsWith('[')) {
+        try {
+          const parsed = JSON.parse(item.attribute)
+          attrStr = Array.isArray(parsed) ? parsed.join(', ') : item.attribute
+        } catch {
+          attrStr = item.attribute
+        }
+      } else {
+        attrStr = item.attribute
+      }
+    }
+
+    const hasDiscount = item.discount > 0
+    const baseTotal = item.costPrice * item.qty
+    
+    let discPerUnit = 0
+    if (item.discountType === 'percent') {
+      discPerUnit = (item.costPrice * item.discount) / 100
+    } else {
+      discPerUnit = item.discount
+    }
+    const finalPrice = item.costPrice - discPerUnit
+
+    return `
+      <div style="margin-bottom: 8px; border-bottom: 1px dotted #ccc; padding-bottom: 6px;">
+        <div style="font-weight: bold; font-size: 13px;">${item.productName.replace(/\s+\d+$/, '')}</div>
+        <div style="font-size: 10px; color: #666; margin-bottom: 2px;">
+          ${item.barcode || ''} ${attrStr ? ` | ${attrStr}` : ''}
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; font-family: monospace; font-size: 12px;">
+          <span>Topdan: ${item.qty} x ${item.costPrice.toFixed(2)}</span>
+          <span>${baseTotal.toFixed(2)} ₼</span>
+        </div>
+
+        ${hasDiscount ? `
+          <div style="display: flex; justify-content: space-between; font-size: 11px; color: #000; font-style: italic; margin-top: 2px;">
+            <span>Endirim (${item.discountType === 'percent' ? item.discount + '%' : item.discount.toFixed(2) + ' ₼'}):</span>
+            <span>-${(discPerUnit * item.qty).toFixed(2)} ₼</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; margin-top: 2px; border-top: 1px dashed #eee; pt: 2px;">
+            <span>Yekun (${item.qty} x ${finalPrice.toFixed(2)}):</span>
+            <span>${item.total.toFixed(2)} ₼</span>
+          </div>
+        ` : ''}
+      </div>
+    `
+  }).join('')
+
+  const printContent = `
+    <html>
+      <head>
+        <title>Mal Qəbulu Çeki</title>
+        <style>
+          @page { margin: 0; size: 80mm auto; }
+          body { font-family: 'Courier New', Courier, monospace; width: 300px; margin: 0 auto; color: #000; padding: 10px; }
+          .center { text-align: center; }
+          .title { font-size: 18px; font-weight: bold; margin: 10px 0; border-top: 2px solid #000; border-bottom: 2px solid #000; padding: 5px 0; }
+          .info { font-size: 12px; margin-bottom: 15px; text-align: left; }
+          .summary { border-top: 1px solid #000; padding-top: 5px; margin-top: 10px; }
+          .row { display: flex; justify-content: space-between; margin-bottom: 3px; font-size: 13px; }
+          .total { font-size: 18px; font-weight: bold; margin-top: 5px; border-top: 1px dashed #000; padding-top: 5px; }
+          .footer { margin-top: 20px; font-size: 10px; opacity: 0.7; }
+        </style>
+      </head>
+      <body>
+        <div class="center">
+          <div class="title">MAL QƏBULU</div>
+          
+          <div class="info">
+            <div style="font-weight: bold; font-size: 14px; margin-bottom: 5px;">TƏDARÜKÇÜ: ${supplierName}</div>
+            <div>Çek No: ${receiptNo}</div>
+            <div>Tarix: ${date}</div>
+          </div>
+        </div>
+
+        <div class="items">
+          ${itemsHtml}
+        </div>
+
+        <div class="summary">
+          <div class="row">
+            <span>Cəmi Məbləğ:</span>
+            <span>${totalAmount.toFixed(2)} ₼</span>
+          </div>
+          <div class="row">
+            <span>Ödəniş Üsulu:</span>
+            <span>${paymentMethod}</span>
+          </div>
+          <div class="row" style="font-weight: bold;">
+            <span>Ödənilən:</span>
+            <span>${paidAmount.toFixed(2)} ₼</span>
+          </div>
+          ${balanceDue > 0 ? `
+            <div class="row" style="color: red; font-weight: bold;">
+              <span>Qalıq Borc:</span>
+              <span>${balanceDue.toFixed(2)} ₼</span>
+            </div>
+          ` : ''}
+          
+          <div class="total row">
+            <span>YEKUN:</span>
+            <span>${totalAmount.toFixed(2)} ₼</span>
+          </div>
+        </div>
+
+        ${notes ? `<div style="margin-top: 10px; font-size: 11px; font-style: italic; border: 1px solid #eee; padding: 5px;">Qeyd: ${notes}</div>` : ''}
+
+        <div class="center footer">
+          ${barcodeDataUrl ? `<img src="${barcodeDataUrl}" /> <br/>` : ''}
+          ${new Date().toLocaleString()}
+        </div>
+      </body>
+    </html>
+  `
+
+  const printWin = window.open('', '', 'width=400,height=600')
+  if (printWin) {
+    printWin.document.write(printContent)
+    printWin.document.close()
+    setTimeout(() => {
+      printWin.print()
+      printWin.close()
+    }, 400)
+  }
+}
