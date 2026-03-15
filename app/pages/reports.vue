@@ -5,667 +5,741 @@ import { useI18n } from '#i18n'
 import UiIcon from '~/components/ui/Icon.vue'
 import UiButton from '~/components/ui/Button.vue'
 
-// Import Chart.js logic
 import {
-  Chart as ChartJS,
-  Title,
-  Tooltip,
-  Legend,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  ArcElement,
-  LineController,
-  BarController,
-  PieController
+  Chart as ChartJS, Title, Tooltip, Legend, Filler,
+  BarElement, CategoryScale, LinearScale, PointElement,
+  LineElement, ArcElement, LineController, BarController, PieController
 } from 'chart.js'
-import { Line, Bar, Pie } from 'vue-chartjs'
+import { Line, Bar, Doughnut } from 'vue-chartjs'
 import * as XLSX from 'xlsx'
 
-// Register ChartJS plugins
 ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement,
-  LineController,
-  BarController,
-  PieController
+  CategoryScale, LinearScale, PointElement, LineElement, BarElement,
+  Title, Tooltip, Legend, ArcElement, Filler,
+  LineController, BarController, PieController
 )
 
 const { t } = useI18n()
 const toast = useToast()
+useHead({ title: 'Hesabatlar' })
 
-useHead({
-  title: t('menu.reports', 'Hesabatlar')
-})
+// ── Tabs ──
+const tabs = [
+  { id: 'overview', label: 'Ümumi İcmal', icon: 'lucide:layout-dashboard' },
+  { id: 'products', label: 'Məhsullar', icon: 'lucide:package' },
+  { id: 'sales', label: 'Satışlar', icon: 'lucide:receipt' },
+  { id: 'expenses', label: 'Xərclər', icon: 'lucide:wallet' },
+  { id: 'team', label: 'Komanda', icon: 'lucide:users' },
+]
+const activeTab = ref('overview')
 
-const tabs = ['Dashboard', 'Məhsullar', 'Satışlar', 'Xərclər', 'Kadr və Müştəri']
-const activeTab = ref('Dashboard')
-
-// Date Filters
-const getStartOfDay = () => {
-    const d = new Date()
-    d.setHours(0,0,0,0)
-    return d
+// ── Date helpers ──
+const toLocal = (d: Date) => {
+  const off = d.getTimezoneOffset()
+  return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16)
 }
-const getEndOfDay = () => {
-    const d = new Date()
-    d.setHours(23,59,59,999)
-    return d
-}
+const todayStart = () => { const d = new Date(); d.setHours(0,0,0,0); return d }
+const todayEnd   = () => { const d = new Date(); d.setHours(23,59,59,999); return d }
 
-// Keep date formats correctly for datetime-local
-const toDatetimeLocal = (d: Date) => {
-    // Format to YYYY-MM-DDTHH:mm
-    const offset = d.getTimezoneOffset()
-    const d2 = new Date(d.getTime() - (offset*60*1000))
-    return d2.toISOString().slice(0, 16)
-}
+const startDate = ref(toLocal(todayStart()))
+const endDate   = ref(toLocal(todayEnd()))
+const activeQuickFilter = ref('today')
 
-const startDate = ref(toDatetimeLocal(getStartOfDay()))
-const endDate = ref(toDatetimeLocal(getEndOfDay()))
+const quickFilters = [
+  { id: '1h',        label: 'Son 1 Saat' },
+  { id: 'today',     label: 'Bugün' },
+  { id: 'yesterday', label: 'Dünən' },
+  { id: 'week',      label: 'Bu Həftə' },
+  { id: 'month',     label: 'Bu Ay' },
+  { id: '3months',   label: 'Son 3 Ay' },
+]
 
 const setQuickFilter = (type: string) => {
-    const start = new Date()
-    const end = new Date()
-    
-    if (type === '1h') {
-        start.setHours(start.getHours() - 1)
-    } else if (type === 'today') {
-        start.setHours(0,0,0,0)
-    } else if (type === 'yesterday') {
-        start.setDate(start.getDate() - 1)
-        start.setHours(0,0,0,0)
-        end.setDate(end.getDate() - 1)
-        end.setHours(23,59,59,999)
-    } else if (type === 'week') {
-        start.setDate(start.getDate() - start.getDay() + 1) // roughly monday
-        start.setHours(0,0,0,0)
-    } else if (type === 'month') {
-        start.setDate(1)
-        start.setHours(0,0,0,0)
-    }
-    
-    startDate.value = toDatetimeLocal(start)
-    endDate.value = toDatetimeLocal(end)
-    refreshAll()
+  activeQuickFilter.value = type
+  const s = new Date(), e = new Date()
+  if (type === '1h')        { s.setHours(s.getHours() - 1) }
+  else if (type === 'today')     { s.setHours(0,0,0,0) }
+  else if (type === 'yesterday') { s.setDate(s.getDate()-1); s.setHours(0,0,0,0); e.setDate(e.getDate()-1); e.setHours(23,59,59,999) }
+  else if (type === 'week')      { s.setDate(s.getDate() - s.getDay() + 1); s.setHours(0,0,0,0) }
+  else if (type === 'month')     { s.setDate(1); s.setHours(0,0,0,0) }
+  else if (type === '3months')   { s.setMonth(s.getMonth()-3); s.setDate(1); s.setHours(0,0,0,0) }
+  startDate.value = toLocal(s)
+  endDate.value   = toLocal(e)
+  refreshAll()
 }
 
-// API Data States
+// ── Data ──
 const loading = ref(false)
-
 const dashboardData = ref<any>(null)
-const productsData = ref<any>(null)
-const salesData = ref<any>(null)
-const expensesData = ref<any>(null)
+const productsData  = ref<any>(null)
+const salesData     = ref<any>(null)
+const expensesData  = ref<any>(null)
 const employeesData = ref<any>(null)
 
-// Specific Product Timeline State
-const selectedProductId = ref<string | null>(null)
+const selectedProductId = ref<string|null>(null)
 const searchProductQuery = ref('')
-const isSearchingProduct = ref(false)
 const searchProductResults = ref<any[]>([])
 const productTimelineData = ref<any>(null)
 
-const buildParams = () => {
-    return `?startDate=${new Date(startDate.value).toISOString()}&endDate=${new Date(endDate.value).toISOString()}`
+const params = () => `?startDate=${new Date(startDate.value).toISOString()}&endDate=${new Date(endDate.value).toISOString()}`
+
+const fetchDashboard  = async () => { try { dashboardData.value  = await $fetch(`/api/analytics/dashboard${params()}`) } catch {} }
+const fetchProducts   = async () => { try { productsData.value   = await $fetch(`/api/analytics/products${params()}`); if (selectedProductId.value) await loadTimeline(selectedProductId.value) } catch {} }
+const fetchSales      = async () => { try { salesData.value      = await $fetch(`/api/analytics/sales${params()}`) } catch {} }
+const fetchExpenses   = async () => { try { expensesData.value   = await $fetch(`/api/analytics/expenses${params()}`) } catch {} }
+const fetchEmployees  = async () => { try { employeesData.value  = await $fetch(`/api/analytics/employees${params()}`) } catch {} }
+
+const refreshAll = async () => {
+  loading.value = true
+  try {
+    if (activeTab.value === 'overview')  await fetchDashboard()
+    else if (activeTab.value === 'products')  await fetchProducts()
+    else if (activeTab.value === 'sales')     await fetchSales()
+    else if (activeTab.value === 'expenses')  await fetchExpenses()
+    else if (activeTab.value === 'team')      await fetchEmployees()
+  } finally { loading.value = false }
 }
 
-const fetchDashboard = async () => {
-    loading.value = true
-    try {
-        dashboardData.value = await $fetch(`/api/analytics/dashboard${buildParams()}`)
-    } catch (e: any) {
-        toast.error(e.message || 'Xəta baş verdi')
-    } finally {
-        loading.value = false
+watch(activeTab, () => refreshAll())
+onMounted(() => refreshAll())
+
+// ── Chart config (theme-aware, no shadows) ──
+const chartOpts = (showLegend = false): any => ({
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: showLegend, labels: { color: 'var(--text-muted)', boxWidth: 10, font: { size: 11 } } },
+    tooltip: {
+      backgroundColor: 'var(--input-bg)',
+      titleColor: 'var(--text-app)',
+      bodyColor: 'var(--text-muted)',
+      borderColor: 'var(--border-app)',
+      borderWidth: 1,
+      padding: 10,
+      cornerRadius: 8
     }
-}
-
-const fetchProducts = async () => {
-    loading.value = true
-    try {
-        productsData.value = await $fetch(`/api/analytics/products${buildParams()}`)
-        if (selectedProductId.value) {
-           await loadProductTimeline(selectedProductId.value)
-        }
-    } catch (e: any) {
-        toast.error(e.message || 'Xəta baş verdi')
-    } finally {
-        loading.value = false
-    }
-}
-
-const fetchSales = async () => {
-    loading.value = true
-    try {
-        salesData.value = await $fetch(`/api/analytics/sales${buildParams()}`)
-    } catch (e: any) {
-        toast.error(e.message || 'Xəta baş verdi')
-    } finally {
-        loading.value = false
-    }
-}
-
-const fetchExpenses = async () => {
-    loading.value = true
-    try {
-        expensesData.value = await $fetch(`/api/analytics/expenses${buildParams()}`)
-    } catch (e: any) {
-        toast.error(e.message || 'Xəta baş verdi')
-    } finally {
-        loading.value = false
-    }
-}
-
-const fetchEmployees = async () => {
-    loading.value = true
-    try {
-        employeesData.value = await $fetch(`/api/analytics/employees${buildParams()}`)
-    } catch (e: any) {
-        toast.error(e.message || 'Xəta baş verdi')
-    } finally {
-        loading.value = false
-    }
-}
-
-const refreshAll = () => {
-    if (activeTab.value === 'Dashboard') fetchDashboard()
-    else if (activeTab.value === 'Məhsullar') fetchProducts()
-    else if (activeTab.value === 'Satışlar') fetchSales()
-    else if (activeTab.value === 'Xərclər') fetchExpenses()
-    else if (activeTab.value === 'Kadr və Müştəri') fetchEmployees()
-}
-
-watch(activeTab, () => {
-    refreshAll()
+  },
+  scales: {
+    x: { ticks: { color: 'var(--text-muted)', font: { size: 10 } }, grid: { display: false }, border: { display: false } },
+    y: { ticks: { color: 'var(--text-muted)', font: { size: 10 }, callback: (v: string | number) => Number(v) >= 1000 ? (Number(v)/1000).toFixed(0) + 'k' : v }, grid: { color: 'rgba(128,128,128,0.06)' }, border: { display: false } }
+  }
 })
 
-onMounted(() => {
-    refreshAll()
-})
-
-// === Chart Configs ===
-const chartThemeOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-        legend: { labels: { color: '#888' } }
-    },
-    scales: {
-        x: { ticks: { color: '#888' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } },
-        y: { ticks: { color: '#888' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } }
-    }
+const doughnutOpts: any = {
+  responsive: true, maintainAspectRatio: false, cutout: '75%',
+  plugins: {
+    legend: { display: false },
+    tooltip: { backgroundColor: 'var(--input-bg)', titleColor: 'var(--text-app)', bodyColor: 'var(--text-muted)', borderColor: 'var(--border-app)', borderWidth: 1, padding: 10, cornerRadius: 8 }
+  }
 }
 
-const pieThemeOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-        legend: { position: 'right' as const, labels: { color: '#888' } }
-    }
+// Theme-consistent palette derived from our purple scheme
+const CHART_COLORS = [
+  'hsl(255, 75%, 50%)',   // primary
+  'hsl(255, 60%, 65%)',   // lighter primary
+  'hsl(255, 40%, 75%)',   // soft primary
+  'hsl(220, 60%, 55%)',   // blue-ish
+  'hsl(200, 50%, 50%)',   // teal
+  'hsl(280, 50%, 55%)',   // violet
+  'hsl(255, 20%, 60%)',   // muted
+  'hsl(300, 40%, 55%)',   // magenta
+]
+
+// ── Export ──
+const exportExcel = (data: any[], name: string) => {
+  if (!data?.length) { toast.error('İxrac ediləcək məlumat yoxdur'); return }
+  const ws = XLSX.utils.json_to_sheet(data)
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, 'Data')
+  XLSX.writeFile(wb, `${name}_${new Date().toISOString().split('T')[0]}.xlsx`)
+  toast.success('Excel faylı uğurla yaradıldı')
 }
 
-const getLineChartData = (data: any) => ({
-    labels: data?.labels || [],
-    datasets: [{
-        label: 'Satış Dövriyyəsi (₼)',
-        data: data?.data || [],
-        borderColor: '#3b82f6',
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-        tension: 0.4,
-        fill: true
-    }]
-})
-
-const getPieChartData = (data: any) => ({
-    labels: data?.labels || [],
-    datasets: [{
-        data: data?.data || [],
-        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#64748b']
-    }]
-})
-
-
-// Add Export Handler
-const exportToExcel = (data: any[], filename: string) => {
-    if (!data || data.length === 0) {
-        toast.error('İxrac ediləcək məlumat yoxdur')
-        return
-    }
-    const worksheet = XLSX.utils.json_to_sheet(data)
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1")
-    XLSX.writeFile(workbook, `${filename}_${new Date().toISOString().split('T')[0]}.xlsx`)
-    toast.success('Excel faylı yaradıldı')
-}
-
-// Product Timeline Methods
+// ── Product Search ──
 let searchTimer: any = null
 const handleProductSearch = () => {
-    if (searchTimer) clearTimeout(searchTimer)
-    if (!searchProductQuery.value) {
-        searchProductResults.value = []
-        return
-    }
-    isSearchingProduct.value = true
-    searchTimer = setTimeout(async () => {
-        try {
-            const results = await $fetch<any[]>(`/api/products/search?q=${searchProductQuery.value}`)
-            searchProductResults.value = results.slice(0, 5)
-        } catch(e) {}
-        isSearchingProduct.value = false
-    }, 300)
+  if (searchTimer) clearTimeout(searchTimer)
+  if (!searchProductQuery.value) { searchProductResults.value = []; return }
+  searchTimer = setTimeout(async () => {
+    try { const r = await $fetch<any[]>(`/api/products/search?q=${searchProductQuery.value}`); searchProductResults.value = r.slice(0, 6) } catch {}
+  }, 250)
 }
-
-const selectProduct = async (product: any) => {
-    searchProductQuery.value = product.productName
-    searchProductResults.value = []
-    selectedProductId.value = product.id.toString()
-    await loadProductTimeline(product.id)
+const selectProduct = async (p: any) => {
+  searchProductQuery.value = p.productName
+  searchProductResults.value = []
+  selectedProductId.value = p.id.toString()
+  await loadTimeline(p.id)
 }
-
-const loadProductTimeline = async (id: string | number) => {
-    try {
-        loading.value = true
-        productTimelineData.value = await $fetch(`/api/analytics/product-timeline${buildParams()}&productId=${id}`)
-    } catch (e: any) {
-        toast.error("Timeline yüklənərkən xəta")
-    } finally {
-        loading.value = false
-    }
+const loadTimeline = async (id: string|number) => {
+  loading.value = true
+  try { productTimelineData.value = await $fetch(`/api/analytics/product-timeline${params()}&productId=${id}`) } catch {}
+  loading.value = false
 }
+const clearTimeline = () => { productTimelineData.value = null; selectedProductId.value = null; searchProductQuery.value = '' }
 
+const fmt = (n: number) => n?.toFixed(2) ?? '0.00'
 </script>
 
 <template>
   <div class="h-full flex flex-col bg-[var(--bg-app)] overflow-hidden">
-    <!-- Header with Quick Filters & Date Picker -->
-    <header class="shrink-0 bg-[var(--bg-app)] border-b border-[var(--border-app)] p-4 space-y-4 z-20 shadow-sm relative">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <UiIcon name="lucide:pie-chart" class="w-6 h-6 text-[var(--text-primary)]" />
-                <h1 class="text-xl font-black text-[var(--text-app)] tracking-tight">Ətraflı Hesabatlar</h1>
-            </div>
 
-            <div class="flex flex-wrap items-center gap-2">
-                <!-- Date Scope -->
-                <div class="flex items-center gap-2 bg-[var(--input-bg)] p-1 rounded-xl border border-[var(--border-app)]">
-                    <input type="datetime-local" v-model="startDate" class="bg-transparent text-sm font-bold text-[var(--text-app)] px-2 tabular-nums outline-none" />
-                    <UiIcon name="lucide:arrow-right" class="w-4 h-4 opacity-50" />
-                    <input type="datetime-local" v-model="endDate" class="bg-transparent text-sm font-bold text-[var(--text-app)] px-2 tabular-nums outline-none" />
-                    <UiButton variant="primary" size="sm" class="!px-3 !h-8 !rounded-lg" @click="refreshAll">
-                        <UiIcon name="lucide:filter" class="w-4 h-4" />
-                    </UiButton>
-                </div>
-            </div>
+    <!-- ═══ HEADER ═══ -->
+    <header class="shrink-0 bg-[var(--bg-app)] border-b border-[var(--border-app)] z-20">
+      <!-- Row 1 -->
+      <div class="flex items-center justify-between px-6 h-14">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-[var(--text-primary)]/10 flex items-center justify-center">
+            <UiIcon name="lucide:bar-chart-3" class="w-4 h-4 text-[var(--text-primary)]" />
+          </div>
+          <h1 class="text-lg font-bold text-[var(--text-app)] tracking-tight">Hesabatlar</h1>
         </div>
 
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <!-- Tabs -->
-            <div class="flex overflow-x-auto custom-scrollbar gap-1 bg-[var(--input-bg)] p-1 rounded-xl w-fit border border-[var(--border-app)]">
-                <button 
-                    v-for="tab in tabs" :key="tab"
-                    @click="activeTab = tab"
-                    class="px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all"
-                    :class="activeTab === tab ? 'bg-[var(--text-primary)] text-white shadow-md' : 'text-[var(--text-app)] hover:bg-[var(--text-primary)]/10'"
-                >
-                    {{ tab }}
-                </button>
-            </div>
-
-            <!-- Quick Filters -->
-            <div class="flex items-center gap-1 overflow-x-auto">
-                <button @click="setQuickFilter('1h')" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider text-[var(--text-app)] bg-[var(--input-bg)] hover:bg-[var(--text-primary)]/10 border border-[var(--border-app)] whitespace-nowrap">1 Saat</button>
-                <button @click="setQuickFilter('today')" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider text-[var(--text-app)] bg-[var(--input-bg)] hover:bg-[var(--text-primary)]/10 border border-[var(--border-app)] whitespace-nowrap">Bugün</button>
-                <button @click="setQuickFilter('yesterday')" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider text-[var(--text-app)] bg-[var(--input-bg)] hover:bg-[var(--text-primary)]/10 border border-[var(--border-app)] whitespace-nowrap">Dünən</button>
-                <button @click="setQuickFilter('week')" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider text-[var(--text-app)] bg-[var(--input-bg)] hover:bg-[var(--text-primary)]/10 border border-[var(--border-app)] whitespace-nowrap">Bu Həftə</button>
-                <button @click="setQuickFilter('month')" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider text-[var(--text-app)] bg-[var(--input-bg)] hover:bg-[var(--text-primary)]/10 border border-[var(--border-app)] whitespace-nowrap">Bu Ay</button>
-            </div>
+        <div class="flex items-center gap-2">
+          <div class="flex items-center gap-1.5 bg-[var(--input-bg)] rounded-lg border border-[var(--border-app)] px-2 h-9">
+            <input type="datetime-local" v-model="startDate" class="bg-transparent text-[11px] font-mono font-bold text-[var(--text-app)] outline-none w-[145px] tabular-nums" />
+            <span class="text-[10px] opacity-30 font-bold">→</span>
+            <input type="datetime-local" v-model="endDate" class="bg-transparent text-[11px] font-mono font-bold text-[var(--text-app)] outline-none w-[145px] tabular-nums" />
+          </div>
+          <button @click="activeQuickFilter = ''; refreshAll()" class="h-9 w-9 rounded-lg bg-[var(--text-primary)] text-white flex items-center justify-center hover:bg-[var(--text-secondary)] transition-colors">
+            <UiIcon name="lucide:refresh-cw" class="w-3.5 h-3.5" />
+          </button>
         </div>
+      </div>
+
+      <!-- Row 2 -->
+      <div class="flex items-center justify-between px-6 h-11 gap-4">
+        <div class="flex items-center gap-0.5 overflow-x-auto no-scrollbar">
+          <button
+            v-for="tab in tabs" :key="tab.id"
+            @click="activeTab = tab.id"
+            class="flex items-center gap-1.5 px-3 h-8 rounded-lg text-[11px] font-bold whitespace-nowrap transition-colors"
+            :class="activeTab === tab.id
+              ? 'bg-[var(--text-primary)] text-white'
+              : 'text-[var(--text-app)] opacity-60 hover:opacity-100 hover:bg-[var(--input-bg)]'"
+          >
+            <UiIcon :name="tab.icon" class="w-3.5 h-3.5" />
+            {{ tab.label }}
+          </button>
+        </div>
+
+        <div class="flex items-center gap-1 overflow-x-auto no-scrollbar shrink-0">
+          <button
+            v-for="qf in quickFilters" :key="qf.id"
+            @click="setQuickFilter(qf.id)"
+            class="px-2.5 h-7 rounded-md text-[10px] font-bold whitespace-nowrap transition-colors border"
+            :class="activeQuickFilter === qf.id
+              ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)] border-[var(--text-primary)]/20'
+              : 'text-[var(--text-app)] opacity-50 hover:opacity-80 border-transparent hover:border-[var(--border-app)]'"
+          >
+            {{ qf.label }}
+          </button>
+        </div>
+      </div>
     </header>
 
-    <main class="flex-1 overflow-y-auto custom-scrollbar p-6 relative">
-      <!-- Loading Overlay -->
-      <div v-if="loading" class="absolute inset-0 bg-[var(--bg-app)]/50 backdrop-blur-sm z-50 flex items-center justify-center">
-        <UiIcon name="lucide:loader-2" class="w-10 h-10 animate-spin text-[var(--text-primary)]" />
-      </div>
-
-      <!-- DASHBOARD TAB -->
-      <div v-if="activeTab === 'Dashboard'" class="space-y-6 max-w-7xl mx-auto pb-20">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" v-if="dashboardData">
-            <div class="bg-[var(--input-bg)] p-5 rounded-2xl border border-[var(--border-app)] relative overflow-hidden group">
-                <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/5 rounded-full blur-xl group-hover:bg-blue-500/10 transition-colors"></div>
-                <div class="text-[10px] font-black uppercase tracking-widest opacity-50 mb-2 flex items-center gap-2">
-                    <UiIcon name="lucide:wallet" class="w-3.5 h-3.5 text-blue-500" /> Ümumi Dövriyyə
-                </div>
-                <div class="text-3xl font-black font-mono tracking-tighter">{{ dashboardData.dashboard.grossRevenue.toFixed(2) }} ₼</div>
-            </div>
-            
-            <div class="bg-[var(--input-bg)] p-5 rounded-2xl border border-[var(--border-app)] relative overflow-hidden group">
-                <div class="absolute -right-4 -top-4 w-24 h-24 bg-green-500/5 rounded-full blur-xl group-hover:bg-green-500/10 transition-colors"></div>
-                <div class="text-[10px] font-black uppercase tracking-widest opacity-50 mb-2 flex items-center gap-2">
-                    <UiIcon name="lucide:trending-up" class="w-3.5 h-3.5 text-green-500" /> Xalis Qazanc P&L (Təxmini)
-                </div>
-                <div class="text-3xl font-black font-mono tracking-tighter" :class="dashboardData.dashboard.netRevenue >= 0 ? 'text-green-500' : 'text-red-500'">
-                    {{ dashboardData.dashboard.netRevenue.toFixed(2) }} ₼
-                </div>
-            </div>
-
-            <div class="bg-[var(--input-bg)] p-5 rounded-2xl border border-[var(--border-app)] relative overflow-hidden group">
-                <div class="absolute -right-4 -top-4 w-24 h-24 bg-red-500/5 rounded-full blur-xl group-hover:bg-red-500/10 transition-colors"></div>
-                <div class="text-[10px] font-black uppercase tracking-widest opacity-50 mb-2 flex items-center gap-2">
-                    <UiIcon name="lucide:receipt" class="w-3.5 h-3.5 text-red-500" /> Ümumi Xərc + Refund
-                </div>
-                <div class="text-3xl font-black font-mono tracking-tighter text-red-500">
-                    -{{ (dashboardData.dashboard.totalExpenses + dashboardData.dashboard.totalRefunds).toFixed(2) }} ₼
-                </div>
-            </div>
-
-            <div class="bg-[var(--input-bg)] p-5 rounded-2xl border border-[var(--border-app)] relative overflow-hidden group">
-                <div class="absolute -right-4 -top-4 w-24 h-24 bg-orange-500/5 rounded-full blur-xl group-hover:bg-orange-500/10 transition-colors"></div>
-                <div class="text-[10px] font-black uppercase tracking-widest opacity-50 mb-2 flex items-center gap-2">
-                    <UiIcon name="lucide:percent" class="w-3.5 h-3.5 text-orange-500" /> Tətbiq edilən Endirim
-                </div>
-                <div class="text-3xl font-black font-mono tracking-tighter text-orange-500">
-                    {{ dashboardData.dashboard.totalDiscount.toFixed(2) }} ₼
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-[var(--bg-app)] border border-[var(--border-app)] rounded-3xl p-6 h-[400px]">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="font-black text-sm uppercase tracking-widest opacity-70">Zaman Üzrə Satış Aktivliyi</h3>
-            </div>
-            <Line v-if="dashboardData?.chart" :data="getLineChartData(dashboardData.chart)" :options="chartThemeOptions" />
+    <!-- ═══ MAIN ═══ -->
+    <main class="flex-1 overflow-y-auto custom-scrollbar relative">
+      <!-- Loading -->
+      <div v-if="loading" class="absolute inset-0 bg-[var(--bg-app)]/60 z-50 flex items-center justify-center">
+        <div class="flex items-center gap-3 bg-[var(--input-bg)] border border-[var(--border-app)] px-5 py-3 rounded-xl">
+          <UiIcon name="lucide:loader-2" class="w-5 h-5 animate-spin text-[var(--text-primary)]" />
+          <span class="text-sm font-bold opacity-70">Yüklənir...</span>
         </div>
       </div>
 
-      <!-- PRODUCTS TAB -->
-      <div v-else-if="activeTab === 'Məhsullar'" class="space-y-6 max-w-7xl mx-auto pb-20">
-        <!-- Products Summary -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" v-if="productsData">
-            <div class="bg-[var(--input-bg)] border border-[var(--border-app)] rounded-2xl p-5">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="font-black text-xs uppercase tracking-widest text-[var(--text-primary)] flex items-center gap-2">
-                        <UiIcon name="lucide:medal" class="w-4 h-4" /> Ən Çox Satılanlar
-                    </h3>
-                    <button @click="exportToExcel(productsData.topSellers, 'TopSellers')" class="text-xs font-bold bg-green-500/10 text-green-600 px-3 py-1 rounded-lg hover:bg-green-500/20">Excel formatı</button>
-                </div>
-                <div class="space-y-2">
-                    <div v-for="p in productsData.topSellers" :key="p.id" class="flex items-center justify-between p-2 rounded-xl hover:bg-[var(--border-app)]/30 transition-colors cursor-pointer" @click="selectProduct(p)">
-                        <span class="font-bold text-sm truncate flex-1">{{ p.name }}</span>
-                        <div class="flex items-center gap-4 text-xs">
-                            <span class="font-mono bg-[var(--text-primary)]/10 text-[var(--text-primary)] px-2 py-0.5 rounded-md">{{ p.soldQty }} ədəd</span>
-                            <span class="font-mono font-black w-20 text-right">{{ p.totalRevenue.toFixed(2) }} ₼</span>
-                        </div>
-                    </div>
-                    <div v-if="!productsData.topSellers.length" class="text-center text-xs opacity-50 py-4">Məlumat yoxdur</div>
-                </div>
+      <!-- ══════════════════════════ -->
+      <!-- OVERVIEW                   -->
+      <!-- ══════════════════════════ -->
+      <div v-if="activeTab === 'overview'" class="p-6 space-y-5">
+        <div v-if="dashboardData">
+
+          <!-- KPI Cards -->
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div class="kpi-card">
+              <div class="kpi-label"><UiIcon name="lucide:banknote" class="w-3.5 h-3.5 text-[var(--text-primary)]" /> Dövriyyə</div>
+              <div class="kpi-value">{{ fmt(dashboardData.kpis.grossRevenue) }} <span class="kpi-unit">₼</span></div>
             </div>
-
-            <div class="bg-[var(--input-bg)] border border-[var(--border-app)] rounded-2xl p-5">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="font-black text-xs uppercase tracking-widest text-red-500 flex items-center gap-2">
-                        <UiIcon name="lucide:rotate-ccw" class="w-4 h-4" /> Ən Çox Qaytarılanlar
-                    </h3>
-                </div>
-                <div class="space-y-2">
-                    <div v-for="p in productsData.mostRefunded" :key="p.id" class="flex items-center justify-between p-2 rounded-xl hover:bg-[var(--border-app)]/30 transition-colors cursor-pointer" @click="selectProduct(p)">
-                        <span class="font-bold text-sm truncate flex-1">{{ p.name }}</span>
-                        <div class="flex items-center gap-4 text-xs">
-                            <span class="font-mono bg-red-500/10 text-red-500 px-2 py-0.5 rounded-md">{{ p.refundQty }} ədəd geri</span>
-                        </div>
-                    </div>
-                    <div v-if="!productsData.mostRefunded.length" class="text-center text-xs opacity-50 py-4">Məlumat yoxdur</div>
-                </div>
+            <div class="kpi-card">
+              <div class="kpi-label"><UiIcon name="lucide:trending-up" class="w-3.5 h-3.5 text-[var(--text-primary)]" /> Xalis Gəlir</div>
+              <div class="kpi-value" :class="dashboardData.kpis.netRevenue < 0 && 'kpi-negative'">{{ fmt(dashboardData.kpis.netRevenue) }} <span class="kpi-unit">₼</span></div>
             </div>
-        </div>
-
-        <!-- Single Product Timeline Deep Dive -->
-        <div class="mt-8 border-t border-[var(--border-app)] pt-8 relative">
-            <h2 class="text-lg font-black tracking-tight mb-4 flex items-center gap-2">
-                Məhsulun Həyat Dövrü (Timeline) 
-                <span class="text-xs font-normal opacity-50 ml-2">- Detallı saniyəlik analiz</span>
-            </h2>
-
-            <div class="relative max-w-xl mb-6 flex flex-col gap-2">
-                <input 
-                    v-model="searchProductQuery"
-                    @input="handleProductSearch"
-                    type="text" 
-                    placeholder="Məhsulun kodu və ya adını axtar..."
-                    class="w-full bg-[var(--input-bg)] border-2 border-[var(--border-app)] rounded-xl px-4 py-3 outline-none focus:border-[var(--text-primary)] font-bold shadow-sm"
-                />
-                
-                <div v-if="searchProductResults.length > 0" class="absolute top-14 left-0 w-full bg-[var(--bg-app)] border border-[var(--border-app)] rounded-xl shadow-2xl z-50 p-2 space-y-1">
-                     <div 
-                        v-for="res in searchProductResults" :key="res.id"
-                        @click="selectProduct(res)"
-                        class="p-3 hover:bg-[var(--input-bg)] rounded-lg cursor-pointer flex justify-between items-center"
-                     >
-                        <span class="font-bold text-sm">{{ res.productName }}</span>
-                        <span class="text-xs font-mono opacity-50">{{ res.barcode }}</span>
-                     </div>
-                </div>
+            <div class="kpi-card">
+              <div class="kpi-label"><UiIcon name="lucide:calculator" class="w-3.5 h-3.5 text-[var(--text-primary)]" /> Brüt Mənfəət</div>
+              <div class="kpi-value" :class="dashboardData.kpis.grossProfit < 0 && 'kpi-negative'">{{ fmt(dashboardData.kpis.grossProfit) }} <span class="kpi-unit">₼</span></div>
             </div>
-
-            <div v-if="productTimelineData" class="bg-[var(--input-bg)] border border-[var(--border-app)] rounded-3xl p-6 relative overflow-hidden">
-                <div class="flex items-center justify-between mb-6 pb-6 border-b border-[var(--border-app)]">
-                    <div>
-                        <h3 class="text-xl font-black">{{ productTimelineData.product.productName }}</h3>
-                        <p class="text-sm font-mono opacity-50">{{ productTimelineData.product.barcode }}</p>
-                    </div>
-                    <div class="text-right flex items-center gap-6">
-                        <div>
-                            <div class="text-[9px] uppercase tracking-widest opacity-50 font-black">Xalis Mənfəət</div>
-                            <div class="text-2xl font-black font-mono tracking-tighter" :class="productTimelineData.netRevenue >= 0 ? 'text-green-500' : 'text-red-500'">
-                                {{ productTimelineData.netRevenue.toFixed(2) }} ₼
-                            </div>
-                        </div>
-                        <div class="w-px h-8 bg-[var(--border-app)]"></div>
-                        <div>
-                            <div class="text-[9px] uppercase tracking-widest opacity-50 font-black">Cari Stok</div>
-                            <div class="text-2xl font-black font-mono tracking-tighter text-[var(--text-primary)]">
-                                {{ productTimelineData.product.stock }} <span class="text-sm">ədəd</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Timeline List -->
-                <div class="space-y-0 relative before:absolute before:left-6 before:top-2 before:bottom-2 before:w-0.5 before:bg-[var(--border-app)] pl-4">
-                    <div v-for="log in productTimelineData.timeline" :key="log.date" class="relative pl-8 py-3">
-                        <div class="absolute left-1.5 top-4 w-2 h-2 rounded-full border-2 border-[var(--bg-app)] ring-4 ring-[var(--bg-app)]" 
-                             :class="{
-                               'bg-blue-500': log.type === 'INTAKE',
-                               'bg-green-500': log.type === 'SALE',
-                               'bg-red-500': log.type === 'REFUND'
-                             }"
-                        ></div>
-                        <div class="bg-[var(--bg-app)] border border-[var(--border-app)] p-3 rounded-xl flex items-center justify-between hover:border-[var(--text-primary)]/50 transition-colors">
-                            <div>
-                                <div class="text-[10px] font-black font-mono opacity-50 mb-1">{{ new Date(log.date).toLocaleString('az-AZ') }}</div>
-                                <div class="font-bold text-sm tracking-tight flex items-center gap-2">
-                                    {{ log.details }} 
-                                    <span class="px-1.5 py-0.5 rounded text-[9px] bg-[var(--border-app)] font-mono">{{ log.receiptNo }}</span>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <span class="block font-black font-mono text-sm leading-none"
-                                    :class="{
-                                        'text-blue-500': log.type === 'INTAKE',
-                                        'text-green-500': log.type === 'SALE',
-                                        'text-red-500': log.type === 'REFUND'
-                                    }"
-                                >
-                                    {{ log.qty > 0 ? '+' : ''}}{{ log.qty }} ədəd
-                                </span>
-                                <span class="text-[10px] font-mono opacity-50">{{ log.amount?.toFixed(2) }} ₼</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div v-if="!productTimelineData.timeline.length" class="text-center py-10 opacity-50 font-bold">
-                    Bu zaman aralığında bu məhsul üçün heç bir hərəkət yoxdur.
-                </div>
+            <div class="kpi-card">
+              <div class="kpi-label"><UiIcon name="lucide:receipt" class="w-3.5 h-3.5 text-[var(--text-primary)]" /> Orta Çek</div>
+              <div class="kpi-value">{{ fmt(dashboardData.kpis.avgOrderValue) }} <span class="kpi-unit">₼</span></div>
             </div>
-            
-        </div>
-      </div>
-
-      <!-- SALES TAB -->
-      <div v-else-if="activeTab === 'Satışlar'" class="space-y-6 max-w-7xl mx-auto pb-20">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-black tracking-tight flex items-center gap-2">Satış və Mədaxil Cədvəli</h2>
-            <button @click="exportToExcel(salesData?.sales || [], 'Sales_Report')" class="bg-[#10b981] text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-[#059669] transition-all flex items-center gap-2 shadow-lg shadow-green-500/20">
-                <UiIcon name="lucide:sheet" class="w-4 h-4" /> Excel Formatında İxrac
-            </button>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div class="lg:col-span-1 bg-[var(--input-bg)] border border-[var(--border-app)] p-6 rounded-3xl h-[400px]">
-                <h3 class="font-black text-xs uppercase tracking-widest opacity-70 mb-4 text-center">Ödəniş Növlərinə Görə</h3>
-                <div class="relative w-full h-[300px]" v-if="salesData?.paymentMethods">
-                    <Pie :data="getPieChartData(salesData.paymentMethods)" :options="pieThemeOptions" />
-                </div>
+            <div class="kpi-card">
+              <div class="kpi-label"><UiIcon name="lucide:shopping-cart" class="w-3.5 h-3.5 text-[var(--text-primary)]" /> Əməliyyatlar</div>
+              <div class="kpi-value">{{ dashboardData.kpis.totalTransactions }}</div>
             </div>
-
-            <div class="lg:col-span-3 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-3xl overflow-hidden shadow-sm h-[500px] flex flex-col">
-                <div class="overflow-auto custom-scrollbar flex-1">
-                    <table class="w-full text-left text-sm">
-                        <thead class="sticky top-0 bg-[var(--bg-app)] border-b border-[var(--border-app)] z-10">
-                            <tr>
-                                <th class="p-4 font-black uppercase tracking-widest text-[10px] opacity-50">Tarix/Saat</th>
-                                <th class="p-4 font-black uppercase tracking-widest text-[10px] opacity-50">Çek No</th>
-                                <th class="p-4 font-black uppercase tracking-widest text-[10px] opacity-50">Müştəri / Kassir</th>
-                                <th class="p-4 font-black uppercase tracking-widest text-[10px] opacity-50 text-right">Məbləğ</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="sale in salesData?.sales" :key="sale.id" class="border-b border-[var(--border-app)] last:border-0 hover:bg-[var(--border-app)]/20">
-                                <td class="p-4 font-mono text-xs opacity-70">{{ new Date(sale.createdAt).toLocaleString('az-AZ') }}</td>
-                                <td class="p-4 font-mono font-bold">{{ sale.receiptNo }}</td>
-                                <td class="p-4">
-                                    <div class="font-bold">{{ sale.customerName || 'Anonim' }}</div>
-                                    <div class="text-[10px] opacity-50">{{ sale.cashierName }}</div>
-                                </td>
-                                <td class="p-4 text-right font-mono font-black" :class="sale.finalTotal < 0 ? 'text-red-500' : 'text-green-500'">
-                                    {{ sale.finalTotal.toFixed(2) }} ₼
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div v-if="!salesData?.sales?.length" class="p-10 text-center opacity-50 font-bold">Məlumat tapılmadı.</div>
-                </div>
+            <div class="kpi-card">
+              <div class="kpi-label"><UiIcon name="lucide:rotate-ccw" class="w-3.5 h-3.5 text-[var(--text-primary)]" /> Refund Nisbəti</div>
+              <div class="kpi-value">{{ dashboardData.kpis.refundRate.toFixed(1) }}%</div>
             </div>
-        </div>
-      </div>
-
-       <!-- EXPENSES TAB -->
-       <div v-else-if="activeTab === 'Xərclər'" class="space-y-6 max-w-7xl mx-auto pb-20">
-           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Chart -->
-                <div class="lg:col-span-1 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-3xl p-6 flex flex-col items-center justify-center">
-                    <h3 class="font-black text-xs uppercase tracking-widest opacity-70 mb-4 w-full text-center">Xərc Kateqoriyaları</h3>
-                    <div class="w-full h-[300px]" v-if="expensesData?.categoryChart">
-                        <Pie :data="getPieChartData(expensesData.categoryChart)" :options="pieThemeOptions" />
-                    </div>
-                </div>
-
-                <div class="lg:col-span-2 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-3xl overflow-hidden flex flex-col h-[500px]">
-                    <div class="p-4 border-b border-[var(--border-app)] flex justify-between items-center bg-[var(--bg-app)]">
-                         <h3 class="font-black text-sm uppercase tracking-widest">Bütün Xərclər</h3>
-                         <button @click="exportToExcel(expensesData?.expenses || [], 'Expenses')" class="text-[10px] font-black uppercase tracking-widest bg-[var(--border-app)] px-3 py-1.5 rounded-lg">Export</button>
-                    </div>
-                    <div class="overflow-auto custom-scrollbar flex-1">
-                        <table class="w-full text-left text-sm">
-                            <thead class="sticky top-0 bg-[var(--bg-app)]/90 backdrop-blur z-10 border-b border-[var(--border-app)]">
-                                <tr>
-                                    <th class="p-4 font-black text-[10px] uppercase opacity-50">Tarix</th>
-                                    <th class="p-4 font-black text-[10px] uppercase opacity-50">Kateqoriya/Qeyd</th>
-                                    <th class="p-4 font-black text-[10px] uppercase opacity-50 text-right">Məbləğ</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="exp in expensesData?.expenses" :key="exp.id" class="border-b border-[var(--border-app)] last:border-0 hover:bg-[var(--border-app)]/20">
-                                    <td class="p-4 text-xs font-mono opacity-70">{{ new Date(exp.createdAt).toLocaleString('az-AZ') }}</td>
-                                    <td class="p-4">
-                                        <div class="font-bold text-xs uppercase">{{ exp.category || 'Təyinsiz' }}</div>
-                                        <div class="text-[10px] opacity-50 mt-1">{{ exp.notes || 'Qeyd yoxdur' }}</div>
-                                    </td>
-                                    <td class="p-4 text-right font-mono font-black text-red-500">
-                                        -{{ exp.amount.toFixed(2) }} ₼
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <div v-if="!expensesData?.expenses?.length" class="p-10 text-center opacity-50">Xərc yoxdur</div>
-                    </div>
-                </div>
-           </div>
-       </div>
-
-       <!-- EMPLOYEES AND CUSTOMERS -->
-       <div v-else-if="activeTab === 'Kadr və Müştəri'" class="space-y-6 max-w-7xl mx-auto pb-20">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6" v-if="employeesData">
-              <div class="bg-[var(--input-bg)] border border-[var(--border-app)] rounded-3xl p-6">
-                <h3 class="font-black text-xs uppercase tracking-widest text-[var(--text-primary)] mb-6 flex justify-between">
-                    Satıcı (Kassir) Performansı
-                    <button @click="exportToExcel(employeesData.cashiers, 'Cashier_Performance')" class="text-blue-500 hover:underline">Excel İxrac</button>
-                </h3>
-                <div class="space-y-4">
-                    <div v-for="(c, index) in employeesData.cashiers" :key="c.name" class="flex items-center gap-4 bg-[var(--bg-app)] p-4 rounded-2xl border border-[var(--border-app)]">
-                        <div class="w-8 h-8 rounded-full bg-[var(--text-primary)]/10 text-[var(--text-primary)] flex items-center justify-center font-black">
-                            {{ index + 1 }}
-                        </div>
-                        <div class="flex-1">
-                            <h4 class="font-bold tracking-tight">{{ c.name }}</h4>
-                            <div class="text-[10px] opacity-50">Kəsdiyi endirim: {{ c.totalDiscount.toFixed(2) }} ₼</div>
-                        </div>
-                        <div class="text-right font-mono font-black text-lg">
-                            {{ c.totalRevenue.toFixed(2) }} ₼
-                        </div>
-                    </div>
-                </div>
-              </div>
-
-              <div class="bg-[var(--input-bg)] border border-[var(--border-app)] rounded-3xl p-6">
-                <h3 class="font-black text-xs uppercase tracking-widest text-[#10b981] mb-6 flex justify-between">
-                    VIP Müştərilər (Ən çox Xərcləyənlər)
-                    <button @click="exportToExcel(employeesData.topCustomers, 'Top_Customers')" class="text-green-500 hover:underline">Excel İxrac</button>
-                </h3>
-                <div class="space-y-4">
-                    <div v-for="(c, index) in employeesData.topCustomers" :key="c.name" class="flex items-center gap-4 bg-[var(--bg-app)] p-4 rounded-2xl border border-[var(--border-app)]">
-                        <div class="w-8 h-8 rounded-full bg-[#10b981]/10 text-[#10b981] flex items-center justify-center font-black">
-                            {{ index + 1 }}
-                        </div>
-                        <div class="flex-1">
-                            <h4 class="font-bold tracking-tight">{{ c.name }}</h4>
-                        </div>
-                        <div class="text-right font-mono font-black text-lg text-[#10b981]">
-                            {{ c.totalSpent.toFixed(2) }} ₼
-                        </div>
-                    </div>
-                </div>
-              </div>
           </div>
-       </div>
+
+          <!-- Secondary Stats -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="stat-row">
+              <div class="w-9 h-9 rounded-lg bg-[var(--text-primary)]/5 flex items-center justify-center"><UiIcon name="lucide:arrow-down-left" class="w-4 h-4 text-[var(--text-primary)]" /></div>
+              <div><div class="stat-label">Refund Məbləğ</div><div class="font-black font-mono text-sm">-{{ fmt(dashboardData.kpis.totalRefunds) }} ₼</div></div>
+            </div>
+            <div class="stat-row">
+              <div class="w-9 h-9 rounded-lg bg-[var(--text-primary)]/5 flex items-center justify-center"><UiIcon name="lucide:percent" class="w-4 h-4 text-[var(--text-primary)]" /></div>
+              <div><div class="stat-label">Endirim Verilən</div><div class="font-black font-mono text-sm">{{ fmt(dashboardData.kpis.totalDiscount) }} ₼</div></div>
+            </div>
+            <div class="stat-row">
+              <div class="w-9 h-9 rounded-lg bg-[var(--text-primary)]/5 flex items-center justify-center"><UiIcon name="lucide:package-check" class="w-4 h-4 text-[var(--text-primary)]" /></div>
+              <div><div class="stat-label">Satılan Məhsul</div><div class="font-black font-mono text-sm">{{ dashboardData.kpis.totalItemsSold }} ədəd</div></div>
+            </div>
+            <div class="stat-row">
+              <div class="w-9 h-9 rounded-lg bg-[var(--text-primary)]/5 flex items-center justify-center"><UiIcon name="lucide:truck" class="w-4 h-4 text-[var(--text-primary)]" /></div>
+              <div><div class="stat-label">Mədaxil Dəyəri</div><div class="font-black font-mono text-sm">{{ fmt(dashboardData.kpis.totalIntakesValue) }} ₼</div></div>
+            </div>
+          </div>
+
+          <!-- Charts -->
+          <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+            <div class="lg:col-span-3 card p-5">
+              <h3 class="text-sm font-bold mb-4 flex items-center gap-2"><UiIcon name="lucide:clock" class="w-4 h-4 text-[var(--text-primary)]" /> Saatlıq Satış Aktivliyi</h3>
+              <div class="h-[260px]">
+                <Bar
+                  :data="{
+                    labels: dashboardData.hourlyChart.labels,
+                    datasets: [
+                      { label: 'Satış (₼)', data: dashboardData.hourlyChart.revenue, backgroundColor: 'hsl(255, 75%, 50%, 0.55)', borderRadius: 3 },
+                      { label: 'Geri Qaytarma (₼)', data: dashboardData.hourlyChart.refunds, backgroundColor: 'hsl(255, 30%, 70%, 0.5)', borderRadius: 3 }
+                    ]
+                  }"
+                  :options="chartOpts(true)"
+                />
+              </div>
+            </div>
+            <div class="lg:col-span-2 card p-5">
+              <h3 class="text-sm font-bold mb-4 flex items-center gap-2"><UiIcon name="lucide:trending-up" class="w-4 h-4 text-[var(--text-primary)]" /> Günlük Mənfəət Trendi</h3>
+              <div class="h-[260px]">
+                <Line
+                  :data="{
+                    labels: dashboardData.dailyChart.labels,
+                    datasets: [{
+                      label: 'Mənfəət (₼)',
+                      data: dashboardData.dailyChart.profit,
+                      borderColor: 'hsl(255, 75%, 50%)',
+                      backgroundColor: 'hsl(255, 75%, 50%, 0.06)',
+                      tension: 0.4, fill: true, pointRadius: 3,
+                      pointBackgroundColor: 'hsl(255, 75%, 50%)'
+                    }]
+                  }"
+                  :options="chartOpts(false)"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════ -->
+      <!-- PRODUCTS                   -->
+      <!-- ══════════════════════════ -->
+      <div v-else-if="activeTab === 'products'" class="p-6 space-y-5">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4" v-if="productsData">
+          <!-- Top Sellers -->
+          <div class="card p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-bold text-sm flex items-center gap-2"><UiIcon name="lucide:award" class="w-4 h-4 text-[var(--text-primary)]" /> Top Satılan Məhsullar</h3>
+              <button @click="exportExcel(productsData.topSellers, 'TopSellers')" class="export-btn">
+                <UiIcon name="lucide:download" class="w-3 h-3" /> Excel
+              </button>
+            </div>
+            <div class="space-y-1">
+              <div
+                v-for="(p, idx) in productsData.topSellers" :key="p.id"
+                @click="selectProduct(p)"
+                class="flex items-center gap-3 p-2.5 rounded-lg hover:bg-[var(--bg-app)] cursor-pointer transition-colors group"
+              >
+                <span class="w-6 h-6 rounded-md bg-[var(--text-primary)]/10 text-[var(--text-primary)] flex items-center justify-center text-[10px] font-black shrink-0">{{ Number(idx) + 1 }}</span>
+                <span class="font-bold text-sm truncate flex-1 group-hover:text-[var(--text-primary)] transition-colors">{{ p.name }}</span>
+                <span class="text-[10px] font-mono font-bold bg-[var(--text-primary)]/10 text-[var(--text-primary)] px-2 py-0.5 rounded">{{ p.soldQty }} ədəd</span>
+                <span class="text-xs font-mono font-black w-20 text-right">{{ fmt(p.totalRevenue) }} ₼</span>
+              </div>
+              <div v-if="!productsData.topSellers.length" class="text-center text-xs opacity-40 py-8">Məlumat yoxdur</div>
+            </div>
+          </div>
+
+          <!-- Most Refunded -->
+          <div class="card p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-bold text-sm flex items-center gap-2"><UiIcon name="lucide:undo-2" class="w-4 h-4 text-[var(--text-muted)]" /> Ən Çox Qaytarılanlar</h3>
+            </div>
+            <div class="space-y-1">
+              <div
+                v-for="(p, idx) in productsData.mostRefunded" :key="p.id"
+                @click="selectProduct(p)"
+                class="flex items-center gap-3 p-2.5 rounded-lg hover:bg-[var(--bg-app)] cursor-pointer transition-colors"
+              >
+                <span class="w-6 h-6 rounded-md bg-[var(--text-muted)]/10 text-[var(--text-muted)] flex items-center justify-center text-[10px] font-black shrink-0">{{ Number(idx) + 1 }}</span>
+                <span class="font-bold text-sm truncate flex-1">{{ p.name }}</span>
+                <span class="text-[10px] font-mono font-bold bg-[var(--text-muted)]/10 text-[var(--text-muted)] px-2 py-0.5 rounded">{{ p.refundQty }} ədəd</span>
+              </div>
+              <div v-if="!productsData.mostRefunded.length" class="text-center text-xs opacity-40 py-8">Geri qaytarma yoxdur</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Product Timeline -->
+        <div class="card p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-sm flex items-center gap-2"><UiIcon name="lucide:git-branch" class="w-4 h-4 text-[var(--text-primary)]" /> Məhsulun Tarixçəsi</h3>
+            <button v-if="productTimelineData" @click="clearTimeline" class="text-[10px] font-bold text-[var(--text-muted)] bg-[var(--border-app)] px-2.5 py-1 rounded-md hover:opacity-80">Bağla</button>
+          </div>
+
+          <div class="relative max-w-lg mb-4">
+            <div class="relative">
+              <UiIcon name="lucide:search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-30" />
+              <input
+                v-model="searchProductQuery"
+                @input="handleProductSearch"
+                placeholder="Məhsul adı və ya barkod..."
+                class="w-full bg-[var(--bg-app)] border border-[var(--border-app)] rounded-lg pl-9 pr-4 py-2.5 text-sm font-bold outline-none focus:border-[var(--text-primary)]/50 transition-colors"
+              />
+            </div>
+            <div v-if="searchProductResults.length" class="absolute top-full mt-1 left-0 w-full bg-[var(--bg-app)] border border-[var(--border-app)] rounded-lg z-50 overflow-hidden">
+              <div
+                v-for="r in searchProductResults" :key="r.id"
+                @click="selectProduct(r)"
+                class="flex justify-between items-center px-4 py-2.5 hover:bg-[var(--input-bg)] cursor-pointer transition-colors border-b border-[var(--border-app)] last:border-0"
+              >
+                <span class="font-bold text-sm">{{ r.productName }}</span>
+                <span class="text-[10px] font-mono opacity-40">{{ r.barcode }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="productTimelineData">
+            <div class="flex items-center justify-between p-4 bg-[var(--bg-app)] rounded-lg border border-[var(--border-app)] mb-4">
+              <div>
+                <h4 class="font-black text-lg">{{ productTimelineData.product.productName }}</h4>
+                <span class="text-[11px] font-mono opacity-40">{{ productTimelineData.product.barcode }}</span>
+              </div>
+              <div class="flex items-center gap-6">
+                <div class="text-right">
+                  <div class="text-[9px] font-bold uppercase opacity-40">Xalis Mənfəət</div>
+                  <div class="text-lg font-black font-mono" :class="productTimelineData.netRevenue < 0 ? 'kpi-negative' : ''">{{ fmt(productTimelineData.netRevenue) }} ₼</div>
+                </div>
+                <div class="w-px h-8 bg-[var(--border-app)]"></div>
+                <div class="text-right">
+                  <div class="text-[9px] font-bold uppercase opacity-40">Stok</div>
+                  <div class="text-lg font-black font-mono text-[var(--text-primary)]">{{ productTimelineData.product.stock }}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="max-h-[400px] overflow-y-auto custom-scrollbar space-y-2">
+              <div v-for="(log, i) in productTimelineData.timeline" :key="i"
+                class="flex items-center gap-3 p-3 rounded-lg border border-[var(--border-app)] hover:border-[var(--text-primary)]/20 transition-colors bg-[var(--bg-app)]"
+              >
+                <div class="w-8 h-8 rounded-lg bg-[var(--text-primary)]/5 flex items-center justify-center shrink-0">
+                  <UiIcon
+                    :name="log.type === 'INTAKE' ? 'lucide:package-plus' : log.type === 'SALE' ? 'lucide:shopping-bag' : 'lucide:undo-2'"
+                    class="w-4 h-4 text-[var(--text-primary)]"
+                  />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="font-bold text-sm">{{ log.details }}</div>
+                  <div class="text-[10px] font-mono opacity-40">{{ new Date(log.date).toLocaleString('az-AZ') }} · {{ log.receiptNo }}</div>
+                </div>
+                <div class="text-right shrink-0">
+                  <div class="font-black font-mono text-sm">{{ log.qty > 0 ? '+' : '' }}{{ log.qty }} ədəd</div>
+                  <div class="text-[10px] font-mono opacity-40">{{ log.amount?.toFixed(2) }} ₼</div>
+                </div>
+              </div>
+              <div v-if="!productTimelineData.timeline.length" class="text-center py-10 opacity-40 font-bold text-sm">Bu aralıqda hərəkət yoxdur.</div>
+            </div>
+          </div>
+
+          <div v-else class="text-center py-8 opacity-30 text-sm">
+            <UiIcon name="lucide:search" class="w-8 h-8 mx-auto mb-2 opacity-30" />
+            Yuxarıdakı axtarışdan bir məhsul seçin
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════ -->
+      <!-- SALES                      -->
+      <!-- ══════════════════════════ -->
+      <div v-else-if="activeTab === 'sales'" class="p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="font-bold text-sm flex items-center gap-2"><UiIcon name="lucide:list" class="w-4 h-4 text-[var(--text-primary)]" /> Bütün Satışlar</h2>
+          <button @click="exportExcel(salesData?.sales || [], 'Sales')" class="export-btn">
+            <UiIcon name="lucide:download" class="w-3.5 h-3.5" /> Excel İxrac
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+          <div class="card p-5 flex flex-col">
+            <h3 class="font-bold text-xs uppercase tracking-wider opacity-60 mb-3 text-center">Ödəniş Növləri</h3>
+            <div class="flex-1 flex items-center justify-center min-h-[220px]" v-if="salesData?.paymentMethods">
+              <Doughnut
+                :data="{ labels: salesData.paymentMethods.labels, datasets: [{ data: salesData.paymentMethods.data, backgroundColor: CHART_COLORS, borderWidth: 0 }] }"
+                :options="doughnutOpts"
+              />
+            </div>
+            <div class="mt-3 space-y-1.5" v-if="salesData?.paymentMethods">
+              <div v-for="(label, idx) in salesData.paymentMethods.labels" :key="label" class="flex items-center gap-2 text-[11px]">
+                <span class="w-2.5 h-2.5 rounded-sm shrink-0" :style="{ backgroundColor: CHART_COLORS[idx as number] }"></span>
+                <span class="flex-1 font-bold opacity-70">{{ label }}</span>
+                <span class="font-mono font-bold">{{ fmt(salesData.paymentMethods.data[idx]) }} ₼</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-3 card overflow-hidden flex flex-col" style="max-height: 550px;">
+            <div class="overflow-auto custom-scrollbar flex-1">
+              <table class="w-full text-left">
+                <thead class="sticky top-0 bg-[var(--bg-app)] z-10">
+                  <tr class="border-b border-[var(--border-app)]">
+                    <th class="th-cell">Tarix</th>
+                    <th class="th-cell">Çek</th>
+                    <th class="th-cell">Kassir</th>
+                    <th class="th-cell">Müştəri</th>
+                    <th class="th-cell text-right">Endirim</th>
+                    <th class="th-cell text-right">Yekun</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="sale in salesData?.sales" :key="sale.id" class="tr-row">
+                    <td class="td-cell font-mono opacity-60">{{ new Date(sale.createdAt).toLocaleString('az-AZ') }}</td>
+                    <td class="td-cell font-mono font-bold">{{ sale.receiptNo }}</td>
+                    <td class="td-cell font-bold opacity-70">{{ sale.cashierName || '—' }}</td>
+                    <td class="td-cell font-bold">{{ sale.customerName || 'Anonim' }}</td>
+                    <td class="td-cell text-right font-mono opacity-50">{{ sale.discountTotal > 0 ? '-' + fmt(sale.discountTotal) : '—' }}</td>
+                    <td class="td-cell text-right font-mono font-black" :class="sale.finalTotal < 0 && 'kpi-negative'">{{ fmt(sale.finalTotal) }} ₼</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div v-if="!salesData?.sales?.length" class="p-10 text-center opacity-40 text-sm font-bold">Heç bir satış tapılmadı</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════ -->
+      <!-- EXPENSES                   -->
+      <!-- ══════════════════════════ -->
+      <div v-else-if="activeTab === 'expenses'" class="p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="font-bold text-sm flex items-center gap-2"><UiIcon name="lucide:wallet" class="w-4 h-4 text-[var(--text-primary)]" /> Xərclər</h2>
+          <button @click="exportExcel(expensesData?.expenses || [], 'Expenses')" class="export-btn">
+            <UiIcon name="lucide:download" class="w-3.5 h-3.5" /> Excel
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div class="card p-5 flex flex-col">
+            <h3 class="font-bold text-xs uppercase tracking-wider opacity-60 mb-3 text-center">Kateqoriyalar</h3>
+            <div class="flex-1 flex items-center justify-center min-h-[220px]" v-if="expensesData?.categoryChart">
+              <Doughnut
+                :data="{ labels: expensesData.categoryChart.labels, datasets: [{ data: expensesData.categoryChart.data, backgroundColor: CHART_COLORS, borderWidth: 0 }] }"
+                :options="doughnutOpts"
+              />
+            </div>
+            <div class="mt-3 space-y-1.5" v-if="expensesData?.categoryChart">
+              <div v-for="(label, idx) in expensesData.categoryChart.labels" :key="label" class="flex items-center gap-2 text-[11px]">
+                <span class="w-2.5 h-2.5 rounded-sm shrink-0" :style="{ backgroundColor: CHART_COLORS[idx as number] }"></span>
+                <span class="flex-1 font-bold opacity-70">{{ label }}</span>
+                <span class="font-mono font-bold">-{{ fmt(expensesData.categoryChart.data[idx as number]) }} ₼</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-2 card overflow-hidden flex flex-col" style="max-height: 500px;">
+            <div class="overflow-auto custom-scrollbar flex-1">
+              <table class="w-full text-left">
+                <thead class="sticky top-0 bg-[var(--bg-app)] z-10">
+                  <tr class="border-b border-[var(--border-app)]">
+                    <th class="th-cell">Tarix</th>
+                    <th class="th-cell">Kateqoriya</th>
+                    <th class="th-cell">İşçi</th>
+                    <th class="th-cell">Qeyd</th>
+                    <th class="th-cell text-right">Məbləğ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="exp in expensesData?.expenses" :key="exp.id" class="tr-row">
+                    <td class="td-cell font-mono opacity-60">{{ new Date(exp.createdAt).toLocaleString('az-AZ') }}</td>
+                    <td class="td-cell"><span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-[var(--bg-app)] border border-[var(--border-app)]">{{ exp.category || '—' }}</span></td>
+                    <td class="td-cell font-bold opacity-60">{{ exp.employeeName || '—' }}</td>
+                    <td class="td-cell opacity-50 max-w-[200px] truncate">{{ exp.notes || '—' }}</td>
+                    <td class="td-cell text-right font-mono font-black">-{{ fmt(exp.amount) }} ₼</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div v-if="!expensesData?.expenses?.length" class="p-10 text-center opacity-40 text-sm font-bold">Xərc tapılmadı</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════ -->
+      <!-- TEAM                       -->
+      <!-- ══════════════════════════ -->
+      <div v-else-if="activeTab === 'team'" class="p-6 space-y-4" v-if="employeesData">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <!-- Cashiers -->
+          <div class="card p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-bold text-sm flex items-center gap-2"><UiIcon name="lucide:user-check" class="w-4 h-4 text-[var(--text-primary)]" /> Kassir Performansı</h3>
+              <button @click="exportExcel(employeesData.cashiers, 'Cashiers')" class="export-btn">Excel</button>
+            </div>
+
+            <div class="h-[200px] mb-4" v-if="employeesData.cashiers.length">
+              <Bar
+                :data="{
+                  labels: employeesData.cashiers.map((c: any) => c.name),
+                  datasets: [
+                    { label: 'Satış (₼)', data: employeesData.cashiers.map((c: any) => c.totalRevenue), backgroundColor: 'hsl(255, 75%, 50%, 0.55)', borderRadius: 3 },
+                    { label: 'Endirim (₼)', data: employeesData.cashiers.map((c: any) => c.totalDiscount), backgroundColor: 'hsl(255, 30%, 70%, 0.45)', borderRadius: 3 }
+                  ]
+                }"
+                :options="chartOpts(true)"
+              />
+            </div>
+
+            <div class="space-y-2">
+              <div v-for="(c, idx) in employeesData.cashiers" :key="c.name" class="flex items-center gap-3 p-3 rounded-lg bg-[var(--bg-app)] border border-[var(--border-app)]">
+                <div class="w-7 h-7 rounded-md bg-[var(--text-primary)]/10 text-[var(--text-primary)] flex items-center justify-center text-[11px] font-black">{{ Number(idx) + 1 }}</div>
+                <div class="flex-1 min-w-0">
+                  <div class="font-bold text-sm truncate">{{ c.name }}</div>
+                  <div class="text-[10px] opacity-40">Endirim: {{ fmt(c.totalDiscount) }} ₼</div>
+                </div>
+                <div class="text-right font-mono font-black">{{ fmt(c.totalRevenue) }} ₼</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top Customers -->
+          <div class="card p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-bold text-sm flex items-center gap-2"><UiIcon name="lucide:crown" class="w-4 h-4 text-[var(--text-primary)]" /> VIP Müştərilər</h3>
+              <button @click="exportExcel(employeesData.topCustomers, 'VIP_Customers')" class="export-btn">Excel</button>
+            </div>
+
+            <div class="space-y-2">
+              <div v-for="(c, idx) in employeesData.topCustomers" :key="c.name" class="flex items-center gap-3 p-3 rounded-lg bg-[var(--bg-app)] border border-[var(--border-app)]">
+                <div class="w-7 h-7 rounded-md bg-[var(--text-primary)]/10 text-[var(--text-primary)] flex items-center justify-center text-[11px] font-black">{{ Number(idx) + 1 }}</div>
+                <div class="flex-1 min-w-0">
+                  <div class="font-bold text-sm truncate">{{ c.name }}</div>
+                </div>
+                <div class="text-right font-mono font-black text-[var(--text-primary)]">{{ fmt(c.totalSpent) }} ₼</div>
+              </div>
+              <div v-if="!employeesData.topCustomers.length" class="text-center py-8 opacity-40 text-sm font-bold">Məlumat yoxdur</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 </template>
 
 <style scoped>
-.custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+/* Shared card style */
+.card {
+  background: var(--input-bg);
+  border: 1px solid var(--border-app);
+  border-radius: 12px;
+}
+
+/* KPI cards */
+.kpi-card {
+  background: var(--input-bg);
+  border: 1px solid var(--border-app);
+  border-radius: 12px;
+  padding: 16px;
+  transition: border-color 0.2s;
+}
+.kpi-card:hover { border-color: var(--text-primary); }
+.kpi-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.5;
+  margin-bottom: 8px;
+}
+.kpi-value {
+  font-size: 1.25rem;
+  font-weight: 900;
+  font-family: 'Space Mono', monospace;
+  letter-spacing: -0.02em;
+}
+.kpi-unit { font-size: 0.75rem; opacity: 0.5; }
+.kpi-negative { color: var(--text-muted); }
+
+/* Stat row */
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--input-bg);
+  border: 1px solid var(--border-app);
+  border-radius: 12px;
+  padding: 12px;
+}
+.stat-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  opacity: 0.4;
+}
+
+/* Export button */
+.export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+  padding: 4px 10px;
+  border-radius: 6px;
+  transition: opacity 0.2s;
+}
+.export-btn:hover { opacity: 0.7; }
+
+/* Table */
+.th-cell {
+  padding: 12px 16px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.4;
+}
+.td-cell {
+  padding: 12px 16px;
+  font-size: 12px;
+}
+.tr-row {
+  border-bottom: 1px solid var(--border-app);
+  transition: background 0.15s;
+}
+.tr-row:last-child { border-bottom: none; }
+.tr-row:hover { background: var(--bg-app); }
+
+/* Scrollbar */
+.custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--border-app); border-radius: 10px; }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(100, 100, 100, 0.5); }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.font-mono { font-family: 'Space Mono', monospace; }
 </style>
