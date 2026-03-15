@@ -103,46 +103,94 @@ const refreshAll = async () => {
 watch(activeTab, () => refreshAll())
 onMounted(() => refreshAll())
 
-// ── Chart config (theme-aware, no shadows) ──
+// ── Chart config (Beautiful, Clean, Interactive) ──
 const chartOpts = (showLegend = false): any => ({
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
-    legend: { display: showLegend, labels: { color: 'var(--text-muted)', boxWidth: 10, font: { size: 11 } } },
+    legend: { 
+      display: showLegend, 
+      position: 'bottom',
+      labels: { 
+        color: 'var(--text-muted)', 
+        boxWidth: 8, 
+        usePointStyle: true,
+        pointStyle: 'circle',
+        padding: 20,
+        font: { size: 11, family: 'SF Pro Display' } 
+      } 
+    },
     tooltip: {
       backgroundColor: 'var(--input-bg)',
       titleColor: 'var(--text-app)',
       bodyColor: 'var(--text-muted)',
       borderColor: 'var(--border-app)',
       borderWidth: 1,
-      padding: 10,
-      cornerRadius: 8
+      padding: 12,
+      cornerRadius: 12,
+      displayColors: true,
+      usePointStyle: true,
+      boxPadding: 4,
+      titleFont: { family: 'SF Pro Display', size: 13, weight: 'bold' },
+      bodyFont: { family: 'SF Pro Display', size: 12 }
     }
   },
   scales: {
-    x: { ticks: { color: 'var(--text-muted)', font: { size: 10 } }, grid: { display: false }, border: { display: false } },
-    y: { ticks: { color: 'var(--text-muted)', font: { size: 10 }, callback: (v: string | number) => Number(v) >= 1000 ? (Number(v)/1000).toFixed(0) + 'k' : v }, grid: { color: 'rgba(128,128,128,0.06)' }, border: { display: false } }
+    x: { 
+      ticks: { color: 'var(--text-muted)', font: { size: 10, family: 'SF Pro Display' } }, 
+      grid: { display: false }, 
+      border: { display: false } 
+    },
+    y: { 
+      ticks: { 
+        color: 'var(--text-muted)', 
+        font: { size: 10, family: 'SF Pro Display' }, 
+        callback: (v: string | number) => Number(v) >= 1000 ? (Number(v)/1000).toFixed(0) + 'k' : v 
+      }, 
+      grid: { color: 'rgba(128,128,128,0.06)', drawBorder: false }, 
+      border: { display: false } 
+    }
+  },
+  interaction: {
+    intersect: false,
+    mode: 'index',
   }
 })
 
 const doughnutOpts: any = {
-  responsive: true, maintainAspectRatio: false, cutout: '75%',
+  responsive: true, 
+  maintainAspectRatio: false, 
+  cutout: '80%',
   plugins: {
     legend: { display: false },
-    tooltip: { backgroundColor: 'var(--input-bg)', titleColor: 'var(--text-app)', bodyColor: 'var(--text-muted)', borderColor: 'var(--border-app)', borderWidth: 1, padding: 10, cornerRadius: 8 }
+    tooltip: { 
+      backgroundColor: 'var(--input-bg)', 
+      titleColor: 'var(--text-app)', 
+      bodyColor: 'var(--text-muted)', 
+      borderColor: 'var(--border-app)', 
+      borderWidth: 1, 
+      padding: 12, 
+      cornerRadius: 12,
+      titleFont: { family: 'SF Pro Display', weight: 'bold' },
+      bodyFont: { family: 'SF Pro Display' }
+    }
+  },
+  animation: {
+    animateRotate: true,
+    animateScale: true
   }
 }
 
-// Theme-consistent palette derived from our purple scheme
+// Premium Monochromatic Palette (Purple based)
 const CHART_COLORS = [
-  'hsl(255, 75%, 50%)',   // primary
-  'hsl(255, 60%, 65%)',   // lighter primary
-  'hsl(255, 40%, 75%)',   // soft primary
-  'hsl(220, 60%, 55%)',   // blue-ish
-  'hsl(200, 50%, 50%)',   // teal
-  'hsl(280, 50%, 55%)',   // violet
-  'hsl(255, 20%, 60%)',   // muted
-  'hsl(300, 40%, 55%)',   // magenta
+  '#7367F0', // Primary
+  '#8F85F3', 
+  '#ABA4F6', 
+  '#C8C4F9',
+  '#564DB5',
+  '#4839EB',
+  '#B8AFFF',
+  '#E6E2FF',
 ]
 
 // ── Export ──
@@ -177,59 +225,72 @@ const loadTimeline = async (id: string|number) => {
 }
 const clearTimeline = () => { productTimelineData.value = null; selectedProductId.value = null; searchProductQuery.value = '' }
 
-const fmt = (n: number) => n?.toFixed(2) ?? '0.00'
+const fmt = (n: number) => n?.toLocaleString('az-AZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? '0.00'
 </script>
 
 <template>
-  <div class="h-full flex flex-col bg-[var(--bg-app)] overflow-hidden">
+  <div class="h-full flex flex-col bg-[var(--bg-app)] overflow-hidden font-sans antialiased">
 
-    <!-- ═══ HEADER ═══ -->
-    <header class="shrink-0 bg-[var(--bg-app)] border-b border-[var(--border-app)] z-20">
-      <!-- Row 1 -->
-      <div class="flex items-center justify-between px-6 h-14">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg bg-[var(--text-primary)]/10 flex items-center justify-center">
-            <UiIcon name="lucide:bar-chart-3" class="w-4 h-4 text-[var(--text-primary)]" />
+    <!-- ═══ PREMIUM HEADER ═══ -->
+    <header class="shrink-0 bg-[var(--bg-app)] border-b border-[var(--border-app)] z-20 backdrop-blur-sm">
+      <!-- Row 1: Title & Main Actions -->
+      <div class="flex items-center justify-between px-8 h-16">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 rounded-xl bg-[var(--text-primary)]/10 flex items-center justify-center transition-transform hover:scale-105">
+            <UiIcon name="lucide:pie-chart" class="w-5 h-5 text-[var(--text-primary)]" />
           </div>
-          <h1 class="text-lg font-bold text-[var(--text-app)] tracking-tight">Hesabatlar</h1>
+          <div>
+            <h1 class="text-xl font-extrabold text-[var(--text-app)] tracking-tight leading-none">Biznes Analitika</h1>
+            <p class="text-[11px] font-bold text-[var(--text-muted)] mt-1 uppercase tracking-widest opacity-60">Hesabatlar və İcmal</p>
+          </div>
         </div>
 
-        <div class="flex items-center gap-2">
-          <div class="flex items-center gap-1.5 bg-[var(--input-bg)] rounded-lg border border-[var(--border-app)] px-2 h-9">
-            <input type="datetime-local" v-model="startDate" class="bg-transparent text-[11px] font-mono font-bold text-[var(--text-app)] outline-none w-[145px] tabular-nums" />
-            <span class="text-[10px] opacity-30 font-bold">→</span>
-            <input type="datetime-local" v-model="endDate" class="bg-transparent text-[11px] font-mono font-bold text-[var(--text-app)] outline-none w-[145px] tabular-nums" />
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-xl py-1 px-3 h-10 transition-all focus-within:border-[var(--text-primary)]/50">
+            <div class="flex items-center gap-1">
+              <UiIcon name="lucide:calendar" class="w-3.5 h-3.5 text-[var(--text-muted)]" />
+              <input type="datetime-local" v-model="startDate" class="bg-transparent text-xs font-bold text-[var(--text-app)] outline-none w-[150px] tabular-nums" />
+            </div>
+            <div class="h-4 w-px bg-[var(--border-app)] mx-1"></div>
+            <div class="flex items-center gap-1">
+              <input type="datetime-local" v-model="endDate" class="bg-transparent text-xs font-bold text-[var(--text-app)] outline-none w-[150px] tabular-nums" />
+            </div>
           </div>
-          <button @click="activeQuickFilter = ''; refreshAll()" class="h-9 w-9 rounded-lg bg-[var(--text-primary)] text-white flex items-center justify-center hover:bg-[var(--text-secondary)] transition-colors">
-            <UiIcon name="lucide:refresh-cw" class="w-3.5 h-3.5" />
+          <button 
+            @click="activeQuickFilter = ''; refreshAll()" 
+            class="h-10 w-10 rounded-xl bg-[var(--input-bg)] border border-[var(--border-app)] text-[var(--text-app)] flex items-center justify-center hover:bg-[var(--text-primary)] hover:text-white hover:border-[var(--text-primary)] transition-all active:scale-95"
+            title="Yenilə"
+          >
+            <UiIcon name="lucide:rotate-cw" class="w-4 h-4" :class="loading ? 'animate-spin' : ''" />
           </button>
         </div>
       </div>
 
-      <!-- Row 2 -->
-      <div class="flex items-center justify-between px-6 h-11 gap-4">
-        <div class="flex items-center gap-0.5 overflow-x-auto no-scrollbar">
+      <!-- Row 2: Sub-navigation & Quick Filters -->
+      <div class="flex items-center justify-between px-8 h-12 border-t border-[var(--border-app)]/50">
+        <div class="flex items-center gap-1 overflow-x-auto no-scrollbar">
           <button
             v-for="tab in tabs" :key="tab.id"
             @click="activeTab = tab.id"
-            class="flex items-center gap-1.5 px-3 h-8 rounded-lg text-[11px] font-bold whitespace-nowrap transition-colors"
+            class="group flex items-center gap-2 px-4 h-8 rounded-lg text-[12px] font-bold whitespace-nowrap transition-all relative overflow-hidden"
             :class="activeTab === tab.id
-              ? 'bg-[var(--text-primary)] text-white'
-              : 'text-[var(--text-app)] opacity-60 hover:opacity-100 hover:bg-[var(--input-bg)]'"
+              ? 'text-[var(--text-primary)] bg-[var(--text-primary)]/5'
+              : 'text-[var(--text-muted)] hover:text-[var(--text-app)] hover:bg-[var(--input-bg)]'"
           >
-            <UiIcon :name="tab.icon" class="w-3.5 h-3.5" />
+            <UiIcon :name="tab.icon" class="w-4 h-4 transition-transform group-hover:scale-110" />
             {{ tab.label }}
+            <div v-if="activeTab === tab.id" class="absolute bottom-0 left-0 w-full h-[2px] bg-[var(--text-primary)]"></div>
           </button>
         </div>
 
-        <div class="flex items-center gap-1 overflow-x-auto no-scrollbar shrink-0">
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
           <button
             v-for="qf in quickFilters" :key="qf.id"
             @click="setQuickFilter(qf.id)"
-            class="px-2.5 h-7 rounded-md text-[10px] font-bold whitespace-nowrap transition-colors border"
+            class="px-3 h-7 rounded-lg text-[10px] font-extrabold whitespace-nowrap transition-all border uppercase tracking-wider"
             :class="activeQuickFilter === qf.id
-              ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)] border-[var(--text-primary)]/20'
-              : 'text-[var(--text-app)] opacity-50 hover:opacity-80 border-transparent hover:border-[var(--border-app)]'"
+              ? 'bg-[var(--text-primary)] text-white border-[var(--text-primary)]'
+              : 'text-[var(--text-muted)] border-[var(--border-app)] hover:border-[var(--text-primary)]/30'"
           >
             {{ qf.label }}
           </button>
@@ -237,100 +298,194 @@ const fmt = (n: number) => n?.toFixed(2) ?? '0.00'
       </div>
     </header>
 
-    <!-- ═══ MAIN ═══ -->
-    <main class="flex-1 overflow-y-auto custom-scrollbar relative">
-      <!-- Loading -->
-      <div v-if="loading" class="absolute inset-0 bg-[var(--bg-app)]/60 z-50 flex items-center justify-center">
-        <div class="flex items-center gap-3 bg-[var(--input-bg)] border border-[var(--border-app)] px-5 py-3 rounded-xl">
-          <UiIcon name="lucide:loader-2" class="w-5 h-5 animate-spin text-[var(--text-primary)]" />
-          <span class="text-sm font-bold opacity-70">Yüklənir...</span>
+    <!-- ═══ MAIN CONTENT AREA ═══ -->
+    <main class="flex-1 overflow-y-auto custom-scrollbar relative p-8">
+      
+      <!-- Loading Overlay -->
+      <transition name="fade">
+        <div v-if="loading" class="absolute inset-0 bg-[var(--bg-app)]/40 z-50 flex items-center justify-center backdrop-blur-[1px]">
+          <div class="flex flex-col items-center gap-4 bg-[var(--input-bg)] border border-[var(--border-app)] p-8 rounded-3xl shadow-2xl">
+            <div class="relative">
+              <div class="w-12 h-12 rounded-full border-4 border-[var(--text-primary)]/10 border-t-[var(--text-primary)] animate-spin"></div>
+              <UiIcon name="lucide:activity" class="absolute inset-0 flex items-center justify-center w-5 h-5 m-auto text-[var(--text-primary)]" />
+            </div>
+            <span class="text-sm font-black text-[var(--text-app)] opacity-60 animate-pulse">Analiz aparılır...</span>
+          </div>
         </div>
-      </div>
+      </transition>
 
       <!-- ══════════════════════════ -->
-      <!-- OVERVIEW                   -->
+      <!-- TAB: OVERVIEW                   -->
       <!-- ══════════════════════════ -->
-      <div v-if="activeTab === 'overview'" class="p-6 space-y-5">
+      <div v-if="activeTab === 'overview'" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <div v-if="dashboardData">
 
-          <!-- KPI Cards -->
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            <div class="kpi-card">
-              <div class="kpi-label"><UiIcon name="lucide:banknote" class="w-3.5 h-3.5 text-[var(--text-primary)]" /> Dövriyyə</div>
-              <div class="kpi-value">{{ fmt(dashboardData.kpis.grossRevenue) }} <span class="kpi-unit">₼</span></div>
+          <!-- 1. Key Performance Indicators -->
+          <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            <div class="kpi-card group border-l-4 border-l-blue-500">
+              <div class="kpi-header">
+                <div class="kpi-icon-box bg-blue-500/10 text-blue-500">
+                  <UiIcon name="lucide:line-chart" class="w-4 h-4" />
+                </div>
+                <span class="kpi-label">Dövriyyə</span>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-value">{{ fmt(dashboardData.kpis.grossRevenue) }}</span>
+                <span class="kpi-currency">₼</span>
+              </div>
             </div>
-            <div class="kpi-card">
-              <div class="kpi-label"><UiIcon name="lucide:trending-up" class="w-3.5 h-3.5 text-[var(--text-primary)]" /> Xalis Gəlir</div>
-              <div class="kpi-value" :class="dashboardData.kpis.netRevenue < 0 && 'kpi-negative'">{{ fmt(dashboardData.kpis.netRevenue) }} <span class="kpi-unit">₼</span></div>
+
+            <div class="kpi-card group border-l-4 border-l-emerald-500">
+              <div class="kpi-header">
+                <div class="kpi-icon-box bg-emerald-500/10 text-emerald-500">
+                  <UiIcon name="lucide:trending-up" class="w-4 h-4" />
+                </div>
+                <span class="kpi-label">Xalis Gəlir</span>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-value" :class="dashboardData.kpis.netRevenue < 0 && 'text-red-500'">{{ fmt(dashboardData.kpis.netRevenue) }}</span>
+                <span class="kpi-currency">₼</span>
+              </div>
             </div>
-            <div class="kpi-card">
-              <div class="kpi-label"><UiIcon name="lucide:calculator" class="w-3.5 h-3.5 text-[var(--text-primary)]" /> Brüt Mənfəət</div>
-              <div class="kpi-value" :class="dashboardData.kpis.grossProfit < 0 && 'kpi-negative'">{{ fmt(dashboardData.kpis.grossProfit) }} <span class="kpi-unit">₼</span></div>
+
+            <div class="kpi-card group border-l-4 border-l-[var(--text-primary)]">
+              <div class="kpi-header">
+                <div class="kpi-icon-box bg-[var(--text-primary)]/10 text-[var(--text-primary)]">
+                  <UiIcon name="lucide:shredder" class="w-4 h-4" />
+                </div>
+                <span class="kpi-label">Brüt Mənfəət</span>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-value" :class="dashboardData.kpis.grossProfit < 0 && 'text-red-500'">{{ fmt(dashboardData.kpis.grossProfit) }}</span>
+                <span class="kpi-currency">₼</span>
+              </div>
             </div>
-            <div class="kpi-card">
-              <div class="kpi-label"><UiIcon name="lucide:receipt" class="w-3.5 h-3.5 text-[var(--text-primary)]" /> Orta Çek</div>
-              <div class="kpi-value">{{ fmt(dashboardData.kpis.avgOrderValue) }} <span class="kpi-unit">₼</span></div>
+
+            <div class="kpi-card group border-l-4 border-l-amber-500">
+              <div class="kpi-header">
+                <div class="kpi-icon-box bg-amber-500/10 text-amber-500">
+                  <UiIcon name="lucide:zap" class="w-4 h-4" />
+                </div>
+                <span class="kpi-label">Orta Çek</span>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-value">{{ fmt(dashboardData.kpis.avgOrderValue) }}</span>
+                <span class="kpi-currency">₼</span>
+              </div>
             </div>
-            <div class="kpi-card">
-              <div class="kpi-label"><UiIcon name="lucide:shopping-cart" class="w-3.5 h-3.5 text-[var(--text-primary)]" /> Əməliyyatlar</div>
-              <div class="kpi-value">{{ dashboardData.kpis.totalTransactions }}</div>
+
+            <div class="kpi-card group border-l-4 border-l-indigo-500">
+              <div class="kpi-header">
+                <div class="kpi-icon-box bg-indigo-500/10 text-indigo-500">
+                  <UiIcon name="lucide:shopping-bag" class="w-4 h-4" />
+                </div>
+                <span class="kpi-label">Əməliyyat</span>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-value">{{ dashboardData.kpis.totalTransactions }}</span>
+                <span class="kpi-currency pt-1">#/{{ dashboardData.kpis.refundTransactions }}</span>
+              </div>
             </div>
-            <div class="kpi-card">
-              <div class="kpi-label"><UiIcon name="lucide:rotate-ccw" class="w-3.5 h-3.5 text-[var(--text-primary)]" /> Refund Nisbəti</div>
-              <div class="kpi-value">{{ dashboardData.kpis.refundRate.toFixed(1) }}%</div>
+
+            <div class="kpi-card group border-l-4 border-l-rose-500">
+              <div class="kpi-header">
+                <div class="kpi-icon-box bg-rose-500/10 text-rose-500">
+                  <UiIcon name="lucide:rotate-ccw" class="w-4 h-4" />
+                </div>
+                <span class="kpi-label">Refund Faizi</span>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-value text-rose-500">{{ dashboardData.kpis.refundRate.toFixed(1) }}%</span>
+              </div>
             </div>
           </div>
 
-          <!-- Secondary Stats -->
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div class="stat-row">
-              <div class="w-9 h-9 rounded-lg bg-[var(--text-primary)]/5 flex items-center justify-center"><UiIcon name="lucide:arrow-down-left" class="w-4 h-4 text-[var(--text-primary)]" /></div>
-              <div><div class="stat-label">Refund Məbləğ</div><div class="font-black font-mono text-sm">-{{ fmt(dashboardData.kpis.totalRefunds) }} ₼</div></div>
+          <!-- 2. Detailed Grid Stats -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="mini-stat-card">
+              <div class="mini-stat-icon text-rose-500"><UiIcon name="lucide:arrow-down-right" class="w-5 h-5" /></div>
+              <div class="mini-stat-content">
+                <p class="mini-stat-label">Geri Qaytarma</p>
+                <p class="mini-stat-value text-rose-500">-{{ fmt(dashboardData.kpis.totalRefunds) }} ₼</p>
+              </div>
             </div>
-            <div class="stat-row">
-              <div class="w-9 h-9 rounded-lg bg-[var(--text-primary)]/5 flex items-center justify-center"><UiIcon name="lucide:percent" class="w-4 h-4 text-[var(--text-primary)]" /></div>
-              <div><div class="stat-label">Endirim Verilən</div><div class="font-black font-mono text-sm">{{ fmt(dashboardData.kpis.totalDiscount) }} ₼</div></div>
+            <div class="mini-stat-card">
+              <div class="mini-stat-icon text-amber-500"><UiIcon name="lucide:scissors" class="w-5 h-5" /></div>
+              <div class="mini-stat-content">
+                <p class="mini-stat-label">Ümumi Endirim</p>
+                <p class="mini-stat-value text-amber-600">{{ fmt(dashboardData.kpis.totalDiscount) }} ₼</p>
+              </div>
             </div>
-            <div class="stat-row">
-              <div class="w-9 h-9 rounded-lg bg-[var(--text-primary)]/5 flex items-center justify-center"><UiIcon name="lucide:package-check" class="w-4 h-4 text-[var(--text-primary)]" /></div>
-              <div><div class="stat-label">Satılan Məhsul</div><div class="font-black font-mono text-sm">{{ dashboardData.kpis.totalItemsSold }} ədəd</div></div>
+            <div class="mini-stat-card">
+              <div class="mini-stat-icon text-blue-500"><UiIcon name="lucide:package-2" class="w-5 h-5" /></div>
+              <div class="mini-stat-content">
+                <p class="mini-stat-label">Məhsul Satışı</p>
+                <p class="mini-stat-value">{{ dashboardData.kpis.totalItemsSold }} ədəd</p>
+              </div>
             </div>
-            <div class="stat-row">
-              <div class="w-9 h-9 rounded-lg bg-[var(--text-primary)]/5 flex items-center justify-center"><UiIcon name="lucide:truck" class="w-4 h-4 text-[var(--text-primary)]" /></div>
-              <div><div class="stat-label">Mədaxil Dəyəri</div><div class="font-black font-mono text-sm">{{ fmt(dashboardData.kpis.totalIntakesValue) }} ₼</div></div>
+            <div class="mini-stat-card">
+              <div class="mini-stat-icon text-emerald-500"><UiIcon name="lucide:container" class="w-5 h-5" /></div>
+              <div class="mini-stat-content">
+                <p class="mini-stat-label">Mədaxil Həcmi</p>
+                <p class="mini-stat-value">{{ fmt(dashboardData.kpis.totalIntakesValue) }} ₼</p>
+              </div>
             </div>
           </div>
 
-          <!-- Charts -->
-          <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
-            <div class="lg:col-span-3 card p-5">
-              <h3 class="text-sm font-bold mb-4 flex items-center gap-2"><UiIcon name="lucide:clock" class="w-4 h-4 text-[var(--text-primary)]" /> Saatlıq Satış Aktivliyi</h3>
-              <div class="h-[260px]">
+          <!-- 3. Primary Charts Section -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 card-premium">
+              <div class="card-header-premium">
+                <div class="flex items-center gap-3">
+                  <UiIcon name="lucide:timer" class="w-5 h-5 text-[var(--text-primary)]" />
+                  <h3 class="card-title-premium">Saatlıq Aktivlik</h3>
+                </div>
+                <div class="flex items-center gap-4">
+                  <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-[var(--text-primary)]"></div><span class="text-[10px] uppercase font-bold opacity-60">Satış</span></div>
+                  <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-[var(--text-muted)] opacity-30"></div><span class="text-[10px] uppercase font-bold opacity-60">Refund</span></div>
+                </div>
+              </div>
+              <div class="h-[300px] w-full px-2">
                 <Bar
                   :data="{
                     labels: dashboardData.hourlyChart.labels,
                     datasets: [
-                      { label: 'Satış (₼)', data: dashboardData.hourlyChart.revenue, backgroundColor: 'hsl(255, 75%, 50%, 0.55)', borderRadius: 3 },
-                      { label: 'Geri Qaytarma (₼)', data: dashboardData.hourlyChart.refunds, backgroundColor: 'hsl(255, 30%, 70%, 0.5)', borderRadius: 3 }
+                      { label: 'Satış', data: dashboardData.hourlyChart.revenue, backgroundColor: '#7367F0', borderRadius: 4, barThickness: 12 },
+                      { label: 'Geri Qaytarma', data: dashboardData.hourlyChart.refunds, backgroundColor: '#EBEBEF', borderRadius: 4, barThickness: 12 }
                     ]
                   }"
-                  :options="chartOpts(true)"
+                  :options="chartOpts(false)"
                 />
               </div>
             </div>
-            <div class="lg:col-span-2 card p-5">
-              <h3 class="text-sm font-bold mb-4 flex items-center gap-2"><UiIcon name="lucide:trending-up" class="w-4 h-4 text-[var(--text-primary)]" /> Günlük Mənfəət Trendi</h3>
-              <div class="h-[260px]">
+
+            <div class="card-premium">
+              <div class="card-header-premium">
+                <div class="flex items-center gap-3">
+                  <UiIcon name="lucide:flame" class="w-5 h-5 text-rose-500" />
+                  <h3 class="card-title-premium">Gəlir Trendi</h3>
+                </div>
+              </div>
+              <div class="h-[300px] w-full px-2">
                 <Line
                   :data="{
                     labels: dashboardData.dailyChart.labels,
                     datasets: [{
-                      label: 'Mənfəət (₼)',
+                      label: 'Mənfəət',
                       data: dashboardData.dailyChart.profit,
-                      borderColor: 'hsl(255, 75%, 50%)',
-                      backgroundColor: 'hsl(255, 75%, 50%, 0.06)',
-                      tension: 0.4, fill: true, pointRadius: 3,
-                      pointBackgroundColor: 'hsl(255, 75%, 50%)'
+                      borderColor: '#7367F0',
+                      borderWidth: 3,
+                      backgroundColor: (context : any) => {
+                        const chart = context.chart;
+                        const {ctx, chartArea} = chart;
+                        if (!chartArea) return null;
+                        const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                        gradient.addColorStop(0, 'rgba(115, 103, 240, 0)');
+                        gradient.addColorStop(1, 'rgba(115, 103, 240, 0.1)');
+                        return gradient;
+                      },
+                      tension: 0.4, fill: true, pointRadius: 0, pointHoverRadius: 6, pointHitRadius: 10,
+                      pointBackgroundColor: '#7367F0', pointBorderWidth: 2, pointBorderColor: '#fff'
                     }]
                   }"
                   :options="chartOpts(false)"
@@ -342,300 +497,372 @@ const fmt = (n: number) => n?.toFixed(2) ?? '0.00'
       </div>
 
       <!-- ══════════════════════════ -->
-      <!-- PRODUCTS                   -->
+      <!-- TAB: PRODUCTS                   -->
       <!-- ══════════════════════════ -->
-      <div v-else-if="activeTab === 'products'" class="p-6 space-y-5">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4" v-if="productsData">
-          <!-- Top Sellers -->
-          <div class="card p-5">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="font-bold text-sm flex items-center gap-2"><UiIcon name="lucide:award" class="w-4 h-4 text-[var(--text-primary)]" /> Top Satılan Məhsullar</h3>
-              <button @click="exportExcel(productsData.topSellers, 'TopSellers')" class="export-btn">
-                <UiIcon name="lucide:download" class="w-3 h-3" /> Excel
+      <div v-else-if="activeTab === 'products'" class="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" v-if="productsData">
+          
+          <div class="card-premium">
+            <div class="card-header-premium">
+              <div class="flex items-center gap-3">
+                <UiIcon name="lucide:star" class="w-5 h-5 text-amber-500 fill-amber-500" />
+                <h3 class="card-title-premium">Ən Çox Satılanlar</h3>
+              </div>
+              <button @click="exportExcel(productsData.topSellers, 'BestSellers')" class="btn-action">
+                <UiIcon name="lucide:download" class="w-3.5 h-3.5" />
+                <span>Excel</span>
               </button>
             </div>
-            <div class="space-y-1">
+            
+            <div class="divide-y divide-[var(--border-app)]/50 px-2">
               <div
                 v-for="(p, idx) in productsData.topSellers" :key="p.id"
                 @click="selectProduct(p)"
-                class="flex items-center gap-3 p-2.5 rounded-lg hover:bg-[var(--bg-app)] cursor-pointer transition-colors group"
+                class="list-item group"
               >
-                <span class="w-6 h-6 rounded-md bg-[var(--text-primary)]/10 text-[var(--text-primary)] flex items-center justify-center text-[10px] font-black shrink-0">{{ Number(idx) + 1 }}</span>
-                <span class="font-bold text-sm truncate flex-1 group-hover:text-[var(--text-primary)] transition-colors">{{ p.name }}</span>
-                <span class="text-[10px] font-mono font-bold bg-[var(--text-primary)]/10 text-[var(--text-primary)] px-2 py-0.5 rounded">{{ p.soldQty }} ədəd</span>
-                <span class="text-xs font-mono font-black w-20 text-right">{{ fmt(p.totalRevenue) }} ₼</span>
+                <div class="w-8 h-8 rounded-lg bg-[var(--input-bg)] border border-[var(--border-app)] flex items-center justify-center text-[11px] font-black opacity-40 group-hover:bg-[var(--text-primary)] group-hover:text-white group-hover:opacity-100 group-hover:border-transparent transition-all">
+                  {{ Number(idx) + 1 }}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-bold text-[var(--text-app)] truncate">{{ p.name }}</p>
+                  <p class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-tighter">{{ p.soldQty }} Ədəd Satılıb</p>
+                </div>
+                <div class="text-right">
+                  <p class="text-sm font-black text-[var(--text-app)] tabular-nums">{{ fmt(p.totalRevenue) }} ₼</p>
+                  <div class="h-1.5 w-16 bg-blue-500/10 rounded-full mt-1.5 overflow-hidden ml-auto">
+                    <div class="h-full bg-blue-500" :style="{ width: `${(p.soldQty / productsData.topSellers[0].soldQty) * 100}%` }"></div>
+                  </div>
+                </div>
               </div>
-              <div v-if="!productsData.topSellers.length" class="text-center text-xs opacity-40 py-8">Məlumat yoxdur</div>
             </div>
           </div>
 
-          <!-- Most Refunded -->
-          <div class="card p-5">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="font-bold text-sm flex items-center gap-2"><UiIcon name="lucide:undo-2" class="w-4 h-4 text-[var(--text-muted)]" /> Ən Çox Qaytarılanlar</h3>
+          <div class="card-premium">
+            <div class="card-header-premium">
+              <div class="flex items-center gap-3">
+                <UiIcon name="lucide:undo" class="w-5 h-5 text-rose-500" />
+                <h3 class="card-title-premium">Ən Çox Qaytarılanlar</h3>
+              </div>
             </div>
-            <div class="space-y-1">
+            
+            <div class="divide-y divide-[var(--border-app)]/50 px-2">
               <div
                 v-for="(p, idx) in productsData.mostRefunded" :key="p.id"
                 @click="selectProduct(p)"
-                class="flex items-center gap-3 p-2.5 rounded-lg hover:bg-[var(--bg-app)] cursor-pointer transition-colors"
+                class="list-item group"
               >
-                <span class="w-6 h-6 rounded-md bg-[var(--text-muted)]/10 text-[var(--text-muted)] flex items-center justify-center text-[10px] font-black shrink-0">{{ Number(idx) + 1 }}</span>
-                <span class="font-bold text-sm truncate flex-1">{{ p.name }}</span>
-                <span class="text-[10px] font-mono font-bold bg-[var(--text-muted)]/10 text-[var(--text-muted)] px-2 py-0.5 rounded">{{ p.refundQty }} ədəd</span>
+                <div class="w-8 h-8 rounded-lg bg-[var(--input-bg)] border border-[var(--border-app)] flex items-center justify-center text-[11px] font-black opacity-40 group-hover:bg-rose-500 group-hover:text-white group-hover:opacity-100 group-hover:border-transparent transition-all">
+                  {{ Number(idx) + 1 }}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-bold text-[var(--text-app)] truncate">{{ p.name }}</p>
+                  <p class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-tighter">{{ p.refundQty }} Ədəd Geri Alınıb</p>
+                </div>
+                <div class="text-right">
+                  <p class="text-sm font-black text-rose-500 tabular-nums">{{ p.refundQty }}</p>
+                  <div class="h-1.5 w-16 bg-rose-500/10 rounded-full mt-1.5 overflow-hidden ml-auto">
+                    <div class="h-full bg-rose-500" :style="{ width: `${(p.refundQty / productsData.mostRefunded[0].refundQty) * 100}%` }"></div>
+                  </div>
+                </div>
               </div>
-              <div v-if="!productsData.mostRefunded.length" class="text-center text-xs opacity-40 py-8">Geri qaytarma yoxdur</div>
             </div>
           </div>
         </div>
 
-        <!-- Product Timeline -->
-        <div class="card p-5">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="font-bold text-sm flex items-center gap-2"><UiIcon name="lucide:git-branch" class="w-4 h-4 text-[var(--text-primary)]" /> Məhsulun Tarixçəsi</h3>
-            <button v-if="productTimelineData" @click="clearTimeline" class="text-[10px] font-bold text-[var(--text-muted)] bg-[var(--border-app)] px-2.5 py-1 rounded-md hover:opacity-80">Bağla</button>
+        <!-- Deep Analyze: Product Timeline -->
+        <div class="card-premium">
+          <div class="card-header-premium">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center"><UiIcon name="lucide:search" class="w-4 h-4" /></div>
+              <h3 class="card-title-premium">Məhsul Analizi</h3>
+            </div>
+            <div v-if="productTimelineData" class="flex gap-2">
+              <div class="px-3 py-1 bg-green-500/5 border border-green-500/20 rounded-lg text-green-600 text-[11px] font-black tabular-nums">P&L: {{ fmt(productTimelineData.netRevenue) }} ₼</div>
+              <div class="px-3 py-1 bg-blue-500/5 border border-blue-500/20 rounded-lg text-blue-600 text-[11px] font-black tabular-nums">STOK: {{ productTimelineData.product.stock }}</div>
+              <button @click="clearTimeline" class="hover:text-red-500 transition-colors"><UiIcon name="lucide:x-circle" class="w-5 h-5" /></button>
+            </div>
           </div>
 
-          <div class="relative max-w-lg mb-4">
-            <div class="relative">
-              <UiIcon name="lucide:search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-30" />
+          <div class="p-6">
+            <div class="relative max-w-xl mb-8">
+              <UiIcon name="lucide:search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
               <input
                 v-model="searchProductQuery"
                 @input="handleProductSearch"
-                placeholder="Məhsul adı və ya barkod..."
-                class="w-full bg-[var(--bg-app)] border border-[var(--border-app)] rounded-lg pl-9 pr-4 py-2.5 text-sm font-bold outline-none focus:border-[var(--text-primary)]/50 transition-colors"
+                placeholder="Detallı analiz üçün məhsul axtarın..."
+                class="w-full bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl pl-11 pr-4 py-4 text-sm font-bold outline-none ring-offset-[var(--bg-app)] focus:ring-2 focus:ring-[var(--text-primary)]/20 transition-all placeholder:font-normal placeholder:opacity-40"
               />
-            </div>
-            <div v-if="searchProductResults.length" class="absolute top-full mt-1 left-0 w-full bg-[var(--bg-app)] border border-[var(--border-app)] rounded-lg z-50 overflow-hidden">
-              <div
-                v-for="r in searchProductResults" :key="r.id"
-                @click="selectProduct(r)"
-                class="flex justify-between items-center px-4 py-2.5 hover:bg-[var(--input-bg)] cursor-pointer transition-colors border-b border-[var(--border-app)] last:border-0"
-              >
-                <span class="font-bold text-sm">{{ r.productName }}</span>
-                <span class="text-[10px] font-mono opacity-40">{{ r.barcode }}</span>
-              </div>
-            </div>
-          </div>
-
-          <div v-if="productTimelineData">
-            <div class="flex items-center justify-between p-4 bg-[var(--bg-app)] rounded-lg border border-[var(--border-app)] mb-4">
-              <div>
-                <h4 class="font-black text-lg">{{ productTimelineData.product.productName }}</h4>
-                <span class="text-[11px] font-mono opacity-40">{{ productTimelineData.product.barcode }}</span>
-              </div>
-              <div class="flex items-center gap-6">
-                <div class="text-right">
-                  <div class="text-[9px] font-bold uppercase opacity-40">Xalis Mənfəət</div>
-                  <div class="text-lg font-black font-mono" :class="productTimelineData.netRevenue < 0 ? 'kpi-negative' : ''">{{ fmt(productTimelineData.netRevenue) }} ₼</div>
+              <transition name="scale">
+                <div v-if="searchProductResults.length" class="absolute top-full mt-2 left-0 w-full bg-[var(--input-bg)] border border-[var(--border-app)] rounded-2xl shadow-xl z-50 overflow-hidden ring-1 ring-black/5">
+                  <div
+                    v-for="r in searchProductResults" :key="r.id"
+                    @click="selectProduct(r)"
+                    class="flex justify-between items-center px-5 py-4 hover:bg-[var(--text-primary)]/5 cursor-pointer transition-colors border-b border-[var(--border-app)] last:border-0 group"
+                  >
+                    <div class="flex items-center gap-3">
+                      <div class="w-8 h-8 bg-[var(--bg-app)] rounded-lg flex items-center justify-center group-hover:bg-white"><UiIcon name="lucide:package" class="w-4 h-4 opacity-40" /></div>
+                      <span class="font-bold text-sm text-[var(--text-app)]">{{ r.productName }}</span>
+                    </div>
+                    <span class="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-40">{{ r.barcode }}</span>
+                  </div>
                 </div>
-                <div class="w-px h-8 bg-[var(--border-app)]"></div>
-                <div class="text-right">
-                  <div class="text-[9px] font-bold uppercase opacity-40">Stok</div>
-                  <div class="text-lg font-black font-mono text-[var(--text-primary)]">{{ productTimelineData.product.stock }}</div>
-                </div>
-              </div>
+              </transition>
             </div>
 
-            <div class="max-h-[400px] overflow-y-auto custom-scrollbar space-y-2">
-              <div v-for="(log, i) in productTimelineData.timeline" :key="i"
-                class="flex items-center gap-3 p-3 rounded-lg border border-[var(--border-app)] hover:border-[var(--text-primary)]/20 transition-colors bg-[var(--bg-app)]"
-              >
-                <div class="w-8 h-8 rounded-lg bg-[var(--text-primary)]/5 flex items-center justify-center shrink-0">
-                  <UiIcon
-                    :name="log.type === 'INTAKE' ? 'lucide:package-plus' : log.type === 'SALE' ? 'lucide:shopping-bag' : 'lucide:undo-2'"
-                    class="w-4 h-4 text-[var(--text-primary)]"
-                  />
-                </div>
-                <div class="flex-1 min-w-0">
-                  <div class="font-bold text-sm">{{ log.details }}</div>
-                  <div class="text-[10px] font-mono opacity-40">{{ new Date(log.date).toLocaleString('az-AZ') }} · {{ log.receiptNo }}</div>
-                </div>
-                <div class="text-right shrink-0">
-                  <div class="font-black font-mono text-sm">{{ log.qty > 0 ? '+' : '' }}{{ log.qty }} ədəd</div>
-                  <div class="text-[10px] font-mono opacity-40">{{ log.amount?.toFixed(2) }} ₼</div>
+            <div v-if="productTimelineData" class="space-y-4">
+              <div class="flex items-center gap-4 mb-6">
+                <div class="w-14 h-14 rounded-2xl bg-[var(--text-primary)]/5 flex items-center justify-center text-[var(--text-primary)]"><UiIcon name="lucide:layers" class="w-7 h-7" /></div>
+                <div>
+                   <h2 class="text-xl font-black text-[var(--text-app)]">{{ productTimelineData.product.productName }}</h2>
+                   <p class="text-[10px] font-bold text-[var(--text-muted)] tracking-widest uppercase">{{ productTimelineData.product.barcode }} · SON {{ productTimelineData.timeline.length }} ƏMƏLİYYAT</p>
                 </div>
               </div>
-              <div v-if="!productTimelineData.timeline.length" class="text-center py-10 opacity-40 font-bold text-sm">Bu aralıqda hərəkət yoxdur.</div>
-            </div>
-          </div>
 
-          <div v-else class="text-center py-8 opacity-30 text-sm">
-            <UiIcon name="lucide:search" class="w-8 h-8 mx-auto mb-2 opacity-30" />
-            Yuxarıdakı axtarışdan bir məhsul seçin
+              <div class="relative pl-8 space-y-4 before:absolute before:left-[15px] before:top-4 before:h-[calc(100%-32px)] before:w-px before:bg-[var(--border-app)]">
+                <div v-for="(log, i) in productTimelineData.timeline" :key="i" class="relative group">
+                  <div class="absolute -left-[25px] top-1.5 w-4 h-4 rounded-full border-2 border-[var(--bg-app)] z-10" :class="{ 'bg-blue-500': log.type === 'INTAKE', 'bg-emerald-500': log.type === 'SALE', 'bg-rose-500': log.type === 'REFUND' }"></div>
+                  <div class="p-4 bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl flex items-center gap-4 transition-all hover:border-[var(--text-primary)]/40 hover:-translate-y-0.5">
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-bold text-[var(--text-app)]">{{ log.details }}</p>
+                      <p class="text-[11px] font-bold opacity-40 tabular-nums uppercase">{{ new Date(log.date).toLocaleString('az-AZ') }} · {{ log.receiptNo }}</p>
+                    </div>
+                    <div class="text-right">
+                      <p class="text-sm font-black tabular-nums" :class="{ 'text-blue-500': log.type === 'INTAKE', 'text-emerald-500': log.type === 'SALE', 'text-rose-500': log.type === 'REFUND' }">
+                        {{ log.qty > 0 ? '+' : '' }}{{ log.qty }}
+                      </p>
+                      <p class="text-[10px] font-bold opacity-30">{{ log.amount?.toFixed(2) }} ₼</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div v-else class="flex flex-col items-center justify-center py-20 text-[var(--text-muted)]/40">
+              <UiIcon name="lucide:database" class="w-16 h-16 mb-4 stroke-[1]" />
+              <p class="text-sm font-bold">Məlumat axtarılır...</p>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- ══════════════════════════ -->
-      <!-- SALES                      -->
+      <!-- TAB: SALES                      -->
       <!-- ══════════════════════════ -->
-      <div v-else-if="activeTab === 'sales'" class="p-6 space-y-4">
+      <div v-else-if="activeTab === 'sales'" class="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <div class="flex items-center justify-between">
-          <h2 class="font-bold text-sm flex items-center gap-2"><UiIcon name="lucide:list" class="w-4 h-4 text-[var(--text-primary)]" /> Bütün Satışlar</h2>
-          <button @click="exportExcel(salesData?.sales || [], 'Sales')" class="export-btn">
-            <UiIcon name="lucide:download" class="w-3.5 h-3.5" /> Excel İxrac
+          <div class="flex items-center gap-3">
+             <div class="w-2 h-8 bg-[var(--text-primary)] rounded-full"></div>
+             <h2 class="text-xl font-black text-[var(--text-app)] tracking-tight">Əməliyyat Tarixçəsi</h2>
+          </div>
+          <button @click="exportExcel(salesData?.sales || [], 'SalesHistory')" class="btn-premium-action">
+            <UiIcon name="lucide:file-spreadsheet" class="w-4 h-4" />
+            <span>Excel Hesabatı</span>
           </button>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
-          <div class="card p-5 flex flex-col">
-            <h3 class="font-bold text-xs uppercase tracking-wider opacity-60 mb-3 text-center">Ödəniş Növləri</h3>
-            <div class="flex-1 flex items-center justify-center min-h-[220px]" v-if="salesData?.paymentMethods">
-              <Doughnut
-                :data="{ labels: salesData.paymentMethods.labels, datasets: [{ data: salesData.paymentMethods.data, backgroundColor: CHART_COLORS, borderWidth: 0 }] }"
-                :options="doughnutOpts"
-              />
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div class="card-premium h-fit">
+            <div class="p-5 border-b border-[var(--border-app)]/50">
+               <h3 class="text-xs font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Ödəniş Metodları</h3>
             </div>
-            <div class="mt-3 space-y-1.5" v-if="salesData?.paymentMethods">
-              <div v-for="(label, idx) in salesData.paymentMethods.labels" :key="label" class="flex items-center gap-2 text-[11px]">
-                <span class="w-2.5 h-2.5 rounded-sm shrink-0" :style="{ backgroundColor: CHART_COLORS[idx as number] }"></span>
-                <span class="flex-1 font-bold opacity-70">{{ label }}</span>
-                <span class="font-mono font-bold">{{ fmt(salesData.paymentMethods.data[idx]) }} ₼</span>
+            <div class="p-6">
+              <div class="h-[200px] mb-8 relative" v-if="salesData?.paymentMethods">
+                <Doughnut
+                  :data="{ labels: salesData.paymentMethods.labels, datasets: [{ data: salesData.paymentMethods.data, backgroundColor: CHART_COLORS, borderJoinStyle: 'round', borderRadius: 4, spacing: 2 }] }"
+                  :options="doughnutOpts"
+                />
+                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span class="text-xs font-black opacity-30 uppercase tracking-widest">Cəmi</span>
+                  <span class="text-lg font-black tabular-nums">{{ fmt(salesData.paymentMethods.data.reduce((a:number,b:number)=>a+b, 0)) }} ₼</span>
+                </div>
+              </div>
+              <div class="space-y-3" v-if="salesData?.paymentMethods">
+                <div v-for="(label, idx) in salesData.paymentMethods.labels" :key="label" class="flex items-center gap-3 p-2.5 rounded-xl bg-[var(--bg-app)]/50 border border-transparent hover:border-[var(--border-app)] transition-all">
+                  <div class="w-3 h-3 rounded-md shrink-0" :style="{ backgroundColor: CHART_COLORS[Number(idx) % CHART_COLORS.length] }"></div>
+                  <span class="flex-1 text-[12px] font-bold text-[var(--text-app)] opacity-70">{{ label }}</span>
+                  <span class="text-[12px] font-black tabular-nums">{{ fmt(salesData.paymentMethods.data[Number(idx)]) }} <span class="opacity-30">₼</span></span>
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="lg:col-span-3 card overflow-hidden flex flex-col" style="max-height: 550px;">
-            <div class="overflow-auto custom-scrollbar flex-1">
-              <table class="w-full text-left">
-                <thead class="sticky top-0 bg-[var(--bg-app)] z-10">
-                  <tr class="border-b border-[var(--border-app)]">
-                    <th class="th-cell">Tarix</th>
-                    <th class="th-cell">Çek</th>
-                    <th class="th-cell">Kassir</th>
-                    <th class="th-cell">Müştəri</th>
-                    <th class="th-cell text-right">Endirim</th>
-                    <th class="th-cell text-right">Yekun</th>
+          <div class="lg:col-span-3 card-premium overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-separate border-spacing-0">
+                <thead>
+                  <tr class="bg-[var(--bg-app)]/50 backdrop-blur-sm">
+                    <th class="th-premium first:pl-6">Tarix & Zaman</th>
+                    <th class="th-premium">Sənəd No</th>
+                    <th class="th-premium">Kassir</th>
+                    <th class="th-premium">Kontragent</th>
+                    <th class="th-premium text-right">Endirim</th>
+                    <th class="th-premium text-right last:pr-6">Yekun Məbləğ</th>
                   </tr>
                 </thead>
-                <tbody>
-                  <tr v-for="sale in salesData?.sales" :key="sale.id" class="tr-row">
-                    <td class="td-cell font-mono opacity-60">{{ new Date(sale.createdAt).toLocaleString('az-AZ') }}</td>
-                    <td class="td-cell font-mono font-bold">{{ sale.receiptNo }}</td>
-                    <td class="td-cell font-bold opacity-70">{{ sale.cashierName || '—' }}</td>
-                    <td class="td-cell font-bold">{{ sale.customerName || 'Anonim' }}</td>
-                    <td class="td-cell text-right font-mono opacity-50">{{ sale.discountTotal > 0 ? '-' + fmt(sale.discountTotal) : '—' }}</td>
-                    <td class="td-cell text-right font-mono font-black" :class="sale.finalTotal < 0 && 'kpi-negative'">{{ fmt(sale.finalTotal) }} ₼</td>
+                <tbody class="divide-y divide-[var(--border-app)]/50">
+                  <tr v-for="sale in salesData?.sales" :key="sale.id" class="tr-premium group">
+                    <td class="td-premium first:pl-6">
+                      <div class="flex flex-col">
+                        <span class="font-bold text-[var(--text-app)]">{{ new Date(sale.createdAt).toLocaleDateString('az-AZ') }}</span>
+                        <span class="text-[10px] font-bold opacity-30 mt-0.5">{{ new Date(sale.createdAt).toLocaleTimeString('az-AZ', { hour: '2-digit', minute: '2-digit' }) }}</span>
+                      </div>
+                    </td>
+                    <td class="td-premium font-black text-[var(--text-primary)] tabular-nums">{{ sale.receiptNo }}</td>
+                    <td class="td-premium font-bold text-[var(--text-app)] opacity-60">{{ sale.cashierName || 'Sistem' }}</td>
+                    <td class="td-premium">
+                      <div class="flex items-center gap-2">
+                        <div class="w-5 h-5 rounded-full bg-[var(--bg-app)] flex items-center justify-center text-[8px] font-black">{{ (sale.customerName || 'A')[0] }}</div>
+                        <span class="font-bold text-xs">{{ sale.customerName || 'Anonim Müştəri' }}</span>
+                      </div>
+                    </td>
+                    <td class="td-premium text-right tabular-nums text-rose-500 font-bold">{{ sale.discountTotal > 0 ? '-' + fmt(sale.discountTotal) : '—' }}</td>
+                    <td class="td-premium text-right tabular-nums font-black text-sm pr-6" :class="sale.finalTotal < 0 && 'text-rose-600'">{{ fmt(sale.finalTotal) }} ₼</td>
                   </tr>
                 </tbody>
               </table>
-              <div v-if="!salesData?.sales?.length" class="p-10 text-center opacity-40 text-sm font-bold">Heç bir satış tapılmadı</div>
+              <div v-if="!salesData?.sales?.length" class="flex flex-col items-center justify-center py-24 text-[var(--text-muted)] opacity-20">
+                <UiIcon name="lucide:inbox" class="w-16 h-16 mb-2" />
+                <p class="text-sm font-black uppercase tracking-widest">Əməliyyat tapılmadı</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       <!-- ══════════════════════════ -->
-      <!-- EXPENSES                   -->
+      <!-- TAB: EXPENSES                   -->
       <!-- ══════════════════════════ -->
-      <div v-else-if="activeTab === 'expenses'" class="p-6 space-y-4">
-        <div class="flex items-center justify-between">
-          <h2 class="font-bold text-sm flex items-center gap-2"><UiIcon name="lucide:wallet" class="w-4 h-4 text-[var(--text-primary)]" /> Xərclər</h2>
-          <button @click="exportExcel(expensesData?.expenses || [], 'Expenses')" class="export-btn">
-            <UiIcon name="lucide:download" class="w-3.5 h-3.5" /> Excel
-          </button>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div class="card p-5 flex flex-col">
-            <h3 class="font-bold text-xs uppercase tracking-wider opacity-60 mb-3 text-center">Kateqoriyalar</h3>
-            <div class="flex-1 flex items-center justify-center min-h-[220px]" v-if="expensesData?.categoryChart">
-              <Doughnut
-                :data="{ labels: expensesData.categoryChart.labels, datasets: [{ data: expensesData.categoryChart.data, backgroundColor: CHART_COLORS, borderWidth: 0 }] }"
-                :options="doughnutOpts"
-              />
+      <div v-else-if="activeTab === 'expenses'" class="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="card-premium h-fit">
+            <div class="p-6 border-b border-[var(--border-app)]/50">
+               <h3 class="text-sm font-black text-[var(--text-app)]">Kateqoriya bölgüsü</h3>
             </div>
-            <div class="mt-3 space-y-1.5" v-if="expensesData?.categoryChart">
-              <div v-for="(label, idx) in expensesData.categoryChart.labels" :key="label" class="flex items-center gap-2 text-[11px]">
-                <span class="w-2.5 h-2.5 rounded-sm shrink-0" :style="{ backgroundColor: CHART_COLORS[idx as number] }"></span>
-                <span class="flex-1 font-bold opacity-70">{{ label }}</span>
-                <span class="font-mono font-bold">-{{ fmt(expensesData.categoryChart.data[idx as number]) }} ₼</span>
+            <div class="p-8">
+              <div class="h-[220px] mb-8 relative" v-if="expensesData?.categoryChart">
+                <Doughnut
+                  :data="{ labels: expensesData.categoryChart.labels, datasets: [{ data: expensesData.categoryChart.data, backgroundColor: CHART_COLORS, borderRadius: 5, spacing: 3 }] }"
+                  :options="doughnutOpts"
+                />
+              </div>
+              <div class="space-y-4" v-if="expensesData?.categoryChart">
+                <div v-for="(label, idx) in expensesData.categoryChart.labels" :key="label" class="flex items-center gap-4">
+                  <div class="w-1 h-8 rounded-full" :style="{ backgroundColor: CHART_COLORS[Number(idx) % CHART_COLORS.length] }"></div>
+                  <div class="flex-1">
+                    <p class="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-none mb-1">{{ label }}</p>
+                    <p class="text-[14px] font-black text-rose-500 tabular-nums">-{{ fmt(expensesData.categoryChart.data[Number(idx)]) }} <span class="text-[10px] opacity-40">₼</span></p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="lg:col-span-2 card overflow-hidden flex flex-col" style="max-height: 500px;">
-            <div class="overflow-auto custom-scrollbar flex-1">
+          <div class="lg:col-span-2 card-premium overflow-hidden">
+            <div class="p-6 border-b border-[var(--border-app)]/50 flex justify-between items-center bg-[var(--bg-app)]/30">
+               <h3 class="text-sm font-black text-[var(--text-app)]">Xərc Jurnalı</h3>
+               <button @click="exportExcel(expensesData?.expenses || [], 'Expenses')" class="btn-action">İxrac et</button>
+            </div>
+            <div class="overflow-x-auto overflow-y-auto" style="max-height: 600px;">
               <table class="w-full text-left">
                 <thead class="sticky top-0 bg-[var(--bg-app)] z-10">
-                  <tr class="border-b border-[var(--border-app)]">
-                    <th class="th-cell">Tarix</th>
-                    <th class="th-cell">Kateqoriya</th>
-                    <th class="th-cell">İşçi</th>
-                    <th class="th-cell">Qeyd</th>
-                    <th class="th-cell text-right">Məbləğ</th>
+                  <tr>
+                    <th class="th-premium first:pl-8">Tarix</th>
+                    <th class="th-premium">Növ / Kateqoriya</th>
+                    <th class="th-premium">Məsul Şəxs</th>
+                    <th class="th-premium">Detallar</th>
+                    <th class="th-premium text-right last:pr-8">Məbləğ</th>
                   </tr>
                 </thead>
-                <tbody>
-                  <tr v-for="exp in expensesData?.expenses" :key="exp.id" class="tr-row">
-                    <td class="td-cell font-mono opacity-60">{{ new Date(exp.createdAt).toLocaleString('az-AZ') }}</td>
-                    <td class="td-cell"><span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-[var(--bg-app)] border border-[var(--border-app)]">{{ exp.category || '—' }}</span></td>
-                    <td class="td-cell font-bold opacity-60">{{ exp.employeeName || '—' }}</td>
-                    <td class="td-cell opacity-50 max-w-[200px] truncate">{{ exp.notes || '—' }}</td>
-                    <td class="td-cell text-right font-mono font-black">-{{ fmt(exp.amount) }} ₼</td>
+                <tbody class="divide-y divide-[var(--border-app)]/50">
+                  <tr v-for="exp in expensesData?.expenses" :key="exp.id" class="tr-premium group">
+                    <td class="td-premium first:pl-8 font-bold opacity-70">{{ new Date(exp.createdAt).toLocaleDateString('az-AZ') }}</td>
+                    <td class="td-premium">
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-[var(--border-app)]/30 text-[10px] font-black uppercase tracking-widest text-[var(--text-app)] border border-[var(--border-app)]">{{ exp.category || 'Daxili' }}</span>
+                    </td>
+                    <td class="td-premium text-[12px] font-bold opacity-60">{{ exp.employeeName || 'Sistem' }}</td>
+                    <td class="td-premium text-[12px] max-w-[200px] truncate opacity-50">{{ exp.notes || '-' }}</td>
+                    <td class="td-premium text-right font-black text-rose-600 pr-8">-{{ fmt(exp.amount) }} ₼</td>
                   </tr>
                 </tbody>
               </table>
-              <div v-if="!expensesData?.expenses?.length" class="p-10 text-center opacity-40 text-sm font-bold">Xərc tapılmadı</div>
             </div>
           </div>
         </div>
       </div>
 
       <!-- ══════════════════════════ -->
-      <!-- TEAM                       -->
+      <!-- TAB: TEAM                       -->
       <!-- ══════════════════════════ -->
-      <div v-else-if="activeTab === 'team'" class="p-6 space-y-4" v-if="employeesData">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <!-- Cashiers -->
-          <div class="card p-5">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="font-bold text-sm flex items-center gap-2"><UiIcon name="lucide:user-check" class="w-4 h-4 text-[var(--text-primary)]" /> Kassir Performansı</h3>
-              <button @click="exportExcel(employeesData.cashiers, 'Cashiers')" class="export-btn">Excel</button>
+      <div v-else-if="activeTab === 'team'" class="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700" v-if="employeesData">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          <!-- Cashier Section -->
+          <div class="card-premium">
+            <div class="card-header-premium">
+              <div class="flex items-center gap-3">
+                <UiIcon name="lucide:users-2" class="w-5 h-5 text-[var(--text-primary)]" />
+                <h3 class="card-title-premium">Kassir Performansı</h3>
+              </div>
             </div>
 
-            <div class="h-[200px] mb-4" v-if="employeesData.cashiers.length">
-              <Bar
-                :data="{
-                  labels: employeesData.cashiers.map((c: any) => c.name),
-                  datasets: [
-                    { label: 'Satış (₼)', data: employeesData.cashiers.map((c: any) => c.totalRevenue), backgroundColor: 'hsl(255, 75%, 50%, 0.55)', borderRadius: 3 },
-                    { label: 'Endirim (₼)', data: employeesData.cashiers.map((c: any) => c.totalDiscount), backgroundColor: 'hsl(255, 30%, 70%, 0.45)', borderRadius: 3 }
-                  ]
-                }"
-                :options="chartOpts(true)"
-              />
-            </div>
+            <div class="p-6">
+              <div class="h-[220px] mb-10" v-if="employeesData.cashiers.length">
+                <Bar
+                  :data="{
+                    labels: employeesData.cashiers.map((c: any) => c.name),
+                    datasets: [
+                      { label: 'Satış (₼)', data: employeesData.cashiers.map((c: any) => c.totalRevenue), backgroundColor: '#7367F0', borderRadius: 6, maxBarThickness: 40 },
+                      { label: 'Endirim (₼)', data: employeesData.cashiers.map((c: any) => c.totalDiscount), backgroundColor: 'rgba(115,103,240,0.15)', borderRadius: 6, maxBarThickness: 40 }
+                    ]
+                  }"
+                  :options="chartOpts(true)"
+                />
+              </div>
 
-            <div class="space-y-2">
-              <div v-for="(c, idx) in employeesData.cashiers" :key="c.name" class="flex items-center gap-3 p-3 rounded-lg bg-[var(--bg-app)] border border-[var(--border-app)]">
-                <div class="w-7 h-7 rounded-md bg-[var(--text-primary)]/10 text-[var(--text-primary)] flex items-center justify-center text-[11px] font-black">{{ Number(idx) + 1 }}</div>
-                <div class="flex-1 min-w-0">
-                  <div class="font-bold text-sm truncate">{{ c.name }}</div>
-                  <div class="text-[10px] opacity-40">Endirim: {{ fmt(c.totalDiscount) }} ₼</div>
+              <div class="space-y-3">
+                <div v-for="(c, idx) in employeesData.cashiers" :key="c.name" class="flex items-center gap-4 p-4 rounded-2xl bg-[var(--bg-app)]/50 border border-[var(--border-app)] transition-all hover:bg-white hover:border-[var(--text-primary)]/20">
+                  <div class="w-10 h-10 rounded-xl bg-[var(--text-primary)]/10 text-[var(--text-primary)] flex items-center justify-center font-black text-sm">{{ Number(idx) + 1 }}</div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-black text-[var(--text-app)]">{{ c.name }}</p>
+                    <p class="text-[11px] font-bold text-rose-500 opacity-60">Endirim: {{ fmt(c.totalDiscount) }} ₼</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-lg font-black text-[var(--text-app)] tabular-nums">{{ fmt(c.totalRevenue) }} <span class="text-xs opacity-30">₼</span></p>
+                  </div>
                 </div>
-                <div class="text-right font-mono font-black">{{ fmt(c.totalRevenue) }} ₼</div>
               </div>
             </div>
           </div>
 
-          <!-- Top Customers -->
-          <div class="card p-5">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="font-bold text-sm flex items-center gap-2"><UiIcon name="lucide:crown" class="w-4 h-4 text-[var(--text-primary)]" /> VIP Müştərilər</h3>
-              <button @click="exportExcel(employeesData.topCustomers, 'VIP_Customers')" class="export-btn">Excel</button>
+          <!-- VIP Customer Section -->
+          <div class="card-premium">
+            <div class="card-header-premium">
+              <div class="flex items-center gap-3">
+                <UiIcon name="lucide:gem" class="w-5 h-5 text-amber-500" />
+                <h3 class="card-title-premium">Loyal Müştərilər</h3>
+              </div>
             </div>
 
-            <div class="space-y-2">
-              <div v-for="(c, idx) in employeesData.topCustomers" :key="c.name" class="flex items-center gap-3 p-3 rounded-lg bg-[var(--bg-app)] border border-[var(--border-app)]">
-                <div class="w-7 h-7 rounded-md bg-[var(--text-primary)]/10 text-[var(--text-primary)] flex items-center justify-center text-[11px] font-black">{{ Number(idx) + 1 }}</div>
-                <div class="flex-1 min-w-0">
-                  <div class="font-bold text-sm truncate">{{ c.name }}</div>
+            <div class="p-6">
+              <div class="grid grid-cols-1 gap-3">
+                <div v-for="(c, idx) in employeesData.topCustomers" :key="c.name" class="flex items-center gap-4 p-4 rounded-2xl bg-[var(--input-bg)] group hover:bg-[var(--text-primary)] hover:text-white transition-all">
+                  <div class="w-10 h-10 rounded-full bg-[var(--bg-app)] flex items-center justify-center text-[var(--text-primary)] group-hover:bg-white/20 group-hover:text-white transition-colors">
+                    <UiIcon v-if="Number(idx) === 0" name="lucide:medal" class="w-5 h-5 text-amber-500" />
+                    <span v-else class="text-xs font-black">{{ Number(idx) + 1 }}</span>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-black group-hover:text-white">{{ c.name }}</p>
+                    <p class="text-[10px] font-bold opacity-40 uppercase tracking-widest group-hover:text-white/60">VIP Client</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-lg font-black tabular-nums group-hover:text-white">{{ fmt(c.totalSpent) }} <span class="text-xs opacity-30">₼</span></p>
+                  </div>
                 </div>
-                <div class="text-right font-mono font-black text-[var(--text-primary)]">{{ fmt(c.totalSpent) }} ₼</div>
+                <div v-if="!employeesData.topCustomers.length" class="flex flex-col items-center justify-center py-20 opacity-20">
+                  <UiIcon name="lucide:users" class="w-16 h-16 mb-2" />
+                  <p class="text-xs font-bold uppercase tracking-widest">Məlumat yoxdur</p>
+                </div>
               </div>
-              <div v-if="!employeesData.topCustomers.length" class="text-center py-8 opacity-40 text-sm font-bold">Məlumat yoxdur</div>
             </div>
           </div>
         </div>
@@ -646,100 +873,190 @@ const fmt = (n: number) => n?.toFixed(2) ?? '0.00'
 </template>
 
 <style scoped>
-/* Shared card style */
-.card {
-  background: var(--input-bg);
-  border: 1px solid var(--border-app);
-  border-radius: 12px;
-}
+/* ── Typography Override ── */
+* { font-family: 'SF Pro Display', system-ui, -apple-system, sans-serif !important; }
 
-/* KPI cards */
+/* ── KPI Cards ── */
 .kpi-card {
   background: var(--input-bg);
   border: 1px solid var(--border-app);
-  border-radius: 12px;
-  padding: 16px;
-  transition: border-color 0.2s;
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.kpi-card:hover { border-color: var(--text-primary); }
+.kpi-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--text-primary);
+}
+.kpi-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.kpi-icon-box {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .kpi-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.kpi-value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.kpi-value {
+  font-size: 20px;
+  font-weight: 950;
+  color: var(--text-app);
+  letter-spacing: -0.04em;
+}
+.kpi-currency {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  opacity: 0.4;
+}
+
+/* ── Mini Stat Cards ── */
+.mini-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--input-bg);
+  border: 1px solid var(--border-app);
+  border-radius: 18px;
+  transition: all 0.25s;
+}
+.mini-stat-card:hover { border-color: var(--text-primary)/20; }
+.mini-stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--bg-app);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mini-stat-label {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+.mini-stat-value {
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--text-app);
+  margin-top: 1px;
+}
+
+/* ── Premium Cards (Charts/Tables) ── */
+.card-premium {
+  background: var(--input-bg);
+  border: 1px solid var(--border-app);
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+}
+.card-header-premium {
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-title-premium {
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--text-app);
+  letter-spacing: -0.01em;
+}
+
+/* ── Lists & Tables ── */
+.list-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  transition: all 0.2s;
+  cursor: pointer;
+  border-radius: 16px;
+}
+.list-item:hover { background: var(--bg-app); }
+
+.th-premium {
+  padding: 16px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.td-premium {
+  padding: 16px;
+  font-size: 13px;
+  vertical-align: middle;
+}
+.tr-premium { transition: all 0.2s; cursor: pointer; }
+.tr-premium:hover { background: var(--text-primary)/3; }
+
+/* ── Buttons ── */
+.btn-premium-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 20px;
+  height: 44px;
+  background: var(--text-primary);
+  color: white;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 800;
+  transition: all 0.3s;
+}
+.btn-premium-action:hover { opacity: 0.9; transform: scale(1.02); }
+
+.btn-action {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-primary);
+  background: var(--text-primary)/8;
+  padding: 8px 16px;
+  border-radius: 10px;
+  transition: all 0.2s;
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  opacity: 0.5;
-  margin-bottom: 8px;
 }
-.kpi-value {
-  font-size: 1.25rem;
-  font-weight: 900;
-  font-family: 'Space Mono', monospace;
-  letter-spacing: -0.02em;
-}
-.kpi-unit { font-size: 0.75rem; opacity: 0.5; }
-.kpi-negative { color: var(--text-muted); }
+.btn-action:hover { background: var(--text-primary)/15; }
 
-/* Stat row */
-.stat-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: var(--input-bg);
-  border: 1px solid var(--border-app);
-  border-radius: 12px;
-  padding: 12px;
-}
-.stat-label {
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  opacity: 0.4;
-}
-
-/* Export button */
-.export-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--text-primary);
-  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
-  padding: 4px 10px;
-  border-radius: 6px;
-  transition: opacity 0.2s;
-}
-.export-btn:hover { opacity: 0.7; }
-
-/* Table */
-.th-cell {
-  padding: 12px 16px;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  opacity: 0.4;
-}
-.td-cell {
-  padding: 12px 16px;
-  font-size: 12px;
-}
-.tr-row {
-  border-bottom: 1px solid var(--border-app);
-  transition: background 0.15s;
-}
-.tr-row:last-child { border-bottom: none; }
-.tr-row:hover { background: var(--bg-app); }
-
-/* Scrollbar */
+/* ── Utils ── */
 .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--border-app); border-radius: 10px; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-.font-mono { font-family: 'Space Mono', monospace; }
+.fade-enter-active, .fade-leave-active { transition: opacity 0.5s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+
+.scale-enter-active, .scale-leave-active { transition: all 0.2s ease-out; }
+.scale-enter-from, .scale-leave-to { opacity: 0; transform: scale(0.95); }
+
+.tabular-nums { font-variant-numeric: tabular-nums; }
 </style>
