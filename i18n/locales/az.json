@@ -96,7 +96,6 @@
     "products": "Mallar",
     "suppliers": "Tədarükçülər",
     "reports": "Hesabatlar",
-    "intake": "Qəbul Edilənlər",
     "sales": "Satışlar",
     "orders": "Satış Arxivi",
     "employees": "Əməkdaşlar",
@@ -120,7 +119,8 @@
     "inventory_category": "Anbar və Təchizat",
     "finance_category": "Maliyyə və Hesabat",
     "system_category": "Sistem İdarəetmə",
-    "refund": "Geri Ödəniş"
+    "refund": "Geri Ödəniş",
+    "intake": "Mal Qəbulu"
   },
   "employees": {
     "firstName": "Ad",
@@ -287,6 +287,22 @@
     "total": "Yekun",
     "discount": "Endirim",
     "subtotal": "Ara Cəmi"
+  },
+  "intake": {
+    "title": "Mal Qəbulu",
+    "selectSupplier": "Tədarükçü Seçin",
+    "selectProduct": "Məhsul Axtarış",
+    "costPrice": "Alış Qiyməti",
+    "qty": "Sayı",
+    "lineTotal": "Cəmi",
+    "discount": "Endirim",
+    "paidAmount": "Ödənilən",
+    "balanceDue": "Qalıq Borc",
+    "complete": "Qəbulu Tamamla",
+    "noSupplier": "Tədarükçü seçilməyib",
+    "noItems": "Heç bir məhsul əlavə edilməyib",
+    "success": "Məhsul qəbulu uğurla tamamlandı!",
+    "receiptNo": "Qəbul No"
   },
   "refund": {
     "title": "Geri Ödəniş",

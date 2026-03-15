@@ -287,6 +287,22 @@
     "discount": "Discount",
     "subtotal": "Subtotal"
   },
+  "intake": {
+    "title": "Goods Receipt",
+    "selectSupplier": "Select Supplier",
+    "selectProduct": "Search Product",
+    "costPrice": "Cost Price",
+    "qty": "Quantity",
+    "lineTotal": "Total",
+    "discount": "Discount",
+    "paidAmount": "Paid Amount",
+    "balanceDue": "Balance Due",
+    "complete": "Complete Receipt",
+    "noSupplier": "No supplier selected",
+    "noItems": "No items added",
+    "success": "Goods receipt completed successfully!",
+    "receiptNo": "Receipt No"
+  },
   "refund": {
     "title": "Refund",
     "scanReceipt": "Scan receipt or enter number",
