@@ -18,6 +18,10 @@ useHead({
 // --- Data ---
 const suppliers = ref<any[]>([])
 const products = ref<any[]>([])
+const paymentMethods = ref<any[]>([
+  { id: 'static-cash', name: 'Nəğd', icon: 'lucide:banknote' },
+  { id: 'static-card', name: 'Kart', icon: 'lucide:credit-card' }
+])
 const loading = ref(false)
 const saving = ref(false)
 
@@ -27,7 +31,8 @@ const searchQuery = ref('')
 const selectedCategory = ref('Bütün Mallar')
 const cart = ref<any[]>([])
 const notes = ref('')
-const paymentMethod = ref('Nəğd')
+const selectedPaymentMethod = ref<any>(paymentMethods.value[0])
+const showPaymentModal = ref(false)
 const paidAmount = ref<number>(0)
 
 // DOM refs
@@ -46,6 +51,7 @@ const focusSearch = () => {
 onMounted(async () => {
   await fetchSuppliers()
   await fetchProducts()
+  await loadPaymentMethods()
   setTimeout(focusSearch, 500)
 })
 
@@ -65,6 +71,19 @@ const fetchProducts = async () => {
     console.error('Fetch products error:', err)
   } finally {
     loading.value = false
+  }
+}
+
+const loadPaymentMethods = async () => {
+  try {
+    const data = await $fetch<any[]>('/api/payment-methods')
+    if (data && data.length > 0) {
+      // Keep static ones, add DB ones if they are different names
+      const dbMethods = data.filter(dm => !['Nəğd', 'Kart'].includes(dm.name))
+      paymentMethods.value = [...paymentMethods.value, ...dbMethods]
+    }
+  } catch (err) {
+    console.error('Failed to load payment methods:', err)
   }
 }
 
@@ -139,13 +158,16 @@ watch(searchQuery, (newVal: string) => {
 
 // --- Cart Logic ---
 const addToCart = (product: any) => {
+  const wholesale = Number(product.wholesalePrice) || 0
   cart.value.push({
     productId: product.id,
     productName: product.parentName || product.productName,
     barcode: product.barcode,
     attribute: product.attribute,
+    images: product.images,
+    retailPrice: Number(product.retailPrice) || 0,
     qty: 1,
-    costPrice: product.wholesalePrice || 0,
+    costPrice: wholesale,
     discount: 0,
     discountType: 'amount' as 'amount' | 'percent'
   })
@@ -204,12 +226,19 @@ const submitIntake = async () => {
       totalAmount: subtotal.value,
       paidAmount: Number(paidAmount.value) || 0,
       balanceDue: balanceDue.value,
-      paymentMethod: paymentMethod.value,
+      paymentMethod: selectedPaymentMethod.value?.name || 'Nəğd',
       notes: notes.value,
       createdBy: user.value?.name,
       items: cart.value.map(item => ({
-        ...item,
-        total: calculateItemTotal(item)
+        productId: item.productId,
+        productName: item.productName,
+        barcode: item.barcode,
+        qty: Number(item.qty) || 0,
+        costPrice: Number(item.costPrice) || 0,
+        discount: Number(item.discount) || 0,
+        discountType: item.discountType || 'amount',
+        total: calculateItemTotal(item),
+        attribute: item.attribute
       }))
     }
 
@@ -343,21 +372,22 @@ const submitIntake = async () => {
               </div>
             </div>
 
-            <!-- Payment Method -->
+            <!-- Payment Method: Modal Trigger Button -->
             <div class="relative m-0">
-              <UiAutocomplete
-                :modelValue="paymentMethod"
-                @update:modelValue="(val: any) => { paymentMethod = val }"
-                :options="[
-                  { label: 'Nəğd', value: 'Nəğd' },
-                  { label: 'Bank Kartı', value: 'Bank Kartı' },
-                  { label: 'Köçürmə', value: 'Köçürmə' }
-                ]"
-                placeholder="Ödəniş üsulu seçin..." 
-                icon="lucide:wallet" 
-                class="!rounded-xl"
-                size="sm"
-              />
+              <button 
+                @click="showPaymentModal = true"
+                class="w-full flex items-center justify-between gap-3 p-3 bg-[var(--bg-app)]/50 border border-[var(--border-app)] rounded-xl hover:border-[var(--text-primary)]/30 transition-all group"
+              >
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <div class="w-8 h-8 rounded-lg bg-[var(--text-primary)]/10 flex items-center justify-center shrink-0">
+                    <UiIcon :name="selectedPaymentMethod?.icon || 'lucide:wallet'" class="w-4 h-4 text-[var(--text-primary)]" />
+                  </div>
+                  <div class="text-left min-w-0">
+                    <div class="text-xs font-black text-[var(--text-app)] truncate">{{ selectedPaymentMethod?.name || 'Seçilməyib' }}</div>
+                  </div>
+                </div>
+                <UiIcon name="lucide:chevron-right" class="w-3.5 h-3.5 opacity-20 group-hover:opacity-100 transition-opacity" />
+              </button>
             </div>
           </div>
 
@@ -380,7 +410,8 @@ const submitIntake = async () => {
                 <!-- Top Row: Img, Name, Delete -->
                 <div class="flex items-center gap-2.5">
                   <div class="w-10 h-10 rounded-xl bg-[var(--input-bg)] overflow-hidden shrink-0 border border-[var(--border-app)]/50 flex items-center justify-center shadow-sm">
-                    <UiIcon name="lucide:package" class="w-5 h-5 text-[var(--text-app)] opacity-10" />
+                    <img v-if="item.images && item.images.length > 0" :src="item.images[0]" class="w-full h-full object-cover" />
+                    <UiIcon v-else name="lucide:package" class="w-5 h-5 text-[var(--text-app)] opacity-10" />
                   </div>
 
                   <div class="flex-1 min-w-0 pr-6">
@@ -392,6 +423,9 @@ const submitIntake = async () => {
                         {{ Number(item.costPrice).toFixed(2) }} ₼
                       </span>
                       <span class="text-[9px] font-bold tracking-widest bg-[var(--border-app)] px-1.5 py-0.5 rounded-md opacity-60">X {{ item.qty }}</span>
+                      <span v-if="item.retailPrice && item.retailPrice !== item.costPrice" class="text-[9px] font-bold text-green-500/70 italic">
+                        satış: {{ Number(item.retailPrice).toFixed(2) }}
+                      </span>
                     </div>
                   </div>
 
@@ -423,29 +457,29 @@ const submitIntake = async () => {
                       </button>
                     </div>
 
-                    <!-- Cost Price Input -->
-                    <div class="flex items-center bg-[var(--bg-app)] rounded-lg border border-[var(--border-app)] h-8 px-0.5 transition-all focus-within:border-[var(--text-primary)]/40">
-                      <span class="text-[9px] font-black opacity-30 px-1">₼</span>
+                    <!-- Cost Price Input (Subtle integration) -->
+                    <div class="relative flex items-center bg-[var(--input-bg)] rounded-lg h-8 px-1.5 transition-all group-hover/item:bg-[var(--bg-app)]">
+                      <span class="text-[8px] font-black text-green-500/40 mr-1 opacity-60">Tdn.</span>
                       <input 
                         type="number"
                         v-model="item.costPrice"
-                        class="w-14 text-center text-[12px] font-black bg-transparent border-none p-0 focus:ring-0 no-spinners"
+                        class="w-14 text-center text-[12px] font-black bg-transparent border-none p-0 focus:ring-0 no-spinners text-green-600/90"
                       />
                     </div>
 
-                    <!-- Discount Toggle & Input -->
-                    <div class="flex items-center bg-[var(--bg-app)] rounded-lg border border-[var(--border-app)] h-8 px-0.5 transition-all focus-within:border-[var(--text-primary)]/40">
+                    <!-- Discount Toggle & Input (Subtle integration) -->
+                    <div class="relative flex items-center bg-[var(--input-bg)] rounded-lg h-8 px-1.5 transition-all group-hover/item:bg-[var(--bg-app)]">
                       <button 
                         @click="item.discountType = item.discountType === 'amount' ? 'percent' : 'amount'"
-                        class="w-6 h-6 flex items-center justify-center font-black rounded transition-all active:scale-90"
-                        :class="item.discountType === 'percent' ? 'bg-[var(--text-primary)] text-white shadow-sm' : 'text-[var(--text-app)]/40 hover:text-[var(--text-app)]'"
+                        class="text-[9px] font-black mr-1 opacity-60 hover:opacity-100 transition-all"
+                        :class="item.discountType === 'percent' ? 'text-red-500' : 'text-[var(--text-app)]/40'"
                       >
-                        <span class="text-[11px]">{{ item.discountType === 'percent' ? '%' : '₼' }}</span>
+                        {{ item.discountType === 'percent' ? '%' : '₼' }}
                       </button>
                       <input 
                         type="number"
                         v-model="item.discount"
-                        class="bg-transparent border-none text-[12px] w-8 font-black text-center p-0 focus:ring-0 no-spinners"
+                        class="bg-transparent border-none text-[12px] w-8 font-black text-center p-0 focus:ring-0 no-spinners text-red-500/80"
                         placeholder="0"
                       />
                     </div>
@@ -519,8 +553,32 @@ const submitIntake = async () => {
           </div>
         </div>
       </div>
-
     </div>
+
+    <!-- Payment Method Selection Modal -->
+    <UiModal 
+      v-model="showPaymentModal" 
+      :title="t('intake.selectPaymentMethod', 'Ödəniş Üsulunu Seçin')"
+      maxWidth="sm"
+    >
+      <div class="flex flex-col gap-2">
+        <button 
+          v-for="pm in paymentMethods" 
+          :key="pm.id"
+          @click="selectedPaymentMethod = pm; showPaymentModal = false"
+          class="flex items-center gap-4 p-4 rounded-2xl border transition-all group"
+          :class="selectedPaymentMethod?.id === pm.id 
+            ? 'bg-[var(--text-primary)]/10 border-[var(--text-primary)] shadow-sm' 
+            : 'bg-[var(--bg-app)] border-[var(--border-app)] hover:border-[var(--text-primary)]/40'"
+        >
+          <UiIcon :name="pm.icon || 'lucide:credit-card'" class="w-6 h-6" />
+          <div class="flex-1 text-left">
+            <div class="font-black text-[var(--text-app)] text-sm">{{ pm.name }}</div>
+          </div>
+          <UiIcon v-if="selectedPaymentMethod?.id === pm.id" name="lucide:check" class="w-3.5 h-3.5" />
+        </button>
+      </div>
+    </UiModal>
   </div>
 </template>
 
