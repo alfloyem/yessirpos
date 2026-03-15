@@ -67,8 +67,7 @@ const menu = ref([
     isOpen: false,
     children: [
       { title: 'Hesabatlar', titleKey: 'menu.reports', to: '/reports' },
-      { title: 'Xərclər', titleKey: 'menu.expenses', to: '/expenses' },
-      { title: 'Qazanclar', titleKey: 'menu.earnings', to: '/earnings' }
+      { title: 'Xərclər', titleKey: 'menu.expenses', to: '/expenses' }
     ]
   }
 ])
