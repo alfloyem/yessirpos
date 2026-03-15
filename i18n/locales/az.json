@@ -97,7 +97,7 @@
     "suppliers": "Tədarükçülər",
     "reports": "Hesabatlar",
     "sales": "Satışlar",
-    "orders": "Satış Arxivi",
+    "orders": "Fiş Arşivi",
     "employees": "Əməkdaşlar",
     "employee": "Əməkdaş",
     "giftCard": "Hədiyyə Kartı",
@@ -174,7 +174,11 @@
     "rowNumber": "Sıra sayı",
     "clickToCopy": "Kopyalamaq üçün klikləyin",
     "show": "Göstər",
-    "results": "nəticə"
+    "results": "nəticə",
+    "type": "Növ",
+    "operator": "Məsul Şəxs",
+    "counterparty": "Tərəfdaş",
+    "date": "Tarix"
   },
   "toast": {
     "employeeAdded": "Əməkdaş uğurla əlavə edildi",

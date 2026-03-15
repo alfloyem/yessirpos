@@ -172,7 +172,11 @@
     "rowNumber": "Row number",
     "clickToCopy": "Click to copy",
     "show": "Show",
-    "results": "results"
+    "results": "results",
+    "type": "Type",
+    "operator": "Operator",
+    "counterparty": "Partner",
+    "date": "Date"
   },
   "toast": {
     "employeeAdded": "Employee added successfully",

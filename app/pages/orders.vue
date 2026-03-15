@@ -6,24 +6,25 @@ import DataTable from '~/components/ui/DataTable.vue'
 import Modal from '~/components/ui/Modal.vue'
 import UiButton from '~/components/ui/Button.vue'
 import UiIcon from '~/components/ui/Icon.vue'
-import { printReceipt as printReceiptGlobal, type ReceiptData } from '~/utils/receiptPrinter'
+import { printReceipt as printReceiptGlobal, printIntakeReceipt, type ReceiptData } from '~/utils/receiptPrinter'
 
 const { t } = useI18n()
 const toast = useToast()
 const { token } = useAuth()
 
 useHead({
-  title: t('menu.orders', 'Satış Arşivi')
+  title: t('menu.orders', 'Fiş Arşivi')
 })
 
 // --- Schema ---
 const orderSchema = computed(() => [
+  { key: 'type', label: t('common.type', 'Növ'), inTable: true, sortable: true },
   { key: 'receiptNo', label: t('sales.receiptNo', 'Çek No'), inTable: true, sortable: true },
-  { key: 'createdAt', label: t('common.date', 'Tarix'), inTable: true, sortable: true },
-  { key: 'cashierName', label: t('sales.cashier', 'Kassir'), inTable: true, sortable: true },
-  { key: 'customerName', label: t('menu.customers', 'Müştəri'), inTable: true, sortable: true },
+  { key: 'createdAtFormatted', label: t('common.date', 'Tarix'), inTable: true, sortable: true },
+  { key: 'operator', label: t('common.operator', 'Məsul Şəxs'), inTable: true, sortable: true },
+  { key: 'counterparty', label: t('common.counterparty', 'Tərəfdaş'), inTable: true, sortable: true },
   { key: 'paymentMethod', label: t('sales.paymentMethod', 'Ödəniş Üsulu'), inTable: true, sortable: false },
-  { key: 'finalTotal', label: t('sales.total', 'Yekun'), inTable: true, sortable: true },
+  { key: 'total', label: t('sales.total', 'Yekun'), inTable: true, sortable: true },
 ])
 
 const columns = computed(() => 
@@ -41,14 +42,14 @@ const selectedOrder = ref<any>(null)
 const loadOrders = async () => {
   loading.value = true
   try {
-    const data = await $fetch('/api/sales', {
+    const data = await $fetch('/api/receipts', {
       headers: { Authorization: `Bearer ${token.value}` }
     })
     orders.value = (data as any[]).map(o => ({
       ...o,
       _date: new Date(o.createdAt),
-      createdAt: new Date(o.createdAt).toLocaleString('az-AZ', {
-        day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
+      createdAtFormatted: new Date(o.createdAt).toLocaleString('az-AZ', {
+        day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
       })
     }))
   } catch (err) {
@@ -68,6 +69,7 @@ const handleViewDetails = (row: any) => {
 }
 
 const getPaymentMethodLabel = (order: any) => {
+  if (order.type === 'INTAKE') return order.paymentDetails?.method || '---'
   if (!order.paymentDetails) return '---'
   if (order.paymentDetails.isMulti) {
     const methods = Object.entries(order.paymentDetails.payments)
@@ -78,55 +80,72 @@ const getPaymentMethodLabel = (order: any) => {
   return order.paymentDetails.method || '---'
 }
 
-// --- Printing Logic (Mirrored from sales.vue but fixed for archive data) ---
 const printOrder = (order: any) => {
-  const receiptData: ReceiptData = {
-    receiptNo: order.receiptNo,
-    cashierName: order.cashierName || 'Məlum deyil',
-    currentDate: order.createdAt,
-    subtotal: Number(order.subtotal) || 0,
-    finalTotal: Number(order.finalTotal) || 0,
-    discountTotal: Number(order.discountTotal) || 0,
-    isArchive: true,
-    items: order.items.map((item: any) => ({
-      productName: item.productName,
-      barcode: item.barcode,
-      qty: Number(item.qty),
-      price: Number(item.price),
-      finalPrice: Number(item.price), // Archive stores final price usually
-      discount: Number(item.discount) || 0,
-      discountType: 'amount',
-      discountValue: Number(item.discount) || 0,
-      total: Number(item.total),
-      attribute: item.attribute
-    })),
-    customer: order.customerName ? {
-      name: order.customerName,
-      barcode: order.customerBarcode
-    } : undefined,
-    paymentDetails: {
-      isMulti: order.paymentDetails?.isMulti || false,
-      method: order.paymentDetails?.method || 'Nəğd',
-      payments: order.paymentDetails?.payments,
-      received: order.paymentDetails?.received,
-      change: order.paymentDetails?.change,
-      giftCard: order.paymentDetails?.giftCardBarcode ? {
-        barcode: order.paymentDetails.giftCardBarcode,
-        remaining: 0 // In archive we don't necessarily know current remaining
-      } : undefined
+  if (order.type === 'INTAKE') {
+    printIntakeReceipt({
+      receiptNo: order.receiptNo,
+      supplierName: order.counterparty,
+      createdBy: order.operator,
+      date: new Date(order.createdAt).toLocaleString('az-AZ'),
+      items: order.items.map((it: any) => ({
+        ...it,
+        costPrice: it.price, // In Intake API, costPrice is mapped to price
+        discount: it.discount || 0,
+        discountType: it.discountType || 'amount'
+      })),
+      totalAmount: order.total,
+      paidAmount: order.paymentDetails?.paidAmount || order.total,
+      balanceDue: order.paymentDetails?.balanceDue || 0,
+      paymentMethod: order.paymentDetails?.method || 'Nəğd',
+      notes: order.paymentDetails?.notes || ''
+    })
+  } else {
+    // Sale or Refund
+    const isRefund = order.type === 'REFUND'
+    const receiptData: ReceiptData = {
+      receiptNo: order.receiptNo,
+      cashierName: order.operator || 'Məlum deyil',
+      currentDate: order.createdAtFormatted,
+      subtotal: Number(order.subtotal) || 0,
+      finalTotal: Number(order.total) || 0,
+      discountTotal: Number(order.discountTotal) || 0,
+      isArchive: true,
+      items: order.items.map((item: any) => ({
+        productName: isRefund && !item.productName.includes('(GERİ)') ? `(GERİ) ${item.productName}` : item.productName,
+        barcode: item.barcode,
+        qty: Math.abs(Number(item.qty)),
+        price: Number(item.price),
+        finalPrice: Math.abs(Number(item.total / item.qty)),
+        discount: Math.abs(Number(item.discount)) || 0,
+        discountType: 'amount',
+        discountValue: Math.abs(Number(item.discount / item.qty)) || 0,
+        total: Math.abs(Number(item.total)),
+        attribute: item.attribute
+      })),
+      customer: order.counterparty !== 'Anonim Müştəri' ? {
+        name: order.counterparty,
+        barcode: order.paymentDetails?.customerBarcode
+      } : undefined,
+      paymentDetails: {
+        isMulti: order.paymentDetails?.isMulti || false,
+        method: isRefund ? "GERİ ÖDƏNİŞ" : (order.paymentDetails?.method || 'Nəğd'),
+        payments: order.paymentDetails?.payments,
+        received: order.paymentDetails?.received,
+        change: order.paymentDetails?.change
+      }
     }
+    printReceiptGlobal(receiptData)
   }
-
-  printReceiptGlobal(receiptData)
 }
 
 const getProfit = (order: any) => {
-  if (!order.items) return 0
+  if (order.type === 'INTAKE' || !order.items) return 0
   return order.items.reduce((sum: number, item: any) => {
     const wholesale = Number(item.wholesalePrice) || 0
     const price = Number(item.price) || 0
     const qty = Number(item.qty) || 0
     const discount = Number(item.discount) || 0
+    // If qty is negative (refund), profit is also effectively reversed
     return sum + ((price - wholesale) * qty - discount)
   }, 0)
 }
@@ -135,10 +154,29 @@ const customSearch = (item: any, query: string) => {
   const q = query.toLowerCase()
   return (
     item.receiptNo.toLowerCase().includes(q) ||
-    (item.customerName || '').toLowerCase().includes(q) ||
-    (item.cashierName || '').toLowerCase().includes(q) ||
+    item.counterparty.toLowerCase().includes(q) ||
+    item.operator.toLowerCase().includes(q) ||
+    item.type.toLowerCase().includes(q) ||
     getPaymentMethodLabel(item).toLowerCase().includes(q)
   )
+}
+
+const getTypeColor = (type: string) => {
+  switch (type) {
+    case 'SALE': return 'text-blue-500 bg-blue-500/10'
+    case 'REFUND': return 'text-red-500 bg-red-500/10'
+    case 'INTAKE': return 'text-green-500 bg-green-500/10'
+    default: return 'text-gray-500 bg-gray-500/10'
+  }
+}
+
+const getTypeText = (type: string) => {
+  switch (type) {
+    case 'SALE': return 'Satış'
+    case 'REFUND': return 'Geri Qaytarma'
+    case 'INTAKE': return 'Məhsul Qəbulu'
+    default: return type
+  }
 }
 </script>
 
@@ -146,26 +184,26 @@ const customSearch = (item: any, query: string) => {
   <div class="space-y-6">
     <div class="flex items-center justify-between">
       <h1 class="text-2xl font-bold text-[var(--text-app)]">
-        {{ t('menu.orders', 'Satış Arşivi') }}
+        {{ t('menu.orders', 'Fiş Arşivi') }}
       </h1>
       
       <div class="flex items-center gap-3">
         <div class="px-4 py-2 bg-[var(--text-primary)]/5 rounded-xl border border-[var(--text-primary)]/10">
-          <span class="text-xs font-bold opacity-50 uppercase tracking-wider block">Ümumi Satış</span>
-          <span class="text-lg font-black text-[var(--text-primary)]">
-            {{ orders.reduce((sum: number, o: any) => sum + Number(o.finalTotal), 0).toFixed(2) }} ₼
+          <span class="text-[10px] font-black opacity-40 uppercase tracking-widest block mb-1">Ümumi Dövriyyə</span>
+          <span class="text-lg font-black text-[var(--text-primary)] font-mono">
+            {{ orders.reduce((sum: number, o: any) => sum + Math.abs(Number(o.total)), 0).toFixed(2) }} ₼
           </span>
         </div>
-        <div class="px-4 py-2 bg-green-500/5 rounded-xl border border-green-500/10">
-          <span class="text-xs font-bold text-green-600 opacity-70 uppercase tracking-wider block">Satış Sayı</span>
-          <span class="text-lg font-black text-green-600">{{ orders.length }}</span>
+        <div class="px-4 py-2 bg-[var(--bg-app)] rounded-xl border border-[var(--border-app)]">
+          <span class="text-[10px] font-black opacity-40 uppercase tracking-widest block mb-1">Əməliyyat Sayı</span>
+          <span class="text-lg font-black font-mono">{{ orders.length }}</span>
         </div>
       </div>
     </div>
 
     <!-- Data Table -->
     <DataTable 
-      :title="t('menu.orders', 'Satış Arşivi')"
+      :title="t('menu.orders', 'Fiş Arşivi')"
       :data="orders" 
       :columns="columns"
       :actions="true"
@@ -175,57 +213,65 @@ const customSearch = (item: any, query: string) => {
       :custom-search="customSearch"
       @refresh="loadOrders"
     >
-      <!-- Receipt No Custom Format -->
-      <template #cell-receiptNo="{ value, highlight }">
-        <div class="font-mono font-bold text-[var(--text-primary)]" v-html="highlight(value)"></div>
+      <!-- Type Column -->
+      <template #cell-type="{ value }">
+        <span class="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider" :class="getTypeColor(value)">
+          {{ getTypeText(value) }}
+        </span>
       </template>
 
-      <!-- Customer Name -->
-      <template #cell-customerName="{ value, highlight }">
-        <span v-if="value" class="font-medium" v-html="highlight(value)"></span>
-        <span v-else class="opacity-30">---</span>
+      <!-- Receipt No -->
+      <template #cell-receiptNo="{ value, highlight }">
+        <div class="font-mono font-bold text-[var(--text-app)] opacity-80" v-html="highlight(value)"></div>
+      </template>
+
+      <!-- Counterparty -->
+      <template #cell-counterparty="{ value, highlight }">
+        <span class="font-black text-sm" v-html="highlight(value)"></span>
       </template>
 
       <!-- Payment Method -->
       <template #cell-paymentMethod="{ row }">
-        <div class="flex items-center gap-2">
-          <span class="px-2 py-1 bg-[var(--text-primary)]/5 border border-[var(--text-primary)]/10 rounded-lg text-xs font-bold">
-            {{ getPaymentMethodLabel(row) }}
-          </span>
-        </div>
+        <span class="text-[11px] font-bold opacity-60">
+          {{ getPaymentMethodLabel(row) }}
+        </span>
       </template>
 
       <!-- Total -->
-      <template #cell-finalTotal="{ value, highlight }">
-        <span class="font-black text-[var(--text-app)]" v-html="highlight(Number(value).toFixed(2)) + ' ₼'"></span>
+      <template #cell-total="{ row }">
+        <span class="font-black tabular-nums font-mono" :class="row.total < 0 ? 'text-red-500' : 'text-[var(--text-app)]'">
+          {{ row.total.toFixed(2) }} ₼
+        </span>
       </template>
 
       <!-- Custom Actions -->
       <template #row-actions="{ row }">
-        <div class="flex items-center gap-1">
-          <UiButton 
-            variant="ghost" 
-            size="icon" 
-            icon="lucide:eye" 
-            @click="handleViewDetails(row)"
-            class="hover:text-[var(--text-primary)]"
-          />
-        </div>
+        <UiButton 
+          variant="ghost" 
+          size="icon" 
+          icon="lucide:eye" 
+          @click="handleViewDetails(row)"
+          class="hover:text-[var(--text-primary)]"
+        />
       </template>
     </DataTable>
 
     <!-- Details Modal -->
-    <Modal v-model="showDetailsModal" :title="`Satış Detalları - ${selectedOrder?.receiptNo}`" max-width="2xl">
+    <Modal v-model="showDetailsModal" :title="`${getTypeText(selectedOrder?.type)} - ${selectedOrder?.receiptNo}`" max-width="3xl">
       <div v-if="selectedOrder" class="space-y-6">
         <!-- Header Info -->
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-3 gap-4">
           <div class="p-4 rounded-2xl bg-[var(--bg-app)] border border-[var(--border-app)]">
-            <span class="text-[10px] font-bold opacity-40 uppercase tracking-widest block mb-1">Kassir</span>
-            <span class="font-bold">{{ selectedOrder.cashierName }}</span>
+            <span class="text-[9px] font-black opacity-40 uppercase tracking-widest block mb-1">Məsul Şəxs</span>
+            <span class="font-black text-sm">{{ selectedOrder.operator }}</span>
           </div>
           <div class="p-4 rounded-2xl bg-[var(--bg-app)] border border-[var(--border-app)]">
-            <span class="text-[10px] font-bold opacity-40 uppercase tracking-widest block mb-1">Tarix</span>
-            <span class="font-bold">{{ selectedOrder.createdAt }}</span>
+            <span class="text-[9px] font-black opacity-40 uppercase tracking-widest block mb-1">Tarix</span>
+            <span class="font-black text-sm">{{ selectedOrder.createdAtFormatted }}</span>
+          </div>
+          <div class="p-4 rounded-2xl bg-[var(--bg-app)] border border-[var(--border-app)]">
+            <span class="text-[9px] font-black opacity-40 uppercase tracking-widest block mb-1">Tərəfdaş</span>
+            <span class="font-black text-sm">{{ selectedOrder.counterparty }}</span>
           </div>
         </div>
 
@@ -233,34 +279,33 @@ const customSearch = (item: any, query: string) => {
         <div class="rounded-2xl border border-[var(--border-app)] overflow-hidden">
           <table class="w-full text-left border-collapse">
             <thead>
-              <tr class="bg-[var(--text-primary)]/5">
+              <tr class="bg-[var(--input-bg)]">
                 <th class="px-4 py-3 text-[10px] font-black uppercase tracking-widest opacity-40">Məhsul</th>
-                <th class="px-4 py-3 text-[10px] font-black uppercase tracking-widest opacity-40">Say/Qiymət</th>
-                <th class="px-4 py-3 text-[10px] font-black uppercase tracking-widest opacity-40">Qazanc</th>
+                <th class="px-4 py-3 text-[10px] font-black uppercase tracking-widest opacity-40">Say / Qiymət</th>
+                <th v-if="selectedOrder.type !== 'INTAKE'" class="px-4 py-3 text-[10px] font-black uppercase tracking-widest opacity-40">Qazanc</th>
                 <th class="px-4 py-3 text-[10px] font-black uppercase tracking-widest opacity-40 text-right">Cəmi</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-[var(--border-app)]">
               <tr v-for="item in selectedOrder.items" :key="item.id" class="hover:bg-[var(--text-primary)]/[0.02]">
                 <td class="px-4 py-3">
-                  <div class="font-bold text-sm">{{ item.productName }}</div>
-                  <div class="text-[10px] opacity-50 font-mono">{{ item.barcode }}</div>
-                  <div v-if="item.attribute" class="flex gap-1 mt-1">
-                    <span class="text-[9px] px-1.5 py-0.5 bg-[var(--border-app)] rounded text-xs font-bold">{{ item.attribute }}</span>
+                  <div class="font-black text-sm">{{ item.productName }}</div>
+                  <div class="text-[10px] opacity-40 font-mono">{{ item.barcode }}</div>
+                  <div v-if="item.attribute" class="mt-1">
+                    <span class="text-[9px] px-1.5 py-0.5 bg-[var(--input-bg)] rounded font-black opacity-60">{{ item.attribute }}</span>
                   </div>
                 </td>
                 <td class="px-4 py-3">
-                  <span class="text-sm font-medium">{{ item.qty }} x {{ item.price.toFixed(2) }} ₼</span>
-                  <div v-if="item.discount > 0" class="text-[10px] text-green-600 font-bold">Endirim: -{{ item.discount.toFixed(2) }} ₼</div>
+                  <div class="text-sm font-black tabular-nums">{{ item.qty }} x {{ item.price.toFixed(2) }} ₼</div>
+                  <div v-if="item.discount > 0" class="text-[10px] text-red-500 font-bold">Endirim: -{{ item.discount.toFixed(2) }} ₼</div>
                 </td>
-                <td class="px-4 py-3">
-                  <div class="text-sm font-bold text-amber-600">
+                <td v-if="selectedOrder.type !== 'INTAKE'" class="px-4 py-3">
+                  <div class="text-sm font-black font-mono" :class="item.qty < 0 ? 'text-red-400' : 'text-green-600'">
                     {{ ((item.price - item.wholesalePrice) * item.qty - item.discount).toFixed(2) }} ₼
                   </div>
-                  <div class="text-[9px] opacity-40">M: {{ (item.price - item.wholesalePrice).toFixed(2) }}</div>
                 </td>
                 <td class="px-4 py-3 text-right">
-                  <span class="font-bold text-sm">{{ item.total.toFixed(2) }} ₼</span>
+                  <span class="font-black text-sm tabular-nums font-mono">{{ item.total.toFixed(2) }} ₼</span>
                 </td>
               </tr>
             </tbody>
@@ -268,27 +313,34 @@ const customSearch = (item: any, query: string) => {
         </div>
 
         <!-- Totals -->
-        <div class="flex flex-col items-end gap-2 pr-4">
-          <div class="flex gap-8 text-sm">
-            <span class="opacity-50">Ara Cəmi:</span>
-            <span class="font-bold">{{ selectedOrder.subtotal.toFixed(2) }} ₼</span>
+        <div class="flex justify-between items-start">
+          <div class="text-[11px] font-bold opacity-40 max-w-[200px]">
+             * Bu məlumatlar arxiv məqsədi daşıyır. Ödəniş üsulu: {{ getPaymentMethodLabel(selectedOrder) }}
+             <p v-if="selectedOrder.paymentDetails?.notes" class="mt-2 text-orange-600 italic">Qeyd: {{ selectedOrder.paymentDetails.notes }}</p>
           </div>
-          <div v-if="selectedOrder.discountTotal > 0" class="flex gap-8 text-sm text-green-600">
-            <span class="opacity-70 font-bold">Toplam Endirim:</span>
-            <span class="font-bold">-${{ selectedOrder.discountTotal.toFixed(2) }} ₼</span>
-          </div>
-          <div class="flex gap-8 text-sm text-amber-600 bg-amber-500/5 px-3 py-1 rounded-md">
-            <span class="opacity-70 font-bold">Toplam Qazanc (Profit):</span>
-            <span class="font-bold">{{ getProfit(selectedOrder).toFixed(2) }} ₼</span>
-          </div>
-          <div class="flex gap-8 text-xl font-black pt-2 border-t border-[var(--border-app)] w-full justify-end">
-            <span>YEKUN:</span>
-            <span class="text-[var(--text-primary)]">{{ selectedOrder.finalTotal.toFixed(2) }} ₼</span>
+          
+          <div class="space-y-2 min-w-[240px]">
+            <div class="flex justify-between text-xs font-bold">
+              <span class="opacity-50">Ara Cəmi:</span>
+              <span class="font-mono">{{ selectedOrder.subtotal.toFixed(2) }} ₼</span>
+            </div>
+            <div v-if="selectedOrder.discountTotal > 0" class="flex justify-between text-xs font-bold text-red-500">
+              <span>Toplam Endirim:</span>
+              <span class="font-mono">-{{ selectedOrder.discountTotal.toFixed(2) }} ₼</span>
+            </div>
+            <div v-if="selectedOrder.type !== 'INTAKE'" class="flex justify-between text-xs font-black text-green-600 p-2 bg-green-500/5 rounded-xl">
+              <span>Təxmini Mənfəət:</span>
+              <span class="font-mono">{{ getProfit(selectedOrder).toFixed(2) }} ₼</span>
+            </div>
+            <div class="flex justify-between items-end pt-3 border-t border-[var(--border-app)]">
+              <span class="text-xs font-black uppercase tracking-widest">Yekun:</span>
+              <span class="text-2xl font-black text-[var(--text-primary)] font-mono">{{ selectedOrder.total.toFixed(2) }} ₼</span>
+            </div>
           </div>
         </div>
       </div>
       <template #footer>
-        <UiButton variant="ghost" @click="showDetailsModal = false" class="!px-6">{{ t('common.close', 'Bağla') }}</UiButton>
+        <UiButton variant="ghost" @click="showDetailsModal = false" class="!px-6">Bağla</UiButton>
         <UiButton variant="primary" icon="lucide:printer" @click="printOrder(selectedOrder)" class="!px-8">Çap Et</UiButton>
       </template>
     </Modal>
@@ -296,7 +348,5 @@ const customSearch = (item: any, query: string) => {
 </template>
 
 <style scoped>
-.custom-scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
+.font-mono { font-family: 'JetBrains Mono', 'Fira Code', monospace; }
 </style>
