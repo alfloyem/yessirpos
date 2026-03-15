@@ -20,21 +20,15 @@ const receiptQuery = ref('')
 
 onMounted(() => {
   setTimeout(() => {
-    if (receiptInput.value) {
-      if (typeof receiptInput.value.focus === 'function') {
-        receiptInput.value.focus()
-      } else {
-        receiptInput.value.$el?.querySelector('input')?.focus()
-      }
-    }
+    focusInput()
   }, 500)
 })
+
 const loading = ref(false)
 const processing = ref(false)
 const originalSale = ref<any>(null)
 const refundItems = ref<any[]>([])
 
-// Logic for finding the sale
 const searchReceipt = async () => {
   if (!receiptQuery.value) return
   
@@ -46,8 +40,6 @@ const searchReceipt = async () => {
     const data = await $fetch<any>(`/api/sales/search?receiptNo=${receiptQuery.value}`)
     originalSale.value = data
     
-    // Initialize refund items
-    // By default, 0 items are selected for refund
     refundItems.value = data.items.map((item: any) => ({
       ...item,
       refundQty: 0,
@@ -62,7 +54,6 @@ const searchReceipt = async () => {
   }
 }
 
-// Watch for search query change to auto-search for long receipt numbers
 watch(receiptQuery, (newVal) => {
   if (newVal.length === 13) {
     searchReceipt()
@@ -86,7 +77,6 @@ const updateRefundQty = (item: any, delta: number) => {
   }
 }
 
-// Computed totals for refund
 const refundTotals = computed(() => {
   const selected = refundItems.value.filter(i => i.selected && i.refundQty > 0)
   
@@ -94,28 +84,16 @@ const refundTotals = computed(() => {
   let finalTotal = 0
   let cashbackToSubtract = 0
   
-  // Ratio calculation: we need to handle split discounts
-  // If the original sale had a global discount, we should apply it proportionally to refunds
   const originalFinalTotal = originalSale.value?.finalTotal || 0
   const originalSubtotal = originalSale.value?.subtotal || 0
   const globalDiscountRatio = originalSubtotal > 0 ? originalFinalTotal / originalSubtotal : 1
 
   selected.forEach(item => {
-    // lineSubtotal is price * refundQty
-    const lineSubtotal = item.price * item.refundQty
-    subtotal += lineSubtotal
-    
-    // lineTotal in SaleItem is (price - lineDiscount) * qty
-    // So refund unit price (with line discount) is item.total / item.qty? No, item.total is total for all qty.
+    subtotal += item.price * item.refundQty
     const unitPriceWithLineDiscount = item.total / item.qty
-    const lineRefundBeforeGlobal = unitPriceWithLineDiscount * item.refundQty
-    
-    // Apply global discount ratio if any
-    finalTotal += lineRefundBeforeGlobal * globalDiscountRatio
+    finalTotal += (unitPriceWithLineDiscount * item.refundQty) * globalDiscountRatio
   })
 
-  // Calculate cashback to subtract
-  // originalSale.cashbackEarned / originalSale.finalTotal
   if (originalSale.value?.cashbackEarned > 0 && originalFinalTotal > 0) {
     const cashbackRatio = originalSale.value.cashbackEarned / originalFinalTotal
     cashbackToSubtract = finalTotal * cashbackRatio
@@ -144,7 +122,7 @@ const processRefund = async () => {
         id: i.id,
         productId: i.productId,
         qty: i.refundQty,
-        total: (i.total / i.qty) * i.refundQty, // Portion of line total (before global discount)
+        total: (i.total / i.qty) * i.refundQty,
         lineDiscountToRefund: (i.discount / i.qty) * i.refundQty
       })),
       refundTotals: {
@@ -162,14 +140,8 @@ const processRefund = async () => {
     })
 
     toast.success(t('refund.refundSuccess', 'Geri ödəniş uğurla tamamlandı!'))
-    
-    // Print logic for refund receipt
     printRefundReceipt(savedRefund)
-
-    // Reset page
-    originalSale.value = null
-    refundItems.value = []
-    receiptQuery.value = ''
+    clearSearch()
   } catch (err: any) {
     toast.error(err.statusMessage || t('refund.error', 'Xəta baş verdi'))
   } finally {
@@ -178,12 +150,11 @@ const processRefund = async () => {
 }
 
 const printRefundReceipt = (refundSale: any) => {
-  // Map refundSale back to ReceiptData format for the printer
   const receiptData: ReceiptData = {
     receiptNo: refundSale.receiptNo,
     cashierName: refundSale.cashierName || '---',
     currentDate: new Date(refundSale.createdAt).toLocaleString('az-AZ'),
-    subtotal: -refundSale.subtotal, // Display as positive in refund receipt? Or marked as REFUND
+    subtotal: -refundSale.subtotal, 
     finalTotal: -refundSale.finalTotal,
     discountTotal: -refundSale.discountTotal,
     isArchive: false,
@@ -207,213 +178,214 @@ const printRefundReceipt = (refundSale: any) => {
       method: "GERİ ÖDƏNİŞ"
     }
   }
-  
   printReceiptGlobal(receiptData)
 }
 
+const clearSearch = () => {
+  originalSale.value = null
+  refundItems.value = []
+  receiptQuery.value = ''
+  nextTick(() => focusInput())
+}
+
+const focusInput = () => {
+  if (receiptInput.value) {
+    if (typeof receiptInput.value.focus === 'function') {
+      receiptInput.value.focus()
+    } else {
+      receiptInput.value.$el?.querySelector('input')?.focus()
+    }
+  }
+}
 </script>
 
 <template>
-  <div class="space-y-6 max-w-5xl mx-auto">
-    <!-- Header -->
-    <div class="flex items-center justify-between">
-      <div>
-        <h1 class="text-3xl font-black text-[var(--text-app)] tracking-tight">
+  <div class="h-full flex flex-col bg-[var(--bg-app)] overflow-hidden">
+    <!-- Header: Simplified -->
+    <header class="h-16 shrink-0 bg-[var(--bg-app)] border-b border-[var(--border-app)] flex items-center justify-between px-6 z-20">
+      <div class="flex items-center gap-3">
+        <UiIcon name="lucide:rotate-ccw" class="w-5 h-5 text-[var(--text-primary)]" />
+        <h1 class="text-lg font-black text-[var(--text-app)] tracking-tight">
           {{ t('menu.refund', 'Geri Ödəniş') }}
         </h1>
-        <p class="text-sm opacity-50 mt-1">Sistemdəki mövcud satış çekləri üzrə geri qaytarma əməliyyatı.</p>
       </div>
-    </div>
-
-    <!-- Search Section -->
-    <div class="bg-[var(--bg-sidebar)] border border-[var(--border-app)] p-6 rounded-3xl shadow-sm">
-      <div class="relative max-w-xl mx-auto">
-        <UiInput 
-          ref="receiptInput"
-          v-model="receiptQuery"
-          :placeholder="t('refund.scanReceipt', 'Çeki skan edin və ya nömrəsini yazın')"
-          class="!h-16 !text-lg !pl-14 !rounded-2xl shadow-xl border-2 focus:border-[var(--text-primary)] transition-all"
-          @keyup.enter="searchReceipt"
-          :disabled="loading"
-        />
-        <div class="absolute left-5 top-1/2 -translate-y-1/2 opacity-30">
-          <UiIcon name="lucide:scan-barcode" class="w-7 h-7" />
-        </div>
-        <div 
-          v-if="loading" 
-          class="absolute right-5 top-1/2 -translate-y-1/2"
+      
+      <!-- Integrated Search Tool -->
+      <div v-if="originalSale" class="flex items-center gap-2">
+        <button 
+          @click="clearSearch"
+          class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-red-500 bg-red-500/10 px-4 py-2 rounded-xl hover:bg-red-500/20 transition-all"
         >
-          <UiIcon name="lucide:loader-2" class="w-6 h-6 animate-spin text-[var(--text-primary)]" />
-        </div>
+          <UiIcon name="lucide:trash-2" class="w-3.5 h-3.5" />
+          Yeni Axtarış
+        </button>
       </div>
-    </div>
+    </header>
 
-    <Transition name="fade">
-      <div v-if="originalSale" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Results Column -->
-        <div class="lg:col-span-2 space-y-6">
-          <div class="bg-[var(--bg-sidebar)] border border-[var(--border-app)] rounded-3xl overflow-hidden shadow-sm">
-            <div class="px-6 py-4 border-b border-[var(--border-app)] bg-[var(--bg-app)]/50 flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div class="p-2 bg-[var(--text-primary)]/10 rounded-xl">
-                  <UiIcon name="lucide:receipt" class="w-5 h-5 text-[var(--text-primary)]" />
-                </div>
-                <div>
-                  <div class="text-xs font-bold opacity-40 uppercase tracking-widest">Çek No</div>
-                  <div class="font-mono font-black text-[var(--text-primary)]">{{ originalSale.receiptNo }}</div>
-                </div>
-              </div>
-              <div class="text-right">
-                <div class="text-xs font-bold opacity-40 uppercase tracking-widest">Tarix</div>
-                <div class="font-bold">{{ new Date(originalSale.createdAt).toLocaleString('az-AZ') }}</div>
-              </div>
+    <main class="flex-1 flex overflow-hidden">
+      <!-- Left Content: Cleaner & More Minimal -->
+      <div class="flex-1 flex flex-col min-w-0 relative">
+        <div v-if="!originalSale" class="h-full flex flex-col items-center justify-center p-6 text-center">
+          <div class="max-w-md w-full space-y-8">
+            <div class="w-20 h-20 rounded-full bg-[var(--border-app)]/20 flex items-center justify-center mx-auto mb-2 text-[var(--border-app)]">
+              <UiIcon name="lucide:scan-barcode" class="w-10 h-10" />
             </div>
-
-            <div class="overflow-x-auto">
-              <table class="w-full text-left">
-                <thead>
-                  <tr class="text-[10px] font-black uppercase tracking-widest opacity-40 border-b border-[var(--border-app)]">
-                    <th class="px-6 py-4 w-12"></th>
-                    <th class="px-6 py-4">Məhsul</th>
-                    <th class="px-6 py-4 text-center">Orijinal Say</th>
-                    <th class="px-6 py-4 text-center">Geri Qaytarmalı</th>
-                    <th class="px-6 py-4 text-right">Məbləğ</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-[var(--border-app)]">
-                  <tr 
-                    v-for="item in refundItems" 
-                    :key="item.id"
-                    class="group transition-colors"
-                    :class="item.selected ? 'bg-[var(--text-primary)]/[0.03]' : 'hover:bg-[var(--text-primary)]/[0.01]'"
-                  >
-                    <td class="px-6 py-4">
-                      <div 
-                        @click="toggleItem(item)"
-                        class="w-6 h-6 rounded-lg border-2 cursor-pointer flex items-center justify-center transition-all"
-                        :class="item.selected ? 'bg-[var(--text-primary)] border-[var(--text-primary)]' : 'border-[var(--border-app)] hover:border-[var(--text-primary)]/50 text-transparent'"
-                      >
-                        <UiIcon name="lucide:check" class="w-4 h-4 text-white" />
-                      </div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div class="font-bold text-sm">{{ item.productName }}</div>
-                      <div class="text-[10px] opacity-40 font-mono">{{ item.barcode }}</div>
-                      <div v-if="item.attribute" class="mt-1">
-                         <span class="text-[9px] px-1.5 py-0.5 bg-[var(--bg-app)] border border-[var(--border-app)] rounded-md font-bold opacity-70">
-                           {{ item.attribute }}
-                         </span>
-                      </div>
-                    </td>
-                    <td class="px-6 py-4 text-center">
-                      <span class="px-2 py-1 bg-[var(--bg-app)] rounded-lg text-xs font-bold">{{ item.qty }} əd.</span>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div class="flex items-center justify-center gap-3">
-                        <button 
-                          @click="updateRefundQty(item, -1)"
-                          class="w-7 h-7 rounded-lg bg-[var(--bg-app)] border border-[var(--border-app)] flex items-center justify-center hover:bg-[var(--text-primary)] hover:text-white transition-all disabled:opacity-30 disabled:pointer-events-none"
-                          :disabled="item.refundQty === 0"
-                        >
-                          <UiIcon name="lucide:minus" class="w-3.5 h-3.5" />
-                        </button>
-                        <span class="w-6 text-center font-black">{{ item.refundQty }}</span>
-                        <button 
-                          @click="updateRefundQty(item, 1)"
-                          class="w-7 h-7 rounded-lg bg-[var(--bg-app)] border border-[var(--border-app)] flex items-center justify-center hover:bg-[var(--text-primary)] hover:text-white transition-all disabled:opacity-30 disabled:pointer-events-none"
-                          :disabled="item.refundQty >= item.qty"
-                        >
-                          <UiIcon name="lucide:plus" class="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                    <td class="px-6 py-4 text-right">
-                      <div class="font-black text-sm">
-                        {{ ((item.total / item.qty) * item.refundQty).toFixed(2) }} ₼
-                      </div>
-                      <div v-if="item.refundQty > 0" class="text-[9px] opacity-40">
-                        {{ (item.total / item.qty).toFixed(2) }} ₼ / əd.
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+            <div>
+              <h2 class="text-2xl font-black tracking-tight mb-2">Çek Gözlənilir</h2>
+              <p class="text-sm opacity-40">Geri qaytarmaq istədiyiniz çeki skan edin və ya nömrəsini daxil edin</p>
+            </div>
+            
+            <div class="relative group">
+              <UiInput 
+                ref="receiptInput"
+                v-model="receiptQuery"
+                :placeholder="t('refund.scanReceipt', 'Nömrəni bura yazın...')"
+                class="!h-16 !text-lg !pl-14 !rounded-2xl border-2 focus:border-[var(--text-primary)]/50 shadow-sm"
+                @keyup.enter="searchReceipt"
+                :disabled="loading"
+              />
+              <UiIcon name="lucide:search" class="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 opacity-20 group-focus-within:opacity-100 transition-opacity" />
+              <div v-if="loading" class="absolute right-5 top-1/2 -translate-y-1/2">
+                <UiIcon name="lucide:loader-2" class="w-5 h-5 animate-spin text-[var(--text-primary)]" />
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Summary Column -->
-        <div class="space-y-6">
-          <div class="bg-[var(--bg-sidebar)] border border-[var(--border-app)] p-6 rounded-3xl shadow-sm sticky top-6">
-            <h3 class="text-sm font-black uppercase tracking-widest opacity-40 mb-6">Maliyyə İcmalı</h3>
-            
-            <div class="space-y-4">
-              <div class="flex justify-between items-center text-sm">
-                <span class="opacity-50">Ara Cəmi:</span>
-                <span class="font-bold">{{ refundTotals.subtotal }} ₼</span>
+        <div v-else class="flex-1 overflow-y-auto custom-scrollbar p-6">
+          <div class="max-w-4xl mx-auto space-y-6">
+            <!-- Summary Info Bar -->
+            <div class="flex items-center justify-between p-4 bg-[var(--input-bg)]/40 rounded-2xl border border-[var(--border-app)]">
+              <div class="flex items-center gap-6">
+                <div>
+                  <div class="text-[9px] font-black uppercase tracking-widest opacity-40 mb-1">Çek</div>
+                  <div class="text-sm font-black font-mono text-[var(--text-primary)]">{{ originalSale.receiptNo }}</div>
+                </div>
+                <div class="w-px h-8 bg-[var(--border-app)]"></div>
+                <div>
+                  <div class="text-[9px] font-black uppercase tracking-widest opacity-40 mb-1">Müştəri</div>
+                  <div class="text-sm font-bold">{{ originalSale.customerName || 'Anonim' }}</div>
+                </div>
+                <div class="w-px h-8 bg-[var(--border-app)]"></div>
+                <div>
+                  <div class="text-[9px] font-black uppercase tracking-widest opacity-40 mb-1">Satış Tarixi</div>
+                  <div class="text-sm font-bold opacity-60">{{ new Date(originalSale.createdAt).toLocaleDateString('az-AZ') }}</div>
+                </div>
               </div>
-              <div v-if="Number(refundTotals.discountTotal) > 0" class="flex justify-between items-center text-sm text-green-600">
-                <span class="opacity-70">Geri Alınan Endirim:</span>
-                <span class="font-bold">-{{ refundTotals.discountTotal }} ₼</span>
+              <div class="text-right">
+                <div class="text-[9px] font-black uppercase tracking-widest opacity-40 mb-1">Orijinal Yekun</div>
+                <div class="text-sm font-black">{{ originalSale.finalTotal.toFixed(2) }} ₼</div>
               </div>
-              <div v-if="Number(refundTotals.cashbackToSubtract) > 0" class="flex justify-between items-center text-sm text-red-500">
-                <span class="opacity-70">Ləğv edilən Keşbek:</span>
-                <span class="font-bold">-{{ refundTotals.cashbackToSubtract }} ₼</span>
-              </div>
+            </div>
 
-              <div class="pt-4 mt-2 border-t border-[var(--border-app)]">
-                <div class="flex justify-between items-end">
-                  <div>
-                    <div class="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">Geri Ödəniləcək</div>
-                    <div class="text-3xl font-black text-[var(--text-primary)]">
-                    {{ refundTotals.finalTotal }} ₼
+            <!-- Items List: Compact Cards -->
+            <div class="space-y-3">
+              <div 
+                v-for="item in refundItems" 
+                :key="item.id"
+                class="bg-[var(--bg-app)] border rounded-2xl p-4 flex items-center gap-4 transition-all"
+                :class="item.selected ? 'border-[var(--text-primary)] shadow-sm bg-[var(--text-primary)]/[0.02]' : 'border-[var(--border-app)] hover:border-[var(--text-primary)]/20'"
+              >
+                <!-- Toggle -->
+                <div 
+                  @click="toggleItem(item)"
+                  class="w-10 h-10 rounded-xl border-2 flex items-center justify-center cursor-pointer transition-all shrink-0"
+                  :class="item.selected ? 'bg-[var(--text-primary)] border-[var(--text-primary)] text-white' : 'border-[var(--border-app)] bg-[var(--input-bg)]/50'"
+                >
+                  <UiIcon :name="item.selected ? 'lucide:check' : 'lucide:plus'" :class="item.selected ? 'w-5 h-5' : 'w-4 h-4 opacity-20'" />
+                </div>
+
+                <!-- Product Info -->
+                <div class="flex-1 min-w-0">
+                  <h4 class="font-black text-[14px] text-[var(--text-app)] truncate leading-tight">{{ item.productName }}</h4>
+                  <div class="flex items-center gap-2 mt-1 opacity-40 font-bold text-[10px]">
+                    <span class="font-mono">{{ item.barcode }}</span>
+                    <span v-if="item.attribute" class="px-1.5 py-0.5 bg-[var(--input-bg)] rounded">{{ item.attribute }}</span>
+                  </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="flex items-center gap-6">
+                  <div class="text-right">
+                    <div class="text-[9px] font-black opacity-30 uppercase tracking-tighter mb-0.5">Sayı</div>
+                    <div class="flex items-center bg-[var(--input-bg)] rounded-lg h-9 px-1">
+                      <button @click="updateRefundQty(item, -1)" class="w-7 h-7 flex items-center justify-center rounded-md hover:bg-white transition-all" :disabled="item.refundQty === 0">
+                        <UiIcon name="lucide:minus" class="w-3 h-3" />
+                      </button>
+                      <span class="w-8 text-center font-black text-xs tabular-nums">{{ item.refundQty }}</span>
+                      <button @click="updateRefundQty(item, 1)" class="w-7 h-7 flex items-center justify-center rounded-md hover:bg-white transition-all" :disabled="item.refundQty >= item.qty">
+                        <UiIcon name="lucide:plus" class="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="text-right min-w-[80px]">
+                    <div class="text-[9px] font-black opacity-30 uppercase tracking-tighter mb-0.5">Məbləğ</div>
+                    <div class="text-sm font-black tabular-nums font-mono">
+                      {{ ((item.total / item.qty) * item.refundQty).toFixed(2) }} ₼
                     </div>
                   </div>
                 </div>
               </div>
-
-              <div class="pt-6">
-                <UiButton 
-                  @click="processRefund"
-                  variant="primary"
-                  class="w-full !h-14 !text-lg !rounded-2xl shadow-lg shadow-[var(--text-primary)]/20"
-                  :disabled="Number(refundTotals.finalTotal) <= 0 || processing"
-                  :loading="processing"
-                >
-                  <div class="flex items-center gap-2">
-                    <UiIcon name="lucide:check-circle" class="w-5 h-5" />
-                    {{ t('confirmRefund', 'Geri Ödənişi Təsdiqlə') }}
-                  </div>
-                </UiButton>
-                
-                <p class="text-[10px] text-center opacity-40 mt-4 leading-relaxed px-4">
-                  {{ t('refund.stockWarning', 'Təsdiqlədikdə stok sayı və müştəri balansı avtomatik yenilənəcək.') }}
-                </p>
-              </div>
             </div>
           </div>
         </div>
       </div>
-    </Transition>
 
-    <!-- Placeholder State -->
-    <div 
-      v-if="!originalSale && !loading" 
-      class="flex flex-col items-center justify-center py-24 opacity-20"
-    >
-      <UiIcon name="lucide:receipt" class="w-32 h-32 mb-6" />
-      <h2 class="text-2xl font-black">Çek Gözlənilir</h2>
-      <p class="font-medium">Məlumatları görmək üçün çeki skan edin</p>
-    </div>
+      <!-- Right Sidebar: Minimal & Integrated -->
+      <aside v-if="originalSale" class="w-[340px] shrink-0 bg-[var(--bg-app)] border-l border-[var(--border-app)] flex flex-col shadow-[-10px_0_30px_rgba(0,0,0,0.01)]">
+        <div class="p-6 flex-1 space-y-8 overflow-y-auto custom-scrollbar">
+          <div>
+            <h3 class="text-[10px] font-black uppercase tracking-widest opacity-40 mb-4">Geri Qaytarma İcmalı</h3>
+            <div class="space-y-3">
+              <div class="flex justify-between items-center text-xs">
+                <span class="opacity-50">Ara Cəmi:</span>
+                <span class="font-bold tabular-nums">{{ refundTotals.subtotal }} ₼</span>
+              </div>
+              <div v-if="Number(refundTotals.discountTotal) > 0" class="flex justify-between items-center text-xs text-green-600 font-bold italic">
+                <span>Mütənasib Endirim (-)</span>
+                <span class="tabular-nums">-{{ refundTotals.discountTotal }} ₼</span>
+              </div>
+              <div v-if="Number(refundTotals.cashbackToSubtract) > 0" class="flex justify-between items-center text-xs text-red-500 font-bold italic">
+                <span>Keşbek Ləğvi (-)</span>
+                <span class="tabular-nums">-{{ refundTotals.cashbackToSubtract }} ₼</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-4 bg-orange-500/[0.03] border border-orange-500/10 rounded-2xl flex gap-3">
+            <UiIcon name="lucide:alert-circle" class="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
+            <p class="text-[9px] font-bold text-orange-700/70 uppercase tracking-tight leading-relaxed">
+              Təsdiq edildikdə stok avtomatik artacaq və müştəri bonusu mütənasib olaraq geri alınacaq.
+            </p>
+          </div>
+        </div>
+
+        <div class="p-6 border-t border-[var(--border-app)] space-y-4 bg-[var(--bg-app)]/50 backdrop-blur-sm">
+          <div>
+            <div class="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">Geri Ödəniləcək Cəmi</div>
+            <div class="text-4xl font-black text-[var(--text-primary)] font-mono tracking-tighter">
+              {{ refundTotals.finalTotal }} <span class="text-lg">₼</span>
+            </div>
+          </div>
+
+          <UiButton 
+            @click="processRefund"
+            variant="primary"
+            class="w-full !h-16 !text-lg !rounded-2xl shadow-xl shadow-[var(--text-primary)]/10"
+            :disabled="Number(refundTotals.finalTotal) <= 0 || processing"
+            :loading="processing"
+          >
+            Geri Qaytarmalı
+          </UiButton>
+        </div>
+      </aside>
+    </main>
   </div>
 </template>
 
 <style scoped>
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.4s ease, transform 0.4s ease;
-}
-.fade-enter-from, .fade-leave-to {
-  opacity: 0;
-  transform: translateY(10px);
-}
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.05); border-radius: 10px; }
 </style>
