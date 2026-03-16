@@ -1,49 +1,43 @@
-import { defineEventHandler, createError, readBody, getRouterParam, getQuery, getCookie, getHeader } from 'h3'
-import prisma from '../../utils/prisma'
+import { defineEventHandler, createError, readBody } from 'h3'
 import bcrypt from 'bcryptjs'
+import prisma from '../../utils/prisma'
+import { signToken } from '../../utils/jwt'
 
-export default defineEventHandler(async (event: any) => {
+export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const { username, password } = body
 
   if (!username || !password) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'İstifadəçi adı və şifrə mütləqdir'
-    })
+    throw createError({ statusCode: 400, statusMessage: 'İstifadəçi adı və şifrə mütləqdir' })
   }
 
-  // DB'de çalışanı ara
-  const employee = await prisma.employee.findUnique({
-    where: { username }
-  })
+  const employee = await prisma.employee.findUnique({ where: { username } })
 
   if (!employee) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: 'İstifadəçi adı və ya şifrə səhvdir'
-    })
+    throw createError({ statusCode: 401, statusMessage: 'İstifadəçi adı və ya şifrə səhvdir' })
   }
 
-  // Şifreyi kontrol et
   const isPasswordValid = await bcrypt.compare(password, employee.password)
 
   if (!isPasswordValid) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: 'Kullanıcı adı veya şifre hatalı'
-    })
+    throw createError({ statusCode: 401, statusMessage: 'İstifadəçi adı və ya şifrə səhvdir' })
   }
 
-  // Token dön
+  if (employee.status !== 'Aktif') {
+    throw createError({ statusCode: 403, statusMessage: 'Hesab aktiv deyil' })
+  }
+
+  const token = signToken({ id: employee.id, username: employee.username, role: employee.role })
+
   return {
-    token: 'mock-jwt-token-for-' + employee.id,
+    token,
     user: {
       id: employee.id,
       username: employee.username,
       firstName: employee.firstName,
       lastName: employee.lastName,
-      email: employee.email
+      email: employee.email,
+      role: employee.role,
     }
   }
 })
