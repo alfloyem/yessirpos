@@ -477,3 +477,50 @@ export const printIntakeReceipt = (data: IntakeReceiptData) => {
     }, 400)
   }
 }
+
+export const printBarcode = (barcode: string) => {
+  let barcodeDataUrl = ''
+  try {
+    const canvas = document.createElement('canvas')
+    JsBarcode(canvas, barcode, {
+      format: 'CODE128',
+      width: 3,
+      height: 80,
+      displayValue: true,
+      fontSize: 16,
+      margin: 8,
+    })
+    barcodeDataUrl = canvas.toDataURL('image/png')
+  } catch (err) {
+    console.error('Barcode generation error:', err)
+    return
+  }
+
+  const printContent = `
+    <html>
+      <head>
+        <title>Barkod</title>
+        <style>
+          @page { margin: 0; size: 50mm 30mm; }
+          @media print { html, body { margin: 0 !important; padding: 0 !important; } }
+          body { margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; width: 50mm; height: 30mm; }
+          img { width: 50mm; height: 30mm; object-fit: contain; }
+        </style>
+      </head>
+      <body>
+        <img src="${barcodeDataUrl}" />
+      </body>
+    </html>
+  `
+
+  const printWin = window.open('', '', 'width=300,height=200')
+  if (printWin) {
+    printWin.document.write(printContent)
+    printWin.document.close()
+    printWin.focus()
+    setTimeout(() => {
+      printWin.print()
+      printWin.close()
+    }, 300)
+  }
+}

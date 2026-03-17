@@ -7,6 +7,7 @@ import Modal from '~/components/ui/Modal.vue'
 import UiButton from '~/components/ui/Button.vue'
 import DynamicForm, { type FormField } from '~/components/ui/DynamicForm.vue'
 import ImageCarousel from '~/components/ui/ImageCarousel.vue'
+import { printBarcode } from '~/utils/receiptPrinter'
 
 const { t } = useI18n()
 const { token, logout } = useAuth()
@@ -450,13 +451,9 @@ const performDelete = async () => {
   }
 }
 
-const copyBarcode = (barcode: string) => {
-  if (!barcode) return
-  navigator.clipboard.writeText(barcode).then(() => {
-    toast.success(t('toast.barcodeCopied'))
-  }).catch(() => {
-    toast.error(t('toast.operationFailed', 'Xəta baş verdi'))
-  })
+const handleBarcodeClick = (row: any) => {
+  if (!row.barcode) return
+  printBarcode(row.barcode)
 }
 
 const handleDuplicate = async (row: any) => {
@@ -762,11 +759,11 @@ const saveForm = async () => {
       </template>
 
       <!-- Barcode Custom Format -->
-      <template #cell-barcode="{ value, highlight }">
+      <template #cell-barcode="{ value, row, highlight }">
         <div 
           class="font-mono tracking-wider font-bold cursor-pointer hover:text-[var(--text-primary)] transition-colors inline-block"
-          @click.stop="copyBarcode(value)"
-          :title="t('common.clickToCopy')"
+          @click.stop="handleBarcodeClick(row)"
+          title="Barkod çap et"
         >
           <span v-html="highlight(value)"></span>
         </div>
