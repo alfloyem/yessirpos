@@ -201,10 +201,24 @@ const loadEmployees = async () => {
       headers: { Authorization: `Bearer ${token.value}` }
     })
     employees.value = data || []
+    
+    // Restore last selected cashier
+    const lastCashierId = localStorage.getItem('yessir_pos_last_cashier_id')
+    if (lastCashierId && employees.value.length > 0) {
+      const found = employees.value.find(e => String(e.id) === lastCashierId)
+      if (found) selectedEmployee.value = found
+    }
   } catch (err) {
     console.error('Failed to load employees')
   }
 }
+
+// Watcher to save last selected cashier
+watch(selectedEmployee, (newVal) => {
+  if (newVal?.id) {
+    localStorage.setItem('yessir_pos_last_cashier_id', String(newVal.id))
+  }
+})
 
 onMounted(() => {
   loadProducts()
