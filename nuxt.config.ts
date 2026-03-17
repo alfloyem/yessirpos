@@ -8,6 +8,9 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     jwtSecret: process.env.JWT_SECRET,
+    public: {
+      clientId: process.env.CLIENT_ID ?? 'bakustreet',
+    },
   },
 
   future: {
