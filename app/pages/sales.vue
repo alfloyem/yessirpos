@@ -42,7 +42,7 @@ const searchInput = ref<any>(null)
 // Modal states
 const showPaymentModal = ref(false)
 const showGhostModal = ref(false)
-const paymentMethod = ref(t('expenses.payCash'))
+const paymentMethod = ref('Cash')
 const paymentDetails = ref<any>(null)
 const isSaving = ref(false)
 
@@ -446,7 +446,7 @@ const printReceipt = (manualReceiptNo?: string) => {
       change: paymentDetails.value?.change,
       giftCard: paymentDetails.value?.giftCard ? {
         barcode: paymentDetails.value.giftCard.barcode,
-        remaining: Math.max(0, paymentDetails.value.giftCard.value - (paymentDetails.value.payments?.['Hədiyyə Kartı'] || (paymentMethod.value === 'Hədiyyə Kartı' ? finalTotal.value : 0)))
+        remaining: Math.max(0, paymentDetails.value.giftCard.value - (paymentDetails.value.payments?.['Gift Card'] || (paymentMethod.value === 'Gift Card' ? finalTotal.value : 0)))
       } : undefined
     }
   }
@@ -482,7 +482,7 @@ const completeOrder = async (details?: any) => {
       }
     }
 
-    if (method === 'Hədiyyə Kartı') {
+    if (method === 'Gift Card') {
       const barcodeToUse = details?.giftCardBarcode || giftCardBarcode.value
       if (!barcodeToUse) {
         toast.error(t('toast.giftCardBarcodeRequired'))

@@ -28,20 +28,26 @@ const { t } = useI18n()
 const toast = useToast()
 
 // Payment Methods Logic
-const internalMethod = ref(props.selectedMethod || t('expenses.payCash'))
+const internalMethod = ref(props.selectedMethod || 'Cash')
 
 const combinedMethods = computed(() => {
   const db = props.dbMethods || []
+  
+  // System defaults with stable IDs
   const systemDefaults = [
-    { id: 'Nəğd', name: t('sales.cash'), icon: 'lucide:coins', isSystem: true },
-    { id: 'Bank Kartı', name: t('sales.card'), icon: 'lucide:credit-card', isSystem: true },
-    { id: 'Hədiyyə Kartı', name: t('sales.giftCard'), icon: 'lucide:gift', isSystem: true },
+    { id: 'Cash', name: t('sales.cash'), icon: 'lucide:coins', isSystem: true },
+    { id: 'Card', name: t('sales.card'), icon: 'lucide:credit-card', isSystem: true },
+    { id: 'Gift Card', name: t('sales.giftCard'), icon: 'lucide:gift', isSystem: true },
     { id: 'Bonus', name: t('sales.bonus'), icon: 'lucide:star', isSystem: true }
   ]
   
-  // Custom methods from DB (not in system defaults)
-  const systemNames = [t('sales.cash'), t('sales.card'), t('sales.giftCard'), t('sales.bonus')]
-  const customs = db.filter(m => !systemNames.includes(m.name)).map(m => ({
+  // Custom methods from DB (not marked as system in DB)
+  // We can also match by name case-insensitively for older seeds
+  const systemKeywords = ['cash', 'card', 'gift card', 'bonus', 'nəğd', 'kart', 'hədiyyə kartı']
+  const customs = db.filter(m => {
+    if (m.isSystem) return false
+    return !systemKeywords.includes(m.name.toLowerCase())
+  }).map(m => ({
     id: m.name,
     name: m.name,
     icon: m.icon || 'lucide:credit-card',
@@ -53,7 +59,7 @@ const combinedMethods = computed(() => {
 })
 
 watch(() => props.selectedMethod, (val) => {
-  internalMethod.value = val || t('expenses.payCash')
+  internalMethod.value = val || 'Cash'
 })
 
 // Cash Input
@@ -90,16 +96,16 @@ const handleConfirm = () => {
       return 
     }
     // IMPORTANT: Send barcode if gift card is part of multi-payment
-    if ((multiPayments.value['Hədiyyə Kartı'] || 0) > 0) {
+    if ((multiPayments.value['Gift Card'] || 0) > 0) {
       details.giftCardBarcode = selectedGiftCard.value?.barcode
     }
   } else {
     details.method = internalMethod.value
-    if (internalMethod.value === t('expenses.payCash')) {
+    if (internalMethod.value === 'Cash') {
       const r = parseFloat(receivedAmount.value) || 0
       details.received = r
       details.change = changeAmount.value
-    } else if (internalMethod.value === 'Hədiyyə Kartı') {
+    } else if (internalMethod.value === 'Gift Card') {
       details.giftCardBarcode = selectedGiftCard.value?.barcode
     }
   }
@@ -231,7 +237,7 @@ const selectMethod = (methodId: string) => {
   internalMethod.value = methodId
   emit('update:selectedMethod', methodId)
 
-  if (methodId === 'Hədiyyə Kartı') {
+  if (methodId === 'Gift Card') {
     tempSelectedGiftCard.value = selectedGiftCard.value
     showGiftCardModal.value = true
   }
@@ -265,7 +271,7 @@ const handleBlur = (methodId: string) => {
       val = max
       clamped = true
     }
-  } else if (methodId === 'Hədiyyə Kartı' && selectedGiftCard.value) {
+  } else if (methodId === 'Gift Card' && selectedGiftCard.value) {
     const max = Number(selectedGiftCard.value.value) || 0
     if (val > max) {
       val = max
@@ -358,7 +364,7 @@ const handleFocus = (event: Event) => {
               <span class="text-xs sm:text-sm whitespace-nowrap truncate w-full">{{ m.name }}</span>
               <!-- Balance inside select (Single Mode) -->
               <span v-if="!isMultiPayment && m.id === 'Bonus' && customer" class="text-[9px] opacity-70 font-bold tabular-nums">{{ t('sales.balance') }}: {{ Number(customer.bonus).toFixed(2) }} ₼</span>
-              <span v-if="!isMultiPayment && m.id === 'Hədiyyə Kartı' && selectedGiftCard" class="text-[9px] opacity-70 font-bold tabular-nums">{{ t('sales.balance') }}: {{ Number(selectedGiftCard.value).toFixed(2) }} ₼</span>
+              <span v-if="!isMultiPayment && m.id === 'Gift Card' && selectedGiftCard" class="text-[9px] opacity-70 font-bold tabular-nums">{{ t('sales.balance') }}: {{ Number(selectedGiftCard.value).toFixed(2) }} ₼</span>
             </div>
           </div>
 
@@ -366,7 +372,7 @@ const handleFocus = (event: Event) => {
           <div 
             v-if="isMultiPayment" 
             class="px-3 pb-3 -mt-1 animate-in slide-in-from-top-1 duration-200" 
-            @click.stop="((m.id === 'Bonus' && !customer) || (m.id === 'Hədiyyə Kartı' && !selectedGiftCard)) ? selectMethod(m.id) : null"
+            @click.stop="((m.id === 'Bonus' && !customer) || (m.id === 'Gift Card' && !selectedGiftCard)) ? selectMethod(m.id) : null"
           >
             <div class="relative space-y-1">
               <div class="flex justify-between items-center px-1">
@@ -374,12 +380,12 @@ const handleFocus = (event: Event) => {
                   <span class="text-[8px] opacity-40 font-black">Maks: {{ (Number(customer.bonus) || 0).toFixed(2) }} ₼</span>
                   <span v-if="showMaxError['Bonus']" class="text-[8px] text-red-500 font-bold animate-pulse">! Maksimum</span>
                 </div>
-                <div v-else-if="m.id === 'Hədiyyə Kartı' && selectedGiftCard" class="flex items-center gap-2">
+                <div v-else-if="m.id === 'Gift Card' && selectedGiftCard" class="flex items-center gap-2">
                   <span class="text-[8px] opacity-40 font-black">Maks: {{ (Number(selectedGiftCard.value) || 0).toFixed(2) }} ₼</span>
-                  <span v-if="showMaxError['Hədiyyə Kartı']" class="text-[8px] text-red-500 font-bold animate-pulse">! Maksimum</span>
+                  <span v-if="showMaxError['Gift Card']" class="text-[8px] text-red-500 font-bold animate-pulse">! Maksimum</span>
                 </div>
                 <span v-else-if="m.id === 'Bonus' && !customer" class="text-[8px] opacity-40 italic">{{ t('sales.selectCustomer') }}</span>
-                <span v-else-if="m.id === 'Hədiyyə Kartı' && !selectedGiftCard" class="text-[8px] opacity-40 italic">{{ t('sales.selectCard') }}</span>
+                <span v-else-if="m.id === 'Gift Card' && !selectedGiftCard" class="text-[8px] opacity-40 italic">{{ t('sales.selectCard') }}</span>
                 <div class="flex-1"></div>
               </div>
               
@@ -418,8 +424,8 @@ const handleFocus = (event: Event) => {
         </div>
       </div>
 
-      <!-- Cash Details (Only if Nəğd is selected) -->
-      <div v-if="!isMultiPayment && internalMethod === 'Nəğd'" class="pt-4 mt-2 border-t border-[var(--border-app)] border-dashed">
+      <!-- Cash Details (Only if Cash is selected) -->
+      <div v-if="!isMultiPayment && internalMethod === 'Cash'" class="pt-4 mt-2 border-t border-[var(--border-app)] border-dashed">
         <div class="flex items-center gap-6 flex-col">
           <div class="w-full">
             <label class="block text-[11px] font-bold text-[var(--text-app)] opacity-50 tracking-widest mb-1.5">{{ t('sales.paymentAmountLabel') }} (₼)</label>
