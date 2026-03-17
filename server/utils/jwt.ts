@@ -1,6 +1,5 @@
-import { createRequire } from 'module'
-const require = createRequire(import.meta.url)
-const jwt = require('jsonwebtoken')
+import jwt from 'jsonwebtoken'
+
 
 const getSecret = () => {
   const secret = process.env.JWT_SECRET || useRuntimeConfig().jwtSecret
