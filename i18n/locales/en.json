@@ -197,6 +197,7 @@
     "sale": "Sale",
     "refund": "Refund",
     "intake": "Intake",
+    "debtPayment": "Debt Payment",
     "product": "Product",
     "qtyPrice": "Qty / Price",
     "profit": "Profit",
@@ -208,7 +209,18 @@
     "refundLabel": "(REFUND)",
     "refundPayment": "REFUND PAYMENT",
     "print": "Print",
-    "close": "Close"
+    "close": "Close",
+    "filterAll": "All",
+    "filterDebts": "Debts",
+    "relatedIntake": "Related Intake",
+    "payDebt": "Pay Debt",
+    "payDebtTitle": "Debt Payment",
+    "remainingDebt": "Remaining Debt",
+    "paid": "Paid",
+    "noDebt": "No debt ✓",
+    "paymentAmount": "Payment Amount (₼)",
+    "confirmPayment": "Confirm Payment",
+    "debtPaid": "Debt paid successfully!"
   },
   "toast": {
     "employeeAdded": "Employee added successfully",

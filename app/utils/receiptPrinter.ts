@@ -534,3 +534,100 @@ export const printBarcode = (barcode: string) => {
     }, 300)
   }
 }
+
+export interface DebtPaymentReceiptData {
+  receiptNo: string
+  relatedIntakeNo: string
+  supplierName: string
+  amount: number
+  paymentMethod: string
+  paidBy?: string
+  notes?: string
+  date: string
+  remainingBalance: number
+}
+
+export const printDebtPaymentReceipt = (data: DebtPaymentReceiptData) => {
+  const clientData = getClientData()
+  const { receiptNo, relatedIntakeNo, supplierName, amount, paymentMethod, paidBy, notes, date, remainingBalance } = data
+
+  let barcodeDataUrl = ''
+  try {
+    const canvas = document.createElement('canvas')
+    JsBarcode(canvas, receiptNo, { format: 'CODE128', width: 2, height: 40, displayValue: true, fontSize: 12, margin: 5 })
+    barcodeDataUrl = canvas.toDataURL('image/png')
+  } catch (err) {
+    console.error('Barcode generation error:', err)
+  }
+
+  const printContent = `
+    <html>
+      <head>
+        <title>Borc Ödəniş Çeki</title>
+        <style>
+          @page { margin: 0; size: 80mm auto; }
+          * { box-sizing: border-box; }
+          @media print { html, body { margin: 0 !important; padding: 0 !important; width: 80mm !important; } }
+          html { width: 80mm; }
+          body { font-family: 'Courier New', Courier, monospace; width: 80mm; margin: 0; color: #000; padding: 4mm; }
+          .center { text-align: center; }
+          .title { font-size: 16px; font-weight: bold; text-decoration: underline; margin: 12px 0 10px 0; }
+          .row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
+          .divider { border-top: 1px dashed #000; margin: 8px 0; }
+          .total { font-size: 18px; font-weight: 900; display: flex; justify-content: space-between; margin-top: 6px; }
+          .badge { display: inline-block; background: #000; color: #fff; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-bottom: 6px; }
+        </style>
+      </head>
+      <body>
+        <div class="center">
+          <div style="margin-bottom: 10px;">${clientData.logoSvg}</div>
+          <div style="font-size: 11px;">${clientData.name}</div>
+          <div style="font-size: 10px; opacity: 0.6; margin-bottom: 4px;">${clientData.address}</div>
+          <div class="badge">BORC ÖDƏNİŞİ</div>
+          <div class="title">ÇEK: ${receiptNo}</div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="row"><span>Tədarükçü:</span><span style="font-weight:bold">${supplierName}</span></div>
+        <div class="row"><span>Əlaqəli Qəbul:</span><span style="font-family:monospace">${relatedIntakeNo}</span></div>
+        <div class="row"><span>Tarix:</span><span>${date}</span></div>
+        ${paidBy ? `<div class="row"><span>Ödəyən:</span><span>${paidBy}</span></div>` : ''}
+        <div class="row"><span>Ödəniş Üsulu:</span><span style="font-weight:bold">${paymentMethod}</span></div>
+        <div class="divider"></div>
+
+        <div class="total"><span>ÖDƏNİLDİ:</span><span>${amount.toFixed(2)} ₼</span></div>
+
+        ${remainingBalance > 0 ? `
+          <div class="divider"></div>
+          <div class="row" style="color:#c00; font-weight:bold"><span>Qalıq Borc:</span><span>${remainingBalance.toFixed(2)} ₼</span></div>
+        ` : `
+          <div class="divider"></div>
+          <div style="text-align:center; font-size:12px; font-weight:bold; color:#060">✓ Borc tam ödənildi</div>
+        `}
+
+        ${notes ? `<div class="divider"></div><div style="font-size:10px; font-style:italic">Qeyd: ${notes}</div>` : ''}
+
+        <div class="center" style="margin-top:14px;">
+          ${barcodeDataUrl ? `<img src="${barcodeDataUrl}" style="max-width:100%"/>` : ''}
+          <div style="font-size:9px; margin-top:6px; opacity:0.5">${date}</div>
+        </div>
+      </body>
+    </html>
+  `
+
+  const printWin = window.open('', '', 'width=302,height=600')
+  if (printWin) {
+    printWin.document.write(printContent)
+    printWin.document.close()
+    printWin.focus()
+    setTimeout(() => {
+      const body = printWin.document.body
+      const heightMm = Math.ceil(body.scrollHeight * 0.2646) + 10
+      const style = printWin.document.createElement('style')
+      style.textContent = `@page { margin: 0; size: 80mm ${heightMm}mm; }`
+      printWin.document.head.appendChild(style)
+      printWin.print()
+      printWin.close()
+    }, 350)
+  }
+}

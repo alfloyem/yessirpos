@@ -180,19 +180,20 @@ model SaleItem {
 }
 
 model Intake {
-  id              Int          @id @default(autoincrement())
-  receiptNo       String       @unique // RXXXXXXX format
+  id              Int             @id @default(autoincrement())
+  receiptNo       String          @unique // RXXXXXXX format
   supplierId      Int?
   supplierName    String?
-  totalAmount     Float        @default(0)
-  paidAmount      Float        @default(0)
-  balanceDue      Float        @default(0)
+  totalAmount     Float           @default(0)
+  paidAmount      Float           @default(0)
+  balanceDue      Float           @default(0)
   paymentMethod   String?
   notes           String?
   items           IntakeItem[]
+  payments        IntakePayment[]
   createdBy       String?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 }
 
 model IntakeItem {
@@ -208,4 +209,16 @@ model IntakeItem {
   discountType    String   @default("amount") // "amount" or "percent"
   total           Float    @default(0)
   attribute       String?  // JSON string
+}
+
+model IntakePayment {
+  id            Int      @id @default(autoincrement())
+  receiptNo     String   @unique // DP0000001 format
+  intakeId      Int
+  intake        Intake   @relation(fields: [intakeId], references: [id], onDelete: Cascade)
+  amount        Float    @default(0)
+  paymentMethod String?
+  paidBy        String?
+  notes         String?
+  createdAt     DateTime @default(now())
 }

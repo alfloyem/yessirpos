@@ -197,6 +197,7 @@
     "sale": "Продажа",
     "refund": "Возврат",
     "intake": "Прием товара",
+    "debtPayment": "Погашение долга",
     "product": "Товар",
     "qtyPrice": "Кол-во / Цена",
     "profit": "Прибыль",
@@ -208,7 +209,18 @@
     "refundLabel": "(ВОЗВРАТ)",
     "refundPayment": "ВОЗВРАТ ПЛАТЕЖА",
     "print": "Печать",
-    "close": "Закрыть"
+    "close": "Закрыть",
+    "filterAll": "Все",
+    "filterDebts": "Долги",
+    "relatedIntake": "Связанный приём",
+    "payDebt": "Погасить долг",
+    "payDebtTitle": "Погашение долга",
+    "remainingDebt": "Остаток долга",
+    "paid": "Оплачено",
+    "noDebt": "Долгов нет ✓",
+    "paymentAmount": "Сумма оплаты (₼)",
+    "confirmPayment": "Подтвердить оплату",
+    "debtPaid": "Долг успешно погашен!"
   },
   "toast": {
     "employeeAdded": "Сотрудник успешно добавлен",

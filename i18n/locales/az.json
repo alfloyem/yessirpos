@@ -199,6 +199,7 @@
     "sale": "Satış",
     "refund": "Geri Qaytarma",
     "intake": "Məhsul Qəbulu",
+    "debtPayment": "Borc Ödənişi",
     "product": "Məhsul",
     "qtyPrice": "Say / Qiymət",
     "profit": "Qazanc",
@@ -210,7 +211,18 @@
     "refundLabel": "(GERİ)",
     "refundPayment": "GERİ ÖDƏNİŞ",
     "print": "Çap Et",
-    "close": "Bağla"
+    "close": "Bağla",
+    "filterAll": "Hamısı",
+    "filterDebts": "Borclar",
+    "relatedIntake": "Əlaqəli Qəbul",
+    "payDebt": "Borc Öde",
+    "payDebtTitle": "Borc Ödəniş",
+    "remainingDebt": "Qalıq Borc",
+    "paid": "Ödənilən",
+    "noDebt": "Borc yoxdur ✓",
+    "paymentAmount": "Ödəniləcək Məbləğ (₼)",
+    "confirmPayment": "Ödənişi Təsdiqlə",
+    "debtPaid": "Borc uğurla ödənildi!"
   },
   "toast": {
     "employeeAdded": "Əməkdaş uğurla əlavə edildi",

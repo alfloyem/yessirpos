@@ -3,7 +3,7 @@ import prisma from '../../utils/prisma'
 
 export default defineEventHandler(async (event: any) => {
   try {
-    const [sales, intakes] = await Promise.all([
+    const [sales, intakes, debtPayments] = await Promise.all([
       (prisma as any).sale.findMany({
         orderBy: { createdAt: 'desc' },
         include: { items: true }
@@ -11,6 +11,10 @@ export default defineEventHandler(async (event: any) => {
       (prisma as any).intake.findMany({
         orderBy: { createdAt: 'desc' },
         include: { items: true }
+      }),
+      (prisma as any).intakePayment.findMany({
+        orderBy: { createdAt: 'desc' },
+        include: { intake: { include: { items: true } } }
       })
     ])
 
@@ -70,7 +74,40 @@ export default defineEventHandler(async (event: any) => {
       }))
     }))
 
-    return [...mappedSales, ...mappedIntakes].sort((a: any, b: any) => 
+    // Map debt payments
+    const mappedDebtPayments = debtPayments.map((dp: any) => ({
+      id: `debtpay-${dp.id}`,
+      dbId: dp.id,
+      receiptNo: dp.receiptNo,
+      createdAt: dp.createdAt,
+      type: 'DEBT_PAYMENT',
+      counterparty: dp.intake?.supplierName || 'Məlum deyil',
+      operator: dp.paidBy || 'Sistem',
+      total: dp.amount,
+      subtotal: dp.amount,
+      discountTotal: 0,
+      paymentDetails: {
+        method: dp.paymentMethod,
+        paidAmount: dp.amount,
+        balanceDue: 0,
+        notes: dp.notes,
+        relatedIntakeNo: dp.intake?.receiptNo,
+      },
+      items: dp.intake?.items?.map((it: any) => ({
+        id: it.id,
+        productId: it.productId,
+        productName: it.productName,
+        barcode: it.barcode,
+        qty: it.qty,
+        price: it.costPrice,
+        wholesalePrice: it.costPrice,
+        discount: it.discount,
+        total: it.total,
+        attribute: it.attribute ? (it.attribute.startsWith('[') || it.attribute.startsWith('{') ? JSON.parse(it.attribute) : it.attribute) : null
+      })) || []
+    }))
+
+    return [...mappedSales, ...mappedIntakes, ...mappedDebtPayments].sort((a: any, b: any) =>
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )
   } catch (error: any) {
