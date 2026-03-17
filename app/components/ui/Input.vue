@@ -189,11 +189,9 @@ const handleInput = (e: Event) => {
     return
   }
 
-  // Barcode specific formatting: Prefix + 7 digits max
+  // Barcode: allow free input, only strip whitespace
   if (props.type === 'barcode') {
-    const pfx = props.barcodePrefix || 'C'
-    let digits = val.replace(/[^\d]/g, '').slice(0, 7)
-    val = `${pfx}${digits}`
+    val = val.replace(/\s/g, '')
     if ((e.target as HTMLInputElement).value !== val) {
       (e.target as HTMLInputElement).value = val
     }
