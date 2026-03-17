@@ -31,13 +31,17 @@ export default defineEventHandler(async (event: any) => {
     }
   })
 
-  // 4. Products count
+  // 4. Products count + total stock
   const totalProducts = await (prisma as any).product.count()
   const lowStockProducts = await (prisma as any).product.count({
     where: {
       stock: { lte: 5 }
     }
   })
+  const stockAggregate = await (prisma as any).product.aggregate({
+    _sum: { stock: true }
+  })
+  const totalStock = stockAggregate._sum.stock ?? 0
 
   // 5. Customers count
   const totalCustomers = await (prisma as any).customer.count()
@@ -199,6 +203,7 @@ export default defineEventHandler(async (event: any) => {
       totalItemsRefunded,
       avgOrderValue,
       totalProducts,
+      totalStock,
       lowStockProducts,
       totalCustomers,
       refundRate: totalTransactions > 0 ? ((refundTransactions / totalTransactions) * 100) : 0

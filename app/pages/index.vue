@@ -176,7 +176,7 @@ const stats = computed(() => [
   },
   { 
     label: t('dashboard.stock'), 
-    value: dashboardData.value?.kpis?.totalProducts?.toLocaleString() || '0', 
+    value: dashboardData.value?.kpis?.totalStock?.toLocaleString() || '0', 
     subtitle: t('dashboard.stableStatus'), 
     icon: 'lucide:package', 
     color: themeColors.value.info, 
