@@ -1,12 +1,77 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from '#i18n'
-import { useColorMode } from '#imports'
+import { useColorMode, useAuth, useToast } from '#imports'
+
 import { generateDailyReport } from '~/utils/generateDailyReport'
 
 const { t, locale } = useI18n()
 const colorMode = useColorMode()
+const { token } = useAuth()
 const toast = useToast()
+
+const selectedFilter = ref('today')
+const dashboardData = ref(null)
+const loading = ref(false)
+
+const dateFilters = computed(() => [
+  { id: 'today', label: t('dashboard.today') },
+  { id: 'yesterday', label: t('dashboard.yesterday') },
+  { id: 'week', label: t('dashboard.thisWeek') },
+  { id: 'month', label: t('dashboard.thisMonth') },
+  { id: 'all', label: t('dashboard.allTime') }
+])
+
+
+const fetchDashboardData = async () => {
+  loading.value = true
+  try {
+    let startDate, endDate
+    const now = new Date()
+    
+    if (selectedFilter.value === 'today') {
+      const d = new Date()
+      startDate = new Date(d.setHours(0, 0, 0, 0))
+      endDate = new Date(d.setHours(23, 59, 59, 999))
+    } else if (selectedFilter.value === 'yesterday') {
+      const yesterday = new Date()
+      yesterday.setDate(yesterday.getDate() - 1)
+      startDate = new Date(yesterday.setHours(0, 0, 0, 0))
+      endDate = new Date(yesterday.setHours(23, 59, 59, 999))
+    } else if (selectedFilter.value === 'week') {
+      const weekAgo = new Date()
+      weekAgo.setDate(weekAgo.getDate() - 7)
+      startDate = weekAgo
+      endDate = new Date()
+    } else if (selectedFilter.value === 'month') {
+      const monthAgo = new Date()
+      monthAgo.setMonth(monthAgo.getMonth() - 1)
+      startDate = monthAgo
+      endDate = new Date()
+    } else {
+      startDate = new Date(2000, 0, 1)
+      endDate = new Date()
+    }
+
+    const data = await $fetch('/api/analytics/dashboard', {
+      query: {
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString()
+      },
+      headers: { Authorization: `Bearer ${token.value}` }
+    })
+    dashboardData.value = data
+  } catch (err) {
+    console.error('Dashboard load error:', err)
+    toast.error(t('dashboard.errorMessage'))
+  } finally {
+    loading.value = false
+  }
+}
+
+watch(selectedFilter, fetchDashboardData)
+onMounted(fetchDashboardData)
+
 
 // PDF yüklə funksiyası
 const downloadReport = () => {
@@ -80,29 +145,70 @@ const themeColors = computed(() => ({
   cardBg: isDark.value ? '#1E1E2D' : '#FFFFFF',
 }))
 
-// --- 1. MOCK DATA BOARDS ---
+// --- 1. DYNAMIC DATA BOARDS ---
 const stats = computed(() => [
-  { label: t('dashboard.orders'), value: '2,856', subtitle: `+16.5% ${t('dashboard.fromLastMonth')}`, icon: 'lucide:shopping-bag', color: themeColors.value.primary, bg: themeColors.value.primaryLight },
-  { label: t('dashboard.revenue'), value: '145,678', suffix: '₼', subtitle: `+28.2% ${t('dashboard.fromLastMonth')}`, icon: 'lucide:dollar-sign', color: themeColors.value.success, bg: themeColors.value.successLight },
-  { label: t('dashboard.expenses'), value: '32,345', suffix: '₼', subtitle: `-5.4% ${t('dashboard.fromLastMonth')}`, icon: 'lucide:trending-down', color: themeColors.value.danger, bg: themeColors.value.dangerLight },
-  { label: t('dashboard.stock'), value: '8,567', subtitle: t('dashboard.stableStatus'), icon: 'lucide:package', color: themeColors.value.info, bg: themeColors.value.infoLight }
+  { 
+    label: t('dashboard.orders'), 
+    value: dashboardData.value?.kpis?.totalTransactions?.toLocaleString() || '0', 
+    subtitle: `+0% ${t('dashboard.fromLastMonth')}`, 
+    icon: 'lucide:shopping-bag', 
+    color: themeColors.value.primary, 
+    bg: themeColors.value.primaryLight 
+  },
+  { 
+    label: t('dashboard.revenue'), 
+    value: dashboardData.value?.kpis?.grossRevenue?.toLocaleString() || '0', 
+    suffix: '₼', 
+    subtitle: `+0% ${t('dashboard.fromLastMonth')}`, 
+    icon: 'lucide:dollar-sign', 
+    color: themeColors.value.success, 
+    bg: themeColors.value.successLight 
+  },
+  { 
+    label: t('dashboard.expenses'), 
+    value: dashboardData.value?.kpis?.totalExpenses?.toLocaleString() || '0', 
+    suffix: '₼', 
+    subtitle: `-0% ${t('dashboard.fromLastMonth')}`, 
+    icon: 'lucide:trending-down', 
+    color: themeColors.value.danger, 
+    bg: themeColors.value.dangerLight 
+  },
+  { 
+    label: t('dashboard.stock'), 
+    value: dashboardData.value?.kpis?.totalProducts?.toLocaleString() || '0', 
+    subtitle: t('dashboard.stableStatus'), 
+    icon: 'lucide:package', 
+    color: themeColors.value.info, 
+    bg: themeColors.value.infoLight 
+  }
 ])
 
-const topProducts = computed(() => [
-  { name: t('dashboard.products.mensShirtWhite'), sales: 234, revenue: '11,700', suffix: '₼', progress: 85, color: themeColors.value.primary },
-  { name: t('dashboard.products.womensDressBlack'), sales: 189, revenue: '18,900', suffix: '₼', progress: 75, color: themeColors.value.success },
-  { name: t('dashboard.products.mensPantsBlue'), sales: 156, revenue: '9,360', suffix: '₼', progress: 60, color: themeColors.value.info },
-  { name: t('dashboard.products.womensBlousePurple'), sales: 145, revenue: '8,700', suffix: '₼', progress: 50, color: themeColors.value.warning },
-  { name: t('dashboard.products.mensJacketBrown'), sales: 123, revenue: '14,760', suffix: '₼', progress: 40, color: themeColors.value.danger }
-])
+const topProducts = computed(() => {
+  if (!dashboardData.value?.topProducts) return []
+  const maxRevenue = Math.max(...dashboardData.value.topProducts.map(p => p.totalRevenue), 1)
+  
+  return dashboardData.value.topProducts.map((product, idx) => ({
+    name: product.name,
+    sales: product.soldQty,
+    revenue: product.totalRevenue.toLocaleString(),
+    suffix: '₼',
+    progress: (product.totalRevenue / maxRevenue) * 100,
+    color: [themeColors.value.primary, themeColors.value.success, themeColors.value.info, themeColors.value.warning, themeColors.value.danger][idx % 5]
+  }))
+})
 
-const recentOrders = computed(() => [
-  { id: '#12345', customer: t('dashboard.customers.customer1'), amount: '234', suffix: '₼', status: 'completed', date: `10 ${t('dashboard.timeAgo.minutesAgo')}` },
-  { id: '#12344', customer: t('dashboard.customers.customer2'), amount: '567', suffix: '₼', status: 'pending', date: `25 ${t('dashboard.timeAgo.minutesAgo')}` },
-  { id: '#12343', customer: t('dashboard.customers.customer3'), amount: '890', suffix: '₼', status: 'completed', date: `1 ${t('dashboard.timeAgo.hourAgo')}` },
-  { id: '#12342', customer: t('dashboard.customers.customer4'), amount: '445', suffix: '₼', status: 'cancelled', date: `2 ${t('dashboard.timeAgo.hoursAgo')}` },
-  { id: '#12341', customer: t('dashboard.customers.customer5'), amount: '678', suffix: '₼', status: 'completed', date: `3 ${t('dashboard.timeAgo.hoursAgo')}` }
-])
+const recentOrders = computed(() => {
+  if (!dashboardData.value?.recentOrders) return []
+  return dashboardData.value.recentOrders.map(order => ({
+    id: `#${order.id}`,
+    customer: order.customer,
+    amount: order.amount.toLocaleString(),
+    suffix: '₼',
+    status: order.status,
+    date: new Date(order.date).toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit' })
+  }))
+})
+
 
 
 // --- 2. MULTIFUNCTIONAL SMOOTH LINE CHART ---
@@ -158,25 +264,16 @@ const lineChartOptions = computed(() => ({
 }))
 
 const lineChartData = computed(() => {
+  const isAllTime = selectedFilter.value === 'all' || selectedFilter.value === 'month'
+  const labels = isAllTime ? (dashboardData.value?.dailyChart?.labels || []) : (dashboardData.value?.hourlyChart?.labels || [])
+  const data = isAllTime ? (dashboardData.value?.dailyChart?.revenue || []) : (dashboardData.value?.hourlyChart?.revenue || [])
+
   return {
-    labels: [
-      t('dashboard.months.jan'), 
-      t('dashboard.months.feb'), 
-      t('dashboard.months.mar'), 
-      t('dashboard.months.apr'), 
-      t('dashboard.months.may'), 
-      t('dashboard.months.jun'), 
-      t('dashboard.months.jul'), 
-      t('dashboard.months.aug'), 
-      t('dashboard.months.sep'), 
-      t('dashboard.months.oct'), 
-      t('dashboard.months.nov'), 
-      t('dashboard.months.dec')
-    ],
+    labels: labels.length > 0 ? labels : ['-'],
     datasets: [
       {
         label: t('dashboard.revenue'),
-        data: [12000, 19000, 15000, 32000, 22000, 41000, 28000, 48000, 32000, 60000, 52000, 85000],
+        data: data.length > 0 ? data : [0],
         borderColor: themeColors.value.primary,
         backgroundColor: (context) => {
           const chart = context.chart
@@ -199,6 +296,7 @@ const lineChartData = computed(() => {
     ]
   }
 })
+
 
 // --- 3. DOUGHNUT CHART (SALES DIVISION) ---
 const donutChartOptions = computed(() => ({
@@ -226,19 +324,26 @@ const donutChartOptions = computed(() => ({
 }
 ))
 
-const donutChartData = computed(() => ({
-  labels: [t('dashboard.completed'), t('dashboard.pending'), t('dashboard.cancelled')],
-  datasets: [
-    {
-      data: [65, 25, 10], // Yüzdelikler
-      backgroundColor: [themeColors.value.success, themeColors.value.warning, themeColors.value.danger],
-      hoverBackgroundColor: [themeColors.value.success, themeColors.value.warning, themeColors.value.danger],
-      borderWidth: isDark.value ? 2 : 4,
-      borderColor: themeColors.value.cardBg, // Halka aralarındaki boşluk rengi arka planla aynı
-      hoverOffset: 6 // Hover olduğunda ayrılma efekti
-    }
-  ]
-}))
+const donutChartData = computed(() => {
+  const kpis = dashboardData.value?.kpis
+  const completed = (kpis?.totalTransactions || 0) - (kpis?.refundTransactions || 0)
+  const cancelled = kpis?.refundTransactions || 0
+  
+  return {
+    labels: [t('dashboard.completed'), t('dashboard.cancelled')],
+    datasets: [
+      {
+        data: [completed, cancelled],
+        backgroundColor: [themeColors.value.success, themeColors.value.danger],
+        hoverBackgroundColor: [themeColors.value.success, themeColors.value.danger],
+        borderWidth: isDark.value ? 2 : 4,
+        borderColor: themeColors.value.cardBg, // Halka aralarındaki boşluk rengi arka planla aynı
+        hoverOffset: 6 // Hover olduğunda ayrılma efekti
+      }
+    ]
+  }
+})
+
 
 // --- 4. BAR CHART (WEEKLY REPORT) ---
 const barChartOptions = computed(() => ({
@@ -271,39 +376,32 @@ const barChartOptions = computed(() => ({
   }
 }))
 
-const barChartData = computed(() => ({
-  labels: [
-    t('dashboard.weekDays.mon'), 
-    t('dashboard.weekDays.tue'), 
-    t('dashboard.weekDays.wed'), 
-    t('dashboard.weekDays.thu'), 
-    t('dashboard.weekDays.fri'), 
-    t('dashboard.weekDays.sat'), 
-    t('dashboard.weekDays.sun')
-  ],
-  datasets: [
-    {
-      label: t('dashboard.orderCount'),
-      data: [35, 60, 45, 80, 55, 95, 70],
-      backgroundColor: (context) => {
-        // En yüksek olana primary rengi ver
-        const maxVal = Math.max(...context.dataset.data)
-        const isMax = context.raw === maxVal
-        return isMax ? themeColors.value.primary : themeColors.value.primaryLight
-      },
-      hoverBackgroundColor: themeColors.value.primary,
-    }
-  ]
-}))
+const barChartData = computed(() => {
+  const dailyLabels = dashboardData.value?.dailyChart?.labels || []
+  const dailyOrders = dashboardData.value?.dailyChart?.orders || []
+  
+  return {
+    labels: dailyLabels.slice(-7), // Son 7 gün
+    datasets: [
+      {
+        label: t('dashboard.orderCount'),
+        data: dailyOrders.slice(-7), 
 
-const selectedFilter = ref('today')
-const dateFilters = computed(() => [
-  { id: 'today', label: t('dashboard.today') },
-  { id: 'yesterday', label: t('dashboard.yesterday') },
-  { id: 'week', label: t('dashboard.thisWeek') },
-  { id: 'month', label: t('dashboard.thisMonth') },
-  { id: 'all', label: t('dashboard.allTime') }
-])
+        backgroundColor: (context) => {
+          // En yüksek olana primary rengi ver
+          const maxVal = Math.max(...context.dataset.data)
+          const isMax = context.raw === maxVal
+          return isMax ? themeColors.value.primary : themeColors.value.primaryLight
+        },
+        hoverBackgroundColor: themeColors.value.primary,
+      }
+    ]
+  }
+})
+
+
+// Filter ref and list were moved to the top
+
 </script>
 
 <template>
@@ -389,8 +487,9 @@ const dateFilters = computed(() => [
             <p class="text-sm text-[var(--text-app)] opacity-60 mt-1">{{ t('dashboard.revenueSubtitle') }}</p>
           </div>
           <div class="mt-4 sm:mt-0 px-4 py-2 bg-[var(--text-primary)]/10 text-[var(--text-primary)] rounded-lg font-bold">
-            <span class="text-xs opacity-80 mr-1">{{ t('dashboard.total') }}:</span> 375,000 ₼
+            <span class="text-xs opacity-80 mr-1">{{ t('dashboard.total') }}:</span> {{ dashboardData?.kpis?.grossRevenue?.toLocaleString() || '0' }} ₼
           </div>
+
         </div>
         <!-- Vue Chart.js Line -->
         <div class="h-[280px] w-full relative">
@@ -409,32 +508,29 @@ const dateFilters = computed(() => [
           
           <!-- Inner Centered Content -->
           <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span class="text-3xl font-black text-[var(--text-app)]">85%</span>
+            <span class="text-3xl font-black text-[var(--text-app)]">{{ dashboardData?.kpis?.refundRate?.toFixed(1) || '0' }}%</span>
             <span 
               class="text-xs font-bold mt-1 px-2 py-0.5 rounded"
-              :style="{ color: themeColors.success, backgroundColor: themeColors.successLight}"
-            >{{ t('dashboard.growth') }}</span>
+              :style="{ color: themeColors.danger, backgroundColor: themeColors.dangerLight}"
+            >{{ t('dashboard.cancelled') }}</span>
           </div>
+
         </div>
 
         <!-- Custom Legends for Donut -->
-        <div class="grid grid-cols-3 gap-2 mt-6">
+        <div class="grid grid-cols-2 gap-2 mt-6">
           <div class="text-center p-2 rounded-xl border border-[var(--border-app)] hover:bg-[var(--bg-app)] transition-colors">
             <div class="w-full flex justify-center mb-1.5"><div class="w-2.5 h-2.5 rounded-full" :style="{ backgroundColor: themeColors.success }"></div></div>
-            <div class="text-[15px] font-extrabold text-[var(--text-app)]">65%</div>
+            <div class="text-[15px] font-extrabold text-[var(--text-app)]">{{ ((dashboardData?.kpis?.totalTransactions || 0) - (dashboardData?.kpis?.refundTransactions || 0)).toLocaleString() }}</div>
             <div class="text-[10px] font-bold text-[var(--text-app)] opacity-50 mt-1 tracking-wider">{{ t('dashboard.complete') }}</div>
           </div>
           <div class="text-center p-2 rounded-xl border border-[var(--border-app)] hover:bg-[var(--bg-app)] transition-colors">
-            <div class="w-full flex justify-center mb-1.5"><div class="w-2.5 h-2.5 rounded-full" :style="{ backgroundColor: themeColors.warning }"></div></div>
-            <div class="text-[15px] font-extrabold text-[var(--text-app)]">25%</div>
-            <div class="text-[10px] font-bold text-[var(--text-app)] opacity-50 mt-1 tracking-wider">{{ t('dashboard.waiting') }}</div>
-          </div>
-          <div class="text-center p-2 rounded-xl border border-[var(--border-app)] hover:bg-[var(--bg-app)] transition-colors">
             <div class="w-full flex justify-center mb-1.5"><div class="w-2.5 h-2.5 rounded-full" :style="{ backgroundColor: themeColors.danger }"></div></div>
-            <div class="text-[15px] font-extrabold text-[var(--text-app)]">10%</div>
+            <div class="text-[15px] font-extrabold text-[var(--text-app)]">{{ (dashboardData?.kpis?.refundTransactions || 0).toLocaleString() }}</div>
             <div class="text-[10px] font-bold text-[var(--text-app)] opacity-50 mt-1 tracking-wider">{{ t('dashboard.cancel') }}</div>
           </div>
         </div>
+
       </div>
     </div>
 

@@ -55,14 +55,16 @@ export default defineEventHandler(async (event: any) => {
   let grossProfit = 0 // revenue - COGS (wholesale)
 
   const timeSeriesData: Record<string, { revenue: number, refunds: number, expenses: number }> = {}
-  const dailyData: Record<string, { revenue: number, refunds: number, expenses: number, profit: number }> = {}
+  const dailyData: Record<string, { revenue: number, refunds: number, expenses: number, profit: number, orders: number }> = {}
+
 
   for (const exp of expenses) {
     totalExpenses += exp.amount || 0
     const dateKey = new Date(exp.createdAt).toISOString().split('T')[0] as string
-    if (!dailyData[dateKey!]) dailyData[dateKey!] = { revenue: 0, refunds: 0, expenses: 0, profit: 0 }
+    if (!dailyData[dateKey!]) dailyData[dateKey!] = { revenue: 0, refunds: 0, expenses: 0, profit: 0, orders: 0 }
     dailyData[dateKey!]!.expenses += exp.amount || 0
   }
+
 
   for (const int of intakes) {
     totalIntakesValue += int.totalAmount || 0
@@ -77,7 +79,8 @@ export default defineEventHandler(async (event: any) => {
     const hourKey = `${h}:00`
 
     if (!timeSeriesData[hourKey!]) timeSeriesData[hourKey!] = { revenue: 0, refunds: 0, expenses: 0 }
-    if (!dailyData[dateKey!]) dailyData[dateKey!] = { revenue: 0, refunds: 0, expenses: 0, profit: 0 }
+    if (!dailyData[dateKey!]) dailyData[dateKey!] = { revenue: 0, refunds: 0, expenses: 0, profit: 0, orders: 0 }
+
 
     totalTransactions++
 
@@ -94,6 +97,8 @@ export default defineEventHandler(async (event: any) => {
       totalDiscount += sale.discountTotal || 0
       timeSeriesData[hourKey!]!.revenue += sale.finalTotal || 0
       dailyData[dateKey!]!.revenue += sale.finalTotal || 0
+      dailyData[dateKey!]!.orders += 1
+
 
       for (const item of sale.items) {
         totalItemsSold += item.qty || 0
@@ -129,12 +134,55 @@ export default defineEventHandler(async (event: any) => {
     }),
     revenue: sortedDays.map(d => dailyData[d]!.revenue),
     expenses: sortedDays.map(d => dailyData[d]!.expenses + dailyData[d]!.refunds),
-    profit: sortedDays.map(d => dailyData[d]!.profit)
+    profit: sortedDays.map(d => dailyData[d]!.profit),
+    orders: sortedDays.map(d => dailyData[d]!.orders)
   }
+
 
   // Average order value
   const validSales = totalTransactions - refundTransactions
   const avgOrderValue = validSales > 0 ? grossRevenue / validSales : 0
+
+  // 6. Top Products calculation
+  const productStats: Record<number, { id: number, name: string, soldQty: number, totalRevenue: number }> = {}
+  for (const sale of sales) {
+    const payment = sale.paymentDetails ? JSON.parse(sale.paymentDetails) : {}
+    if (payment.isRefund || sale.finalTotal < 0) continue
+
+    for (const item of sale.items) {
+      const productId = item.productId
+      if (!productId) continue
+      
+      if (!productStats[productId]) {
+        productStats[productId] = {
+          id: productId,
+          name: item.productName || 'Unknown',
+          soldQty: 0,
+          totalRevenue: 0
+        }
+      }
+      const pStat = productStats[productId]!
+      pStat.soldQty += item.qty
+      pStat.totalRevenue += item.total
+    }
+  }
+
+  const topProducts = Object.values(productStats)
+    .sort((a: any, b: any) => b.totalRevenue - a.totalRevenue)
+    .slice(0, 5)
+
+  // 7. Recent Orders
+  const recentOrders = sales
+    .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 5)
+    .map((sale: any) => ({
+      id: sale.receiptNo,
+      customer: sale.customerName || 'Anonim',
+      amount: sale.finalTotal,
+      status: (sale.paymentDetails && JSON.parse(sale.paymentDetails).isRefund) ? 'cancelled' : 'completed',
+      date: sale.createdAt
+    }))
+
 
   return {
     kpis: {
@@ -156,6 +204,8 @@ export default defineEventHandler(async (event: any) => {
       refundRate: totalTransactions > 0 ? ((refundTransactions / totalTransactions) * 100) : 0
     },
     hourlyChart,
-    dailyChart
+    dailyChart,
+    topProducts,
+    recentOrders
   }
 })
