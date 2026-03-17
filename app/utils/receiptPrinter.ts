@@ -218,8 +218,12 @@ export const printReceipt = (data: ReceiptData) => {
         <title>Satış Çeki</title>
         <style>
           @page { margin: 0; size: 80mm auto; }
-          @media print { html, body { margin: 0 !important; padding: 0 !important; } }
-          body { font-family: 'Courier New', Courier, monospace; width: 300px; margin: 0 auto; color: #000; padding: 10px; }
+          * { box-sizing: border-box; }
+          @media print {
+            html, body { margin: 0 !important; padding: 0 !important; width: 80mm !important; }
+          }
+          html { width: 80mm; }
+          body { font-family: 'Courier New', Courier, monospace; width: 80mm; margin: 0; color: #000; padding: 4mm; }
           .center { text-align: center; }
           .logo-svg { margin-bottom: 15px; }
           .header-info { font-size: 11px; margin-bottom: 2px; }
@@ -285,12 +289,18 @@ export const printReceipt = (data: ReceiptData) => {
     </html>
   `
 
-  const printWin = window.open('', '', 'width=400,height=600')
+  const printWin = window.open('', '', 'width=302,height=800')
   if (printWin) {
     printWin.document.write(printContent)
     printWin.document.close()
     printWin.focus()
     setTimeout(() => {
+      // Measure actual content height and patch @page size dynamically
+      const body = printWin.document.body
+      const heightMm = Math.ceil(body.scrollHeight * 0.2646) + 10 // px to mm + small buffer
+      const style = printWin.document.createElement('style')
+      style.textContent = `@page { margin: 0; size: 80mm ${heightMm}mm; }`
+      printWin.document.head.appendChild(style)
       printWin.print()
       printWin.close()
     }, 350)
