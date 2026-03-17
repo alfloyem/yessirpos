@@ -1,9 +1,23 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from '#i18n'
-import { useColorMode, useAuth, useToast } from '#imports'
-
+import { useColorMode, useAuth, useToast, useHead } from '#imports'
 import { generateDailyReport } from '~/utils/generateDailyReport'
+import {
+  Chart as ChartJS,
+  Title,
+  Tooltip,
+  Legend,
+  LineElement,
+  PointElement,
+  CategoryScale,
+  LinearScale,
+  ArcElement,
+  Filler,
+  BarElement,
+} from 'chart.js'
+import { Line, Doughnut, Bar } from 'vue-chartjs'
+
 
 const { t, locale } = useI18n()
 const colorMode = useColorMode()
@@ -84,21 +98,8 @@ const downloadReport = () => {
   }
 }
 
-// Chart.js exact imports
-import {
-  Chart as ChartJS,
-  Title,
-  Tooltip,
-  Legend,
-  LineElement,
-  PointElement,
-  CategoryScale,
-  LinearScale,
-  ArcElement,
-  Filler,
-  BarElement,
-} from 'chart.js'
-import { Line, Doughnut, Bar } from 'vue-chartjs'
+// Chart already registered above
+
 
 ChartJS.register(
   Title,
