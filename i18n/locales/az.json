@@ -107,7 +107,7 @@
     "suppliers": "Tədarükçülər",
     "reports": "Hesabatlar",
     "sales": "Satışlar",
-    "orders": "Fiş Arxivi",
+    "orders": "Çek Arxivi",
     "employees": "Əməkdaşlar",
     "employee": "Əməkdaş",
     "giftCard": "Hədiyyə Kartı",
@@ -193,7 +193,7 @@
     "noDataFound": "Məlumat tapılmadı"
   },
   "orders": {
-    "title": "Fiş Arxivi",
+    "title": "Çek Arxivi",
     "totalRevenue": "Ümumi Dövriyyə",
     "transactionCount": "Əməliyyat Sayı",
     "sale": "Satış",
