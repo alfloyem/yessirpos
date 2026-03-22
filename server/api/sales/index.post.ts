@@ -33,7 +33,6 @@ export default defineEventHandler(async (event: any) => {
     
     let nextNum = 1
     if (lastSale && lastSale.receiptNo) {
-      // Try to parse the numeric part of the last receiptNo
       const lastNum = parseInt(lastSale.receiptNo)
       if (!isNaN(lastNum)) {
         nextNum = lastNum + 1
@@ -52,23 +51,30 @@ export default defineEventHandler(async (event: any) => {
           finalTotal: Number(finalTotal) || 0,
           cashbackEarned: Number(cashbackEarned) || 0,
           paymentDetails: typeof paymentDetails === 'object' ? JSON.stringify(paymentDetails) : (paymentDetails || null),
-          cashierId: cashierId ? Number(cashierId) : null,
-          cashierName,
-          customerId: customerId ? Number(customerId) : null,
-          customerName,
-          customerBarcode,
+          
+          // ID validation: Only use numeric IDs
+          cashierId: (cashierId && !isNaN(Number(cashierId))) ? Number(cashierId) : null,
+          cashierName: cashierName || null,
+          
+          customerId: (customerId && !isNaN(Number(customerId))) ? Number(customerId) : null,
+          customerName: customerName || null,
+          customerBarcode: customerBarcode || null,
+          
           items: {
-            create: items.map((item: any) => ({
-              productId: item.productId ? Number(item.productId) : null,
-              productName: item.productName,
-              barcode: item.barcode,
-              qty: Number(item.qty) || 0,
-              price: Number(item.retailPrice) || 0,
-              wholesalePrice: Number(item.wholesalePrice) || 0,
-              discount: Number(item.itemDiscount) || 0,
-              total: (Number(item.qty) || 0) * (Number(item.finalPrice) || 0),
-              attribute: item.attribute ? (typeof item.attribute === 'object' ? JSON.stringify(item.attribute) : String(item.attribute)) : null
-            }))
+            create: items.map((item: any) => {
+              const pId = Number(item.productId)
+              return {
+                productId: (!isNaN(pId) && item.productId) ? pId : null,
+                productName: item.productName,
+                barcode: item.barcode,
+                qty: Number(item.qty) || 0,
+                price: Number(item.retailPrice) || 0,
+                wholesalePrice: Number(item.wholesalePrice) || 0,
+                discount: Number(item.itemDiscount) || 0,
+                total: (Number(item.qty) || 0) * (Number(item.finalPrice) || 0),
+                attribute: item.attribute ? (typeof item.attribute === 'object' ? JSON.stringify(item.attribute) : String(item.attribute)) : null
+              }
+            })
           }
         },
         include: {
@@ -76,11 +82,12 @@ export default defineEventHandler(async (event: any) => {
         }
       })
 
-      // b. Update stock for each product/variant
+      // b. Update stock for each product/variant (if it's a real product, not ghost)
       for (const item of items) {
-        if (item.productId) {
-          await tx.product.updateMany({
-            where: { id: Number(item.productId) },
+        const pId = Number(item.productId)
+        if (!isNaN(pId) && item.productId) {
+          await tx.product.update({
+            where: { id: pId },
             data: {
               stock: {
                 decrement: Number(item.qty) || 0
@@ -96,9 +103,18 @@ export default defineEventHandler(async (event: any) => {
     return result
   } catch (error: any) {
     console.error('Sale Save Error:', error)
+    
+    let msg = error.message || 'Bilinməyən xəta'
+    // Azerbaijani translations for common errors
+    if (msg.includes('Null constraint violation')) {
+      msg = 'Məcburi xanalardan biri boş buraxılıb'
+    } else if (msg.includes('Unique constraint failed')) {
+      msg = 'Bu qeyd (məs. Çek No) artıq mövcuddur'
+    }
+
     throw createError({
       statusCode: 500,
-      statusMessage: 'Satış qeyd edilərkən xəta baş verdi: ' + (error.message || 'Bilinməyən xəta')
+      statusMessage: 'Satış qeyd edilərkən xəta baş verdi: ' + msg
     })
   }
 })
