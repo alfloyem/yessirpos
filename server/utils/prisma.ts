@@ -1,10 +1,14 @@
-import { PrismaClient } from '@prisma/client'
+import { createRequire } from 'module'
 import { Pool } from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 
+// Prisma Client 7 ships as CJS; use createRequire for ESM compatibility
+const require = createRequire(import.meta.url)
+const { PrismaClient } = require('@prisma/client')
+
 // Global prisma instance to prevent multiple connections in development
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
+  prisma: any | undefined
 }
 
 const connectionString = process.env.DATABASE_URL
@@ -36,4 +40,3 @@ const prisma = globalForPrisma.prisma ?? new PrismaClient({
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
 
 export default prisma
-

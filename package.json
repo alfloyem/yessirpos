@@ -10,7 +10,7 @@
     "postinstall": "nuxt prepare",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
-    "db:seed": "tsx prisma/seed.ts",
+    "db:admin": "tsx prisma/create-admin.ts",
     "db:studio": "prisma studio"
   },
   "dependencies": {
@@ -20,8 +20,6 @@
     "bcryptjs": "^3.0.3",
     "browser-image-compression": "^2.0.2",
     "chart.js": "^4.5.1",
-    "electron": "^41.0.2",
-    "electron-builder": "^26.8.1",
     "jsbarcode": "^3.12.3",
     "jsonwebtoken": "^9.0.3",
     "nuxt": "^4.3.1",
