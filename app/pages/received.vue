@@ -107,6 +107,37 @@ const groupProducts = (list: any[]) => {
   }))
 }
 
+const getItemDisplayName = (item: any) => {
+  const baseName = item.productName
+  if (item.attribute) {
+    let attrStr = ''
+    if (Array.isArray(item.attribute)) {
+      attrStr = item.attribute.map((attr: string) => {
+        const parts = attr.split(':')
+        return parts.length > 1 ? parts[1]!.trim() : attr
+      }).join(', ')
+    } else if (typeof item.attribute === 'string') {
+      try {
+        const parsed = JSON.parse(item.attribute)
+        if (Array.isArray(parsed)) {
+          attrStr = parsed.map((attr: string) => {
+            const parts = attr.split(':')
+            return parts.length > 1 ? parts[1]!.trim() : attr
+          }).join(', ')
+        } else {
+          const parts = item.attribute.split(':')
+          attrStr = parts.length > 1 ? parts[1]!.trim() : item.attribute
+        }
+      } catch (e) {
+        const parts = item.attribute.split(':')
+        attrStr = parts.length > 1 ? parts[1]!.trim() : item.attribute
+      }
+    }
+    return attrStr ? `${baseName} | ${attrStr}` : baseName
+  }
+  return baseName
+}
+
 const categories = computed(() => {
   const cats = new Set<string>()
   products.value.forEach((p: any) => {
@@ -442,7 +473,7 @@ const submitIntake = async () => {
 
                   <div class="flex-1 min-w-0 pr-6">
                     <h4 class="font-black text-[12px] text-[var(--text-app)] truncate tracking-tight leading-tight group-hover:text-[var(--text-primary)] transition-colors">
-                      {{ item.productName }}
+                      {{ getItemDisplayName(item) }}
                     </h4>
                     <div class="flex items-center gap-2 mt-0.5">
                       <span class="text-[12px] font-black text-[var(--text-app)]/60 tabular-nums">
