@@ -1,0 +1,16 @@
+- [] brend adı seçimi optional olmalıdır.
+- [] product səhifəsi yenilənməlidir, grid sisteminə keçid olmalıdır.
+- [] product kopyalanan zaman atributlarda kopyalanmalıdır.
+- [] mal qebulunda sağda atribut adı görsənmir.
+- [] satış zamanı kassir seçimi optional olmalıdır.
+- [] tauri və ya electron ilə program yazılmalıdır.
+- [] barkod scan və print slient olmalıdır.
+- [] multi barkod scan olmalıdır. (ideologiya düşünülsün)
+- [] barkod custom design (mal adı, qiymeti ve diger.)
+- [] barkod çapı fixlenmelidir
+- [] nisyə satış imkanı
+- [] kredit satış imkanı
+- [] sidebar düzəlməlidir
+- [] bildiriş sistemi
+- [] settings (hələki bildiriş)
+- [] user access sistemi
