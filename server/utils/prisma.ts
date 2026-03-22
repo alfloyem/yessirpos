@@ -1,10 +1,8 @@
-import { createRequire } from 'module'
+import pkg from '@prisma/client'
 import { Pool } from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 
-// Prisma Client 7 ships as CJS; use createRequire for ESM compatibility
-const require = createRequire(import.meta.url)
-const { PrismaClient } = require('@prisma/client')
+const { PrismaClient } = pkg
 
 // Global prisma instance to prevent multiple connections in development
 const globalForPrisma = globalThis as unknown as {
