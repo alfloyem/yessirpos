@@ -1,5 +1,5 @@
-- [] brend adı seçimi optional olmalıdır.
-- [] satış zamanı kassir seçimi optional olmalıdır.
+- [x] brend adı seçimi optional olmalıdır.
+- [x] satış zamanı kassir seçimi optional olmalıdır.
 - [] mal qebulunda sağda atribut adı görsənmir.
 - [] sidebar düzəlməlidir
 - [] barkod çapı fixlenmelidir

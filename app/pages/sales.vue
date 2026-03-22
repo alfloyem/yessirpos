@@ -393,10 +393,6 @@ const handlePayment = () => {
     toast.error(t('toast.cartEmptyError'))
     return
   }
-  if (!selectedEmployee.value) {
-    toast.error(t('toast.cashierRequiredError'))
-    return
-  }
   showPaymentModal.value = true
 }
 
