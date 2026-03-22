@@ -81,7 +81,7 @@ const goodsSchema = computed< (FormField & { inTable?: boolean, sortable?: boole
     options: suppliersOptions.value,
     inTable: true, 
     sortable: true, 
-    required: true
+    required: false
   },
   { 
     key: 'category', 
