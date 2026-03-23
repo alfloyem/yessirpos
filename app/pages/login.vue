@@ -82,7 +82,7 @@ const handleLogin = async () => {
             <!-- Logo -->
             <div class="flex justify-center">
               <img 
-                src="~/assets/images/yessir_pos_all_logo.svg" 
+                src="~/assets/images/logo/logo.svg" 
                 alt="YESSIR POS" 
                 class="h-16 w-auto"
               />

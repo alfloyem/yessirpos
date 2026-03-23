@@ -1,13 +1,13 @@
 - [x] brend adı seçimi optional olmalıdır.
 - [x] satış zamanı kassir seçimi optional olmalıdır.
 - [x] mal qebulunda sağda atribut adı görsənmir.
-- [] sidebar düzəlməlidir
-- [] barkod çapı fixlenmelidir
-- [] barkod custom design (mal adı, qiymeti ve diger.)
+- [x] sidebar düzəlməlidir
+- [x] barkod çapı fixlenmelidir
+- [x] barkod custom design (mal adı, qiymeti ve diger.)
 - [] product səhifəsi yenilənməlidir, grid sisteminə keçid olmalıdır.
 - [] product kopyalanan zaman atributlarda kopyalanmalıdır.
 - [] bildiriş sistemi
-- [] settings (hələki bildiriş)
+- [x] settings
 - [] user access sistemi
 - [] nisyə satış imkanı
 - [] kredit satış imkanı

@@ -91,12 +91,18 @@ const handleConfirm = () => {
   
   if (isMultiPayment.value) {
     details.payments = { ...multiPayments.value }
-    // Allowed if remaining is 0 or less (overpayment/change)
-    if (remainingMultiTotal.value > 0.01) {
-      return 
+    // Calculate Multi-Cash change
+    const cashVal = multiPayments.value ? (multiPayments.value['Cash'] || 0) : 0
+    if (cashVal >= 0) {
+      // Allow 0 for full debt sales
+      details.received = cashVal
+      details.change = remainingMultiTotal.value < 0 ? Math.abs(remainingMultiTotal.value) : 0
+    } else {
+      details.received = multiTotal.value
     }
     // IMPORTANT: Send barcode if gift card is part of multi-payment
-    if ((multiPayments.value['Gift Card'] || 0) > 0) {
+    const gcVal = multiPayments.value ? (multiPayments.value['Gift Card'] || 0) : 0
+    if (gcVal > 0) {
       details.giftCardBarcode = selectedGiftCard.value?.barcode
     }
   } else {
@@ -105,7 +111,12 @@ const handleConfirm = () => {
       const r = parseFloat(receivedAmount.value) || 0
       details.received = r
       details.change = changeAmount.value
-    } else if (internalMethod.value === 'Gift Card') {
+    } else {
+      // For single methods like Card, we assume full payment unless logic changes
+      details.received = props.total
+    }
+    
+    if (internalMethod.value === 'Gift Card') {
       details.giftCardBarcode = selectedGiftCard.value?.barcode
     }
   }

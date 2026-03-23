@@ -5,7 +5,7 @@ import countryList from '~/utils/countries.json'
 
 const props = defineProps<{
   modelValue: any
-  options?: { label: string, value: any, flag?: string }[]
+  options?: { label: string, value: any, flag?: string, image?: string }[]
   disabled?: boolean
   icon?: string
   isCountry?: boolean
@@ -43,6 +43,11 @@ const selectedLabel = computed(() => {
 const selectedFlag = computed(() => {
   const selected = currentOptions.value.find(opt => opt.value === props.modelValue)
   return selected ? (selected as any).flag : null
+})
+
+const selectedImage = computed(() => {
+  const selected = currentOptions.value.find(opt => opt.value === props.modelValue)
+  return selected ? (selected as any).image : null
 })
 
 const selectOption = (value: any) => {
@@ -104,7 +109,7 @@ const handleKeydown = (e: KeyboardEvent) => {
       @keydown.down.prevent="isOpen = true"
       :disabled="disabled"
       class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] py-2 text-[15px] font-medium rounded-[14px] outline-none focus:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/10 hover:border-[var(--text-primary)]/50 transition-all duration-300 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-left flex items-center justify-between"
-      :class="[(icon || isCountry) ? 'pl-11' : 'pl-5', 'pr-11']"
+      :class="[(icon || isCountry || selectedImage) ? 'pl-11' : 'pl-5', 'pr-11']"
     >
       <!-- Left Icon (Optional) -->
       <UiIcon 
@@ -119,6 +124,11 @@ const handleKeydown = (e: KeyboardEvent) => {
       >
         {{ selectedFlag }}
       </span>
+      <img
+        v-else-if="selectedImage"
+        :src="selectedImage"
+        class="absolute left-[15px] top-1/2 -translate-y-1/2 w-5 h-5 object-cover pointer-events-none"
+      />
 
       <span class="truncate block" :class="modelValue ? 'text-[var(--text-app)]' : 'text-[var(--text-app)] opacity-40 font-normal'">
         {{ selectedLabel }}
@@ -164,6 +174,7 @@ const handleKeydown = (e: KeyboardEvent) => {
             />
             <span class="flex-1 truncate" :class="modelValue === opt.value ? '' : 'ml-7'">
               <span v-if="(opt as any).flag" class="mr-2 emoji-flag text-[17px] -mt-0.5">{{ (opt as any).flag }}</span>
+              <img v-else-if="(opt as any).image" :src="(opt as any).image" class="inline-block mr-2 w-5 h-5 object-cover align-middle -mt-0.5" />
               {{ opt.label }}
             </span>
           </button>

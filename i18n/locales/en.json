@@ -470,5 +470,47 @@
     "cashbackCancellation": "Cashback Cancellation (-)",
     "stockBonusNotice": "Upon confirmation, stock will increase and customer bonus will be proportionally revoked.",
     "notFound": "Receipt not found"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage system parameters",
+    "tabs": {
+      "appearance": "Appearance",
+      "notifications": "Notifications",
+      "barcode": "Barcode",
+      "receipt": "Receipt"
+    },
+    "sections": {
+      "appearance": "Interface",
+      "notifications": "Sales & Orders",
+      "inventory": "Inventory & Stock",
+      "system": "System & Management",
+      "visual": "Visual Settings"
+    },
+    "items": {
+      "theme_toggle": "Dark Mode",
+      "language_select": "System Language",
+      "sale_completed": "New Sale",
+      "order_created": "New Order (Debt)",
+      "refund_processed": "Refund Processed",
+      "stock_arrival": "Stock Received",
+      "low_stock_warning": "Low Stock Alert",
+      "out_of_stock": "Out of Stock",
+      "daily_report_ready": "Daily Report Ready",
+      "employee_login": "Employee Login",
+      "new_expense_recorded": "New Expense Recorded",
+      "showProductName": "Product Name",
+      "showPrice": "Price",
+      "showAttribute": "Attribute / Size",
+      "showBarcodeString": "Barcode Digits",
+      "showLogo": "Store Logo",
+      "showStoreName": "Store Name",
+      "showAddress": "Address",
+      "showPhone": "Contact Phone",
+      "showCashierName": "Cashier Name",
+      "showCustomerName": "Customer Name",
+      "showTaxRates": "VAT / Tax",
+      "showFooterMessage": "Thank You Message"
+    }
   }
 }

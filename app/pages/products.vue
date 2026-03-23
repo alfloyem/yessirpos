@@ -453,7 +453,12 @@ const performDelete = async () => {
 
 const handleBarcodeClick = (row: any) => {
   if (!row.barcode) return
-  printBarcode(row.barcode)
+  printBarcode({
+    barcode: row.barcode,
+    productName: row.parentProductName || row.productName,
+    attribute: row.attribute,
+    price: row.retailPrice
+  })
 }
 
 const handleDuplicate = async (row: any) => {

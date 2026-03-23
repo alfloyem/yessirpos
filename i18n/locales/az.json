@@ -215,7 +215,7 @@
     "filterAll": "Hamısı",
     "filterDebts": "Borclar",
     "relatedIntake": "Əlaqəli Qəbul",
-    "payDebt": "Borc Öde",
+    "payDebt": "Borc Ödə",
     "payDebtTitle": "Borc Ödəniş",
     "remainingDebt": "Qalıq Borc",
     "paid": "Ödənilən",
@@ -471,5 +471,47 @@
     "cashbackCancellation": "Keşbek Ləğvi (-)",
     "stockBonusNotice": "Təsdiq edildikdə stok avtomatik artacaq və müştəri bonusu mütənasib olaraq geri alınacaq.",
     "notFound": "Çek tapılmadı"
+  },
+  "settings": {
+    "title": "Tənzimləmələr",
+    "subtitle": "Sistem parametrlərini idarə edin",
+    "tabs": {
+      "appearance": "Görünüş",
+      "notifications": "Bildirişlər",
+      "barcode": "Barkod",
+      "receipt": "Qəbz"
+    },
+    "sections": {
+      "appearance": "İnterfeys",
+      "notifications": "Satış və Sifarişlər",
+      "inventory": "İnventar və Anbar",
+      "system": "Sistem və İdarəetmə",
+      "visual": "Görünüş Parametrləri"
+    },
+    "items": {
+      "theme_toggle": "Qaranlıq Rejim",
+      "language_select": "Sistem Dili",
+      "sale_completed": "Yeni Satış",
+      "order_created": "Yeni Sifariş (Nisyə)",
+      "refund_processed": "Geri Ödəniş (Qaytarma)",
+      "stock_arrival": "Anbara Mal Qəbulu",
+      "low_stock_warning": "Azalan Məhsul Xəbərdarlığı",
+      "out_of_stock": "Bitmiş Məhsul",
+      "daily_report_ready": "Günlük Hesabat",
+      "employee_login": "İşçi Girişi",
+      "new_expense_recorded": "Yeni Xərc Əlavəsi",
+      "showProductName": "Məhsulun Adı",
+      "showPrice": "Qiymət",
+      "showAttribute": "Atribut / Ölçü",
+      "showBarcodeString": "Barkod Rəqəmləri",
+      "showStoreName": "Mağaza Adı",
+      "showLogo": "Mağaza Loqosu",
+      "showAddress": "Ünvan",
+      "showPhone": "Əlaqə Nömrəsi",
+      "showCashierName": "Kassir Adı",
+      "showCustomerName": "Müştəri Adı",
+      "showTaxRates": "ƏDV / Vergi",
+      "showFooterMessage": "Təşəkkür Mesajı"
+    }
   }
 }

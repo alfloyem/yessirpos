@@ -69,68 +69,14 @@ const selectLanguage = (code) => {
       </button>
 
       <!-- Mobile Logo Placeholder (Only visible on mobile) -->
-      <img src="~/assets/images/yessir_pos_text_logo.svg" alt="YESSIR POS" class="h-4 w-auto md:hidden ml-2" />
+      <img src="~/assets/images/logo/typography.svg" alt="YESSIR POS" class="h-4 w-auto md:hidden ml-2" />
     </div>
 
-    <!-- Navbar Right (Actions) -->
-    <div class="flex items-center gap-6">
-      <!-- Digital Clock -->
-      <div class="hidden md:flex items-center gap-2 text-[var(--text-app)] opacity-70 text-[13px] font-medium tracking-wide">
-        <Icon name="lucide:clock" class="w-4 h-4 text-[var(--text-primary)] opacity-80" />
-        <span>{{ formattedTime }}</span>
-      </div>
-
-      <!-- Language Switcher & Theme Toggle -->
-      <div class="flex items-center gap-2 md:gap-3 md:pl-6 md:border-l border-[var(--border-app)]">
-        <!-- Language Dropdown -->
-        <UiDropdown menuClass="absolute top-12 right-0 bg-[var(--bg-app)] border border-[var(--border-app)] z-[200] min-w-[140px] rounded-[16px] drop-shadow-xl overflow-hidden py-1">
-          <template #trigger>
-            <button class="w-9 h-9 flex items-center justify-center bg-transparent hover:bg-[var(--text-primary)]/10 rounded-full transition-all cursor-pointer overflow-hidden border border-transparent hover:border-[var(--text-primary)]/20">
-              <img :src="currentFlag" :alt="locale" class="w-5 h-5 object-cover rounded-full" />
-            </button>
-          </template>
-
-          <template #menu="{ close }">
-            <div class="px-2">
-              <button
-                v-for="l in locales"
-                :key="l.code"
-                @click="selectLanguage(l.code); close()"
-                class="w-full flex items-center gap-3 px-3 py-2.5 my-1 text-[13px] font-medium transition-all rounded-[10px] hover:bg-[var(--text-primary)]/10 hover:text-[var(--text-primary)] whitespace-nowrap cursor-pointer"
-                :class="locale === l.code ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)]' : 'text-[var(--text-app)] opacity-80'"
-              >
-                <img :src="languageFlags[l.code]" :alt="l.name" class="w-5 h-5 object-cover rounded-full flex-shrink-0" />
-                <span class="leading-none">{{ l.name }}</span>
-              </button>
-            </div>
-          </template>
-        </UiDropdown>
-
-        <!-- Theme Toggle -->
-        <button 
-          @click="toggleTheme"
-          class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg hover:border-[var(--text-primary)] hover:scale-105 transition-all group cursor-pointer"
-        >
-          <Transition name="theme-switch" mode="out-in">
-            <Icon 
-              v-if="colorMode.value === 'dark'"
-              key="moon"
-              name="lucide:moon" 
-              class="w-3.5 h-3.5 md:w-5 md:h-5 text-[var(--text-primary)]"
-            />
-            <Icon 
-              v-else
-              key="sun"
-              name="lucide:sun" 
-              class="w-3.5 h-3.5 md:w-5 md:h-5 text-[var(--text-primary)]"
-            />
-          </Transition>
-        </button>
-
-
-      </div>
-
-      </div>
+    <!-- Digital Clock -->
+    <div class="hidden md:flex items-center gap-2 text-[var(--text-app)] opacity-70 text-[13px] font-medium tracking-wide">
+      <Icon name="lucide:clock" class="w-4 h-4 text-[var(--text-primary)] opacity-80" />
+      <span>{{ formattedTime }}</span>
+    </div>
   </header>
 </template>
 

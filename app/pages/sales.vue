@@ -396,7 +396,7 @@ const handlePayment = () => {
   showPaymentModal.value = true
 }
 
-const printReceipt = (manualReceiptNo?: string) => {
+const printReceipt = (manualReceiptNo?: string, details?: any) => {
   const currentDate = new Date().toLocaleString('az-AZ', {
     day: '2-digit', month: '2-digit', year: 'numeric',
     hour: '2-digit', minute: '2-digit', second: '2-digit'
@@ -429,7 +429,7 @@ const printReceipt = (manualReceiptNo?: string) => {
       else finalPrice = price - d
       
       return {
-        productName: item.productName,
+        productName: item.parentName || item.productName,
         barcode: item.barcode,
         qty: item.qty,
         price,
@@ -449,11 +449,11 @@ const printReceipt = (manualReceiptNo?: string) => {
       spent: bonusSpentArr
     } : undefined,
     paymentDetails: {
-      isMulti: paymentDetails.value?.isMulti || false,
+      isMulti: paymentDetails.value?.isMulti || (details?.payments && Object.keys(details.payments).length > 1) || false,
       method: paymentMethod.value,
-      payments: paymentDetails.value?.payments,
-      received: paymentDetails.value?.received,
-      change: paymentDetails.value?.change,
+      payments: details?.payments || paymentDetails.value?.payments,
+      received: details?.received || paymentDetails.value?.received,
+      change: details?.change || paymentDetails.value?.change,
       giftCard: paymentDetails.value?.giftCard ? {
         barcode: paymentDetails.value.giftCard.barcode,
         remaining: Math.max(0, paymentDetails.value.giftCard.value - (paymentDetails.value.payments?.['Gift Card'] || (paymentMethod.value === 'Gift Card' ? finalTotal.value : 0)))
@@ -573,7 +573,7 @@ const completeOrder = async (details?: any) => {
         
         return {
           productId: item.id,
-          productName: item.productName,
+          productName: item.parentName || item.productName,
           barcode: item.barcode,
           qty: item.qty,
           retailPrice: price,
@@ -602,7 +602,7 @@ const completeOrder = async (details?: any) => {
     }
     
     toast.success(msg)
-    printReceipt(savedSale.receiptNo) // Pass the 13-digit receiptNo from DB
+    printReceipt(savedSale.receiptNo, details) // Pass details to ensure final payment state is printed
     
     clearCart()
     selectedCustomer.value = null

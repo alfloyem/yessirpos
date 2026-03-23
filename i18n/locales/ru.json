@@ -469,5 +469,47 @@
     "cashbackCancellation": "Отмена кэшбэка (-)",
     "stockBonusNotice": "После подтверждения остатки будут увеличены, а бонусы клиента пропорционально аннулированы.",
     "notFound": "Чек не найден"
+  },
+  "settings": {
+    "title": "Настройки",
+    "subtitle": "Управление параметрами системы",
+    "tabs": {
+      "appearance": "Внешний вид",
+      "notifications": "Уведомления",
+      "barcode": "Штрихкод",
+      "receipt": "Чек"
+    },
+    "sections": {
+      "appearance": "Интерфейс",
+      "notifications": "Продажи и Заказы",
+      "inventory": "Склад и Инвентарь",
+      "system": "Система и Управление",
+      "visual": "Настройки отображения"
+    },
+    "items": {
+      "theme_toggle": "Темный режим",
+      "language_select": "Язык системы",
+      "sale_completed": "Новая продажа",
+      "order_created": "Новый заказ (Долг)",
+      "refund_processed": "Оформлен возврат",
+      "stock_arrival": "Поступление товара",
+      "low_stock_warning": "Мало товара",
+      "out_of_stock": "Товар закончился",
+      "daily_report_ready": "Ежедневный отчет",
+      "employee_login": "Вход сотрудника",
+      "new_expense_recorded": "Новый расход",
+      "showProductName": "Название товара",
+      "showPrice": "Цена",
+      "showAttribute": "Атрибут / Размер",
+      "showBarcodeString": "Цифры штрихкода",
+      "showStoreName": "Название магазина",
+      "showLogo": "Логотип магазина",
+      "showAddress": "Адрес",
+      "showPhone": "Контактный телефон",
+      "showCashierName": "Имя кассира",
+      "showCustomerName": "Имя клиента",
+      "showTaxRates": "НДС / Налог",
+      "showFooterMessage": "Благодарственное сообщение"
+    }
   }
 }

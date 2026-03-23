@@ -49,7 +49,7 @@
   body {
     background-color: var(--bg-app);
     color: var(--text-app);
-    cursor: url('~/assets/images/cursor-default.svg') 0 0, url('~/assets/images/cursor-default.png') 0 0, auto;
+    cursor: url('~/assets/images/cursors/default.svg') 0 0, url('~/assets/images/cursors/default.png') 0 0, auto;
     @apply font-sans antialiased;
   }
 
@@ -64,7 +64,7 @@
   select,
   label,
   .cursor-pointer {
-    cursor: url('~/assets/images/cursor-pointer.svg') 0 0, url('~/assets/images/cursor-pointer.png') 0 0, pointer !important;
+    cursor: url('~/assets/images/cursors/pointer.svg') 0 0, url('~/assets/images/cursors/pointer.png') 0 0, pointer !important;
   }
 
   /* Smooth theme transition for all elements */
