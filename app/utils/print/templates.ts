@@ -172,6 +172,7 @@ export const buildReceiptHtml = (data: ReceiptData, clientData: ClientData, barc
           ${data.isArchive ? '<div style="font-size: 10px; margin-top: 2px;">*** ARXİV SURƏTİ ***</div>' : ''}
           <div style="margin-top: 10px;">
             ${barcodeDataUrl ? `<img src="${barcodeDataUrl}" style="max-width: 75%; height: auto;" />` : ''}
+            <div style="font-size: 10px; margin-top: 3px; font-family: 'Courier New', monospace;">${data.receiptNo}</div>
           </div>
           ${showFooterMessage ? '<div style="margin-top: 10px; font-size: 11px; font-weight: bold;">TƏŞƏKKÜR EDİRİK!</div>' : ''}
         </div>
