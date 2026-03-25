@@ -143,7 +143,7 @@ export const buildReceiptHtml = (data: ReceiptData, clientData: ClientData, barc
           <div class="title">SATIŞ ÇEKİ</div>
           <div class="info">
             TARİX: ${data.currentDate} <br/>
-            KASSİR: ${data.cashierName.toUpperCase()}
+            ${data.cashierName && data.cashierName !== '***' ? `KASSİR: ${data.cashierName.toUpperCase()}` : ''}
           </div>
         </div>
         
@@ -293,7 +293,11 @@ export const buildBarcodeHtml = (data: BarcodeData, clientData: ClientData, barc
     }
   }
 
-  const showBarcodeString = data.showBarcodeString !== false
+  const showBarcodeString = data.showBarcodeString === true
+  const hasStoreName = clientData.name && clientData.name.trim() !== ''
+  const hasProductName = data.productName && data.productName.trim() !== ''
+  const hasAttribute = attrStr && attrStr.trim() !== ''
+  const hasPrice = data.price !== undefined && data.price !== null
 
   return `
     <html>
@@ -303,11 +307,11 @@ export const buildBarcodeHtml = (data: BarcodeData, clientData: ClientData, barc
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body { 
             margin: 0; 
-            padding: 2mm; 
+            padding: 1.5mm; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            justify-content: center; 
+            justify-content: space-evenly; 
             width: 50mm; 
             height: 30mm; 
             font-family: Arial, sans-serif; 
@@ -315,52 +319,64 @@ export const buildBarcodeHtml = (data: BarcodeData, clientData: ClientData, barc
             overflow: hidden;
           }
           .store-name { 
-            font-size: 7px; 
+            font-size: 6.5px; 
             text-transform: uppercase; 
-            margin-bottom: 1mm;
-            font-weight: 600;
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: 0.3px;
           }
           .product-name { 
-            font-size: 8px; 
-            font-weight: bold; 
+            font-size: 9px; 
+            font-weight: 700; 
             width: 100%; 
             white-space: nowrap; 
             overflow: hidden; 
             text-overflow: ellipsis;
-            margin-bottom: 0.5mm;
+            line-height: 1.1;
           }
           .attribute { 
-            font-size: 6px; 
-            opacity: 0.8;
-            margin-bottom: 1mm;
+            font-size: 7px; 
+            opacity: 0.75;
+            line-height: 1.1;
+          }
+          .barcode-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            width: 100%;
           }
           .barcode-img { 
             width: 100%; 
             height: auto; 
             max-width: 46mm; 
-            max-height: 12mm;
-            margin: 1mm 0;
+            max-height: 13mm;
+            object-fit: contain;
           }
           .barcode-text { 
-            font-size: 7px; 
+            font-size: 8px; 
             font-family: 'Courier New', monospace; 
-            font-weight: bold;
+            font-weight: 700;
+            line-height: 1.1;
             margin-top: 0.5mm;
           }
           .price { 
-            font-size: 12px; 
-            font-weight: bold; 
-            margin-top: 1mm;
+            font-size: 13px; 
+            font-weight: 700;
+            line-height: 1.1;
           }
         </style>
       </head>
       <body>
-        ${clientData.name ? `<div class="store-name">${clientData.name}</div>` : ''}
-        ${data.productName ? `<div class="product-name">${data.productName}</div>` : ''}
-        ${attrStr ? `<div class="attribute">${attrStr}</div>` : ''}
-        ${barcodeDataUrl ? `<img src="${barcodeDataUrl}" class="barcode-img" />` : ''}
-        ${showBarcodeString && data.barcode ? `<div class="barcode-text">${data.barcode}</div>` : ''}
-        ${data.price ? `<div class="price">${Number(data.price).toFixed(2)} ₼</div>` : ''}
+        ${hasStoreName ? `<div class="store-name">${clientData.name}</div>` : ''}
+        ${hasProductName ? `<div class="product-name">${data.productName}</div>` : ''}
+        ${hasAttribute ? `<div class="attribute">${attrStr}</div>` : ''}
+        <div class="barcode-container">
+          ${barcodeDataUrl ? `<img src="${barcodeDataUrl}" class="barcode-img" />` : ''}
+          ${showBarcodeString && data.barcode ? `<div class="barcode-text">${data.barcode}</div>` : ''}
+        </div>
+        ${hasPrice ? `<div class="price">${Number(data.price).toFixed(2)} ₼</div>` : ''}
       </body>
     </html>
   `

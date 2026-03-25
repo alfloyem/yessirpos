@@ -96,7 +96,6 @@ export const printReceipt = (data: ReceiptData) => {
     showPhone: true,
     showCashierName: true,
     showCustomerName: true,
-    showTaxRates: true,
     showFooterMessage: true
   }
   
@@ -125,7 +124,7 @@ export const printReceipt = (data: ReceiptData) => {
   // Apply settings to receipt data
   const modifiedData = {
     ...data,
-    cashierName: settings.showCashierName ? data.cashierName : '***',
+    cashierName: settings.showCashierName ? data.cashierName : '',
     customer: settings.showCustomerName ? data.customer : undefined
   }
 

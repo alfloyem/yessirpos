@@ -113,7 +113,6 @@ const settingsConfig: Record<SettingsTab, SettingsSection[]> = {
         { key: 'showPhone', label: 'settings.items.showPhone' },
         { key: 'showCashierName', label: 'settings.items.showCashierName' },
         { key: 'showCustomerName', label: 'settings.items.showCustomerName' },
-        { key: 'showTaxRates', label: 'settings.items.showTaxRates' },
         { key: 'showFooterMessage', label: 'settings.items.showFooterMessage' },
       ]
     }
@@ -158,7 +157,6 @@ const defaultToggleState = {
   showPrice: true,
   showAttribute: true,
   showBarcodeString: true,
-  showTaxRates: true,
   showFooterMessage: true
 }
 
@@ -220,7 +218,7 @@ const receiptPreviewHtml = computed(() => {
   // Dummy receipt data
   const dummyData: any = {
     receiptNo: '12345678',
-    cashierName: toggleState.value['showCashierName'] ? 'Admin' : '***',
+    cashierName: toggleState.value['showCashierName'] ? 'Admin' : '',
     currentDate: new Date().toLocaleDateString('az-AZ', {
       year: 'numeric',
       month: '2-digit', 
@@ -367,10 +365,10 @@ const barcodePreviewHtml = computed(() => {
               </div>
 
               <!-- Live Previews -->
-              <div v-if="activeTab === 'receipt' || activeTab === 'barcode'" class="w-full lg:w-[320px] shrink-0 border border-[var(--border-app)] bg-[var(--card-bg)] rounded-xl relative overflow-auto flex flex-col items-center justify-start p-6">
+              <div v-if="activeTab === 'receipt' || activeTab === 'barcode'" class="w-full lg:w-[320px] shrink-0 border border-[var(--border-app)] bg-[var(--card-bg)] rounded-xl relative overflow-auto flex flex-col items-center justify-start py-6 px-4">
                 <!-- RECEIPT PREVIEW iframe -->
-                  <div v-if="activeTab === 'receipt'" class="bg-white text-black shadow-xl overflow-hidden" style="width: 80mm; min-height: 100mm;">
-                    <iframe :srcdoc="receiptPreviewHtml" class="w-full min-h-[500px] border-0" frameborder="0" scrolling="no" style="display: block;"></iframe>
+                  <div v-if="activeTab === 'receipt'" class="bg-white text-black shadow-2xl overflow-hidden rounded-sm" style="width: 80mm;">
+                    <iframe :srcdoc="receiptPreviewHtml" class="w-full border-0" frameborder="0" scrolling="no" style="display: block; height: 600px;"></iframe>
                   </div>
 
                   <!-- BARCODE PREVIEW iframe -->
