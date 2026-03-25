@@ -3,20 +3,38 @@ import prisma from '../../utils/prisma'
 
 export default defineEventHandler(async (event: any) => {
   try {
+    // Test database connection first
+    await (prisma as any).$connect()
+    
     const [sales, intakes, debtPayments] = await Promise.all([
       (prisma as any).sale.findMany({
         orderBy: { createdAt: 'desc' },
         include: { items: true }
+      }).catch((err: any) => {
+        console.error('Sales query error:', err)
+        return []
       }),
       (prisma as any).intake.findMany({
         orderBy: { createdAt: 'desc' },
         include: { items: true }
+      }).catch((err: any) => {
+        console.error('Intakes query error:', err)
+        return []
       }),
       (prisma as any).intakePayment.findMany({
         orderBy: { createdAt: 'desc' },
         include: { intake: { include: { items: true } } }
+      }).catch((err: any) => {
+        console.error('Debt payments query error:', err)
+        return []
       })
     ])
+
+    console.log('Receipts loaded:', { 
+      salesCount: sales.length, 
+      intakesCount: intakes.length, 
+      debtPaymentsCount: debtPayments.length 
+    })
 
     // Map sales & refunds
     const mappedSales = sales.map((s: any) => {
@@ -67,7 +85,7 @@ export default defineEventHandler(async (event: any) => {
         barcode: it.barcode,
         qty: it.qty,
         price: it.costPrice,
-        wholesalePrice: it.costPrice, // For intake, cost is wholesale
+        wholesalePrice: it.costPrice,
         discount: it.discount,
         total: it.total,
         attribute: it.attribute ? (it.attribute.startsWith('[') || it.attribute.startsWith('{') ? JSON.parse(it.attribute) : it.attribute) : null
@@ -107,14 +125,20 @@ export default defineEventHandler(async (event: any) => {
       })) || []
     }))
 
-    return [...mappedSales, ...mappedIntakes, ...mappedDebtPayments].sort((a: any, b: any) =>
+    const result = [...mappedSales, ...mappedIntakes, ...mappedDebtPayments].sort((a: any, b: any) =>
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )
+    
+    console.log('Returning', result.length, 'receipts')
+    return result
   } catch (error: any) {
     console.error('Receipts GET Error:', error)
+    console.error('Error stack:', error.stack)
+    console.error('Error message:', error.message)
     throw createError({
       statusCode: 500,
-      statusMessage: 'Fişlər yüklənərkən xəta baş verdi'
+      statusMessage: 'Fişlər yüklənərkən xəta baş verdi',
+      data: { error: error.message, stack: error.stack }
     })
   }
 })
