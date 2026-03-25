@@ -194,6 +194,19 @@ const loading = ref(false)
 const searchQuery = ref('')
 const currentPage = ref(1)
 const itemsPerPage = ref(15)
+const expandedProducts = ref<Set<string>>(new Set())
+
+const toggleProductVariants = (productId: string) => {
+  if (expandedProducts.value.has(productId)) {
+    expandedProducts.value.delete(productId)
+  } else {
+    expandedProducts.value.add(productId)
+  }
+}
+
+const isProductExpanded = (productId: string) => {
+  return expandedProducts.value.has(productId)
+}
 
 const groupedProducts = computed(() => {
   const variantMap: Record<string, any[]> = {}
@@ -210,8 +223,7 @@ const groupedProducts = computed(() => {
 
   let allGrouped = Object.values(parentMap).map(main => ({
     ...main,
-    variants: variantMap[main.id] || [],
-    _showVariants: false
+    variants: variantMap[main.id] || []
   }))
 
   if (searchQuery.value) {
@@ -413,10 +425,10 @@ const handleStandaloneVariantAdd = (row: any) => {
     brandName: row.brandName,
     category: row.category,
     barcode: generateBarcode('P'),
-    wholesalePrice: '0.00',
-    retailPrice: '0.00',
+    wholesalePrice: row.wholesalePrice || '0.00',
+    retailPrice: row.retailPrice || '0.00',
     stock: '',
-    reorderLevel: ''
+    reorderLevel: row.reorderLevel || ''
   }
   variantImages.value = []
   selectedVariantAttr.value = []
@@ -545,6 +557,8 @@ const handleDuplicate = async (row: any) => {
     }
     
     const headers = { Authorization: `Bearer ${token.value}` }
+    
+    // Create the parent product copy
     const newProduct = await $fetch('/api/products', {
       method: 'POST',
       body: {
@@ -559,7 +573,31 @@ const handleDuplicate = async (row: any) => {
     })
     
     mockData.value.unshift(newProduct)
-    toast.success(t('products.duplicated'))
+    
+    // If the product has variants, copy them too
+    if (row.variants && row.variants.length > 0) {
+      for (const variant of row.variants) {
+        const newVariant = await $fetch('/api/products', {
+          method: 'POST',
+          body: {
+            ...variant,
+            id: undefined,
+            parentProductId: newProduct.id,
+            barcode: generateBarcode('P'),
+            images: [...(variant.images || [])],
+            attribute: [...(variant.attribute || [])]
+          },
+          headers
+        })
+        mockData.value.unshift(newVariant)
+      }
+      toast.success(t('products.duplicatedWithVariants', { count: row.variants.length }))
+    } else {
+      toast.success(t('products.duplicated'))
+    }
+    
+    // Reload to get fresh data with proper grouping
+    await loadGoods()
   } catch (err: any) {
     toast.error(t('toast.operationFailed'))
   } finally {
@@ -923,7 +961,7 @@ const saveForm = async () => {
               <!-- Variant toggle -->
               <button 
                 class="flex items-center justify-between w-full py-2 -mx-0 group/vtoggle transition-colors" 
-                @click="product._showVariants = !product._showVariants"
+                @click="toggleProductVariants(product.id)"
               >
                 <span class="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-app)] opacity-40 group-hover/vtoggle:opacity-70 transition-opacity">
                   {{ product.variants.length }} variant
@@ -931,12 +969,12 @@ const saveForm = async () => {
                 <UiIcon 
                   name="lucide:chevron-down" 
                   class="w-3.5 h-3.5 text-[var(--text-app)] opacity-30 group-hover/vtoggle:opacity-60 transition-all duration-300" 
-                  :class="product._showVariants ? 'rotate-180' : ''" 
+                  :class="isProductExpanded(product.id) ? 'rotate-180' : ''" 
                 />
               </button>
 
               <!-- Variant rows -->
-              <div v-show="product._showVariants" class="flex flex-col gap-1.5 mt-1">
+              <div v-show="isProductExpanded(product.id)" class="flex flex-col gap-1.5 mt-1">
                 <div 
                   v-for="variant in product.variants" 
                   :key="variant.id" 
@@ -958,6 +996,9 @@ const saveForm = async () => {
                   <div class="flex items-center gap-2">
                     <!-- Variant inline actions -->
                     <div class="flex items-center gap-0.5 opacity-0 group-hover/vrow:opacity-100 transition-opacity">
+                      <button v-if="variant.barcode" @click.stop="handleBarcodeClick(variant)" class="w-5 h-5 flex items-center justify-center rounded text-[var(--text-app)] opacity-40 hover:opacity-100 hover:text-[var(--text-primary)] transition-all" :title="t('products.printBarcode')">
+                        <UiIcon name="lucide:barcode" class="w-3 h-3" />
+                      </button>
                       <button @click.stop="handleEdit(variant)" class="w-5 h-5 flex items-center justify-center rounded text-[var(--text-app)] opacity-40 hover:opacity-100 hover:text-[var(--text-primary)] transition-all">
                         <UiIcon name="lucide:pen-line" class="w-3 h-3" />
                       </button>

@@ -34,11 +34,15 @@ const emit = defineEmits<{
 const isExpanded = ref(false)
 
 const toggleExpand = () => {
-  if (props.product.variants.length > 0) {
+  if (props.product.variants && props.product.variants.length > 0) {
     isExpanded.value = !isExpanded.value
   } else {
     // If no variants, add the product itself
-    emit('add-to-cart', { ...props.product, parentName: props.product.productName } as any)
+    emit('add-to-cart', { 
+      ...props.product, 
+      parentName: props.product.productName,
+      retailPrice: props.product.retailPrice || 0
+    } as any)
   }
 }
 
@@ -48,12 +52,13 @@ const addVariantToCart = (variant: ProductVariant) => {
 
 const getVariantName = (variant: ProductVariant) => {
   if (variant.attribute && Array.isArray(variant.attribute) && variant.attribute.length > 0) {
-    return variant.attribute.map(attr => {
+    const attrNames = variant.attribute.map(attr => {
       const parts = attr.split(':')
       return parts.length > 1 ? parts[1].trim() : attr
     }).join(', ')
+    return attrNames || variant.productName
   }
-  return variant.productName
+  return variant.productName || 'N/A'
 }
 
 const formatPrice = (price: number | string) => {
@@ -91,10 +96,10 @@ const formatPrice = (price: number | string) => {
         </h3>
         
         <div class="flex items-center gap-2">
-          <span v-if="product.variants && product.variants.length === 0" class="text-sm font-black text-[var(--text-primary)] tabular-nums">
-            {{ formatPrice(product.retailPrice) }} ₼
+          <span v-if="!product.variants || product.variants.length === 0" class="text-sm font-black text-[var(--text-primary)] tabular-nums">
+            {{ formatPrice(product.retailPrice || 0) }} ₼
           </span>
-          <span v-if="product.variants && product.variants.length > 0" class="text-[9px] font-black tracking-widest bg-[var(--text-primary)]/10 text-[var(--text-primary)] px-2 py-0.5 rounded-lg">
+          <span v-else class="text-[9px] font-black tracking-widest bg-[var(--text-primary)]/10 text-[var(--text-primary)] px-2 py-0.5 rounded-lg">
             {{ t('sales.variantCount', { count: product.variants.length }) }}
           </span>
         </div>
@@ -112,7 +117,7 @@ const formatPrice = (price: number | string) => {
 
     <!-- Variants Section - Minimal & Fast -->
     <div 
-      v-if="isExpanded && product.variants.length > 0"
+      v-if="isExpanded && product.variants && product.variants.length > 0"
       class="border-t border-[var(--border-app)] bg-[var(--bg-app)]/40 backdrop-blur-md max-h-[280px] overflow-y-auto custom-scrollbar"
     >
       <div class="p-1.5 space-y-0.5">
@@ -122,23 +127,25 @@ const formatPrice = (price: number | string) => {
           @click="addVariantToCart(variant)"
           class="p-2 flex items-center gap-3 rounded-xl hover:bg-[var(--text-primary)]/5 cursor-pointer border border-transparent hover:border-[var(--text-primary)]/15 transition-all group/v"
         >
-          <div class="flex-1 flex items-center justify-between min-w-0">
-            <div class="flex items-center gap-2 min-w-0 flex-1 pr-3">
-              <span class="text-[12px] font-black text-[var(--text-app)] truncate group-hover/v:text-[var(--text-primary)] transition-colors flex-1 text-wrap">
+          <div class="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2 min-w-0">
+            <div class="flex items-center gap-2 min-w-0 flex-1">
+              <span class="text-[12px] font-black text-[var(--text-app)] group-hover/v:text-[var(--text-primary)] transition-colors line-clamp-2">
                 {{ getVariantName(variant) }}
               </span>
-              <span class="text-[11px] font-mono text-[var(--text-app)] opacity-80 shrink-0">
-                {{ variant.barcode }}
+            </div>
+            
+            <div class="flex items-center gap-2 shrink-0 flex-wrap">
+              <span class="text-[11px] font-mono text-[var(--text-app)] opacity-60">
+                {{ variant.barcode || 'N/A' }}
               </span>
-              <div class="flex items-center gap-1 shrink-0 px-1.5 py-0.5 rounded-md text-[10px] font-black bg-[var(--bg-app)]/10 border border-[var(--border-app)]/5" :class="Number(variant.stock || 0) > 0 ? 'text-[var(--text-primary)]' : 'text-red-500'">
+              <div class="flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-black bg-[var(--bg-app)]/10 border border-[var(--border-app)]/5" :class="Number(variant.stock || 0) > 0 ? 'text-[var(--text-primary)]' : 'text-red-500'">
                 <UiIcon name="lucide:package" class="w-3 h-3" />
                 <span>{{ variant.stock || 0 }}</span>
               </div>
+              <span class="text-[14px] font-black text-[var(--text-primary)] tabular-nums">
+                {{ formatPrice(variant.retailPrice || 0) }} ₼
+              </span>
             </div>
-            
-            <span class="text-[14px] font-black text-[var(--text-primary)] tabular-nums shrink-0">
-              {{ formatPrice(variant.retailPrice) }} ₼
-            </span>
           </div>
         </div>
       </div>
