@@ -19,8 +19,13 @@ useHead({
 
 // --- Helper for Barcode Generation ---
 const generateBarcode = (prefix = '') => {
-  const cBarcodes = mockData.value
-    .map(m => m.barcode)
+  // Collect all existing barcodes from mockData and newProductVariants
+  const allBarcodes = [
+    ...mockData.value.map(m => m.barcode),
+    ...newProductVariants.value.map(v => v.barcode)
+  ]
+  
+  const cBarcodes = allBarcodes
     .filter(b => typeof b === 'string' && new RegExp(`^${prefix || 'P'}\\d{7}$`).test(b))
     .map(b => parseInt(b.substring(1), 10))
   
@@ -31,7 +36,7 @@ const generateBarcode = (prefix = '') => {
   
   let barcode = `${prefix || 'P'}${String(nextNum).padStart(7, '0')}`
   
-  const existingSet = new Set(mockData.value.map(m => m.barcode))
+  const existingSet = new Set(allBarcodes)
   while (existingSet.has(barcode)) {
     nextNum++
     barcode = `${prefix || 'P'}${String(nextNum).padStart(7, '0')}`
@@ -194,6 +199,26 @@ const loading = ref(false)
 const searchQuery = ref('')
 const currentPage = ref(1)
 const itemsPerPage = ref(15)
+const newProductVariants = ref<any[]>([])
+const productImageIndexes = ref<Record<string, number>>({})
+
+const nextProductImage = (productId: string, imageCount: number) => {
+  if (!productImageIndexes.value[productId]) {
+    productImageIndexes.value[productId] = 0
+  }
+  productImageIndexes.value[productId] = (productImageIndexes.value[productId] + 1) % imageCount
+}
+
+const prevProductImage = (productId: string, imageCount: number) => {
+  if (!productImageIndexes.value[productId]) {
+    productImageIndexes.value[productId] = 0
+  }
+  productImageIndexes.value[productId] = (productImageIndexes.value[productId] - 1 + imageCount) % imageCount
+}
+
+const getCurrentImageIndex = (productId: string) => {
+  return productImageIndexes.value[productId] || 0
+}
 
 const groupedProducts = computed(() => {
   const variantMap: Record<string, any[]> = {}
@@ -397,12 +422,66 @@ const formatVariantAttr = (attr: any) => {
 // --- Handlers ---
 const handleAdd = () => {
   formData.value = {
+    productName: '',
     brandName: '',
-    category: []
+    category: [],
+    description: ''
   }
   productImages.value = []
+  
+  // Initialize with one variant
+  newProductVariants.value = [{
+    id: Date.now().toString(),
+    barcode: generateBarcode('P'),
+    wholesalePrice: '0.00',
+    retailPrice: '0.00',
+    stock: '',
+    reorderLevel: '',
+    attribute: [],
+    selectedAttributes: [],
+    images: []
+  }]
+  
   barcodeError.value = ''
   showAddModal.value = true
+}
+
+const addNewProductVariant = () => {
+  // Generate unique barcode for new variant
+  const newBarcode = generateBarcode('P')
+  
+  newProductVariants.value.push({
+    id: Date.now().toString(),
+    barcode: newBarcode,
+    wholesalePrice: formData.value.wholesalePrice || '0.00',
+    retailPrice: formData.value.retailPrice || '0.00',
+    stock: '',
+    reorderLevel: formData.value.reorderLevel || '',
+    attribute: [],
+    selectedAttributes: [],
+    images: []
+  })
+}
+
+const removeNewProductVariant = (index: number) => {
+  if (newProductVariants.value.length > 1) {
+    newProductVariants.value.splice(index, 1)
+  }
+}
+
+const addAttributeToNewVariant = (variantIndex: number, attrId: string) => {
+  const attr = availableAttributes.value.find(a => a.id === attrId)
+  if (attr && !newProductVariants.value[variantIndex].selectedAttributes.find((s: any) => s.id === attr.id)) {
+    newProductVariants.value[variantIndex].selectedAttributes.push({
+      id: attr.id,
+      name: attr.name,
+      value: attr.values?.[0] || ''
+    })
+  }
+}
+
+const removeAttributeFromNewVariant = (variantIndex: number, attrIndex: number) => {
+  newProductVariants.value[variantIndex].selectedAttributes.splice(attrIndex, 1)
 }
 
 const handleStandaloneVariantAdd = (row: any) => {
@@ -670,6 +749,7 @@ const saveForm = async () => {
 
   try {
     if (showAddModal.value) {
+      // Create parent product
       const newProduct = await $fetch('/api/products', {
         method: 'POST',
         body: {
@@ -679,8 +759,32 @@ const saveForm = async () => {
         headers
       })
       mockData.value.unshift(newProduct)
+      
+      // Create variants
+      for (const variant of newProductVariants.value) {
+        const newVariant = await $fetch('/api/products', {
+          method: 'POST',
+          body: {
+            parentProductId: newProduct.id,
+            productName: formData.value.productName,
+            brandName: formData.value.brandName,
+            category: formData.value.category,
+            barcode: variant.barcode,
+            wholesalePrice: variant.wholesalePrice,
+            retailPrice: variant.retailPrice,
+            stock: variant.stock || 0,
+            reorderLevel: variant.reorderLevel || 0,
+            attribute: variant.selectedAttributes?.map((s: any) => `${s.name}: ${s.value}`) || [],
+            images: variant.images || []
+          },
+          headers
+        })
+        mockData.value.unshift(newVariant)
+      }
+      
       toast.success(t('products.added'))
       showAddModal.value = false
+      await loadGoods()
     } else if (showEditModal.value) {
       if (bulkSelectedIds.value.length > 0) {
         const payload = bulkEditType.value === 'variants' ? variantFormData.value : formData.value
@@ -810,7 +914,7 @@ const saveForm = async () => {
     </div>
     
     <div v-else class="mt-2">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 items-start">
         <!-- ═══════════════════════════════════════════════════ -->
         <!-- Product Card: Ultra-Flat Editorial Design         -->
         <!-- ═══════════════════════════════════════════════════ -->
@@ -820,22 +924,43 @@ const saveForm = async () => {
           class="group relative flex flex-col bg-[var(--bg-app)] border border-[var(--border-app)] rounded-xl overflow-hidden transition-colors duration-300 hover:border-[var(--text-primary)]/50 hover:bg-[var(--input-bg)]"
         >
           <!-- ── Image ── -->
-          <div class="relative w-full aspect-[5/4] bg-[var(--input-bg)] overflow-hidden">
+          <div class="relative w-full aspect-[5/4] bg-[var(--input-bg)] overflow-hidden group/img">
             <img 
               v-if="product.images?.length" 
-              :src="product.images[0]" 
-              class="w-full h-full object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-[1.06]" 
+              :src="product.images[getCurrentImageIndex(product.id)]" 
+              class="w-full h-full object-cover transition-all duration-500 ease-out" 
             />
             <div v-else class="w-full h-full flex items-center justify-center bg-[var(--text-primary)]/[0.03]">
               <UiIcon name="lucide:image" class="w-10 h-10 text-[var(--text-app)] opacity-[0.12]" stroke-width="1" />
             </div>
 
-            <!-- Image count -->
+            <!-- Navigation Arrows (only show if multiple images) -->
+            <div v-if="product.images?.length > 1" class="absolute inset-0 flex items-center justify-between px-2 opacity-0 group-hover/img:opacity-100 transition-opacity pointer-events-none">
+              <button 
+                @click.stop="prevProductImage(product.id, product.images.length)"
+                class="w-8 h-8 rounded-full bg-[var(--bg-app)]/90 backdrop-blur-sm border border-[var(--border-app)] flex items-center justify-center text-[var(--text-app)] hover:bg-[var(--text-primary)] hover:text-white hover:border-[var(--text-primary)] transition-all pointer-events-auto shadow-lg"
+              >
+                <UiIcon name="lucide:chevron-left" class="w-4 h-4" />
+              </button>
+              <button 
+                @click.stop="nextProductImage(product.id, product.images.length)"
+                class="w-8 h-8 rounded-full bg-[var(--bg-app)]/90 backdrop-blur-sm border border-[var(--border-app)] flex items-center justify-center text-[var(--text-app)] hover:bg-[var(--text-primary)] hover:text-white hover:border-[var(--text-primary)] transition-all pointer-events-auto shadow-lg"
+              >
+                <UiIcon name="lucide:chevron-right" class="w-4 h-4" />
+              </button>
+            </div>
+
+            <!-- Image count & indicator dots -->
             <div 
               v-if="product.images?.length > 1" 
-              class="absolute bottom-2.5 right-2.5 h-6 px-2 flex items-center rounded-md bg-[var(--bg-app)]/90 backdrop-blur-sm border border-[var(--border-app)] text-[9px] font-bold tracking-wider text-[var(--text-app)]"
+              class="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1 px-2 py-1 rounded-full bg-[var(--bg-app)]/90 backdrop-blur-sm border border-[var(--border-app)]"
             >
-              <UiIcon name="lucide:image" class="w-3 h-3 mr-1 opacity-50" />{{ product.images.length }}
+              <div 
+                v-for="(img, idx) in product.images" 
+                :key="idx"
+                class="w-1.5 h-1.5 rounded-full transition-all"
+                :class="getCurrentImageIndex(product.id) === idx ? 'bg-[var(--text-primary)] w-4' : 'bg-[var(--text-app)] opacity-30'"
+              ></div>
             </div>
 
             <!-- Hover overlay with checkbox + actions -->
@@ -1067,13 +1192,107 @@ const saveForm = async () => {
         </div>
 
         <!-- Right: Form Fields -->
-        <div class="flex-1 w-full lg:border-l lg:border-[var(--border-app)] lg:pl-8">
+        <div class="flex-1 w-full lg:border-l lg:border-[var(--border-app)] lg:pl-8 space-y-6">
+          <!-- Base Product Info -->
           <DynamicForm 
             :fields="formFields"
             v-model="formData" 
             :gridCols="1"
             :errors="formErrors"
           />
+
+          <!-- Variants Section -->
+          <div class="pt-6 border-t border-[var(--border-app)]">
+            <div class="flex items-center justify-between mb-4">
+              <label class="text-xs font-bold text-[var(--text-app)] tracking-wider">
+                {{ t('products.variants', 'Variantlar') }}
+              </label>
+              <UiButton 
+                variant="soft-primary" 
+                size="sm" 
+                icon="lucide:plus"
+                @click="addNewProductVariant"
+              >
+                {{ t('products.addVariant') }}
+              </UiButton>
+            </div>
+
+            <div class="space-y-4">
+              <div 
+                v-for="(variant, idx) in newProductVariants" 
+                :key="variant.id"
+                class="p-4 bg-[var(--input-bg)] rounded-xl border border-[var(--border-app)] space-y-3"
+              >
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-[var(--text-app)] opacity-60">Variant {{ idx + 1 }}</span>
+                  <button 
+                    v-if="newProductVariants.length > 1"
+                    @click="removeNewProductVariant(idx)"
+                    class="w-6 h-6 flex items-center justify-center text-[var(--color-brand-danger)] hover:bg-[var(--color-brand-danger)]/10 rounded-lg transition-all"
+                  >
+                    <UiIcon name="lucide:trash-2" class="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <!-- Attributes -->
+                <div class="space-y-2">
+                  <label class="block text-[10px] font-bold text-[var(--text-app)] opacity-40">{{ t('menu.attributes') }}</label>
+                  <div class="flex flex-col gap-2">
+                    <div 
+                      v-for="(attr, attrIdx) in variant.selectedAttributes" 
+                      :key="attr.id"
+                      class="flex items-center gap-2 p-2 bg-[var(--bg-app)] rounded-lg border border-[var(--border-app)] group/attr"
+                    >
+                      <div class="w-1/3 text-[12px] font-semibold text-[var(--text-app)] truncate px-1">
+                        {{ attr.name }}
+                      </div>
+                      
+                      <div class="flex-1">
+                        <UiSelect 
+                          v-model="attr.value"
+                          :options="availableAttributes.find(a => a.id === attr.id)?.values.map((v: string) => ({ label: v, value: v })) || []"
+                        />
+                      </div>
+
+                      <button 
+                        @click="removeAttributeFromNewVariant(idx, attrIdx)"
+                        class="w-8 h-8 flex items-center justify-center text-[var(--color-brand-danger)] opacity-0 group-hover/attr:opacity-100 hover:bg-[var(--color-brand-danger)]/10 rounded-lg transition-all"
+                      >
+                        <UiIcon name="lucide:x" class="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    
+                    <UiSelect 
+                      v-if="availableAttributes.filter(a => !variant.selectedAttributes.find((s: any) => s.id === a.id)).length > 0"
+                      modelValue=""
+                      :placeholder="t('products.addAttribute')"
+                      :options="availableAttributes.filter(a => !variant.selectedAttributes.find((s: any) => s.id === a.id)).map(a => ({ label: a.name, value: a.id }))"
+                      @update:modelValue="(val) => addAttributeToNewVariant(idx, val)"
+                    />
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-[10px] font-bold text-[var(--text-app)] opacity-40 mb-1">{{ t('products.barcode') }}</label>
+                    <UiInput v-model="variant.barcode" :placeholder="t('products.barcode')" />
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-bold text-[var(--text-app)] opacity-40 mb-1">{{ t('products.stock') }}</label>
+                    <UiInput v-model="variant.stock" type="number" placeholder="0" />
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-bold text-[var(--text-app)] opacity-40 mb-1">{{ t('products.wholesalePrice') }}</label>
+                    <UiInput v-model="variant.wholesalePrice" type="number" placeholder="0.00" />
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-bold text-[var(--text-app)] opacity-40 mb-1">{{ t('products.retailPrice') }}</label>
+                    <UiInput v-model="variant.retailPrice" type="number" placeholder="0.00" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

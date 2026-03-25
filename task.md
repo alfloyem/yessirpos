@@ -4,8 +4,8 @@
 - [x] sidebar düzəlməlidir
 - [x] barkod çapı fixlenmelidir
 - [] barkod custom design (mal adı, qiymeti ve diger.)
-- [] product səhifəsi yenilənməlidir, grid sisteminə keçid olmalıdır.
-- [] product kopyalanan zaman atributlarda kopyalanmalıdır.
+- [x] product səhifəsi yenilənməlidir, grid sisteminə keçid olmalıdır.
+- [x] product kopyalanan zaman atributlarda kopyalanmalıdır.
 - [] bildiriş sistemi
 - [x] settings
 - [] user access sistemi
