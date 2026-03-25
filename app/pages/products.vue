@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from '#i18n'
 import { useHead, useToast, useAuth } from '#imports'
-import DataTable from '~/components/ui/DataTable.vue'
+import UiDropdown from '~/components/ui/Dropdown.vue'
 import Modal from '~/components/ui/Modal.vue'
 import UiButton from '~/components/ui/Button.vue'
 import DynamicForm, { type FormField } from '~/components/ui/DynamicForm.vue'
@@ -187,44 +187,66 @@ const variantSchemaBottom = computed<FormField[]>(() => [
   { key: 'reorderLevel', label: t('products.reorderLevelHint'), icon: 'lucide:alert-circle', type: 'integer', placeholder: '0', required: false },
 ])
 
-// Extract table columns dynamically
-const columns = computed(() => 
-  goodsSchema.value
-    .filter(f => f.inTable)
-    .map(f => ({ key: f.key, label: f.label, sortable: f.sortable }))
-)
-
-
 // --- Data ---
 const mockData = ref<any[]>([])
 const suppliersOptions = ref<{ label: string, value: string }[]>([])
 const loading = ref(false)
+const searchQuery = ref('')
+const currentPage = ref(1)
+const itemsPerPage = ref(15)
 
-const orderedMockData = computed(() => {
-  const mainProducts: any[] = []
-  const variantMap: Record<number | string, any[]> = {}
-  
+const groupedProducts = computed(() => {
+  const variantMap: Record<string, any[]> = {}
+  const parentMap: Record<string, any> = {}
+
   mockData.value.forEach(item => {
-    const pid = item.parentProductId
-    if (pid) {
-      if (!variantMap[pid]) variantMap[pid] = []
-      variantMap[pid]?.push(item)
+    if (item.parentProductId) {
+      if (!variantMap[item.parentProductId]) variantMap[item.parentProductId] = []
+      variantMap[item.parentProductId]?.push(item)
     } else {
-      mainProducts.push(item)
+      parentMap[item.id] = item
     }
   })
-  
-  const result: any[] = []
-  mainProducts.forEach(main => {
-    result.push(main)
-    const childVariants = variantMap[main.id] || []
-    childVariants.forEach(v => {
-      result.push({ ...v, parentName: main.productName })
+
+  let allGrouped = Object.values(parentMap).map(main => ({
+    ...main,
+    variants: variantMap[main.id] || [],
+    _showVariants: false
+  }))
+
+  if (searchQuery.value) {
+    const normalizeText = (text: any) => {
+      if (text === null || text === undefined) return ''
+      return String(text).toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g, "")
+    }
+    const q = normalizeText(searchQuery.value)
+
+    const matches = (item: any) => {
+      const searchableFields = [
+        item.productName, item.barcode, item.parentProductName, item.description,
+        Array.isArray(item.brandName) ? item.brandName.join(' ') : item.brandName,
+        Array.isArray(item.category) ? item.category.join(' ') : item.category,
+        Array.isArray(item.attribute) ? item.attribute.join(' ') : item.attribute,
+        item.wholesalePrice, item.retailPrice, item.createdBy
+      ]
+      return searchableFields.some(field => normalizeText(field).includes(q))
+    }
+
+    allGrouped = allGrouped.filter(group => {
+      if (matches(group)) return true
+      const matchedVariants = group.variants.filter((v: any) => matches(v))
+      if (matchedVariants.length > 0) return true
+      return false
     })
-  })
-  
-  // Re-assign row numbers sequentially for the final display
-  return result.map((item, index) => ({ ...item, rowNumber: index + 1 }))
+  }
+
+  return allGrouped
+})
+
+const totalPages = computed(() => Math.ceil(groupedProducts.value.length / itemsPerPage.value))
+const paginatedProducts = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  return groupedProducts.value.slice(start, start + itemsPerPage.value)
 })
 
 const bulkEditType = computed(() => {
@@ -323,6 +345,55 @@ onMounted(() => {
   loadAttributes()
   loadSuppliers()
 })
+
+watch(searchQuery, () => {
+  currentPage.value = 1
+})
+
+const toggleSelection = (id: any) => {
+  const idx = currentSelectionIds.value.indexOf(id)
+  if (idx !== -1) currentSelectionIds.value.splice(idx, 1)
+  else currentSelectionIds.value.push(id)
+}
+
+const toggleSelectAll = () => {
+  const visibleIds: any[] = []
+  paginatedProducts.value.forEach(p => {
+    visibleIds.push(p.id)
+    p.variants.forEach((v: any) => visibleIds.push(v.id))
+  })
+  
+  const allSelected = visibleIds.every(id => currentSelectionIds.value.includes(id))
+  if (allSelected) {
+    currentSelectionIds.value = currentSelectionIds.value.filter(id => !visibleIds.includes(id))
+  } else {
+    visibleIds.forEach(id => {
+      if (!currentSelectionIds.value.includes(id)) currentSelectionIds.value.push(id)
+    })
+  }
+}
+
+const formatPrice = (val: any) => Number(val || 0).toFixed(2)
+const getMinPrice = (variants: any[]) => Math.min(...variants.map(v => Number(v.retailPrice || 0)))
+const getMaxPrice = (variants: any[]) => Math.max(...variants.map(v => Number(v.retailPrice || 0)))
+const getStockColor = (stock: number, reorderLevel: number) => {
+  const s = Number(stock || 0)
+  const r = Number(reorderLevel || 0)
+  if (s <= 0) return 'text-[var(--color-brand-danger)]'
+  if (s <= r) return 'text-[var(--color-brand-warning)]'
+  return 'text-[var(--text-app)]'
+}
+const formatVariantAttr = (attr: any) => {
+  if (!attr) return ''
+  if (Array.isArray(attr)) return attr.join(', ')
+  try {
+    const parsed = JSON.parse(attr)
+    if (Array.isArray(parsed)) return parsed.join(', ')
+    return String(parsed)
+  } catch {
+    return String(attr)
+  }
+}
 
 // --- Handlers ---
 const handleAdd = () => {
@@ -650,166 +721,307 @@ const saveForm = async () => {
 
 <template>
   <div class="space-y-6 font-sans">
-    <div class="flex items-center justify-between">
-      <h1 class="text-2xl font-bold text-[var(--text-app)]">
-        {{ t('menu.products') }}
-      </h1>
+    <!-- Header & Toolbar -->
+    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-bold text-[var(--text-app)]">
+          {{ t('menu.products') }}
+        </h1>
+        <span class="px-2.5 py-0.5 rounded-full bg-[var(--text-primary)]/10 text-[var(--text-primary)] text-xs font-bold">
+          {{ groupedProducts.length }}
+        </span>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center gap-3 w-full md:w-auto">
+        <div class="relative w-full md:w-64">
+          <UiIcon name="lucide:search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-app)] opacity-50" />
+          <input 
+            v-model="searchQuery" 
+            :placeholder="t('common.search')" 
+            class="w-full h-10 pl-10 pr-4 rounded-xl bg-[var(--input-bg)] border border-[var(--border-app)] text-[var(--text-app)] text-sm focus:outline-none focus:border-[var(--text-primary)] transition-colors"
+          />
+        </div>
+        <UiButton variant="primary" icon="lucide:plus" @click="handleAdd" class="shrink-0 drop-shadow-sm hover:drop-shadow transition-all">
+          {{ t('products.addNew') }}
+        </UiButton>
+      </div>
     </div>
 
-    <!-- Smart Data Table -->
-    <DataTable 
-      :title="t('menu.products')"
-      :data="orderedMockData" 
-      :columns="columns"
-      :selectable="true"
-      :actions="true"
-      :loading="loading"
-      :custom-search="customSearch"
-      :row-class="(row) => {
-        let cls = ''
-        if (!row.parentProductId) cls += ' !border-t-4 !border-[var(--border-app)]'
-        else cls += ' !bg-[var(--text-primary)]/[0.04]'
-        return cls
-      }"
-      :per-page="20"
-      :can-bulk-edit="canBulkEdit"
-      @update:selected-ids="currentSelectionIds = $event"
-      @add="handleAdd"
-      @edit="handleEdit"
-      @delete="handleDelete"
-      @duplicate="handleDuplicate"
-      @bulk-delete="handleBulkDelete"
-      @bulk-edit="handleBulkEdit"
+    <!-- Bulk Actions Bar -->
+    <div 
+      v-if="currentSelectionIds.length > 0" 
+      class="flex items-center justify-between bg-[var(--input-bg)] border border-[var(--color-brand-warning)]/30 rounded-xl p-3 px-5 transition-all w-full shadow-sm"
     >
-      <template #row-actions="{ row }">
-        <div v-if="!row.parentProductId" class="relative group/add-variant flex items-center">
-          <UiButton 
-            variant="ghost"
-            size="icon"
-            icon="lucide:layers"
-            @click="handleStandaloneVariantAdd(row)"
-            class="hover:text-[var(--color-brand-success)] hover:bg-[var(--color-brand-success)]/10 cursor-pointer"
-          />
-          <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-[var(--text-primary)] text-[var(--bg-app)] text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover/add-variant:opacity-100 pointer-events-none transition-all z-50">
-            {{ t('products.addVariant') }}
-          </div>
+      <div class="flex items-center gap-3">
+        <div 
+          class="w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer transition-colors bg-[var(--text-primary)] border-[var(--text-primary)]"
+          @click="toggleSelectAll"
+        >
+          <UiIcon name="lucide:minus" class="w-3 h-3 text-[var(--bg-app)]" />
         </div>
-      </template>
-
-      <!-- Row Number Custom Format -->
-      <template #cell-rowNumber="{ value }">
-        <span class="font-medium text-[var(--text-app)] opacity-60">
-          {{ value }}
+        <span class="text-sm font-bold text-[var(--text-app)]">
+          {{ currentSelectionIds.length }} {{ t('common.selected', 'Seçilib') }}
         </span>
-      </template>
+      </div>
+      <div class="flex items-center gap-2">
+        <UiButton variant="outline" size="sm" icon="lucide:edit" @click="handleBulkEdit(currentSelectionIds)" :disabled="bulkEditType === 'mixed'">
+          {{ t('common.bulkEdit') }}
+        </UiButton>
+        <UiButton variant="danger" size="sm" icon="lucide:trash-2" @click="handleBulkDelete(currentSelectionIds)">
+          {{ t('common.bulkDelete') }}
+        </UiButton>
+      </div>
+    </div>
 
-      <!-- Product Name Custom Format -->
-      <template #cell-productName="{ row, highlight }">
-        <div class="flex flex-col">
-          <div v-if="!row.parentProductId" class="font-bold text-[var(--text-app)]" v-html="highlight(row.productName)"></div>
-          <div v-else class="flex items-center gap-2">
-            <div class="flex flex-wrap gap-1">
-              <span 
-                v-for="(attr, idx) in (Array.isArray(row.attribute) ? row.attribute : [row.attribute])"
-                :key="idx"
-                class="px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide bg-[var(--text-primary)]/10 text-[var(--text-primary)] border border-[var(--text-primary)]/10"
+    <!-- Products Grid -->
+    <div v-if="loading" class="flex items-center justify-center py-20 text-[var(--text-app)] opacity-50">
+      <UiIcon name="lucide:loader-2" class="w-8 h-8 animate-spin" />
+    </div>
+    
+    <div v-else-if="paginatedProducts.length === 0" class="flex flex-col items-center justify-center py-20 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-2xl text-[var(--text-app)] opacity-50 shadow-sm mt-4">
+      <UiIcon name="lucide:package-open" class="w-16 h-16 mb-4 opacity-30" />
+      <p class="text-lg font-medium">{{ t('common.noData') }}</p>
+    </div>
+    
+    <div v-else class="mt-2">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- Product Card: Ultra-Flat Editorial Design         -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <div 
+          v-for="product in paginatedProducts" 
+          :key="product.id" 
+          class="group relative flex flex-col bg-[var(--bg-app)] border border-[var(--border-app)] rounded-xl overflow-hidden transition-colors duration-300 hover:border-[var(--text-primary)]/50 hover:bg-[var(--input-bg)]"
+        >
+          <!-- ── Image ── -->
+          <div class="relative w-full aspect-[5/4] bg-[var(--input-bg)] overflow-hidden">
+            <img 
+              v-if="product.images?.length" 
+              :src="product.images[0]" 
+              class="w-full h-full object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-[1.06]" 
+            />
+            <div v-else class="w-full h-full flex items-center justify-center bg-[var(--text-primary)]/[0.03]">
+              <UiIcon name="lucide:image" class="w-10 h-10 text-[var(--text-app)] opacity-[0.12]" stroke-width="1" />
+            </div>
+
+            <!-- Image count -->
+            <div 
+              v-if="product.images?.length > 1" 
+              class="absolute bottom-2.5 right-2.5 h-6 px-2 flex items-center rounded-md bg-[var(--bg-app)]/90 backdrop-blur-sm border border-[var(--border-app)] text-[9px] font-bold tracking-wider text-[var(--text-app)]"
+            >
+              <UiIcon name="lucide:image" class="w-3 h-3 mr-1 opacity-50" />{{ product.images.length }}
+            </div>
+
+            <!-- Hover overlay with checkbox + actions -->
+            <div class="absolute inset-0 bg-[var(--text-primary)]/[0.00] group-hover:bg-[var(--text-primary)]/[0.04] transition-colors duration-500 pointer-events-none"></div>
+
+            <!-- Checkbox (top-left, appears on hover or when selected) -->
+            <div class="absolute top-2.5 left-2.5 z-10">
+              <div 
+                class="w-5 h-5 rounded-[5px] border flex items-center justify-center cursor-pointer transition-all duration-200"
+                :class="currentSelectionIds.includes(product.id) 
+                  ? 'bg-[var(--text-primary)] border-[var(--text-primary)] opacity-100' 
+                  : 'bg-[var(--bg-app)]/90 border-[var(--border-app)] opacity-0 group-hover:opacity-100'"
+                @click="toggleSelection(product.id)"
               >
-                {{ attr }}
+                <UiIcon v-if="currentSelectionIds.includes(product.id)" name="lucide:check" class="w-3 h-3 text-white" />
+              </div>
+            </div>
+
+            <!-- Actions button (top-right, appears on hover) -->
+            <div class="absolute top-2.5 right-2.5 z-10">
+              <UiDropdown 
+                class="opacity-0 group-hover:opacity-100 transition-opacity duration-200" 
+                menuClass="absolute top-full right-0 mt-1.5 w-44 z-[60]"
+              >
+                <template #trigger>
+                  <button class="w-7 h-7 rounded-lg bg-[var(--bg-app)]/90 border border-[var(--border-app)] flex items-center justify-center text-[var(--text-app)] hover:text-[var(--text-primary)] hover:border-[var(--text-primary)]/50 transition-colors">
+                    <UiIcon name="lucide:ellipsis" class="w-4 h-4" />
+                  </button>
+                </template>
+                <template #menu="{ close }">
+                  <div class="py-1">
+                    <button @click="handleEdit(product); close()" class="w-full px-3.5 py-2 text-[12px] font-medium text-left flex items-center gap-2.5 hover:bg-[var(--text-primary)]/5 text-[var(--text-app)] transition-colors">
+                      <UiIcon name="lucide:pen-line" class="w-3.5 h-3.5 opacity-50" /> {{ t('products.edit') }}
+                    </button>
+                    <button @click="handleStandaloneVariantAdd(product); close()" class="w-full px-3.5 py-2 text-[12px] font-medium text-left flex items-center gap-2.5 hover:bg-[var(--text-primary)]/5 text-[var(--text-app)] transition-colors">
+                      <UiIcon name="lucide:layers" class="w-3.5 h-3.5 opacity-50" /> {{ t('products.addVariant') }}
+                    </button>
+                    <button @click="handleDuplicate(product); close()" class="w-full px-3.5 py-2 text-[12px] font-medium text-left flex items-center gap-2.5 hover:bg-[var(--text-primary)]/5 text-[var(--text-app)] transition-colors">
+                      <UiIcon name="lucide:copy" class="w-3.5 h-3.5 opacity-50" /> {{ t('common.duplicate') }}
+                    </button>
+                    <button v-if="product.barcode" @click="handleBarcodeClick(product); close()" class="w-full px-3.5 py-2 text-[12px] font-medium text-left flex items-center gap-2.5 hover:bg-[var(--text-primary)]/5 text-[var(--text-app)] transition-colors">
+                      <UiIcon name="lucide:barcode" class="w-3.5 h-3.5 opacity-50" /> {{ t('products.printBarcode') }}
+                    </button>
+                    <div class="h-px bg-[var(--border-app)] my-1"></div>
+                    <button @click="handleDelete(product); close()" class="w-full px-3.5 py-2 text-[12px] font-medium text-left flex items-center gap-2.5 text-[var(--color-brand-danger)] hover:bg-[var(--color-brand-danger)]/5 transition-colors">
+                      <UiIcon name="lucide:trash-2" class="w-3.5 h-3.5 opacity-50" /> {{ t('common.delete') }}
+                    </button>
+                  </div>
+                </template>
+              </UiDropdown>
+            </div>
+          </div>
+
+          <!-- ── Body ── -->
+          <div class="flex flex-col flex-1 p-4 pt-3.5">
+            <!-- Meta row: brand · category -->
+            <div class="flex items-center gap-1.5 mb-2 min-h-[14px]">
+              <span v-if="product.category?.length" class="text-[9px] uppercase font-semibold tracking-[0.18em] text-[var(--text-primary)] opacity-70 truncate">
+                {{ Array.isArray(product.category) ? product.category[0] : product.category }}
+              </span>
+              <span v-if="product.brandName && product.category?.length" class="text-[var(--text-app)] opacity-15 text-[8px]">/</span>
+              <span v-if="product.brandName" class="text-[9px] uppercase font-semibold tracking-[0.18em] text-[var(--text-app)] opacity-35 truncate">
+                {{ Array.isArray(product.brandName) ? product.brandName[0] : product.brandName }}
               </span>
             </div>
+
+            <!-- Title -->
+            <h3 
+              class="text-[14px] font-semibold text-[var(--text-app)] leading-snug mb-3 line-clamp-2 min-h-[2.5em] group-hover:text-[var(--text-primary)] transition-colors duration-300" 
+              :title="product.productName"
+            >
+              {{ product.productName }}
+            </h3>
+
+            <!-- Spacer -->
+            <div class="mt-auto"></div>
+
+            <!-- ── Price & Stock (No variants) ── -->
+            <div v-if="product.variants.length === 0" class="flex items-baseline justify-between pt-3 border-t border-[var(--border-app)]/60">
+              <span class="text-[17px] font-bold text-[var(--text-app)] tabular-nums">
+                {{ formatPrice(product.retailPrice) }}
+                <span class="text-[11px] font-semibold opacity-40 ml-0.5">₼</span>
+              </span>
+              <span 
+                class="text-[11px] font-bold tabular-nums px-1.5 py-0.5 rounded-md" 
+                :class="{
+                  'bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)]': Number(product.stock || 0) <= 0,
+                  'bg-[var(--color-brand-warning)]/10 text-[var(--color-brand-warning)]': Number(product.stock || 0) > 0 && Number(product.stock || 0) <= Number(product.reorderLevel || 0),
+                  'bg-[var(--text-primary)]/[0.06] text-[var(--text-app)] opacity-70': Number(product.stock || 0) > Number(product.reorderLevel || 0)
+                }"
+              >
+                {{ product.stock || 0 }} {{ t('products.stock') }}
+              </span>
+            </div>
+
+            <!-- ── Price & Variants ── -->
+            <div v-else class="flex flex-col pt-3 border-t border-[var(--border-app)]/60">
+              <!-- Price range -->
+              <div class="flex items-baseline justify-between mb-2">
+                <span class="text-[17px] font-bold text-[var(--text-app)] tabular-nums">
+                  {{ formatPrice(getMinPrice(product.variants)) }}
+                  <template v-if="getMinPrice(product.variants) !== getMaxPrice(product.variants)">
+                    <span class="text-[11px] opacity-30 mx-0.5">–</span>
+                    {{ formatPrice(getMaxPrice(product.variants)) }}
+                  </template>
+                  <span class="text-[11px] font-semibold opacity-40 ml-0.5">₼</span>
+                </span>
+              </div>
+
+              <!-- Variant toggle -->
+              <button 
+                class="flex items-center justify-between w-full py-2 -mx-0 group/vtoggle transition-colors" 
+                @click="product._showVariants = !product._showVariants"
+              >
+                <span class="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-app)] opacity-40 group-hover/vtoggle:opacity-70 transition-opacity">
+                  {{ product.variants.length }} variant
+                </span>
+                <UiIcon 
+                  name="lucide:chevron-down" 
+                  class="w-3.5 h-3.5 text-[var(--text-app)] opacity-30 group-hover/vtoggle:opacity-60 transition-all duration-300" 
+                  :class="product._showVariants ? 'rotate-180' : ''" 
+                />
+              </button>
+
+              <!-- Variant rows -->
+              <div v-show="product._showVariants" class="flex flex-col gap-1.5 mt-1">
+                <div 
+                  v-for="variant in product.variants" 
+                  :key="variant.id" 
+                  class="flex items-center justify-between py-2 px-2.5 -mx-1 rounded-lg hover:bg-[var(--text-primary)]/[0.04] group/vrow transition-colors cursor-default"
+                >
+                  <div class="flex items-center gap-2 min-w-0">
+                    <!-- Variant checkbox -->
+                    <div 
+                      class="w-3.5 h-3.5 rounded-[3px] border flex items-center justify-center cursor-pointer shrink-0 transition-colors"
+                      :class="currentSelectionIds.includes(variant.id) ? 'bg-[var(--text-primary)] border-[var(--text-primary)]' : 'border-[var(--border-app)] group-hover/vrow:border-[var(--text-primary)]/40'"
+                      @click.stop="toggleSelection(variant.id)"
+                    >
+                      <UiIcon v-if="currentSelectionIds.includes(variant.id)" name="lucide:check" class="w-2.5 h-2.5 text-white" />
+                    </div>
+                    <span class="text-[11px] font-medium text-[var(--text-app)] opacity-80 truncate max-w-[90px]" :title="formatVariantAttr(variant.attribute) || variant.barcode">
+                      {{ formatVariantAttr(variant.attribute) || variant.barcode }}
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <!-- Variant inline actions -->
+                    <div class="flex items-center gap-0.5 opacity-0 group-hover/vrow:opacity-100 transition-opacity">
+                      <button @click.stop="handleEdit(variant)" class="w-5 h-5 flex items-center justify-center rounded text-[var(--text-app)] opacity-40 hover:opacity-100 hover:text-[var(--text-primary)] transition-all">
+                        <UiIcon name="lucide:pen-line" class="w-3 h-3" />
+                      </button>
+                      <button @click.stop="handleDelete(variant)" class="w-5 h-5 flex items-center justify-center rounded text-[var(--text-app)] opacity-40 hover:opacity-100 hover:text-[var(--color-brand-danger)] transition-all">
+                        <UiIcon name="lucide:trash-2" class="w-3 h-3" />
+                      </button>
+                    </div>
+                    <span class="text-[11px] font-bold text-[var(--text-app)] tabular-nums opacity-80">{{ formatPrice(variant.retailPrice) }}</span>
+                    <span 
+                      class="text-[9px] font-bold tabular-nums px-1 py-px rounded" 
+                      :class="{
+                        'bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)]': Number(variant.stock || 0) <= 0,
+                        'bg-[var(--color-brand-warning)]/10 text-[var(--color-brand-warning)]': Number(variant.stock || 0) > 0 && Number(variant.stock || 0) <= Number(variant.reorderLevel || 0),
+                        'text-[var(--text-app)] opacity-40': Number(variant.stock || 0) > Number(variant.reorderLevel || 0)
+                      }"
+                    >
+                      {{ variant.stock }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </template>
+      </div>
 
-      <!-- Image Custom Format -->
-      <template #cell-images="{ row }">
-        <div class="flex items-center -space-x-3">
-          <template v-if="row.images && row.images.length > 0">
-            <div 
-              v-for="(img, idx) in row.images.slice(0, 3)" 
-              :key="idx" 
-              class="w-10 h-10 rounded-lg overflow-hidden border-2 border-[var(--bg-app)] bg-[var(--input-bg)] shrink-0 shadow-sm"
-              :style="{ zIndex: 10 - Number(idx) }"
+      <!-- Pagination -->
+      <div v-if="totalPages > 1" class="flex items-center justify-between mt-8 pt-6 border-t border-[var(--border-app)]">
+        <div class="text-sm font-medium text-[var(--text-app)] opacity-60">
+          {{ t('common.showing') }} {{ (currentPage - 1) * itemsPerPage + 1 }} - {{ Math.min(currentPage * itemsPerPage, groupedProducts.length) }} ({{ groupedProducts.length }} qeyd)
+        </div>
+        <div class="flex items-center gap-1">
+          <UiButton 
+            variant="ghost" 
+            size="sm" 
+            icon="lucide:chevron-left" 
+            :disabled="currentPage === 1"
+            class="!px-2"
+            @click="currentPage--"
+          />
+          <template v-for="p in totalPages" :key="p">
+            <button 
+              v-if="p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1"
+              class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold transition-all"
+              :class="currentPage === p ? 'bg-[var(--text-primary)] text-[var(--bg-app)] shadow-md shadow-[var(--text-primary)]/20' : 'text-[var(--text-app)] hover:bg-[var(--input-bg)] hover:text-[var(--text-primary)]'"
+              @click="currentPage = p"
             >
-              <img :src="img" alt="Product" class="w-full h-full object-cover" />
-            </div>
-            <div 
-              v-if="row.images.length > 3" 
-              class="w-10 h-10 rounded-lg flex items-center justify-center border-2 border-[var(--bg-app)] bg-[var(--text-primary)]/10 text-[var(--text-primary)] text-xs font-bold shrink-0 shadow-sm"
-              style="z-index: 1;"
-            >
-              +{{ row.images.length - 3 }}
-            </div>
+              {{ p }}
+            </button>
+            <span v-else-if="p === currentPage - 2 || p === currentPage + 2" class="w-8 h-8 flex items-center justify-center text-[var(--text-app)] opacity-50">
+              ...
+            </span>
           </template>
-          <div v-else class="flex items-center justify-center w-10 h-10 bg-[var(--text-primary)]/5 rounded-lg border-2 border-[var(--bg-app)] text-[var(--text-app)] opacity-40 shrink-0 shadow-sm">
-            <UiIcon name="lucide:image" class="w-4 h-4" />
-          </div>
+          <UiButton 
+            variant="ghost" 
+            size="sm" 
+            icon="lucide:chevron-right" 
+            :disabled="currentPage === totalPages"
+            class="!px-2"
+            @click="currentPage++"
+          />
         </div>
-      </template>
-
-      <!-- Brand Name Custom Format -->
-      <template #cell-brandName="{ row, value, highlight }">
-        <div v-if="row.parentProductId" class="flex items-center text-[var(--text-app)] opacity-30">
-          <UiIcon name="mingcute:arrow-up-line" class="w-4 h-4 ml-2" />
-        </div>
-        <div v-else class="flex flex-wrap gap-1">
-          <span 
-            v-for="(brand, idx) in (Array.isArray(value) ? value : [value])" 
-            :key="idx"
-            class="font-medium text-[var(--text-app)] text-sm"
-          >
-            {{ brand }}{{ (Array.isArray(value) && idx < value.length - 1) ? ',' : '' }}
-          </span>
-        </div>
-      </template>
-
-      <!-- Barcode Custom Format -->
-      <template #cell-barcode="{ value, row, highlight }">
-        <div 
-          class="font-mono tracking-wider font-bold cursor-pointer hover:text-[var(--text-primary)] transition-colors inline-block"
-          @click.stop="handleBarcodeClick(row)"
-          title="Barkod çap et"
-        >
-          <span v-html="highlight(value)"></span>
-        </div>
-      </template>
-
-      <!-- Prices Custom Format -->
-      <template #cell-wholesalePrice="{ row, value, highlight }">
-        <span v-if="!row.parentProductId" class="opacity-0">-</span>
-        <span v-else class="font-medium text-[var(--text-app)]" v-html="highlight(Number(value || 0).toFixed(2)) + ' ₼'"></span>
-      </template>
-      <template #cell-retailPrice="{ row, value, highlight }">
-        <span v-if="!row.parentProductId" class="opacity-0">-</span>
-        <span v-else class="font-medium text-[var(--color-brand-success)] font-bold" v-html="highlight(Number(value || 0).toFixed(2)) + ' ₼'"></span>
-      </template>
-
-      <template #cell-stock="{ row, value, highlight }">
-        <span v-if="!row.parentProductId" class="opacity-0">-</span>
-        <span v-else class="font-medium text-[var(--text-app)]" v-html="highlight(value)"></span>
-      </template>
-
-      <template #cell-reorderLevel="{ row, value, highlight }">
-        <span v-if="!row.parentProductId" class="opacity-0">-</span>
-        <span v-else class="font-medium text-[var(--text-app)]" v-html="highlight(value)"></span>
-      </template>
-
-      <!-- Category Custom Format -->
-      <template #cell-category="{ row, value, highlight }">
-        <div v-if="row.parentProductId" class="flex items-center text-[var(--text-app)] opacity-30">
-          <UiIcon name="mingcute:arrow-up-line" class="w-4 h-4 ml-2" />
-        </div>
-        <div v-else class="flex flex-wrap gap-1">
-          <span 
-            v-for="(cat, idx) in (Array.isArray(value) ? value : [value])" 
-            :key="idx" 
-            class="text-[var(--text-app)] text-sm opacity-80"
-          >
-            {{ cat }}{{ (Array.isArray(value) && idx < value.length - 1) ? ',' : '' }}
-          </span>
-        </div>
-      </template>
-    </DataTable>
+      </div>
+    </div>
 
     <!-- Modal: Add / Edit Base Product -->
     <Modal 

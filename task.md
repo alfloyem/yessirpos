@@ -3,7 +3,7 @@
 - [x] mal qebulunda sağda atribut adı görsənmir.
 - [x] sidebar düzəlməlidir
 - [x] barkod çapı fixlenmelidir
-- [x] barkod custom design (mal adı, qiymeti ve diger.)
+- [] barkod custom design (mal adı, qiymeti ve diger.)
 - [] product səhifəsi yenilənməlidir, grid sisteminə keçid olmalıdır.
 - [] product kopyalanan zaman atributlarda kopyalanmalıdır.
 - [] bildiriş sistemi
