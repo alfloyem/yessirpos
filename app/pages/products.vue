@@ -8,6 +8,7 @@ import UiButton from '~/components/ui/Button.vue'
 import DynamicForm, { type FormField } from '~/components/ui/DynamicForm.vue'
 import ImageCarousel from '~/components/ui/ImageCarousel.vue'
 import { printBarcode } from '~/utils/receiptPrinter'
+import { exportToCSV, exportToJSON, exportToXML, exportToPDF } from '~/utils/dataExporter'
 
 const { t } = useI18n()
 const { token, logout } = useAuth()
@@ -879,6 +880,51 @@ const saveForm = async () => {
     isSaving.value = false
   }
 }
+
+const handleExport = (format: 'csv' | 'json' | 'xml' | 'pdf') => {
+  const selectedProducts = mockData.value.filter(p => currentSelectionIds.value.includes(p.id))
+  
+  const columns = [
+    { key: 'productName', label: t('products.name'), visible: true },
+    { key: 'brandName', label: t('products.brand'), visible: true },
+    { key: 'category', label: t('products.category'), visible: true },
+    { key: 'barcode', label: t('products.barcode'), visible: true },
+    { key: 'wholesalePrice', label: t('products.wholesalePrice'), visible: true },
+    { key: 'retailPrice', label: t('products.retailPrice'), visible: true },
+    { key: 'stock', label: t('products.stock'), visible: true },
+    { key: 'reorderLevel', label: t('products.reorderLevel'), visible: true }
+  ]
+  
+  const exportData = selectedProducts.map(p => ({
+    productName: p.parentProductName || p.productName,
+    brandName: Array.isArray(p.brandName) ? p.brandName.join(', ') : p.brandName,
+    category: Array.isArray(p.category) ? p.category.join(', ') : p.category,
+    barcode: p.barcode,
+    wholesalePrice: p.wholesalePrice,
+    retailPrice: p.retailPrice,
+    stock: p.stock,
+    reorderLevel: p.reorderLevel
+  }))
+  
+  const filename = `products-${new Date().toISOString().split('T')[0]}`
+  
+  switch (format) {
+    case 'csv':
+      exportToCSV(filename, columns, exportData)
+      break
+    case 'json':
+      exportToJSON(filename, columns, exportData)
+      break
+    case 'xml':
+      exportToXML(filename, columns, exportData)
+      break
+    case 'pdf':
+      exportToPDF(filename, columns, exportData)
+      break
+  }
+  
+  toast.success(t('toast.exported', 'Məlumatlar ixrac edildi'))
+}
 </script>
 
 <template>
@@ -911,30 +957,85 @@ const saveForm = async () => {
     </div>
 
     <!-- Bulk Actions Bar -->
-    <div 
-      v-if="currentSelectionIds.length > 0" 
-      class="flex items-center justify-between bg-[var(--input-bg)] border border-[var(--color-brand-warning)]/30 rounded-xl p-3 px-5 transition-all w-full shadow-sm"
+    <Transition
+      enter-active-class="transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+      enter-from-class="opacity-0 scale-95 -translate-y-4"
+      enter-to-class="opacity-100 scale-100 translate-y-0"
+      leave-active-class="transition-all duration-200 ease-[cubic-bezier(0.4,0,1,1)]"
+      leave-from-class="opacity-100 scale-100 translate-y-0"
+      leave-to-class="opacity-0 scale-95 -translate-y-4"
     >
-      <div class="flex items-center gap-3">
-        <div 
-          class="w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer transition-colors bg-[var(--text-primary)] border-[var(--text-primary)]"
-          @click="toggleSelectAll"
-        >
-          <UiIcon name="lucide:minus" class="w-3 h-3 text-[var(--bg-app)]" />
+      <div 
+        v-if="currentSelectionIds.length > 0" 
+        class="flex items-center justify-between bg-[var(--bg-app)] border border-[var(--text-primary)]/20 rounded-xl p-3.5 px-5 shadow-lg shadow-[var(--text-primary)]/5"
+      >
+        <div class="flex items-center gap-3">
+          <div 
+            class="w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-all duration-200 bg-[var(--text-primary)] border-[var(--text-primary)] hover:scale-110"
+            @click="toggleSelectAll"
+          >
+            <UiIcon name="lucide:minus" class="w-3 h-3 text-white" />
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-bold text-[var(--text-app)]">
+              {{ currentSelectionIds.length }}
+            </span>
+            <span class="text-sm font-medium text-[var(--text-app)] opacity-60">
+              {{ t('common.selected', 'Seçilib') }}
+            </span>
+          </div>
         </div>
-        <span class="text-sm font-bold text-[var(--text-app)]">
-          {{ currentSelectionIds.length }} {{ t('common.selected', 'Seçilib') }}
-        </span>
+        <div class="flex items-center gap-2">
+          <UiDropdown menuClass="absolute top-full right-0 mt-2 w-40 z-50">
+            <template #trigger>
+              <UiButton 
+                variant="soft-primary" 
+                size="sm" 
+                icon="lucide:download"
+                class="transition-all hover:scale-105"
+              >
+                {{ t('common.export') }}
+              </UiButton>
+            </template>
+            <template #menu="{ close }">
+              <div class="py-1">
+                <button @click="handleExport('csv'); close()" class="w-full px-3.5 py-2 text-[12px] font-medium text-left flex items-center gap-2.5 hover:bg-[var(--text-primary)]/5 text-[var(--text-app)] transition-colors">
+                  <UiIcon name="lucide:file-spreadsheet" class="w-3.5 h-3.5 opacity-50" /> CSV
+                </button>
+                <button @click="handleExport('json'); close()" class="w-full px-3.5 py-2 text-[12px] font-medium text-left flex items-center gap-2.5 hover:bg-[var(--text-primary)]/5 text-[var(--text-app)] transition-colors">
+                  <UiIcon name="lucide:braces" class="w-3.5 h-3.5 opacity-50" /> JSON
+                </button>
+                <button @click="handleExport('xml'); close()" class="w-full px-3.5 py-2 text-[12px] font-medium text-left flex items-center gap-2.5 hover:bg-[var(--text-primary)]/5 text-[var(--text-app)] transition-colors">
+                  <UiIcon name="lucide:code-xml" class="w-3.5 h-3.5 opacity-50" /> XML
+                </button>
+                <button @click="handleExport('pdf'); close()" class="w-full px-3.5 py-2 text-[12px] font-medium text-left flex items-center gap-2.5 hover:bg-[var(--text-primary)]/5 text-[var(--text-app)] transition-colors">
+                  <UiIcon name="lucide:file-text" class="w-3.5 h-3.5 opacity-50" /> PDF
+                </button>
+              </div>
+            </template>
+          </UiDropdown>
+          <UiButton 
+            variant="outline" 
+            size="sm" 
+            icon="lucide:edit" 
+            @click="handleBulkEdit(currentSelectionIds)" 
+            :disabled="bulkEditType === 'mixed'"
+            class="transition-all hover:scale-105"
+          >
+            {{ t('common.bulkEdit') }}
+          </UiButton>
+          <UiButton 
+            variant="danger" 
+            size="sm" 
+            icon="lucide:trash-2" 
+            @click="handleBulkDelete(currentSelectionIds)"
+            class="transition-all hover:scale-105"
+          >
+            {{ t('common.bulkDelete') }}
+          </UiButton>
+        </div>
       </div>
-      <div class="flex items-center gap-2">
-        <UiButton variant="outline" size="sm" icon="lucide:edit" @click="handleBulkEdit(currentSelectionIds)" :disabled="bulkEditType === 'mixed'">
-          {{ t('common.bulkEdit') }}
-        </UiButton>
-        <UiButton variant="danger" size="sm" icon="lucide:trash-2" @click="handleBulkDelete(currentSelectionIds)">
-          {{ t('common.bulkDelete') }}
-        </UiButton>
-      </div>
-    </div>
+    </Transition>
 
     <!-- Products Grid -->
     <div v-if="loading" class="flex items-center justify-center py-20 text-[var(--text-app)] opacity-50">
@@ -947,17 +1048,17 @@ const saveForm = async () => {
     </div>
     
     <div v-else class="mt-2">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         <!-- ═══════════════════════════════════════════════════ -->
         <!-- Product Card: Ultra-Flat Editorial Design         -->
         <!-- ═══════════════════════════════════════════════════ -->
         <div 
           v-for="product in paginatedProducts" 
           :key="product.id" 
-          class="group relative flex flex-col h-full bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl overflow-hidden transition-all duration-300 hover:border-[var(--text-primary)]/40 hover:shadow-lg hover:shadow-[var(--text-primary)]/5 hover:-translate-y-1"
+          class="group relative flex flex-col h-full bg-[var(--bg-app)] border border-[var(--border-app)] rounded-xl overflow-hidden transition-all duration-300 hover:border-[var(--text-primary)]/40 hover:shadow-lg hover:shadow-[var(--text-primary)]/5 hover:-translate-y-1"
         >
           <!-- ── Image ── -->
-          <div class="relative w-full aspect-[5/4] bg-[var(--input-bg)] overflow-hidden group/img">
+          <div class="relative w-full aspect-[4/3] bg-[var(--input-bg)] overflow-hidden group/img">
             <img 
               v-if="product.images?.length" 
               :src="product.images[getCurrentImageIndex(product.id)]" 
@@ -1048,34 +1149,34 @@ const saveForm = async () => {
           </div>
 
           <!-- ── Body ── -->
-          <div class="flex flex-col flex-1 p-4 pt-3">
+          <div class="flex flex-col flex-1 p-3 pt-2.5">
             <!-- Meta row: brand · category -->
-            <div class="flex items-center gap-1.5 mb-1.5 min-h-[14px]">
-              <span v-if="product.category?.length" class="text-[9px] uppercase font-semibold tracking-[0.18em] text-[var(--text-primary)] opacity-70 truncate">
+            <div class="flex items-center gap-1.5 mb-1 min-h-[12px]">
+              <span v-if="product.category?.length" class="text-[8px] uppercase font-semibold tracking-[0.18em] text-[var(--text-primary)] opacity-70 truncate">
                 {{ Array.isArray(product.category) ? product.category[0] : product.category }}
               </span>
               <span v-if="product.brandName && product.category?.length" class="text-[var(--text-app)] opacity-15 text-[8px]">/</span>
-              <span v-if="product.brandName" class="text-[9px] uppercase font-semibold tracking-[0.18em] text-[var(--text-app)] opacity-35 truncate">
+              <span v-if="product.brandName" class="text-[8px] uppercase font-semibold tracking-[0.18em] text-[var(--text-app)] opacity-35 truncate">
                 {{ Array.isArray(product.brandName) ? product.brandName[0] : product.brandName }}
               </span>
             </div>
 
             <!-- Title -->
             <h3 
-              class="text-[15px] font-bold text-[var(--text-app)] leading-snug mb-2 line-clamp-2 min-h-[2.6em] group-hover:text-[var(--text-primary)] transition-colors duration-300" 
+              class="text-[13px] font-bold text-[var(--text-app)] leading-snug mb-1.5 line-clamp-2 min-h-[2.4em] group-hover:text-[var(--text-primary)] transition-colors duration-300" 
               :title="product.productName"
             >
               {{ product.productName }}
             </h3>
 
             <!-- ── Price & Stock (No variants) ── -->
-            <div v-if="product.variants.length === 0" class="flex items-baseline justify-between pt-2.5 border-t border-[var(--border-app)]/60">
-              <span class="text-[17px] font-bold text-[var(--text-app)] tabular-nums">
+            <div v-if="product.variants.length === 0" class="flex items-baseline justify-between pt-2 border-t border-[var(--border-app)]/60">
+              <span class="text-[15px] font-bold text-[var(--text-app)] tabular-nums">
                 {{ formatPrice(product.retailPrice) }}
-                <span class="text-[11px] font-semibold opacity-40 ml-0.5">₼</span>
+                <span class="text-[10px] font-semibold opacity-40 ml-0.5">₼</span>
               </span>
               <span 
-                class="text-[11px] font-bold tabular-nums px-1.5 py-0.5 rounded-md" 
+                class="text-[10px] font-bold tabular-nums px-1.5 py-0.5 rounded-md" 
                 :class="{
                   'bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)]': Number(product.stock || 0) <= 0,
                   'bg-[var(--color-brand-warning)]/10 text-[var(--color-brand-warning)]': Number(product.stock || 0) > 0 && Number(product.stock || 0) <= Number(product.reorderLevel || 0),
@@ -1087,68 +1188,68 @@ const saveForm = async () => {
             </div>
 
             <!-- ── Price & Variants ── -->
-            <div v-else class="flex flex-col pt-2.5 border-t border-[var(--border-app)]/60">
+            <div v-else class="flex flex-col pt-2 border-t border-[var(--border-app)]/60">
               <!-- Price range -->
-              <div class="flex items-baseline justify-between mb-1.5">
-                <span class="text-[17px] font-bold text-[var(--text-app)] tabular-nums">
+              <div class="flex items-baseline justify-between mb-1">
+                <span class="text-[15px] font-bold text-[var(--text-app)] tabular-nums">
                   {{ formatPrice(getMinPrice(product.variants)) }}
                   <template v-if="getMinPrice(product.variants) !== getMaxPrice(product.variants)">
-                    <span class="text-[11px] opacity-30 mx-0.5">–</span>
+                    <span class="text-[10px] opacity-30 mx-0.5">–</span>
                     {{ formatPrice(getMaxPrice(product.variants)) }}
                   </template>
-                  <span class="text-[11px] font-semibold opacity-40 ml-0.5">₼</span>
+                  <span class="text-[10px] font-semibold opacity-40 ml-0.5">₼</span>
                 </span>
               </div>
 
               <!-- Variant label -->
-              <div class="flex items-center justify-between w-full py-1.5 -mx-0">
-                <span class="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-app)] opacity-40">
+              <div class="flex items-center justify-between w-full py-1 -mx-0">
+                <span class="text-[9px] uppercase tracking-[0.2em] font-bold text-[var(--text-app)] opacity-40">
                   {{ product.variants.length }} variant
                 </span>
               </div>
 
               <!-- Variant rows -->
-              <div class="flex flex-col gap-1 mt-0.5 max-h-[200px] overflow-y-auto pr-1" style="scrollbar-width: thin; scrollbar-color: var(--border-app) transparent;">
+              <div class="flex flex-col gap-0.5 mt-0.5 max-h-[180px] overflow-y-auto pr-1" style="scrollbar-width: thin; scrollbar-color: var(--border-app) transparent;">
                 <div 
                   v-for="variant in product.variants" 
                   :key="variant.id" 
-                  class="flex items-center justify-between py-1.5 px-2.5 -mx-1 rounded-lg hover:bg-[var(--text-primary)]/[0.04] group/vrow transition-colors cursor-default"
+                  class="flex items-center justify-between py-1.5 px-2 -mx-1 rounded-lg hover:bg-[var(--text-primary)]/[0.04] group/vrow transition-colors cursor-default"
                 >
-                  <div class="flex items-center gap-2 min-w-0">
+                  <div class="flex items-center gap-1.5 min-w-0 flex-1">
                     <!-- Variant checkbox -->
                     <div 
-                      class="w-3.5 h-3.5 rounded-[3px] border flex items-center justify-center cursor-pointer shrink-0 transition-colors"
+                      class="w-3 h-3 rounded-[3px] border flex items-center justify-center cursor-pointer shrink-0 transition-colors"
                       :class="currentSelectionIds.includes(variant.id) ? 'bg-[var(--text-primary)] border-[var(--text-primary)]' : 'border-[var(--border-app)] group-hover/vrow:border-[var(--text-primary)]/40'"
                       @click.stop="toggleSelection(variant.id)"
                     >
-                      <UiIcon v-if="currentSelectionIds.includes(variant.id)" name="lucide:check" class="w-2.5 h-2.5 text-white" />
+                      <UiIcon v-if="currentSelectionIds.includes(variant.id)" name="lucide:check" class="w-2 h-2 text-white" />
                     </div>
-                    <span class="text-[11px] font-medium text-[var(--text-app)] opacity-80 truncate max-w-[90px]" :title="formatVariantAttr(variant.attribute) || variant.barcode">
+                    <span class="text-[10px] font-medium text-[var(--text-app)] opacity-80 flex-1 break-words leading-tight" :title="formatVariantAttr(variant.attribute) || variant.barcode">
                       {{ formatVariantAttr(variant.attribute) || variant.barcode }}
                     </span>
                   </div>
-                  <div class="flex items-center gap-2">
+                  <div class="flex items-center gap-1.5 shrink-0">
                     <!-- Variant inline actions -->
                     <div class="flex items-center gap-0.5 opacity-0 group-hover/vrow:opacity-100 transition-opacity">
-                      <button @click.stop="handleQuickView(variant)" class="w-6 h-6 flex items-center justify-center rounded text-[var(--text-app)] opacity-50 hover:opacity-100 hover:text-[var(--text-primary)] transition-all" :title="t('products.quickView', 'Sürətli Baxış')">
+                      <button @click.stop="handleQuickView(variant)" class="w-5 h-5 flex items-center justify-center rounded text-[var(--text-app)] opacity-50 hover:opacity-100 hover:text-[var(--text-primary)] transition-all" :title="t('products.quickView', 'Sürətli Baxış')">
                         <UiIcon name="lucide:eye" class="w-3 h-3" />
                       </button>
-                      <button v-if="variant.barcode" @click.stop="handleBarcodeClick(variant)" class="w-6 h-6 flex items-center justify-center rounded text-[var(--text-app)] opacity-50 hover:opacity-100 hover:text-[var(--text-primary)] transition-all" :title="t('products.printBarcode')">
+                      <button v-if="variant.barcode" @click.stop="handleBarcodeClick(variant)" class="w-5 h-5 flex items-center justify-center rounded text-[var(--text-app)] opacity-50 hover:opacity-100 hover:text-[var(--text-primary)] transition-all" :title="t('products.printBarcode')">
                         <UiIcon name="lucide:barcode" class="w-3 h-3" />
                       </button>
-                      <button @click.stop="handleVariantDuplicate(variant)" class="w-6 h-6 flex items-center justify-center rounded text-[var(--text-app)] opacity-50 hover:opacity-100 hover:text-[var(--text-primary)] transition-all" :title="t('common.duplicate')">
+                      <button @click.stop="handleVariantDuplicate(variant)" class="w-5 h-5 flex items-center justify-center rounded text-[var(--text-app)] opacity-50 hover:opacity-100 hover:text-[var(--text-primary)] transition-all" :title="t('common.duplicate')">
                         <UiIcon name="lucide:copy" class="w-3 h-3" />
                       </button>
-                      <button @click.stop="handleEdit(variant)" class="w-6 h-6 flex items-center justify-center rounded text-[var(--text-app)] opacity-50 hover:opacity-100 hover:text-[var(--text-primary)] transition-all">
+                      <button @click.stop="handleEdit(variant)" class="w-5 h-5 flex items-center justify-center rounded text-[var(--text-app)] opacity-50 hover:opacity-100 hover:text-[var(--text-primary)] transition-all">
                         <UiIcon name="lucide:pen-line" class="w-3 h-3" />
                       </button>
-                      <button @click.stop="handleDelete(variant)" class="w-6 h-6 flex items-center justify-center rounded text-[var(--text-app)] opacity-50 hover:opacity-100 hover:text-[var(--color-brand-danger)] transition-all">
+                      <button @click.stop="handleDelete(variant)" class="w-5 h-5 flex items-center justify-center rounded text-[var(--text-app)] opacity-50 hover:opacity-100 hover:text-[var(--color-brand-danger)] transition-all">
                         <UiIcon name="lucide:trash-2" class="w-3 h-3" />
                       </button>
                     </div>
-                    <span class="text-[11px] font-bold text-[var(--text-app)] tabular-nums opacity-80">{{ formatPrice(variant.retailPrice) }}</span>
+                    <span class="text-[10px] font-bold text-[var(--text-app)] tabular-nums opacity-80 ml-1">{{ formatPrice(variant.retailPrice) }}</span>
                     <span 
-                      class="text-[9px] font-bold tabular-nums px-1 py-px rounded" 
+                      class="text-[9px] font-bold tabular-nums px-1 py-px rounded min-w-[24px] text-center" 
                       :class="{
                         'bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)]': Number(variant.stock || 0) <= 0,
                         'bg-[var(--color-brand-warning)]/10 text-[var(--color-brand-warning)]': Number(variant.stock || 0) > 0 && Number(variant.stock || 0) <= Number(variant.reorderLevel || 0),
@@ -1162,10 +1263,10 @@ const saveForm = async () => {
               </div>
 
               <!-- Add Variant Button (With variants) -->
-              <div class="mt-auto pt-2.5">
+              <div class="mt-auto pt-2">
                 <button 
                   @click="handleStandaloneVariantAdd(product)"
-                  class="w-full py-1.5 px-2.5 rounded-lg border border-dashed border-[var(--border-app)] text-[10px] font-semibold text-[var(--text-app)] opacity-0 group-hover:opacity-60 hover:opacity-100 hover:bg-[var(--text-primary)]/5 hover:border-[var(--text-primary)]/30 hover:text-[var(--text-primary)] transition-all flex items-center justify-center gap-1"
+                  class="w-full py-1.5 px-2 rounded-lg border border-dashed border-[var(--border-app)] text-[9px] font-semibold text-[var(--text-app)] opacity-0 group-hover:opacity-60 hover:opacity-100 hover:bg-[var(--text-primary)]/5 hover:border-[var(--text-primary)]/30 hover:text-[var(--text-primary)] transition-all flex items-center justify-center gap-1"
                 >
                   <UiIcon name="lucide:plus" class="w-3 h-3" />
                   {{ t('products.addVariant') }}
