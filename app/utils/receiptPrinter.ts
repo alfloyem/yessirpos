@@ -118,7 +118,8 @@ export const printReceipt = (data: ReceiptData) => {
     ...clientData,
     logoSvg: settings.showLogo ? clientData.logoSvg : '',
     name: settings.showStoreName ? clientData.name : '',
-    address: settings.showAddress ? clientData.address : ''
+    address: settings.showAddress ? clientData.address : '',
+    phone: settings.showPhone ? clientData.phone : ''
   }
 
   // Apply settings to receipt data
@@ -129,7 +130,7 @@ export const printReceipt = (data: ReceiptData) => {
   }
 
   const barcodeUrl = generateBarcodeDataUrl(data.receiptNo)
-  const html = buildReceiptHtml(modifiedData, modifiedClientData, barcodeUrl)
+  const html = buildReceiptHtml(modifiedData, modifiedClientData, barcodeUrl, settings.showFooterMessage)
   executePrintWindow(html, { width: 302, height: 800, dynamicHeight: true })
 }
 

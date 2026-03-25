@@ -1,6 +1,7 @@
 export interface ClientData {
   name: string
   address: string
+  phone?: string
   logoSvg: string
 }
 

@@ -207,7 +207,8 @@ const receiptPreviewHtml = computed(() => {
     ...clientData,
     logoSvg: toggleState.value['showLogo'] ? clientData.logoSvg : '',
     name: toggleState.value['showStoreName'] ? clientData.name : '',
-    address: toggleState.value['showAddress'] ? clientData.address : ''
+    address: toggleState.value['showAddress'] ? clientData.address : '',
+    phone: toggleState.value['showPhone'] ? clientData.phone : ''
   }
 
   // Use dynamic attribute for preview
@@ -259,7 +260,7 @@ const receiptPreviewHtml = computed(() => {
     }
   }
 
-  return buildReceiptHtml(dummyData, mockClientData as any, dummyBarcodeUrl.value)
+  return buildReceiptHtml(dummyData, mockClientData as any, dummyBarcodeUrl.value, toggleState.value['showFooterMessage'])
 })
 
 const barcodePreviewHtml = computed(() => {

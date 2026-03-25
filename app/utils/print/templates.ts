@@ -2,7 +2,7 @@ import type { ClientData } from '~/utils/clientData'
 import type { ReceiptData, IntakeReceiptData, DebtPaymentReceiptData } from '../receiptPrinter'
 import type { BarcodeData } from '../receiptPrinter'
 
-export const buildReceiptHtml = (data: ReceiptData, clientData: ClientData, barcodeDataUrl: string) => {
+export const buildReceiptHtml = (data: ReceiptData, clientData: ClientData, barcodeDataUrl: string, showFooterMessage: boolean = true) => {
   const itemsHtml = data.items.map(item => {
     let attrStr = ''
     if (item.attribute) {
@@ -140,6 +140,7 @@ export const buildReceiptHtml = (data: ReceiptData, clientData: ClientData, barc
           ${clientData.logoSvg ? `<div class="logo">${clientData.logoSvg}</div>` : ''}
           ${clientData.name && clientData.name !== '***' ? `<div style="font-weight: bold; font-size: 13px;">TS adı: ${clientData.name}</div>` : ''}
           ${clientData.address && clientData.address !== '***' ? `<div style="font-size: 11px;">TS ünvanı: ${clientData.address}</div>` : ''}
+          ${clientData.phone ? `<div style="font-size: 11px;">Əlaqə nömrəsi: ${clientData.phone}</div>` : ''}
           <div class="title">SATIŞ ÇEKİ</div>
           <div class="info">
             TARİX: ${data.currentDate} <br/>
@@ -167,12 +168,12 @@ export const buildReceiptHtml = (data: ReceiptData, clientData: ClientData, barc
         ${loyaltyHtml}
 
         <div class="center" style="margin-top: 15px;">
-          <div style="font-size: 10px; font-weight: bold;">MƏHSUL 14 GÜN ƏRZİNDƏ QAYTARILA BİLƏR</div>
+          ${showFooterMessage ? '<div style="font-size: 10px; font-weight: bold;">MƏHSUL 14 GÜN ƏRZİNDƏ QAYTARILA BİLƏR</div>' : ''}
           ${data.isArchive ? '<div style="font-size: 10px; margin-top: 2px;">*** ARXİV SURƏTİ ***</div>' : ''}
           <div style="margin-top: 10px;">
             ${barcodeDataUrl ? `<img src="${barcodeDataUrl}" style="max-width: 75%; height: auto;" />` : ''}
           </div>
-          <div style="margin-top: 10px; font-size: 11px; font-weight: bold;">TƏŞƏKKÜR EDİRİK!</div>
+          ${showFooterMessage ? '<div style="margin-top: 10px; font-size: 11px; font-weight: bold;">TƏŞƏKKÜR EDİRİK!</div>' : ''}
         </div>
       </body>
     </html>
