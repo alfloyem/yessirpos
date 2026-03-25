@@ -371,6 +371,7 @@
     "addAttribute": "+ Atribut əlavə et...",
     "barcode": "Barkod",
     "printBarcode": "Barkod Çap Et",
+    "quickView": "Sürətli Baxış",
     "duplicated": "Məhsul kopyalandı",
     "duplicatedWithVariants": "Məhsul və {count} variant kopyalandı",
     "added": "Məhsul əlavə edildi",

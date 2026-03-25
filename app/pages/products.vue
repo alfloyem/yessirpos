@@ -201,6 +201,13 @@ const currentPage = ref(1)
 const itemsPerPage = ref(15)
 const newProductVariants = ref<any[]>([])
 const productImageIndexes = ref<Record<string, number>>({})
+const showQuickViewModal = ref(false)
+const quickViewProduct = ref<any>(null)
+
+const handleQuickView = (product: any) => {
+  quickViewProduct.value = product
+  showQuickViewModal.value = true
+}
 
 const nextProductImage = (productId: string, imageCount: number) => {
   if (!productImageIndexes.value[productId]) {
@@ -482,6 +489,32 @@ const addAttributeToNewVariant = (variantIndex: number, attrId: string) => {
 
 const removeAttributeFromNewVariant = (variantIndex: number, attrIndex: number) => {
   newProductVariants.value[variantIndex].selectedAttributes.splice(attrIndex, 1)
+}
+
+const handleVariantDuplicate = async (variant: any) => {
+  isSaving.value = true
+  try {
+    const headers = { Authorization: `Bearer ${token.value}` }
+    const newVariant = await $fetch('/api/products', {
+      method: 'POST',
+      body: {
+        ...variant,
+        id: undefined,
+        barcode: generateBarcode('P'),
+        images: [...(variant.images || [])],
+        attribute: [...(variant.attribute || [])]
+      },
+      headers
+    })
+    
+    mockData.value.unshift(newVariant)
+    toast.success(t('products.duplicated'))
+    await loadGoods()
+  } catch (err: any) {
+    toast.error(t('toast.operationFailed'))
+  } finally {
+    isSaving.value = false
+  }
 }
 
 const handleStandaloneVariantAdd = (row: any) => {
@@ -914,14 +947,14 @@ const saveForm = async () => {
     </div>
     
     <div v-else class="mt-2">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 items-start">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         <!-- ═══════════════════════════════════════════════════ -->
         <!-- Product Card: Ultra-Flat Editorial Design         -->
         <!-- ═══════════════════════════════════════════════════ -->
         <div 
           v-for="product in paginatedProducts" 
           :key="product.id" 
-          class="group relative flex flex-col bg-[var(--bg-app)] border border-[var(--border-app)] rounded-xl overflow-hidden transition-colors duration-300 hover:border-[var(--text-primary)]/50 hover:bg-[var(--input-bg)]"
+          class="group relative flex flex-col h-full bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl overflow-hidden transition-all duration-300 hover:border-[var(--text-primary)]/40 hover:shadow-lg hover:shadow-[var(--text-primary)]/5 hover:-translate-y-1"
         >
           <!-- ── Image ── -->
           <div class="relative w-full aspect-[5/4] bg-[var(--input-bg)] overflow-hidden group/img">
@@ -1015,9 +1048,9 @@ const saveForm = async () => {
           </div>
 
           <!-- ── Body ── -->
-          <div class="flex flex-col flex-1 p-4 pt-3.5">
+          <div class="flex flex-col flex-1 p-4 pt-3">
             <!-- Meta row: brand · category -->
-            <div class="flex items-center gap-1.5 mb-2 min-h-[14px]">
+            <div class="flex items-center gap-1.5 mb-1.5 min-h-[14px]">
               <span v-if="product.category?.length" class="text-[9px] uppercase font-semibold tracking-[0.18em] text-[var(--text-primary)] opacity-70 truncate">
                 {{ Array.isArray(product.category) ? product.category[0] : product.category }}
               </span>
@@ -1029,17 +1062,14 @@ const saveForm = async () => {
 
             <!-- Title -->
             <h3 
-              class="text-[14px] font-semibold text-[var(--text-app)] leading-snug mb-3 line-clamp-2 min-h-[2.5em] group-hover:text-[var(--text-primary)] transition-colors duration-300" 
+              class="text-[15px] font-bold text-[var(--text-app)] leading-snug mb-2 line-clamp-2 min-h-[2.6em] group-hover:text-[var(--text-primary)] transition-colors duration-300" 
               :title="product.productName"
             >
               {{ product.productName }}
             </h3>
 
-            <!-- Spacer -->
-            <div class="mt-auto"></div>
-
             <!-- ── Price & Stock (No variants) ── -->
-            <div v-if="product.variants.length === 0" class="flex items-baseline justify-between pt-3 border-t border-[var(--border-app)]/60">
+            <div v-if="product.variants.length === 0" class="flex items-baseline justify-between pt-2.5 border-t border-[var(--border-app)]/60">
               <span class="text-[17px] font-bold text-[var(--text-app)] tabular-nums">
                 {{ formatPrice(product.retailPrice) }}
                 <span class="text-[11px] font-semibold opacity-40 ml-0.5">₼</span>
@@ -1057,9 +1087,9 @@ const saveForm = async () => {
             </div>
 
             <!-- ── Price & Variants ── -->
-            <div v-else class="flex flex-col pt-3 border-t border-[var(--border-app)]/60">
+            <div v-else class="flex flex-col pt-2.5 border-t border-[var(--border-app)]/60">
               <!-- Price range -->
-              <div class="flex items-baseline justify-between mb-2">
+              <div class="flex items-baseline justify-between mb-1.5">
                 <span class="text-[17px] font-bold text-[var(--text-app)] tabular-nums">
                   {{ formatPrice(getMinPrice(product.variants)) }}
                   <template v-if="getMinPrice(product.variants) !== getMaxPrice(product.variants)">
@@ -1071,18 +1101,18 @@ const saveForm = async () => {
               </div>
 
               <!-- Variant label -->
-              <div class="flex items-center justify-between w-full py-2 -mx-0">
+              <div class="flex items-center justify-between w-full py-1.5 -mx-0">
                 <span class="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-app)] opacity-40">
                   {{ product.variants.length }} variant
                 </span>
               </div>
 
               <!-- Variant rows -->
-              <div class="flex flex-col gap-1.5 mt-1">
+              <div class="flex flex-col gap-1 mt-0.5 max-h-[200px] overflow-y-auto pr-1" style="scrollbar-width: thin; scrollbar-color: var(--border-app) transparent;">
                 <div 
                   v-for="variant in product.variants" 
                   :key="variant.id" 
-                  class="flex items-center justify-between py-2 px-2.5 -mx-1 rounded-lg hover:bg-[var(--text-primary)]/[0.04] group/vrow transition-colors cursor-default"
+                  class="flex items-center justify-between py-1.5 px-2.5 -mx-1 rounded-lg hover:bg-[var(--text-primary)]/[0.04] group/vrow transition-colors cursor-default"
                 >
                   <div class="flex items-center gap-2 min-w-0">
                     <!-- Variant checkbox -->
@@ -1100,13 +1130,19 @@ const saveForm = async () => {
                   <div class="flex items-center gap-2">
                     <!-- Variant inline actions -->
                     <div class="flex items-center gap-0.5 opacity-0 group-hover/vrow:opacity-100 transition-opacity">
-                      <button v-if="variant.barcode" @click.stop="handleBarcodeClick(variant)" class="w-5 h-5 flex items-center justify-center rounded text-[var(--text-app)] opacity-40 hover:opacity-100 hover:text-[var(--text-primary)] transition-all" :title="t('products.printBarcode')">
+                      <button @click.stop="handleQuickView(variant)" class="w-6 h-6 flex items-center justify-center rounded text-[var(--text-app)] opacity-50 hover:opacity-100 hover:text-[var(--text-primary)] transition-all" :title="t('products.quickView', 'Sürətli Baxış')">
+                        <UiIcon name="lucide:eye" class="w-3 h-3" />
+                      </button>
+                      <button v-if="variant.barcode" @click.stop="handleBarcodeClick(variant)" class="w-6 h-6 flex items-center justify-center rounded text-[var(--text-app)] opacity-50 hover:opacity-100 hover:text-[var(--text-primary)] transition-all" :title="t('products.printBarcode')">
                         <UiIcon name="lucide:barcode" class="w-3 h-3" />
                       </button>
-                      <button @click.stop="handleEdit(variant)" class="w-5 h-5 flex items-center justify-center rounded text-[var(--text-app)] opacity-40 hover:opacity-100 hover:text-[var(--text-primary)] transition-all">
+                      <button @click.stop="handleVariantDuplicate(variant)" class="w-6 h-6 flex items-center justify-center rounded text-[var(--text-app)] opacity-50 hover:opacity-100 hover:text-[var(--text-primary)] transition-all" :title="t('common.duplicate')">
+                        <UiIcon name="lucide:copy" class="w-3 h-3" />
+                      </button>
+                      <button @click.stop="handleEdit(variant)" class="w-6 h-6 flex items-center justify-center rounded text-[var(--text-app)] opacity-50 hover:opacity-100 hover:text-[var(--text-primary)] transition-all">
                         <UiIcon name="lucide:pen-line" class="w-3 h-3" />
                       </button>
-                      <button @click.stop="handleDelete(variant)" class="w-5 h-5 flex items-center justify-center rounded text-[var(--text-app)] opacity-40 hover:opacity-100 hover:text-[var(--color-brand-danger)] transition-all">
+                      <button @click.stop="handleDelete(variant)" class="w-6 h-6 flex items-center justify-center rounded text-[var(--text-app)] opacity-50 hover:opacity-100 hover:text-[var(--color-brand-danger)] transition-all">
                         <UiIcon name="lucide:trash-2" class="w-3 h-3" />
                       </button>
                     </div>
@@ -1123,6 +1159,17 @@ const saveForm = async () => {
                     </span>
                   </div>
                 </div>
+              </div>
+
+              <!-- Add Variant Button (With variants) -->
+              <div class="mt-auto pt-2.5">
+                <button 
+                  @click="handleStandaloneVariantAdd(product)"
+                  class="w-full py-1.5 px-2.5 rounded-lg border border-dashed border-[var(--border-app)] text-[10px] font-semibold text-[var(--text-app)] opacity-0 group-hover:opacity-60 hover:opacity-100 hover:bg-[var(--text-primary)]/5 hover:border-[var(--text-primary)]/30 hover:text-[var(--text-primary)] transition-all flex items-center justify-center gap-1"
+                >
+                  <UiIcon name="lucide:plus" class="w-3 h-3" />
+                  {{ t('products.addVariant') }}
+                </button>
               </div>
             </div>
           </div>
@@ -1502,6 +1549,133 @@ const saveForm = async () => {
           </UiButton>
         </div>
       </div>
+    </Modal>
+
+    <!-- Quick View Modal -->
+    <Modal 
+      v-model="showQuickViewModal" 
+      :title="t('products.quickView')" 
+      max-width="3xl" 
+      is-top 
+      max-height="90vh"
+    >
+      <div v-if="quickViewProduct" class="flex flex-col lg:flex-row gap-8 items-start">
+        <!-- Left: Images -->
+        <div class="w-full lg:w-[45%] shrink-0 space-y-4">
+          <div v-if="quickViewProduct.images?.length" class="w-full aspect-square bg-[var(--input-bg)] rounded-2xl overflow-hidden border border-[var(--border-app)]">
+            <ImageCarousel 
+              :images="quickViewProduct.images"
+              :product-name="quickViewProduct.parentProductName || quickViewProduct.productName"
+            />
+          </div>
+          <div v-else class="w-full aspect-square bg-[var(--input-bg)] rounded-2xl flex items-center justify-center border border-[var(--border-app)]">
+            <UiIcon name="lucide:image" class="w-20 h-20 text-[var(--text-app)] opacity-10" />
+          </div>
+        </div>
+
+        <!-- Right: Details -->
+        <div class="flex-1 w-full space-y-6">
+          <!-- Product Name -->
+          <div>
+            <h2 class="text-2xl font-bold text-[var(--text-app)] mb-2">
+              {{ quickViewProduct.parentProductName || quickViewProduct.productName }}
+            </h2>
+            <div v-if="quickViewProduct.attribute" class="flex flex-wrap gap-2 mt-2">
+              <span 
+                v-for="(attr, idx) in (Array.isArray(quickViewProduct.attribute) ? quickViewProduct.attribute : [quickViewProduct.attribute])" 
+                :key="idx"
+                class="px-3 py-1 bg-[var(--text-primary)]/10 text-[var(--text-primary)] rounded-lg text-sm font-semibold"
+              >
+                {{ attr }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Price Section -->
+          <div class="p-4 bg-[var(--input-bg)] rounded-xl border border-[var(--border-app)]">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <div class="text-xs font-bold text-[var(--text-app)] opacity-40 mb-1">{{ t('products.wholesalePrice') }}</div>
+                <div class="text-xl font-bold text-[var(--text-app)] tabular-nums">
+                  {{ formatPrice(quickViewProduct.wholesalePrice) }} <span class="text-sm opacity-50">₼</span>
+                </div>
+              </div>
+              <div>
+                <div class="text-xs font-bold text-[var(--text-app)] opacity-40 mb-1">{{ t('products.retailPrice') }}</div>
+                <div class="text-xl font-bold text-[var(--text-primary)] tabular-nums">
+                  {{ formatPrice(quickViewProduct.retailPrice) }} <span class="text-sm opacity-50">₼</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stock & Barcode -->
+          <div class="grid grid-cols-2 gap-4">
+            <div class="p-4 bg-[var(--input-bg)] rounded-xl border border-[var(--border-app)]">
+              <div class="text-xs font-bold text-[var(--text-app)] opacity-40 mb-2">{{ t('products.stock') }}</div>
+              <div 
+                class="text-2xl font-bold tabular-nums"
+                :class="getStockColor(Number(quickViewProduct.stock || 0), Number(quickViewProduct.reorderLevel || 0))"
+              >
+                {{ quickViewProduct.stock || 0 }}
+              </div>
+              <div v-if="quickViewProduct.reorderLevel" class="text-xs text-[var(--text-app)] opacity-50 mt-1">
+                {{ t('products.reorderLevel') }}: {{ quickViewProduct.reorderLevel }}
+              </div>
+            </div>
+            <div class="p-4 bg-[var(--input-bg)] rounded-xl border border-[var(--border-app)]">
+              <div class="text-xs font-bold text-[var(--text-app)] opacity-40 mb-2">{{ t('products.barcode') }}</div>
+              <div class="text-lg font-mono font-bold text-[var(--text-app)]">
+                {{ quickViewProduct.barcode }}
+              </div>
+              <button 
+                v-if="quickViewProduct.barcode"
+                @click="handleBarcodeClick(quickViewProduct)"
+                class="mt-2 text-xs text-[var(--text-primary)] hover:underline font-semibold"
+              >
+                {{ t('products.printBarcode') }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Category & Brand -->
+          <div v-if="quickViewProduct.category || quickViewProduct.brandName" class="p-4 bg-[var(--input-bg)] rounded-xl border border-[var(--border-app)] space-y-3">
+            <div v-if="quickViewProduct.category">
+              <div class="text-xs font-bold text-[var(--text-app)] opacity-40 mb-1">{{ t('products.category') }}</div>
+              <div class="flex flex-wrap gap-2">
+                <span 
+                  v-for="(cat, idx) in (Array.isArray(quickViewProduct.category) ? quickViewProduct.category : [quickViewProduct.category])" 
+                  :key="idx"
+                  class="px-2 py-1 bg-[var(--bg-app)] rounded-lg text-sm font-medium text-[var(--text-app)]"
+                >
+                  {{ cat }}
+                </span>
+              </div>
+            </div>
+            <div v-if="quickViewProduct.brandName">
+              <div class="text-xs font-bold text-[var(--text-app)] opacity-40 mb-1">{{ t('products.brand') }}</div>
+              <div class="text-sm font-semibold text-[var(--text-app)]">
+                {{ Array.isArray(quickViewProduct.brandName) ? quickViewProduct.brandName[0] : quickViewProduct.brandName }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div v-if="quickViewProduct.description" class="p-4 bg-[var(--input-bg)] rounded-xl border border-[var(--border-app)]">
+            <div class="text-xs font-bold text-[var(--text-app)] opacity-40 mb-2">{{ t('products.description') }}</div>
+            <p class="text-sm text-[var(--text-app)] leading-relaxed">
+              {{ quickViewProduct.description }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <UiButton variant="ghost" @click="showQuickViewModal = false">{{ t('common.cancel') }}</UiButton>
+        <UiButton variant="primary" icon="lucide:pen-line" @click="handleEdit(quickViewProduct); showQuickViewModal = false">
+          {{ t('common.edit') }}
+        </UiButton>
+      </template>
     </Modal>
   </div>
 </template>

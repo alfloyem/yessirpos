@@ -369,6 +369,7 @@
     "addAttribute": "+ Add attribute...",
     "barcode": "Barcode",
     "printBarcode": "Print Barcode",
+    "quickView": "Quick View",
     "duplicated": "Product duplicated",
     "duplicatedWithVariants": "Product and {count} variants duplicated",
     "added": "Product added",

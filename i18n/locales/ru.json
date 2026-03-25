@@ -368,6 +368,7 @@
     "addAttribute": "+ Добавить атрибут...",
     "barcode": "Штрих-код",
     "printBarcode": "Печать штрих-кода",
+    "quickView": "Быстрый просмотр",
     "duplicated": "Товар скопирован",
     "duplicatedWithVariants": "Товар и {count} вариантов скопированы",
     "added": "Товар добавлен",
