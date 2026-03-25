@@ -23,8 +23,16 @@ useHead({
 
 // --- Helper for Barcode Generation ---
 const generateBarcode = (prefix = '') => {
-  const cBarcodes = mockData.value
-    .map(m => m.barcode)
+  // Combine all current possible barcodes in UI
+  const currentInUI = [
+    formData.value?.barcode,
+    ...(newVariantsList.value || []).map(v => v.barcode)
+  ].filter(Boolean)
+
+  const cBarcodes = [
+    ...mockData.value.map(m => m.barcode),
+    ...currentInUI
+  ]
     .filter(b => typeof b === 'string' && new RegExp(`^${prefix || 'P'}\\d{7}$`).test(b))
     .map(b => parseInt(b.substring(1), 10))
   
@@ -33,9 +41,12 @@ const generateBarcode = (prefix = '') => {
     nextNum = Math.max(...cBarcodes) + 1
   }
   
+  const existingSet = new Set([
+     ...mockData.value.map(m => m.barcode),
+     ...currentInUI
+  ])
+
   let barcode = `${prefix || 'P'}${String(nextNum).padStart(7, '0')}`
-  
-  const existingSet = new Set(mockData.value.map(m => m.barcode))
   while (existingSet.has(barcode)) {
     nextNum++
     barcode = `${prefix || 'P'}${String(nextNum).padStart(7, '0')}`
@@ -489,23 +500,38 @@ const formatVariantAttr = (attr: any) => {
                   </UiDropdown>
                 </div>
 
-                <!-- Inputs Bottom Row -->
-                <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
-                  <div class="lg:col-span-2">
-                    <label class="block text-xs font-bold opacity-40 tracking-[0.15em] mb-1.5 pl-1">Barkod</label>
-                    <UiInput v-model="v.barcode" class="!bg-[var(--input-bg)]/50 hover:!bg-[var(--input-bg)] focus:!bg-[var(--input-bg)] transition-colors !border-none !shadow-none font-mono text-sm"/>
+                <!-- Inputs Labeled Grid -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div class="flex flex-col gap-1.5">
+                    <label class="block text-xs font-semibold opacity-40 tracking-wider whitespace-nowrap pl-1">Barkod</label>
+                    <UiInput 
+                      v-model="v.barcode" 
+                      class="!bg-[var(--input-bg)]/50 hover:!bg-[var(--input-bg)] focus:!bg-[var(--input-bg)] transition-colors !border-none !shadow-none font-mono text-sm"
+                    />
                   </div>
-                  <div>
-                    <label class="block text-xs font-bold opacity-40 tracking-[0.15em] mb-1.5 pl-1">Topdan (₼)</label>
-                    <UiInput v-model="v.wholesalePrice" type="number" class="!bg-[var(--input-bg)]/50 hover:!bg-[var(--input-bg)] focus:!bg-[var(--input-bg)] transition-colors !border-none !shadow-none"/>
+                  <div class="flex flex-col gap-1.5">
+                    <label class="block text-xs font-semibold opacity-40 tracking-wider whitespace-nowrap pl-1">Topdan (₼)</label>
+                    <UiInput 
+                      v-model="v.wholesalePrice" 
+                      type="number" 
+                      class="!bg-[var(--input-bg)]/50 hover:!bg-[var(--input-bg)] focus:!bg-[var(--input-bg)] transition-colors !border-none !shadow-none font-semibold"
+                    />
                   </div>
-                  <div>
-                    <label class="block text-xs font-bold opacity-40 tracking-[0.15em] mb-1.5 pl-1">Pərakəndə (₼)</label>
-                    <UiInput v-model="v.retailPrice" type="number" class="!bg-[var(--input-bg)]/50 hover:!bg-[var(--input-bg)] focus:!bg-[var(--input-bg)] transition-colors !border-none !shadow-none text-[var(--color-brand-success)] font-bold"/>
+                  <div class="flex flex-col gap-1.5">
+                    <label class="block text-xs font-semibold opacity-40 tracking-wider whitespace-nowrap pl-1">Pərakəndə (₼)</label>
+                    <UiInput 
+                      v-model="v.retailPrice" 
+                      type="number" 
+                      class="!bg-[var(--input-bg)]/50 hover:!bg-[var(--input-bg)] focus:!bg-[var(--input-bg)] transition-colors !border-none !shadow-none text-[var(--color-brand-success)] font-semibold"
+                    />
                   </div>
-                  <div>
-                    <label class="block text-xs font-bold opacity-40 tracking-[0.15em] mb-1.5 pl-1">Stok</label>
-                    <UiInput v-model="v.stock" type="number" class="!bg-[var(--input-bg)]/50 hover:!bg-[var(--input-bg)] focus:!bg-[var(--input-bg)] transition-colors !border-none !shadow-none"/>
+                  <div class="flex flex-col gap-1.5">
+                    <label class="block text-xs font-semibold opacity-40 tracking-wider whitespace-nowrap pl-1">Stok</label>
+                    <UiInput 
+                      v-model="v.stock" 
+                      type="number" 
+                      class="!bg-[var(--input-bg)]/50 hover:!bg-[var(--input-bg)] focus:!bg-[var(--input-bg)] transition-colors !border-none !shadow-none font-semibold"
+                    />
                   </div>
                 </div>
               </div>
