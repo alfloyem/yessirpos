@@ -195,7 +195,7 @@ const dummyBarcodeUrl = ref('')
 
 onMounted(() => {
   if (import.meta.client) {
-    dummyBarcodeUrl.value = generateBarcodeDataUrl('123456789012', { height: 50, margin: 10 })
+    dummyBarcodeUrl.value = generateBarcodeDataUrl('123456789012', { height: 50, margin: 10, displayValue: false })
     loadSettings()
     loadAttributes()
   }
