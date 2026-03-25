@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 
-import { useColorMode } from '#imports'
+import { useColorMode, useAuth } from '#imports'
 import { useI18n } from '#i18n'
 import azFlag from '~/assets/images/flags/az.png'
 import enFlag from '~/assets/images/flags/gb.png'
@@ -30,6 +30,33 @@ const languageOptions = computed(() => {
   return locales.value.map((l: any) => {
     return { label: l.name, value: l.code, image: languageFlags[l.code] }
   })
+})
+
+// Load attributes from API
+const attributes = ref<any[]>([])
+const loadAttributes = async () => {
+  if (import.meta.client) {
+    try {
+      const { token } = useAuth()
+      const data = await $fetch('/api/attributes', {
+        headers: { Authorization: `Bearer ${token.value}` }
+      })
+      attributes.value = data as any[]
+    } catch (err) {
+      console.error('Failed to load attributes:', err)
+    }
+  }
+}
+
+// Get first attribute with values for preview
+const previewAttribute = computed(() => {
+  if (attributes.value.length > 0) {
+    const attr = attributes.value[0]
+    if (attr.values && attr.values.length > 0) {
+      return `${attr.name}: ${attr.values[0]}`
+    }
+  }
+  return 'Ölçü: L'
 })
 
 type SettingsTab = 'notifications' | 'barcode' | 'receipt' | 'appearance'
@@ -111,7 +138,7 @@ const tabs: { id: SettingsTab; label: string; icon: string }[] = [
 
 const activeTab = ref<SettingsTab>(tabs[0]?.id ?? 'notifications')
 
-const toggleState = ref<Record<string, boolean>>({
+const defaultToggleState = {
   sale_completed: true,
   order_created: true,
   refund_processed: true,
@@ -133,10 +160,37 @@ const toggleState = ref<Record<string, boolean>>({
   showBarcodeString: true,
   showTaxRates: true,
   showFooterMessage: true
-})
+}
+
+const toggleState = ref<Record<string, boolean>>({ ...defaultToggleState })
+
+const loadSettings = () => {
+  if (import.meta.client) {
+    try {
+      const saved = localStorage.getItem('yessir_pos_settings')
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        toggleState.value = { ...defaultToggleState, ...parsed }
+      }
+    } catch (err) {
+      console.error('Failed to load settings:', err)
+    }
+  }
+}
+
+const saveSettings = () => {
+  if (import.meta.client) {
+    try {
+      localStorage.setItem('yessir_pos_settings', JSON.stringify(toggleState.value))
+    } catch (err) {
+      console.error('Failed to save settings:', err)
+    }
+  }
+}
 
 const toggleSetting = (key: string) => {
   toggleState.value[key] = !toggleState.value[key]
+  saveSettings()
 }
 
 const dummyBarcodeUrl = ref('')
@@ -144,6 +198,8 @@ const dummyBarcodeUrl = ref('')
 onMounted(() => {
   if (import.meta.client) {
     dummyBarcodeUrl.value = generateBarcodeDataUrl('123456789012', { height: 50, margin: 10 })
+    loadSettings()
+    loadAttributes()
   }
 })
 
@@ -203,9 +259,10 @@ const barcodePreviewHtml = computed(() => {
 
   const dummyBarcode: any = {
     productName: toggleState.value['showProductName'] ? 'T-Shirt Qara' : '',
-    barcode: toggleState.value['showBarcodeString'] ? '123456789012' : '',
+    barcode: '123456789012',
     price: toggleState.value['showPrice'] ? 50.00 : undefined,
-    attribute: toggleState.value['showAttribute'] ? 'Ölçü: L' : undefined
+    attribute: toggleState.value['showAttribute'] ? previewAttribute.value : undefined,
+    showBarcodeString: toggleState.value['showBarcodeString']
   }
 
   return buildBarcodeHtml(dummyBarcode, mockClientData as any, dummyBarcodeUrl.value)
@@ -297,15 +354,15 @@ const barcodePreviewHtml = computed(() => {
               </div>
 
               <!-- Live Previews -->
-              <div v-if="activeTab === 'receipt' || activeTab === 'barcode'" class="w-full lg:w-[320px] shrink-0 border border-[var(--border-app)] bg-[var(--card-bg)] rounded-xl relative overflow-hidden flex flex-col">
+              <div v-if="activeTab === 'receipt' || activeTab === 'barcode'" class="w-full lg:w-[320px] shrink-0 border border-[var(--border-app)] bg-[var(--card-bg)] rounded-xl relative overflow-hidden flex flex-col items-center justify-center p-6">
                 <!-- RECEIPT PREVIEW iframe -->
-                  <div v-if="activeTab === 'receipt'" class="bg-white text-black shadow-xl mx-auto overflow-hidden self-start" style="width: 80mm; min-height: 100mm;">
+                  <div v-if="activeTab === 'receipt'" class="bg-white text-black shadow-xl overflow-hidden" style="width: 80mm; min-height: 100mm;">
                     <iframe :srcdoc="receiptPreviewHtml" class="w-full h-[500px]" frameborder="0"></iframe>
                   </div>
 
                   <!-- BARCODE PREVIEW iframe -->
-                  <div v-if="activeTab === 'barcode'" class="bg-white text-black shadow-xl mx-auto self-start mt-10 overflow-hidden" style="width: 50mm; height: 30mm;">
-                    <iframe :srcdoc="barcodePreviewHtml" class="w-full h-full" frameborder="0"></iframe>
+                  <div v-if="activeTab === 'barcode'" class="bg-white text-black shadow-xl overflow-visible flex items-center justify-center" style="width: 50mm; height: 30mm;">
+                    <iframe :srcdoc="barcodePreviewHtml" class="w-full h-full border-0" frameborder="0" scrolling="no" style="display: block;"></iframe>
                   </div>
               </div>
 

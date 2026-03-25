@@ -71,6 +71,7 @@ export interface BarcodeData {
   productName?: string
   attribute?: string | string[]
   price?: number
+  showBarcodeString?: boolean
 }
 
 export interface DebtPaymentReceiptData {
@@ -87,8 +88,49 @@ export interface DebtPaymentReceiptData {
 
 // Optimized Print Functions
 export const printReceipt = (data: ReceiptData) => {
+  // Load settings from localStorage with defaults
+  const defaultSettings = {
+    showLogo: true,
+    showStoreName: true,
+    showAddress: true,
+    showPhone: true,
+    showCashierName: true,
+    showCustomerName: true,
+    showTaxRates: true,
+    showFooterMessage: true
+  }
+  
+  let settings = { ...defaultSettings }
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = localStorage.getItem('yessir_pos_settings')
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        settings = { ...defaultSettings, ...parsed }
+      }
+    } catch (err) {
+      console.error('Failed to load settings:', err)
+    }
+  }
+
+  // Apply settings to client data
+  const clientData = getClientData()
+  const modifiedClientData = {
+    ...clientData,
+    logoSvg: settings.showLogo ? clientData.logoSvg : '',
+    name: settings.showStoreName ? clientData.name : '***',
+    address: settings.showAddress ? clientData.address : '***'
+  }
+
+  // Apply settings to receipt data
+  const modifiedData = {
+    ...data,
+    cashierName: settings.showCashierName ? data.cashierName : '***',
+    customer: settings.showCustomerName ? data.customer : undefined
+  }
+
   const barcodeUrl = generateBarcodeDataUrl(data.receiptNo)
-  const html = buildReceiptHtml(data, getClientData(), barcodeUrl)
+  const html = buildReceiptHtml(modifiedData, modifiedClientData, barcodeUrl)
   executePrintWindow(html, { width: 302, height: 800, dynamicHeight: true })
 }
 
@@ -99,9 +141,46 @@ export const printIntakeReceipt = (data: IntakeReceiptData) => {
 }
 
 export const printBarcode = (data: BarcodeData) => {
+  // Load settings from localStorage with defaults
+  const defaultSettings = {
+    showProductName: true,
+    showPrice: true,
+    showAttribute: true,
+    showBarcodeString: true,
+    showStoreName: true
+  }
+  
+  let settings = { ...defaultSettings }
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = localStorage.getItem('yessir_pos_settings')
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        settings = { ...defaultSettings, ...parsed }
+      }
+    } catch (err) {
+      console.error('Failed to load settings:', err)
+    }
+  }
+
+  // Apply settings to barcode data
+  const barcodeData = {
+    barcode: data.barcode,
+    productName: settings.showProductName ? data.productName : '',
+    price: settings.showPrice ? data.price : undefined,
+    attribute: settings.showAttribute ? data.attribute : undefined,
+    showBarcodeString: settings.showBarcodeString
+  }
+
+  const clientData = getClientData()
+  const modifiedClientData = {
+    ...clientData,
+    name: settings.showStoreName ? clientData.name : ''
+  }
+
   const barcodeUrl = generateBarcodeDataUrl(data.barcode, { height: 40, displayValue: false, margin: 2 })
   if (!barcodeUrl) return
-  const html = buildBarcodeHtml(data, getClientData(), barcodeUrl)
+  const html = buildBarcodeHtml(barcodeData, modifiedClientData, barcodeUrl)
   executePrintWindow(html, { width: 300, height: 200 })
 }
 

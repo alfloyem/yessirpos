@@ -293,27 +293,74 @@ export const buildBarcodeHtml = (data: BarcodeData, clientData: ClientData, barc
     }
   }
 
+  const showBarcodeString = data.showBarcodeString !== false
+
   return `
     <html>
       <head>
         <style>
           @page { margin: 0; size: 50mm 30mm; }
+          * { margin: 0; padding: 0; box-sizing: border-box; }
           body { 
-            margin: 0; padding: 1mm; display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            width: 50mm; height: 30mm; font-family: sans-serif; text-align: center; box-sizing: border-box;
+            margin: 0; 
+            padding: 2mm; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            width: 50mm; 
+            height: 30mm; 
+            font-family: Arial, sans-serif; 
+            text-align: center;
+            overflow: hidden;
           }
-          .name { font-size: 9px; font-weight: bold; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-          .price { font-size: 14px; font-weight: bold; margin-top: 1px; }
-          img { width: 100%; height: auto; max-width: 42mm; max-height: 12mm; }
+          .store-name { 
+            font-size: 7px; 
+            text-transform: uppercase; 
+            margin-bottom: 1mm;
+            font-weight: 600;
+          }
+          .product-name { 
+            font-size: 8px; 
+            font-weight: bold; 
+            width: 100%; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis;
+            margin-bottom: 0.5mm;
+          }
+          .attribute { 
+            font-size: 6px; 
+            opacity: 0.8;
+            margin-bottom: 1mm;
+          }
+          .barcode-img { 
+            width: 100%; 
+            height: auto; 
+            max-width: 46mm; 
+            max-height: 12mm;
+            margin: 1mm 0;
+          }
+          .barcode-text { 
+            font-size: 7px; 
+            font-family: 'Courier New', monospace; 
+            font-weight: bold;
+            margin-top: 0.5mm;
+          }
+          .price { 
+            font-size: 12px; 
+            font-weight: bold; 
+            margin-top: 1mm;
+          }
         </style>
       </head>
       <body>
-        <div style="font-size: 8px; text-transform: uppercase;">${clientData.name || 'YESSIR POS'}</div>
-        <div class="name">${data.productName}</div>
-        ${attrStr ? `<div style="font-size: 7px; opacity: 0.8;">${attrStr}</div>` : ''}
-        <img src="${barcodeDataUrl}" />
-        <div style="font-size: 8px; font-family: monospace; font-weight: bold;">${data.barcode}</div>
-        <div class="price">${data.price ? Number(data.price).toFixed(2) + ' ₼' : ''}</div>
+        ${clientData.name ? `<div class="store-name">${clientData.name}</div>` : ''}
+        ${data.productName ? `<div class="product-name">${data.productName}</div>` : ''}
+        ${attrStr ? `<div class="attribute">${attrStr}</div>` : ''}
+        ${barcodeDataUrl ? `<img src="${barcodeDataUrl}" class="barcode-img" />` : ''}
+        ${showBarcodeString && data.barcode ? `<div class="barcode-text">${data.barcode}</div>` : ''}
+        ${data.price ? `<div class="price">${Number(data.price).toFixed(2)} ₼</div>` : ''}
       </body>
     </html>
   `
