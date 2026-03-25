@@ -137,9 +137,9 @@ export const buildReceiptHtml = (data: ReceiptData, clientData: ClientData, barc
       </head>
       <body>
         <div class="center">
-          <div class="logo">${clientData.logoSvg}</div>
-          <div style="font-weight: bold; font-size: 13px;">TS adı: ${clientData.name}</div>
-          <div style="font-size: 11px;">TS ünvanı: ${clientData.address}</div>
+          ${clientData.logoSvg ? `<div class="logo">${clientData.logoSvg}</div>` : ''}
+          ${clientData.name && clientData.name !== '***' ? `<div style="font-weight: bold; font-size: 13px;">TS adı: ${clientData.name}</div>` : ''}
+          ${clientData.address && clientData.address !== '***' ? `<div style="font-size: 11px;">TS ünvanı: ${clientData.address}</div>` : ''}
           <div class="title">SATIŞ ÇEKİ</div>
           <div class="info">
             TARİX: ${data.currentDate} <br/>

@@ -118,8 +118,8 @@ export const printReceipt = (data: ReceiptData) => {
   const modifiedClientData = {
     ...clientData,
     logoSvg: settings.showLogo ? clientData.logoSvg : '',
-    name: settings.showStoreName ? clientData.name : '***',
-    address: settings.showAddress ? clientData.address : '***'
+    name: settings.showStoreName ? clientData.name : '',
+    address: settings.showAddress ? clientData.address : ''
   }
 
   // Apply settings to receipt data

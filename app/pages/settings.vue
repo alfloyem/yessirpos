@@ -208,15 +208,26 @@ const receiptPreviewHtml = computed(() => {
   const mockClientData = {
     ...clientData,
     logoSvg: toggleState.value['showLogo'] ? clientData.logoSvg : '',
-    name: toggleState.value['showStoreName'] ? clientData.name : '***',
-    address: toggleState.value['showAddress'] ? clientData.address : '***'
+    name: toggleState.value['showStoreName'] ? clientData.name : '',
+    address: toggleState.value['showAddress'] ? clientData.address : ''
   }
+
+  // Use dynamic attribute for preview
+  const itemAttribute = toggleState.value['showAttribute'] && attributes.value.length > 0
+    ? previewAttribute.value
+    : undefined
 
   // Dummy receipt data
   const dummyData: any = {
     receiptNo: '12345678',
     cashierName: toggleState.value['showCashierName'] ? 'Admin' : '***',
-    currentDate: new Date().toLocaleDateString('az-AZ'),
+    currentDate: new Date().toLocaleDateString('az-AZ', {
+      year: 'numeric',
+      month: '2-digit', 
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    }),
     subtotal: 50.00,
     finalTotal: 50.00,
     discountTotal: 0,
@@ -229,9 +240,11 @@ const receiptPreviewHtml = computed(() => {
       price: 50.00,
       finalPrice: 50.00,
       discount: 0,
+      discountType: 'amount',
+      discountValue: 0,
       itemDiscountType: 'amount',
       total: 50.00,
-      attribute: toggleState.value['showAttribute'] ? 'Rəng: Qara' : undefined
+      attribute: itemAttribute
     }],
     customer: toggleState.value['showCustomerName'] ? {
       name: 'Nümunə Müştəri',
@@ -354,10 +367,10 @@ const barcodePreviewHtml = computed(() => {
               </div>
 
               <!-- Live Previews -->
-              <div v-if="activeTab === 'receipt' || activeTab === 'barcode'" class="w-full lg:w-[320px] shrink-0 border border-[var(--border-app)] bg-[var(--card-bg)] rounded-xl relative overflow-hidden flex flex-col items-center justify-center p-6">
+              <div v-if="activeTab === 'receipt' || activeTab === 'barcode'" class="w-full lg:w-[320px] shrink-0 border border-[var(--border-app)] bg-[var(--card-bg)] rounded-xl relative overflow-auto flex flex-col items-center justify-start p-6">
                 <!-- RECEIPT PREVIEW iframe -->
                   <div v-if="activeTab === 'receipt'" class="bg-white text-black shadow-xl overflow-hidden" style="width: 80mm; min-height: 100mm;">
-                    <iframe :srcdoc="receiptPreviewHtml" class="w-full h-[500px]" frameborder="0"></iframe>
+                    <iframe :srcdoc="receiptPreviewHtml" class="w-full min-h-[500px] border-0" frameborder="0" scrolling="no" style="display: block;"></iframe>
                   </div>
 
                   <!-- BARCODE PREVIEW iframe -->
