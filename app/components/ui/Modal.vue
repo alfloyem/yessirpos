@@ -46,6 +46,8 @@ const maxWidthClass = computed(() => {
     case '2xl': return 'max-w-2xl'
     case '3xl': return 'max-w-3xl'
     case '4xl': return 'max-w-4xl'
+    case '5xl': return 'max-w-5xl'
+    case '6xl': return 'max-w-6xl'
     case 'full': return 'max-w-full m-4'
     default: return 'max-w-lg'
   }
