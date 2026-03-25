@@ -194,19 +194,6 @@ const loading = ref(false)
 const searchQuery = ref('')
 const currentPage = ref(1)
 const itemsPerPage = ref(15)
-const expandedProducts = ref<Set<string>>(new Set())
-
-const toggleProductVariants = (productId: string) => {
-  if (expandedProducts.value.has(productId)) {
-    expandedProducts.value.delete(productId)
-  } else {
-    expandedProducts.value.add(productId)
-  }
-}
-
-const isProductExpanded = (productId: string) => {
-  return expandedProducts.value.has(productId)
-}
 
 const groupedProducts = computed(() => {
   const variantMap: Record<string, any[]> = {}
@@ -823,7 +810,7 @@ const saveForm = async () => {
     </div>
     
     <div v-else class="mt-2">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         <!-- ═══════════════════════════════════════════════════ -->
         <!-- Product Card: Ultra-Flat Editorial Design         -->
         <!-- ═══════════════════════════════════════════════════ -->
@@ -958,23 +945,15 @@ const saveForm = async () => {
                 </span>
               </div>
 
-              <!-- Variant toggle -->
-              <button 
-                class="flex items-center justify-between w-full py-2 -mx-0 group/vtoggle transition-colors" 
-                @click="toggleProductVariants(product.id)"
-              >
-                <span class="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-app)] opacity-40 group-hover/vtoggle:opacity-70 transition-opacity">
+              <!-- Variant label -->
+              <div class="flex items-center justify-between w-full py-2 -mx-0">
+                <span class="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-app)] opacity-40">
                   {{ product.variants.length }} variant
                 </span>
-                <UiIcon 
-                  name="lucide:chevron-down" 
-                  class="w-3.5 h-3.5 text-[var(--text-app)] opacity-30 group-hover/vtoggle:opacity-60 transition-all duration-300" 
-                  :class="isProductExpanded(product.id) ? 'rotate-180' : ''" 
-                />
-              </button>
+              </div>
 
               <!-- Variant rows -->
-              <div v-show="isProductExpanded(product.id)" class="flex flex-col gap-1.5 mt-1">
+              <div class="flex flex-col gap-1.5 mt-1">
                 <div 
                   v-for="variant in product.variants" 
                   :key="variant.id" 
