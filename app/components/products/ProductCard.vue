@@ -68,20 +68,7 @@ const formatVariantAttr = (attr: any) => {
         <UiIcon name="lucide:image" class="w-12 h-12 text-[var(--text-app)] opacity-10" stroke-width="1" />
       </div>
 
-      <!-- Checkbox (top-left) -->
-      <div class="absolute top-3 left-3 z-10">
-        <div 
-          class="w-5 h-5 rounded-md border flex items-center justify-center cursor-pointer transition-colors duration-200"
-          :class="[
-            selected 
-              ? 'bg-[var(--text-primary)] border-[var(--text-primary)] text-[var(--bg-app)]' 
-              : 'bg-[var(--bg-app)]/80 backdrop-blur-sm border-[var(--border-app)] text-transparent hover:border-[var(--text-primary)]'
-          ]"
-          @click.stop="emit('toggle-select')"
-        >
-          <UiIcon name="lucide:check" class="w-3 h-3" />
-        </div>
-      </div>
+
 
       <!-- Actions (top-right) -->
       <div class="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">

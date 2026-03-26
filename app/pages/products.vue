@@ -8,10 +8,12 @@ import UiInput from '~/components/ui/Input.vue'
 import UiSelect from '~/components/ui/Select.vue'
 import UiIcon from '~/components/ui/Icon.vue'
 import UiSwitch from '~/components/ui/Switch.vue'
+import UiDropdown from '~/components/ui/Dropdown.vue'
 import DynamicForm, { type FormField } from '~/components/ui/DynamicForm.vue'
 import ImageCarousel from '~/components/ui/ImageCarousel.vue'
 import ProductCard from '~/components/products/ProductCard.vue'
 import { printBarcode } from '~/utils/receiptPrinter'
+import { exportToCSV, exportToJSON, exportToXML, exportToPDF } from '~/utils/dataExporter'
 
 const { t } = useI18n()
 const { token } = useAuth()
@@ -22,11 +24,12 @@ useHead({
 })
 
 // --- Helper for Barcode Generation ---
-const generateBarcode = (prefix = '') => {
+const generateBarcode = (prefix = '', exclude: string[] = []) => {
   // Combine all current possible barcodes in UI
   const currentInUI = [
     formData.value?.barcode,
-    ...(newVariantsList.value || []).map(v => v.barcode)
+    ...(newVariantsList.value || []).map(v => v.barcode),
+    ...exclude
   ].filter(Boolean)
 
   const cBarcodes = [
@@ -61,6 +64,56 @@ const loading = ref(false)
 const searchQuery = ref('')
 const suppliersOptions = ref<{ label: string, value: string }[]>([])
 const availableAttributes = ref<any[]>([])
+
+// Columns for Export (Detailed as requested)
+const productColumns = [
+  { key: 'productName', label: t('products.name', 'Məhsulun adı') },
+  { key: 'brandName', label: t('products.brand', 'Brendin adı') },
+  { key: 'category', label: t('products.category', 'Kateqoriyası') },
+  { key: 'barcode', label: 'Barkod' },
+  { key: 'wholesalePrice', label: 'Topdan qiymət (₼)' },
+  { key: 'retailPrice', label: 'Pərakəndə qiymət (₼)' },
+  { key: 'stock', label: 'Stok' },
+  { key: 'reorderLevel', label: 'Yenidən sifariş limiti' }, // This often exists in parent but also variants
+  { key: 'attribute', label: 'Variant/Atribut' }
+]
+
+const handleExport = (format: 'csv' | 'pdf' | 'json' | 'xml') => {
+  const title = t('menu.products', 'Məhsullar')
+  
+  // Pre-process data to flatten arrays (categories, attributes, etc.) for better readability in Excel/PDF
+  const dataToExport = filteredProducts.value.map(p => {
+    let attrStr = ''
+    if (Array.isArray(p.attribute)) {
+      attrStr = p.attribute.join(', ')
+    } else if (p.attribute) {
+      attrStr = String(p.attribute)
+    }
+
+    return {
+      ...p,
+      category: Array.isArray(p.category) ? p.category.join(', ') : p.category,
+      brandName: Array.isArray(p.brandName) ? p.brandName.join(', ') : p.brandName,
+      attribute: attrStr
+    }
+  })
+
+  switch (format) {
+    case 'csv': exportToCSV(title, productColumns, dataToExport); break
+    case 'pdf': exportToPDF(title, productColumns, dataToExport); break
+    case 'json': exportToJSON(title, productColumns, dataToExport); break
+    case 'xml': exportToXML(title, productColumns, dataToExport); break
+  }
+}
+
+const filteredProducts = computed(() => {
+  if (!searchQuery.value) return mockData.value
+  const q = searchQuery.value.toLowerCase()
+  return mockData.value.filter(p => 
+    (p.productName || '').toLowerCase().includes(q) || 
+    (p.barcode || '').toLowerCase().includes(q)
+  )
+})
 
 // --- Computed ---
 const groupedProducts = computed(() => {
@@ -308,6 +361,57 @@ const handleEdit = (product: any) => {
   showProductModal.value = true
 }
 
+const handleDuplicateProduct = (product: any) => {
+  // Deep clone the product data
+  const data = JSON.parse(JSON.stringify(product))
+  const newlyGeneratedBarcodes: string[] = []
+  
+  const newParentBarcode = generateBarcode('P')
+  newlyGeneratedBarcodes.push(newParentBarcode)
+
+  // Prepare form data (excluding variants which are handled separately)
+  formData.value = {
+    ...data,
+    id: undefined,
+    barcode: newParentBarcode
+  }
+  delete formData.value.variants
+
+  // Copy images
+  productImages.value = data.images ? [...data.images] : []
+
+  // Handle variants if they exist
+  if (data.variants && data.variants.length > 0) {
+    addVariantsEnabled.value = true
+    newVariantsList.value = data.variants.map((v: any) => {
+      // Parse attribute strings back into object format needed by UI
+      const attrs = Array.isArray(v.attribute) ? v.attribute.map((str: string) => {
+        const parts = str.split(':')
+        const name = parts[0]?.trim() || ''
+        const value = parts[1]?.trim() || ''
+        const attrDef = availableAttributes.value.find(ax => ax.name === name)
+        return { id: attrDef?.id || Math.random().toString(), name, value }
+      }) : []
+
+      const vBarcode = generateBarcode('P', newlyGeneratedBarcodes)
+      newlyGeneratedBarcodes.push(vBarcode)
+
+      return {
+        ...v,
+        id: Date.now().toString() + Math.random(), // Temp ID for new variant
+        barcode: vBarcode,
+        attribute: attrs
+      }
+    })
+  } else {
+    addVariantsEnabled.value = false
+    newVariantsList.value = []
+  }
+
+  isEditMode.value = false // Treat as a new product
+  showProductModal.value = true
+}
+
 const handleDeleteClick = (product: any) => {
   confirmTarget.value = product
   showDeleteConfirmModal.value = true
@@ -358,6 +462,38 @@ const formatVariantAttr = (attr: any) => {
     <div class="flex flex-col md:flex-row items-center justify-between gap-4">
       <h1 class="text-2xl font-bold text-[var(--text-app)]">{{ t('menu.products') }}</h1>
       <div class="flex items-center gap-3 w-full md:w-auto">
+        <!-- Export Dropdown -->
+        <UiDropdown menuClass="absolute right-0 top-full mt-2 w-48 p-2 z-[60]">
+          <template #trigger>
+            <UiButton 
+              variant="outline"
+              size="sm"
+              icon="lucide:download"
+              class="!h-10 !w-10 !p-0"
+              :title="t('common.export', 'İxrac et')"
+            />
+          </template>
+
+          <template #menu>
+            <div @click.stop="handleExport('csv')" class="flex items-center gap-3 px-3 py-2 text-sm cursor-pointer rounded-lg hover:bg-[var(--text-primary)]/10 transition-colors text-[var(--text-app)]">
+              <UiIcon name="lucide:file-spreadsheet" class="w-4 h-4 text-[var(--color-brand-success)]" />
+              <span class="font-medium">Excel (CSV)</span>
+            </div>
+            <div @click.stop="handleExport('pdf')" class="flex items-center gap-3 px-3 py-2 text-sm cursor-pointer rounded-lg hover:bg-[var(--text-primary)]/10 transition-colors text-[var(--text-app)]">
+              <UiIcon name="lucide:file-text" class="w-4 h-4 text-[var(--color-brand-danger)]" />
+              <span class="font-medium">PDF</span>
+            </div>
+            <div @click.stop="handleExport('json')" class="flex items-center gap-3 px-3 py-2 text-sm cursor-pointer rounded-lg hover:bg-[var(--text-primary)]/10 transition-colors text-[var(--text-app)]">
+              <UiIcon name="lucide:file-json" class="w-4 h-4 text-[var(--color-brand-warning)]" />
+              <span class="font-medium">JSON</span>
+            </div>
+            <div @click.stop="handleExport('xml')" class="flex items-center gap-3 px-3 py-2 text-sm cursor-pointer rounded-lg hover:bg-[var(--text-primary)]/10 transition-colors text-[var(--text-app)]">
+              <UiIcon name="lucide:code" class="w-4 h-4 text-[var(--text-primary)]" />
+              <span class="font-medium">XML</span>
+            </div>
+          </template>
+        </UiDropdown>
+
         <div class="relative w-full md:w-64">
           <UiIcon name="lucide:search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-app)] opacity-50" />
           <input 
@@ -366,7 +502,7 @@ const formatVariantAttr = (attr: any) => {
             class="w-full h-10 pl-10 pr-4 rounded-xl bg-[var(--input-bg)] border border-[var(--border-app)] text-[var(--text-app)] text-sm focus:outline-none focus:border-[var(--text-primary)] transition-colors"
           />
         </div>
-        <UiButton variant="primary" icon="lucide:plus" @click="handleAdd" class="shrink-0">
+        <UiButton variant="primary" icon="gravity-ui:plus" @click="handleAdd" class="shrink-0 !h-10">
           {{ t('products.addNew') }}
         </UiButton>
       </div>
@@ -386,6 +522,7 @@ const formatVariantAttr = (attr: any) => {
         :key="product.id" 
         :product="product"
         @edit="handleEdit"
+        @duplicate="handleDuplicateProduct"
         @delete="handleDeleteClick"
       />
     </div>
