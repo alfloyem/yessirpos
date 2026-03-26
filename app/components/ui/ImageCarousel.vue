@@ -240,7 +240,7 @@ const currentImageMeta = computed(() => {
   <div class="flex flex-col gap-4 w-full" @keydown="handleKeydown" tabindex="0">
     <!-- Main Dropzone / Display Area -->
     <div 
-      class="relative aspect-[3/4] w-full rounded-2xl border-2 border-dashed transition-all duration-300 overflow-hidden group focus-within:ring-2 focus-within:ring-[var(--text-primary)] focus:outline-none"
+      class="relative aspect-square w-full rounded-2xl transition-all duration-300 overflow-hidden group focus-within:ring-2 focus-within:ring-[var(--text-primary)] focus:outline-none"
         :class="[
         isDraggingOver ? 'border-[var(--text-primary)] bg-[var(--text-primary)]/5 scale-[1.01]' : 'border-[var(--border-app)] hover:border-[var(--text-primary)]/50 bg-[var(--input-bg)]',
         !processedImages.length ? 'cursor-pointer' : ''
@@ -258,19 +258,11 @@ const currentImageMeta = computed(() => {
             class="w-full h-full object-contain p-4"
           />
           
-          <!-- Metadata Overlay -->
-          <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between pointer-events-none">
-            <div v-if="currentImageMeta" class="flex gap-2">
-              <span class="px-2 py-1 bg-black/60 backdrop-blur-md text-white text-[10px] rounded-md font-bold tracking-wider">
-                {{ currentImageMeta.originalFormat }} <span v-if="currentImageMeta.originalFormat !== 'SVG'">→ WebP</span>
-              </span>
-              <span class="px-2 py-1 bg-black/60 backdrop-blur-md text-white text-[10px] rounded-md font-bold tracking-wider">
-                {{ formatBytes(currentImageMeta.processedSize) }} 
-                <span v-if="currentImageMeta.originalFormat !== 'SVG'" class="text-green-400 ml-1">
-                  ↓{{ Math.round((1 - currentImageMeta.processedSize / currentImageMeta.originalSize) * 100) }}%
-                </span>
-              </span>
-            </div>
+          <!-- Metadata Overlay (Removed technical clutter) -->
+          <div class="absolute bottom-3 left-3 flex gap-2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+            <span v-if="currentImageMeta" class="px-2 py-1 bg-black/40 backdrop-blur-md text-white text-[10px] rounded-md font-semibold">
+              {{ currentIndex + 1 }} / {{ processedImages.length }}
+            </span>
           </div>
 
           <div class="absolute inset-x-0 top-0 p-4 flex justify-between items-start opacity-0 group-hover:opacity-100 transition-opacity z-10">
@@ -296,12 +288,12 @@ const currentImageMeta = computed(() => {
 
       <!-- Empty State -->
       <template v-else>
-        <div class="h-full flex flex-col items-center justify-center p-8 text-center pointer-events-none">
-          <div class="w-20 h-20 rounded-full bg-[var(--text-primary)]/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-            <UiIcon name="lucide:cloud-upload" class="w-10 h-10 text-[var(--text-primary)] opacity-40 shadow-sm" />
+        <div class="h-full flex flex-col items-center justify-center p-6 text-center pointer-events-none">
+          <div class="w-12 h-12 rounded-full bg-[var(--text-primary)]/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <UiIcon name="lucide:image-plus" class="w-6 h-6 text-[var(--text-primary)] opacity-40" />
           </div>
-          <h4 class="text-lg font-bold text-[var(--text-app)] mb-2">{{ t('products.dropImgs', 'Şəkilləri bura dartın və ya klikləyin') }}</h4>
-          <p class="text-xs font-medium text-[var(--text-app)] opacity-40 tracking-widest">{{ t('products.supportFormats', 'JPG, PNG, WEBP, GIF, SVG (MAX 20MB)') }}</p>
+          <h4 class="text-sm font-semibold text-[var(--text-app)] mb-1">{{ t('products.dropImgs', 'Şəkil əlavə et') }}</h4>
+          <p class="text-[10px] font-medium text-[var(--text-app)] opacity-30 tracking-wider">JPG, PNG, WEBP, SVG</p>
         </div>
       </template>
 

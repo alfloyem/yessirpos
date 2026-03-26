@@ -110,77 +110,42 @@ const formatVariantAttr = (attr: any) => {
     </div>
 
     <!-- ── Body ── -->
-    <div class="flex flex-col flex-1 p-4">
-      <!-- Top Meta -->
-      <div class="flex items-center gap-1.5 mb-1 opacity-50">
-        <span v-if="product.category?.length" class="text-xs font-semibold tracking-[0.05em] text-[var(--text-app)] truncate">
-          {{ Array.isArray(product.category) ? product.category[0] : product.category }}
-        </span>
-        <span v-if="product.brandName && product.category?.length" class="text-[var(--text-app)] text-xs opacity-40">/</span>
-        <span v-if="product.brandName" class="text-xs font-semibold tracking-[0.05em] text-[var(--text-app)] truncate">
-          {{ Array.isArray(product.brandName) ? product.brandName[0] : product.brandName }}
-        </span>
-      </div>
+    <div class="flex flex-col flex-1 p-4 pt-3 pb-4">
+      <div class="grid grid-cols-[1fr_auto] items-end gap-x-4 gap-y-1 mt-auto">
+        <!-- Top Left: Category & Brand -->
+        <div class="text-xs font-semibold opacity-30 truncate tracking-wide flex items-center gap-1.5 min-w-0">
+          <span v-if="product.category?.length">{{ Array.isArray(product.category) ? product.category[0] : product.category }}</span>
+          <span v-if="product.brandName">{{ Array.isArray(product.brandName) ? product.brandName[0] : product.brandName }}</span>
+        </div>
 
-      <!-- Title & Price -->
-      <div class="flex items-start justify-between gap-4 mb-3">
-        <!-- Title -->
+        <!-- Top Right: Variant Count / Stock Status -->
+        <div class="text-xs font-semibold opacity-30 text-right whitespace-nowrap">
+          <span v-if="hasVariants" class="text-[var(--text-primary)]">{{ product.variants.length }} variant</span>
+          <span v-else :class="getStockColor(product.stock, product.reorderLevel)">
+            {{ product.stock || 0 }} {{ t('products.stock') }}
+          </span>
+        </div>
+
+        <!-- Bottom Left: Title -->
         <h3 
-          class="text-base font-semibold text-[var(--text-app)] leading-snug line-clamp-2 min-h-[2.8em] flex-1 cursor-pointer group-hover:text-[var(--text-primary)] transition-colors" 
+          class="text-sm font-bold text-[var(--text-app)] leading-none truncate cursor-pointer group-hover:text-[var(--text-primary)] transition-colors min-w-0" 
           :title="product.productName"
           @click="emit('quick-view', product)"
         >
           {{ product.productName }}
         </h3>
 
-        <!-- Price -->
-        <div class="shrink-0 pt-0.5 text-right whitespace-nowrap">
-          <div v-if="!hasVariants" class="text-lg font-bold text-[var(--text-app)] tabular-nums">
-            {{ formatPrice(product.retailPrice) }}<span class="text-xs font-semibold opacity-40 ml-0.5">₼</span>
+        <!-- Bottom Right: Price -->
+        <div class="text-base font-bold tabular-nums whitespace-nowrap leading-none">
+          <div v-if="!hasVariants" class="text-[var(--text-app)] flex items-baseline gap-0.5">
+            {{ formatPrice(product.retailPrice) }}<span class="text-xs font-semibold opacity-30">₼</span>
           </div>
-          <div v-else class="text-lg font-bold text-[var(--text-primary)] tabular-nums flex flex-col items-end">
-            <div class="flex items-baseline">
-              {{ formatPrice(getMinPrice(product.variants)) }}
-              <span v-if="getMinPrice(product.variants) !== getMaxPrice(product.variants)" class="text-xs opacity-30 mx-0.5">–</span>
-              <template v-if="getMinPrice(product.variants) !== getMaxPrice(product.variants)">
-                {{ formatPrice(getMaxPrice(product.variants)) }}
-              </template>
-              <span class="text-xs font-semibold opacity-40 ml-0.5">₼</span>
-            </div>
+          <div v-else class="text-[var(--text-primary)] flex items-baseline gap-0.5">
+            <span>{{ formatPrice(getMinPrice(product.variants)) }}</span>
+            <span v-if="getMinPrice(product.variants) !== getMaxPrice(product.variants)" class="text-xs opacity-20 mx-0.5">–</span>
+            <span v-if="getMinPrice(product.variants) !== getMaxPrice(product.variants)">{{ formatPrice(getMaxPrice(product.variants)) }}</span>
+            <span class="text-xs font-semibold opacity-30">₼</span>
           </div>
-        </div>
-      </div>
-
-      <!-- Footer Tags (Stock, Variants, Barcode) -->
-      <div class="mt-auto pt-3 border-t border-[var(--border-app)] flex items-center justify-between">
-        <div 
-          v-if="product.barcode" 
-          class="text-xs font-mono font-semibold tracking-wider text-[var(--text-app)] opacity-40 hover:opacity-100 hover:text-[var(--text-primary)] transition-all cursor-pointer whitespace-nowrap"
-          @click="emit('print-barcode', product)"
-          title="Barkod çap et"
-        >
-          {{ product.barcode }}
-        </div>
-        <div v-else class="text-xs font-semibold opacity-0">...</div>
-
-        <div class="whitespace-nowrap">
-          <span 
-            v-if="!hasVariants"
-            class="text-xs font-semibold tracking-wide px-2 py-1 rounded-sm border" 
-            :class="{
-              'border-[var(--color-brand-danger)]/30 text-[var(--color-brand-danger)]': Number(product.stock || 0) <= 0,
-              'border-[var(--color-brand-warning)]/30 text-[var(--color-brand-warning)]': Number(product.stock || 0) > 0 && Number(product.stock || 0) <= Number(product.reorderLevel || 0),
-              'border-[var(--border-app)] text-[var(--text-app)] opacity-60': Number(product.stock || 0) > Number(product.reorderLevel || 0)
-            }"
-          >
-            {{ product.stock || 0 }} {{ t('products.stock') }}
-          </span>
-          <span 
-            v-else 
-            class="text-xs font-semibold tracking-wide px-2 py-1 rounded-sm border border-[var(--text-primary)]/20 text-[var(--text-primary)] bg-[var(--text-primary)]/[0.04]"
-          >
-            {{ product.variants.length }} Variant
-          </span>
         </div>
       </div>
     </div>

@@ -179,8 +179,28 @@ const addVariantRow = () => {
   })
 }
 
+const duplicateVariantRow = (variant: any) => {
+  newVariantsList.value.push({
+    ...JSON.parse(JSON.stringify(variant)),
+    id: Date.now().toString(),
+    barcode: generateBarcode('P') // New barcode for the duplicate
+  })
+}
+
+const showDeleteVariantConfirmModal = ref(false)
+const variantIndexToDelete = ref<number | null>(null)
+
 const removeVariantRow = (index: number) => {
-  newVariantsList.value.splice(index, 1)
+  variantIndexToDelete.value = index
+  showDeleteVariantConfirmModal.value = true
+}
+
+const confirmDeleteVariant = () => {
+  if (variantIndexToDelete.value !== null) {
+    newVariantsList.value.splice(variantIndexToDelete.value, 1)
+  }
+  showDeleteVariantConfirmModal.value = false
+  variantIndexToDelete.value = null
 }
 
 const handleSaveProduct = async () => {
@@ -205,8 +225,7 @@ const handleSaveProduct = async () => {
             retailPrice: v.retailPrice,
             stock: v.stock || 0,
             reorderLevel: v.reorderLevel || 0,
-            attribute: v.attribute.map((a: any) => `${a.name}: ${a.value}`),
-            images: productImages.value 
+            attribute: v.attribute.map((a: any) => `${a.name}: ${a.value}`)
           }
           const savedVariant = await $fetch<any>('/api/products', { method: 'POST', body: vPayload, headers })
           mockData.value.push(savedVariant)
@@ -231,8 +250,7 @@ const handleSaveProduct = async () => {
             retailPrice: v.retailPrice,
             stock: v.stock || 0,
             reorderLevel: v.reorderLevel || 0,
-            attribute: v.attribute.map((a: any) => `${a.name}: ${a.value}`),
-            images: productImages.value 
+            attribute: v.attribute.map((a: any) => `${a.name}: ${a.value}`)
           }
           // If it's local timestamp based ID, it's newly added during edit
           if (v.id.toString().length > 10 && v.id.toString().startsWith('17')) { 
@@ -379,15 +397,12 @@ const formatVariantAttr = (attr: any) => {
       :title="isEditMode ? t('products.edit', 'Məhsulu Redaktə Et') : t('products.addNew', 'Yeni Məhsul')" 
       max-width="6xl" 
       is-top 
-      max-height="90vh"
+      max-height="85vh"
     >
       <div class="flex flex-col lg:flex-row gap-8 items-start h-full">
         <!-- Left: Image Section -->
-        <div class="w-full lg:w-[35%] shrink-0 space-y-4 lg:sticky lg:top-4">
-          <div class="text-xs font-bold text-[var(--text-app)] tracking-[0.2em] opacity-40">
-            {{ t('products.image', 'Görsəl') }}
-          </div>
-          <div class="w-full aspect-square border-2 border-dashed border-[var(--border-app)] rounded-xl flex items-center justify-center bg-[var(--input-bg)] hover:border-[var(--text-primary)]/40 transition-colors">
+        <div class="w-full lg:w-[35%] shrink-0 space-y-4 lg:sticky lg:top-0">
+          <div class="w-full">
             <ImageCarousel 
               :images="productImages"
               :product-name="formData.productName"
@@ -397,7 +412,7 @@ const formatVariantAttr = (attr: any) => {
         </div>
 
         <!-- Right: Fields -->
-        <div class="flex-1 w-full lg:border-l lg:border-[var(--border-app)] lg:pl-8 space-y-6">
+        <div class="flex-1 w-full lg:pl-10 space-y-6">
           <DynamicForm 
             :fields="baseFormFields"
             v-model="formData" 
@@ -425,12 +440,22 @@ const formatVariantAttr = (attr: any) => {
           <div v-if="addVariantsEnabled" class="space-y-4">
 
             <div v-for="(v, index) in newVariantsList" :key="index" class="p-5 bg-[var(--text-primary)]/[0.01] border border-[var(--border-app)] rounded-[14px] relative group hover:border-[var(--text-primary)]/20 transition-colors">
-              <button 
-                @click="removeVariantRow(index)"
-                class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-lg text-[var(--color-brand-danger)] opacity-40 hover:bg-[var(--color-brand-danger)]/10 hover:opacity-100 transition-all"
-              >
-                <UiIcon name="lucide:trash-2" class="w-4 h-4" />
-              </button>
+              <div class="absolute top-4 right-4 flex items-center gap-1">
+                <button 
+                  @click="duplicateVariantRow(v)"
+                  class="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-app)] opacity-40 hover:bg-[var(--text-primary)]/10 hover:opacity-100 transition-all"
+                  title="Kopyala"
+                >
+                  <UiIcon name="lucide:copy" class="w-4 h-4" />
+                </button>
+                <button 
+                  @click="removeVariantRow(index)"
+                  class="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--color-brand-danger)] opacity-40 hover:bg-[var(--color-brand-danger)]/10 hover:opacity-100 transition-all"
+                  title="Sil"
+                >
+                  <UiIcon name="lucide:trash-2" class="w-4 h-4" />
+                </button>
+              </div>
 
               <div class="pr-10 flex flex-col gap-4">
                 <!-- Attributes Top Row -->
@@ -561,6 +586,23 @@ const formatVariantAttr = (attr: any) => {
         <div class="flex items-center gap-3 w-full">
           <UiButton variant="ghost" class="flex-1 !h-12" @click="showDeleteConfirmModal = false">{{ t('common.cancel') }}</UiButton>
           <UiButton variant="danger" class="flex-1 !h-12" @click="performDelete" :disabled="isSaving">Sil</UiButton>
+        </div>
+      </div>
+    </Modal>
+
+    <!-- Variant Delete Confirmation Modal -->
+    <Modal v-model="showDeleteVariantConfirmModal" :max-width="'sm'" :show-header="false">
+      <div class="px-2 py-4 flex flex-col items-center justify-center text-center">
+        <div class="w-16 h-16 rounded-2xl bg-[var(--color-brand-danger)]/10 flex items-center justify-center mb-6 text-[var(--color-brand-danger)]">
+          <UiIcon name="lucide:trash-2" class="w-8 h-8" stroke-width="2" />
+        </div>
+        <h3 class="text-xl font-bold text-[var(--text-app)] mb-2 tracking-wide">Variantı Sil</h3>
+        <p class="text-base font-medium text-[var(--text-app)] opacity-60 leading-relaxed mb-8 max-w-[280px]">
+          Bu variantı silmək istədiyinizə əminsiniz?
+        </p>
+        <div class="flex items-center gap-3 w-full">
+          <UiButton variant="ghost" class="flex-1 !h-12" @click="showDeleteVariantConfirmModal = false">{{ t('common.cancel') }}</UiButton>
+          <UiButton variant="danger" class="flex-1 !h-12" @click="confirmDeleteVariant">Bəli, Sil</UiButton>
         </div>
       </div>
     </Modal>
