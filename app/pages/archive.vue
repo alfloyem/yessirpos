@@ -53,8 +53,9 @@ const loadOrders = async () => {
         day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
       })
     }))
-  } catch {
-    toast.error(t('toast.loadingError'))
+  } catch (error: any) {
+    console.error('Archive load error:', error)
+    toast.error(error?.data?.statusMessage || t('toast.loadingError'))
   } finally {
     loading.value = false
   }
@@ -302,6 +303,13 @@ const submitPayDebt = async () => {
       :custom-search="customSearch"
       @refresh="loadOrders"
     >
+      <template v-if="!loading && orders.length === 0" #empty>
+        <div class="text-center py-12">
+          <UiIcon name="lucide:inbox" class="w-16 h-16 mx-auto mb-4 opacity-20" />
+          <p class="text-lg font-bold opacity-60">{{ t('orders.noData') }}</p>
+          <p class="text-sm opacity-40 mt-2">{{ t('orders.noDataDescription') }}</p>
+        </div>
+      </template>
       <template #cell-type="{ value }">
         <span class="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider" :class="getTypeColor(value)">
           {{ getTypeText(value) }}
