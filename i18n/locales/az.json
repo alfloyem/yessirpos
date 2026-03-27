@@ -330,6 +330,7 @@
     "lastName": "Soyad",
     "barcode": "Barkod",
     "bonus": "Bonus (AZN)",
+    "debt": "Borc (AZN)",
     "gender": "Cinsiyyət",
     "male": "Kişi",
     "female": "Qadın",

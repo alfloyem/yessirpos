@@ -29,6 +29,12 @@ export default defineEventHandler(async (event: any) => {
         updateData.bonus = parsedBonus
       }
     }
+    if (updates.debt !== undefined) {
+      const parsedDebt = parseFloat(updates.debt)
+      if (!isNaN(parsedDebt)) {
+        updateData.debt = parsedDebt
+      }
+    }
     if (updates.gender !== undefined) updateData.gender = updates.gender
     if (updates.email !== undefined) updateData.email = updates.email
     if (updates.phone !== undefined) updateData.phone = updates.phone

@@ -48,6 +48,7 @@ const customerSchema = computed< (FormField & { inTable?: boolean, sortable?: bo
     { label: t('customers.female', 'Qadın'), value: 'Qadın' }
   ], colSpan: 1 },
   { key: 'bonus', label: t('customers.bonus', 'Bonus (AZN)'), icon: 'fa7-solid:manat-sign', type: 'number', inTable: true, sortable: true, colSpan: 1 },
+  { key: 'debt', label: t('customers.debt', 'Borc (AZN)'), icon: 'fa7-solid:manat-sign', type: 'number', inTable: true, sortable: true, colSpan: 1 },
   { key: 'email', label: t('employees.email', 'E-poçt (Email)'), icon: 'lucide:mail', type: 'email', inTable: true, sortable: true, colSpan: 1 },
   { key: 'phone', label: t('employees.phone', 'Telefon'), icon: 'lucide:phone', type: 'tel', inTable: true, sortable: true, colSpan: 1 },
   { key: 'city', label: t('customers.city', 'Şəhər/rayon'), type: 'tags', inTable: true, sortable: true, colSpan: 1 },
@@ -117,6 +118,7 @@ const handleAdd = () => {
   formData.value = {
     barcode: generateBarcode(),
     bonus: '0.00',
+    debt: '0.00',
     city: [],
     country: 'AZ'
   }
@@ -388,6 +390,16 @@ const saveForm = async () => {
       <template #cell-bonus="{ value, highlight }">
         <span 
           class="font-medium text-[var(--color-brand-success)]"
+          v-html="highlight(Number(value || 0).toFixed(2)) + ' ₼'"
+        >
+        </span>
+      </template>
+      
+      <!-- Debt Custom Format with Highlight -->
+      <template #cell-debt="{ value, highlight }">
+        <span 
+          class="font-medium"
+          :class="Number(value || 0) > 0 ? 'text-[var(--color-brand-danger)]' : 'text-[var(--text-app)]'"
           v-html="highlight(Number(value || 0).toFixed(2)) + ' ₼'"
         >
         </span>

@@ -4,7 +4,7 @@ import prisma from '../../utils/prisma'
 export default defineEventHandler(async (event: any) => {
   try {
     const body = await readBody(event)
-    const { firstName, lastName, barcode, bonus, gender, email, phone, address, city, country, notes, createdAt } = body
+    const { firstName, lastName, barcode, bonus, debt, gender, email, phone, address, city, country, notes, createdAt } = body
 
     // Validation
     if (!firstName || !lastName || !barcode) {
@@ -33,6 +33,7 @@ export default defineEventHandler(async (event: any) => {
         lastName,
         barcode,
         bonus: Number(bonus) || 0,
+        debt: Number(debt) || 0,
         gender,
         email,
         phone,

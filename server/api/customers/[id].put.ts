@@ -5,7 +5,7 @@ export default defineEventHandler(async (event: any) => {
   try {
     const id = parseInt(getRouterParam(event, 'id') || '0')
     const body = await readBody(event)
-    const { firstName, lastName, barcode, bonus, gender, email, phone, address, city, country, notes } = body
+    const { firstName, lastName, barcode, bonus, debt, gender, email, phone, address, city, country, notes } = body
 
     if (!id) {
       throw createError({
@@ -44,6 +44,7 @@ export default defineEventHandler(async (event: any) => {
     if (lastName) updateData.lastName = lastName
     if (barcode) updateData.barcode = barcode
     if (bonus !== undefined) updateData.bonus = Number(bonus)
+    if (debt !== undefined) updateData.debt = Number(debt)
     if (email !== undefined) updateData.email = email
     if (phone !== undefined) updateData.phone = phone
     if (gender !== undefined) updateData.gender = gender

@@ -329,6 +329,7 @@
     "lastName": "Last Name",
     "barcode": "Barcode",
     "bonus": "Bonus",
+    "debt": "Debt",
     "gender": "Gender",
     "male": "Male",
     "female": "Female",

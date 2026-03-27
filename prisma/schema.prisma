@@ -59,6 +59,7 @@ model Customer {
   lastName  String
   barcode   String     @unique
   bonus     Float      @default(0)
+  debt      Float      @default(0)
   gender    String?
   email     String?
   phone     String?
