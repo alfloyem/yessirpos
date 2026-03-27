@@ -1,4 +1,4 @@
-import { defineEventHandler, createError } from 'h3'
+import { defineEventHandler, createError, getQuery } from 'h3'
 import prisma from '../../../utils/prisma'
 
 export default defineEventHandler(async (event: any) => {
@@ -11,10 +11,17 @@ export default defineEventHandler(async (event: any) => {
     })
   }
 
+  const query = getQuery(event)
+  const page = Number(query.page) || 1
+  const limit = Number(query.limit) || 10
+  const skip = (page - 1) * limit
+
   try {
     const history = await (prisma as any).customerDebtPayment.findMany({
       where: { customerId: id },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      skip: skip
     })
 
     return history

@@ -380,7 +380,11 @@ const payDebtMethod = ref('Nəğd')
 const payDebtNotes = ref('')
 const debtHistory = ref<any[]>([])
 const loadingHistory = ref(false)
+const loadingMoreHistory = ref(false)
 const payingDebt = ref(false)
+const currentHistoryPage = ref(1)
+const hasMoreHistory = ref(true)
+const historyLimit = 10
 
 const handlePayDebt = async (customer: any) => {
   selectedCustomerForDebt.value = customer
@@ -394,15 +398,53 @@ const handlePayDebt = async (customer: any) => {
   payDebtNotes.value = ''
   showPayDebtModal.value = true
   
-  // Fetch history
+  // Reset pagination
+  currentHistoryPage.value = 1
+  hasMoreHistory.value = true
+  debtHistory.value = []
+  
+  // Fetch initial history
   loadingHistory.value = true
   try {
-    const history = await $fetch(`/api/customers/${customer.id}/debt-history`)
+    const url = `/api/customers/${customer.id}/debt-history`
+    const apiFetch = $fetch as any
+    const history = await apiFetch(url, {
+      params: { page: currentHistoryPage.value, limit: historyLimit }
+    })
     debtHistory.value = history as any[]
+    if (debtHistory.value.length < historyLimit) {
+      hasMoreHistory.value = false
+    }
   } catch (err) {
     console.error('Fetch history error:', err)
   } finally {
     loadingHistory.value = false
+  }
+}
+
+const loadMoreHistory = async () => {
+  if (loadingMoreHistory.value || !hasMoreHistory.value || !selectedCustomerForDebt.value) return
+  
+  loadingMoreHistory.value = true
+  currentHistoryPage.value++
+  
+  try {
+    const url = `/api/customers/${selectedCustomerForDebt.value.id}/debt-history`
+    const apiFetch = $fetch as any
+    const nextBatch = await apiFetch(url, {
+      params: { page: currentHistoryPage.value, limit: historyLimit }
+    }) as any[]
+    
+    if (nextBatch.length < historyLimit) {
+      hasMoreHistory.value = false
+    }
+    
+    debtHistory.value = [...debtHistory.value, ...nextBatch]
+  } catch (err) {
+    console.error('Load more error:', err)
+    currentHistoryPage.value--
+  } finally {
+    loadingMoreHistory.value = false
   }
 }
 
@@ -416,7 +458,9 @@ const submitPayDebt = async () => {
   payingDebt.value = true
   
   try {
-    const result = await $fetch(`/api/customers/${selectedCustomerForDebt.value.id}/pay-debt`, {
+    const url = `/api/customers/${selectedCustomerForDebt.value.id}/pay-debt`
+    const apiFetch = $fetch as any
+    const result = await apiFetch(url, {
       method: 'POST',
       body: {
         amount: Number(payDebtAmount.value),
@@ -667,6 +711,17 @@ const submitPayDebt = async () => {
                 {{ item.receiptNo }}
               </div>
             </div>
+          </div>
+          <div v-if="hasMoreHistory && !loadingHistory" class="mt-4 text-center">
+            <UiButton 
+              variant="ghost" 
+              size="sm" 
+              class="w-full !py-2 text-xs opacity-60 hover:opacity-100" 
+              :loading="loadingMoreHistory"
+              @click="loadMoreHistory"
+            >
+              {{ t('common.showMore', 'Daha çox göstər') }}
+            </UiButton>
           </div>
         </div>
       </div>
