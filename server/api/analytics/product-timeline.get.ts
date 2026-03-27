@@ -82,7 +82,7 @@ export default defineEventHandler(async (event: any) => {
       receiptNo: item.sale.receiptNo,
       qty: item.qty, // Will be negative for refunds
       amount: item.total, // For sales, it's selling total
-      details: type === 'SALE' ? 'Satış' : 'Geri Qaytarma',
+      details: type === 'SALE' ? 'orders.sale' : 'orders.refund',
       attribute: item.attribute || null
     })
   }
@@ -98,7 +98,7 @@ export default defineEventHandler(async (event: any) => {
       receiptNo: item.intake.receiptNo,
       qty: item.qty,
       amount: item.total, // the cost total
-      details: 'Mədaxil (Anbara giriş)'
+      details: 'orders.intake'
     })
   }
 
@@ -145,14 +145,16 @@ export default defineEventHandler(async (event: any) => {
     if (!attributeStats[attrKey]) {
       attributeStats[attrKey] = { soldQty: 0, totalRevenue: 0, refundQty: 0 }
     }
+    
+    const stats = attributeStats[attrKey]!
 
     for (const item of variantSales) {
       const isRefund = item.qty < 0 || (item.sale.paymentDetails && JSON.parse(item.sale.paymentDetails).isRefund)
       if (isRefund) {
-        attributeStats[attrKey].refundQty += Math.abs(item.qty)
+        stats.refundQty += Math.abs(item.qty)
       } else {
-        attributeStats[attrKey].soldQty += item.qty
-        attributeStats[attrKey].totalRevenue += item.total
+        stats.soldQty += item.qty
+        stats.totalRevenue += item.total
       }
     }
   }

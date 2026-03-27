@@ -806,7 +806,7 @@ watch(productTimelineData, () => {
                   <div class="absolute -left-[25px] top-1.5 w-4 h-4 rounded-full border-2 border-[var(--bg-app)] z-10" :class="{ 'bg-blue-500': log.type === 'INTAKE', 'bg-emerald-500': log.type === 'SALE', 'bg-rose-500': log.type === 'REFUND' }"></div>
                   <div class="p-4 bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl flex items-center gap-4 transition-all hover:border-[var(--text-primary)]/40 hover:-translate-y-0.5">
                     <div class="flex-1 min-w-0">
-                      <p class="text-sm font-bold text-[var(--text-app)]">{{ log.details }}</p>
+                      <p class="text-sm font-bold text-[var(--text-app)]">{{ t(log.details) }}</p>
                       <p class="text-[11px] font-bold opacity-40 tabular-nums uppercase">{{ new Date(log.date).toLocaleString('az-AZ') }} · {{ log.receiptNo }}</p>
                     </div>
                     <div class="text-right">
@@ -1015,8 +1015,8 @@ watch(productTimelineData, () => {
                   :data="{
                     labels: employeesData.cashiers.map((c: any) => c.name),
                     datasets: [
-                      { label: 'Satış (₼)', data: employeesData.cashiers.map((c: any) => c.totalRevenue), backgroundColor: '#7367F0', borderRadius: 6, maxBarThickness: 40 },
-                      { label: 'Endirim (₼)', data: employeesData.cashiers.map((c: any) => c.totalDiscount), backgroundColor: 'rgba(115,103,240,0.15)', borderRadius: 6, maxBarThickness: 40 }
+                      { label: t('orders.sale') + ' (₼)', data: employeesData.cashiers.map((c: any) => c.totalRevenue), backgroundColor: '#7367F0', borderRadius: 6, maxBarThickness: 40 },
+                      { label: t('orders.totalDiscount') + ' (₼)', data: employeesData.cashiers.map((c: any) => c.totalDiscount), backgroundColor: 'rgba(115,103,240,0.15)', borderRadius: 6, maxBarThickness: 40 }
                     ]
                   }"
                   :options="chartOpts(true)"
@@ -1028,7 +1028,7 @@ watch(productTimelineData, () => {
                   <div class="w-10 h-10 rounded-xl bg-[var(--text-primary)]/10 text-[var(--text-primary)] flex items-center justify-center font-black text-sm">{{ Number(idx) + 1 }}</div>
                   <div class="flex-1 min-w-0">
                     <p class="text-sm font-black text-[var(--text-app)]">{{ c.name }}</p>
-                    <p class="text-[11px] font-bold text-rose-500 opacity-60">Endirim: {{ fmt(c.totalDiscount) }} ₼</p>
+                    <p class="text-[11px] font-bold text-rose-500 opacity-60">{{ t('orders.totalDiscount') }}: {{ fmt(c.totalDiscount) }} ₼</p>
                   </div>
                   <div class="text-right">
                     <p class="text-lg font-black text-[var(--text-app)] tabular-nums">{{ fmt(c.totalRevenue) }} <span class="text-xs opacity-30">₼</span></p>
@@ -1106,7 +1106,7 @@ watch(productTimelineData, () => {
                 <div class="absolute -left-[25px] top-1.5 w-4 h-4 rounded-full border-2 border-[var(--bg-app)] z-10" :class="{ 'bg-blue-500': log.type === 'INTAKE', 'bg-emerald-500': log.type === 'SALE', 'bg-rose-500': log.type === 'REFUND' }"></div>
                 <div class="p-4 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-2xl flex items-center gap-4 transition-all hover:border-[var(--text-primary)]/40 hover:-translate-y-0.5">
                   <div class="flex-1 min-w-0">
-                    <p class="text-sm font-bold text-[var(--text-app)]">{{ log.details }}</p>
+                    <p class="text-sm font-bold text-[var(--text-app)]">{{ t(log.details) }}</p>
                     <p class="text-[11px] font-bold opacity-40 tabular-nums uppercase">{{ new Date(log.date).toLocaleString('az-AZ') }} · {{ log.receiptNo }}</p>
                   </div>
                   <div class="text-right">
