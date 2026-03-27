@@ -21,16 +21,16 @@ ChartJS.register(
 
 const { t } = useI18n()
 const toast = useToast()
-useHead({ title: 'Hesabatlar' })
+useHead({ title: t('menu.reports') })
 
 // ── Tabs ──
-const tabs = [
-  { id: 'overview', label: 'Ümumi', icon: 'lucide:layout-dashboard' },
-  { id: 'products', label: 'Məhsullar', icon: 'lucide:package' },
-  { id: 'sales', label: 'Satışlar', icon: 'lucide:receipt' },
-  { id: 'expenses', label: 'Xərclər', icon: 'lucide:wallet' },
-  { id: 'team', label: 'Komanda', icon: 'lucide:users' },
-]
+const tabs = computed(() => [
+  { id: 'overview', label: t('reports.overview'), icon: 'lucide:layout-dashboard' },
+  { id: 'products', label: t('menu.products'), icon: 'lucide:package' },
+  { id: 'sales', label: t('menu.sales'), icon: 'lucide:receipt' },
+  { id: 'expenses', label: t('menu.expenses'), icon: 'lucide:wallet' },
+  { id: 'team', label: t('reports.team'), icon: 'lucide:users' },
+])
 const activeTab = ref('overview')
 
 // ── Date helpers ──
@@ -45,14 +45,14 @@ const startDate = ref(toLocal(todayStart()))
 const endDate   = ref(toLocal(todayEnd()))
 const activeQuickFilter = ref('today')
 
-const quickFilters = [
-  { id: '1h',        label: 'Son 1 Saat' },
-  { id: 'today',     label: 'Bugün' },
-  { id: 'yesterday', label: 'Dünən' },
-  { id: 'week',      label: 'Bu Həftə' },
-  { id: 'month',     label: 'Bu Ay' },
-  { id: '3months',   label: 'Son 3 Ay' },
-]
+const quickFilters = computed(() => [
+  { id: '1h',        label: t('reports.last1h') },
+  { id: 'today',     label: t('dashboard.today') },
+  { id: 'yesterday', label: t('dashboard.yesterday') },
+  { id: 'week',      label: t('dashboard.thisWeek') },
+  { id: 'month',     label: t('dashboard.thisMonth') },
+  { id: '3months',   label: t('reports.last3Months') },
+])
 
 const setQuickFilter = (type: string) => {
   activeQuickFilter.value = type
@@ -196,12 +196,12 @@ const CHART_COLORS = [
 
 // ── Export ──
 const exportExcel = (data: any[], name: string) => {
-  if (!data?.length) { toast.error('İxrac ediləcək məlumat yoxdur'); return }
+  if (!data?.length) { toast.error(t('reports.exportDataNotFound')); return }
   const ws = XLSX.utils.json_to_sheet(data)
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, 'Data')
   XLSX.writeFile(wb, `${name}_${new Date().toISOString().split('T')[0]}.xlsx`)
-  toast.success('Excel faylı uğurla yaradıldı')
+  toast.success(t('reports.excelSuccess'))
 }
 
 // ── Product Search ──
@@ -276,8 +276,8 @@ const fmt = (n: number) => n?.toLocaleString('az-AZ', { minimumFractionDigits: 2
 const dateMenuOpen = ref(false)
 
 const activeFilterLabel = computed(() => {
-  const qf = quickFilters.find(f => f.id === activeQuickFilter.value)
-  return qf ? qf.label : 'Tarix Seç'
+  const qf = quickFilters.value.find((f: any) => f.id === activeQuickFilter.value)
+  return qf ? qf.label : t('reports.selectDate')
 })
 </script>
 
@@ -312,18 +312,18 @@ const activeFilterLabel = computed(() => {
             <button
               @click="dateMenuOpen = !dateMenuOpen"
               class="flex items-center gap-2.5 h-10 px-4 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-xl text-sm font-bold text-[var(--text-app)] hover:border-[var(--text-primary)]/50 transition-all"
-              :class="dateMenuOpen && 'border-[var(--text-primary)]/50'"
+              :class="dateMenuOpen ? 'border-[var(--text-primary)]/50' : ''"
             >
               <UiIcon name="lucide:calendar" class="w-4 h-4 text-[var(--text-primary)]" />
               <span>{{ activeFilterLabel }}</span>
-              <UiIcon name="lucide:chevron-down" class="w-3.5 h-3.5 text-[var(--text-muted)] transition-transform" :class="dateMenuOpen && 'rotate-180'" />
+              <UiIcon name="lucide:chevron-down" class="w-3.5 h-3.5 text-[var(--text-muted)] transition-transform" :class="dateMenuOpen ? 'rotate-180' : ''" />
             </button>
 
             <transition name="scale">
               <div v-if="dateMenuOpen" class="absolute right-0 top-full mt-2 w-72 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-2xl shadow-xl z-50 overflow-hidden">
                 <!-- Quick Filters -->
                 <div class="p-3 border-b border-[var(--border-app)]/60">
-                  <p class="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50 mb-2 px-1">Sürətli Seçim</p>
+                  <p class="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50 mb-2 px-1">{{ t('reports.quickSelection') }}</p>
                   <div class="grid grid-cols-3 gap-1.5">
                     <button
                       v-for="qf in quickFilters" :key="qf.id"
@@ -340,21 +340,21 @@ const activeFilterLabel = computed(() => {
 
                 <!-- Custom Date Range -->
                 <div class="p-3">
-                  <p class="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50 mb-2 px-1">Xüsusi Aralıq</p>
+                  <p class="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50 mb-2 px-1">{{ t('reports.customRange') }}</p>
                   <div class="space-y-2">
                     <div class="flex items-center gap-2 bg-[var(--bg-app)] border border-[var(--border-app)] rounded-xl px-3 py-2 focus-within:border-[var(--text-primary)]/50 transition-all">
-                      <span class="text-[10px] font-black text-[var(--text-muted)] opacity-50 w-10 shrink-0">Başlanğıc</span>
+                      <span class="text-[10px] font-black text-[var(--text-muted)] opacity-50 w-10 shrink-0">{{ t('reports.startDate') }}</span>
                       <input type="datetime-local" v-model="startDate" class="flex-1 bg-transparent text-xs font-bold text-[var(--text-app)] outline-none tabular-nums" />
                     </div>
                     <div class="flex items-center gap-2 bg-[var(--bg-app)] border border-[var(--border-app)] rounded-xl px-3 py-2 focus-within:border-[var(--text-primary)]/50 transition-all">
-                      <span class="text-[10px] font-black text-[var(--text-muted)] opacity-50 w-10 shrink-0">Son</span>
+                      <span class="text-[10px] font-black text-[var(--text-muted)] opacity-50 w-10 shrink-0">{{ t('reports.endDate') }}</span>
                       <input type="datetime-local" v-model="endDate" class="flex-1 bg-transparent text-xs font-bold text-[var(--text-app)] outline-none tabular-nums" />
                     </div>
                     <button
                       @click="activeQuickFilter = ''; refreshAll(); dateMenuOpen = false"
                       class="w-full h-9 bg-[var(--text-primary)] text-white rounded-xl text-xs font-black hover:opacity-90 transition-all"
                     >
-                      Tətbiq et
+                      {{ t('reports.apply') }}
                     </button>
                   </div>
                 </div>
@@ -365,7 +365,7 @@ const activeFilterLabel = computed(() => {
           <button
             @click="activeQuickFilter = ''; refreshAll()"
             class="h-10 w-10 rounded-xl bg-[var(--input-bg)] border border-[var(--border-app)] text-[var(--text-app)] flex items-center justify-center hover:bg-[var(--text-primary)] hover:text-white hover:border-[var(--text-primary)] transition-all active:scale-95"
-            title="Yenilə"
+            :title="t('common.update')"
           >
             <UiIcon name="lucide:rotate-cw" class="w-4 h-4" :class="loading ? 'animate-spin' : ''" />
           </button>
@@ -384,7 +384,7 @@ const activeFilterLabel = computed(() => {
               <div class="w-12 h-12 rounded-full border-4 border-[var(--text-primary)]/10 border-t-[var(--text-primary)] animate-spin"></div>
               <UiIcon name="lucide:activity" class="absolute inset-0 flex items-center justify-center w-5 h-5 m-auto text-[var(--text-primary)]" />
             </div>
-            <span class="text-sm font-black text-[var(--text-app)] opacity-60 animate-pulse">Analiz aparılır...</span>
+            <span class="text-sm font-black text-[var(--text-app)] opacity-60 animate-pulse">{{ t('reports.analyzing') }}</span>
           </div>
         </div>
       </transition>
@@ -402,7 +402,7 @@ const activeFilterLabel = computed(() => {
                 <div class="kpi-icon-box bg-blue-500/10 text-blue-500">
                   <UiIcon name="lucide:line-chart" class="w-4 h-4" />
                 </div>
-                <span class="kpi-label">Dövriyyə</span>
+                <span class="kpi-label">{{ t('reports.turnover') }}</span>
               </div>
               <div class="kpi-value-row">
                 <span class="kpi-value">{{ fmt(dashboardData.kpis.grossRevenue) }}</span>
@@ -415,7 +415,7 @@ const activeFilterLabel = computed(() => {
                 <div class="kpi-icon-box bg-emerald-500/10 text-emerald-500">
                   <UiIcon name="lucide:trending-up" class="w-4 h-4" />
                 </div>
-                <span class="kpi-label">Xalis Gəlir</span>
+                <span class="kpi-label">{{ t('reports.netIncome') }}</span>
               </div>
               <div class="kpi-value-row">
                 <span class="kpi-value" :class="dashboardData.kpis.netRevenue < 0 && 'text-red-500'">{{ fmt(dashboardData.kpis.netRevenue) }}</span>
@@ -428,7 +428,7 @@ const activeFilterLabel = computed(() => {
                 <div class="kpi-icon-box bg-[var(--text-primary)]/10 text-[var(--text-primary)]">
                   <UiIcon name="lucide:shredder" class="w-4 h-4" />
                 </div>
-                <span class="kpi-label">Brüt Mənfəət</span>
+                <span class="kpi-label">{{ t('reports.grossProfit') }}</span>
               </div>
               <div class="kpi-value-row">
                 <span class="kpi-value" :class="dashboardData.kpis.grossProfit < 0 && 'text-red-500'">{{ fmt(dashboardData.kpis.grossProfit) }}</span>
@@ -441,7 +441,7 @@ const activeFilterLabel = computed(() => {
                 <div class="kpi-icon-box bg-amber-500/10 text-amber-500">
                   <UiIcon name="lucide:zap" class="w-4 h-4" />
                 </div>
-                <span class="kpi-label">Orta Çek</span>
+                <span class="kpi-label">{{ t('reports.avgReceipt') }}</span>
               </div>
               <div class="kpi-value-row">
                 <span class="kpi-value">{{ fmt(dashboardData.kpis.avgOrderValue) }}</span>
@@ -454,7 +454,7 @@ const activeFilterLabel = computed(() => {
                 <div class="kpi-icon-box bg-indigo-500/10 text-indigo-500">
                   <UiIcon name="lucide:shopping-bag" class="w-4 h-4" />
                 </div>
-                <span class="kpi-label">Əməliyyat</span>
+                <span class="kpi-label">{{ t('reports.transaction') }}</span>
               </div>
               <div class="kpi-value-row">
                 <span class="kpi-value">{{ dashboardData.kpis.totalTransactions }}</span>
@@ -466,7 +466,7 @@ const activeFilterLabel = computed(() => {
                 <div class="kpi-icon-box bg-rose-500/10 text-rose-500">
                   <UiIcon name="lucide:rotate-ccw" class="w-4 h-4" />
                 </div>
-                <span class="kpi-label">Refund</span>
+                <span class="kpi-label">{{ t('orders.refund') }}</span>
               </div>
               <div class="kpi-value-row">
                 <span class="kpi-value text-rose-500">{{ dashboardData.kpis.refundRate.toFixed(1) }}%</span>
@@ -479,28 +479,28 @@ const activeFilterLabel = computed(() => {
             <div class="mini-stat-card">
               <div class="mini-stat-icon text-rose-500"><UiIcon name="lucide:arrow-down-right" class="w-5 h-5" /></div>
               <div class="mini-stat-content">
-                <p class="mini-stat-label">Geri Qaytarma</p>
+                <p class="mini-stat-label">{{ t('orders.refund') }}</p>
                 <p class="mini-stat-value text-rose-500">{{ fmt(dashboardData.kpis.totalRefunds) }} ₼</p>
               </div>
             </div>
             <div class="mini-stat-card">
               <div class="mini-stat-icon text-amber-500"><UiIcon name="lucide:scissors" class="w-5 h-5" /></div>
               <div class="mini-stat-content">
-                <p class="mini-stat-label">Ümumi Endirim</p>
+                <p class="mini-stat-label">{{ t('orders.totalDiscount') }}</p>
                 <p class="mini-stat-value text-amber-600">{{ fmt(dashboardData.kpis.totalDiscount) }} ₼</p>
               </div>
             </div>
             <div class="mini-stat-card">
               <div class="mini-stat-icon text-blue-500"><UiIcon name="lucide:package-2" class="w-5 h-5" /></div>
               <div class="mini-stat-content">
-                <p class="mini-stat-label">Məhsul Satışı</p>
+                <p class="mini-stat-label">{{ t('reports.productSales') }}</p>
                 <p class="mini-stat-value">{{ dashboardData.kpis.totalItemsSold }} ədəd</p>
               </div>
             </div>
             <div class="mini-stat-card">
               <div class="mini-stat-icon text-emerald-500"><UiIcon name="lucide:container" class="w-5 h-5" /></div>
               <div class="mini-stat-content">
-                <p class="mini-stat-label">Mədaxil Həcmi</p>
+                <p class="mini-stat-label">{{ t('reports.intakeVolume') }}</p>
                 <p class="mini-stat-value">{{ fmt(dashboardData.kpis.totalIntakesValue) }} ₼</p>
               </div>
             </div>
@@ -512,11 +512,11 @@ const activeFilterLabel = computed(() => {
               <div class="card-header-premium">
                 <div class="flex items-center gap-3">
                   <UiIcon name="lucide:timer" class="w-5 h-5 text-[var(--text-primary)]" />
-                  <h3 class="card-title-premium">Saatlıq Aktivlik</h3>
+                  <h3 class="card-title-premium">{{ t('reports.hourlyActivity') }}</h3>
                 </div>
                 <div class="flex items-center gap-4">
-                  <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-[var(--text-primary)]"></div><span class="text-[10px] uppercase font-bold opacity-60">Satış</span></div>
-                  <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-[var(--text-muted)] opacity-30"></div><span class="text-[10px] uppercase font-bold opacity-60">Refund</span></div>
+                  <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-[var(--text-primary)]"></div><span class="text-[10px] uppercase font-bold opacity-60">{{ t('orders.sale') }}</span></div>
+                  <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-[var(--text-muted)] opacity-30"></div><span class="text-[10px] uppercase font-bold opacity-60">{{ t('orders.refund') }}</span></div>
                 </div>
               </div>
               <div class="h-[300px] w-full px-2">
@@ -524,8 +524,8 @@ const activeFilterLabel = computed(() => {
                   :data="{
                     labels: dashboardData.hourlyChart.labels,
                     datasets: [
-                      { label: 'Satış', data: dashboardData.hourlyChart.revenue, backgroundColor: '#7367F0', borderRadius: 4, barThickness: 12 },
-                      { label: 'Geri Qaytarma', data: dashboardData.hourlyChart.refunds, backgroundColor: '#EBEBEF', borderRadius: 4, barThickness: 12 }
+                      { label: t('orders.sale'), data: dashboardData.hourlyChart.revenue, backgroundColor: '#7367F0', borderRadius: 4, barThickness: 12 },
+                      { label: t('orders.refund'), data: dashboardData.hourlyChart.refunds, backgroundColor: '#EBEBEF', borderRadius: 4, barThickness: 12 }
                     ]
                   }"
                   :options="chartOpts(false)"
@@ -537,7 +537,7 @@ const activeFilterLabel = computed(() => {
               <div class="card-header-premium">
                 <div class="flex items-center gap-3">
                   <UiIcon name="lucide:flame" class="w-5 h-5 text-rose-500" />
-                  <h3 class="card-title-premium">Gəlir Trendi</h3>
+                  <h3 class="card-title-premium">{{ t('reports.incomeTrend') }}</h3>
                 </div>
               </div>
               <div class="h-[300px] w-full px-2">
@@ -545,7 +545,7 @@ const activeFilterLabel = computed(() => {
                   :data="{
                     labels: dashboardData.dailyChart.labels,
                     datasets: [{
-                      label: 'Mənfəət',
+                      label: t('reports.profit'),
                       data: dashboardData.dailyChart.profit,
                       borderColor: '#7367F0',
                       borderWidth: 3,
@@ -580,11 +580,11 @@ const activeFilterLabel = computed(() => {
             <div class="card-header-premium">
               <div class="flex items-center gap-3">
                 <UiIcon name="lucide:star" class="w-5 h-5 text-amber-500 fill-amber-500" />
-                <h3 class="card-title-premium">Ən Çox Satılanlar</h3>
+                <h3 class="card-title-premium">{{ t('reports.topSellers') }}</h3>
               </div>
               <button @click="exportExcel(productsData.topSellers, 'BestSellers')" class="btn-action">
                 <UiIcon name="lucide:download" class="w-3.5 h-3.5" />
-                <span>Excel</span>
+                <span>{{ t('common.export') }}</span>
               </button>
             </div>
             
@@ -599,7 +599,7 @@ const activeFilterLabel = computed(() => {
                 </div>
                 <div class="flex-1 min-w-0">
                   <p class="text-sm font-bold text-[var(--text-app)] truncate">{{ p.name }}</p>
-                  <p class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-tighter">{{ p.soldQty }} Ədəd Satılıb</p>
+                  <p class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-tighter">{{ p.soldQty }} {{ t('reports.itemsSold') }}</p>
                 </div>
                 <div class="text-right">
                   <p class="text-sm font-black text-[var(--text-app)] tabular-nums">{{ fmt(p.totalRevenue) }} ₼</p>
@@ -615,7 +615,7 @@ const activeFilterLabel = computed(() => {
             <div class="card-header-premium">
               <div class="flex items-center gap-3">
                 <UiIcon name="lucide:undo" class="w-5 h-5 text-rose-500" />
-                <h3 class="card-title-premium">Ən Çox Qaytarılanlar</h3>
+                <h3 class="card-title-premium">{{ t('reports.mostRefunded') }}</h3>
               </div>
             </div>
             
@@ -630,7 +630,7 @@ const activeFilterLabel = computed(() => {
                 </div>
                 <div class="flex-1 min-w-0">
                   <p class="text-sm font-bold text-[var(--text-app)] truncate">{{ p.name }}</p>
-                  <p class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-tighter">{{ p.refundQty }} Ədəd Geri Alınıb</p>
+                  <p class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-tighter">{{ p.refundQty }} {{ t('reports.itemsRefunded') }}</p>
                 </div>
                 <div class="text-right">
                   <p class="text-sm font-black text-rose-500 tabular-nums">{{ p.refundQty }}</p>
@@ -648,7 +648,7 @@ const activeFilterLabel = computed(() => {
           <div class="card-header-premium">
             <div class="flex items-center gap-3">
               <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center"><UiIcon name="lucide:search" class="w-4 h-4" /></div>
-              <h3 class="card-title-premium">Məhsul Analizi</h3>
+              <h3 class="card-title-premium">{{ t('reports.productAnalysis') }}</h3>
             </div>
             <div v-if="productTimelineData" class="flex gap-2">
               <div class="px-3 py-1 bg-green-500/5 border border-green-500/20 rounded-lg text-green-600 text-[11px] font-black tabular-nums">P&L: {{ fmt(productTimelineData.netRevenue) }} ₼</div>
@@ -663,7 +663,7 @@ const activeFilterLabel = computed(() => {
               <input
                 v-model="searchProductQuery"
                 @input="handleProductSearch"
-                placeholder="Detallı analiz üçün məhsul axtarın..."
+                :placeholder="t('reports.searchForAnalysis')"
                 class="w-full bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl pl-11 pr-4 py-4 text-sm font-bold outline-none ring-offset-[var(--bg-app)] focus:ring-2 focus:ring-[var(--text-primary)]/20 transition-all placeholder:font-normal placeholder:opacity-40"
               />
               <transition name="scale">
@@ -688,13 +688,13 @@ const activeFilterLabel = computed(() => {
                 <div class="w-14 h-14 rounded-2xl bg-[var(--text-primary)]/5 flex items-center justify-center text-[var(--text-primary)]"><UiIcon name="lucide:layers" class="w-7 h-7" /></div>
                 <div>
                    <h2 class="text-xl font-black text-[var(--text-app)]">{{ productTimelineData.product.productName }}</h2>
-                   <p class="text-[10px] font-bold text-[var(--text-muted)] tracking-widest uppercase">{{ productTimelineData.product.barcode }} · SON {{ productTimelineData.timeline.length }} ƏMƏLİYYAT</p>
+                   <p class="text-[10px] font-bold text-[var(--text-muted)] tracking-widest uppercase">{{ productTimelineData.product.barcode }} · {{ t('reports.last') }} {{ productTimelineData.timeline.length }} {{ t('reports.operations') }}</p>
                 </div>
               </div>
 
               <!-- Attribute Breakdown -->
               <div v-if="productTimelineData.attributeStats && productTimelineData.attributeStats.length > 0" class="mb-6">
-                <h3 class="text-sm font-black text-[var(--text-app)] mb-3 uppercase tracking-wider opacity-60">Atribut üzrə Satış</h3>
+                <h3 class="text-sm font-black text-[var(--text-app)] mb-3 uppercase tracking-wider opacity-60">{{ t('reports.salesByAttribute') }}</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   <div 
                     v-for="(stat, idx) in productTimelineData.attributeStats" 
@@ -708,7 +708,7 @@ const activeFilterLabel = computed(() => {
                         @click="viewAttributeDetails(stat.attribute)"
                         class="w-7 h-7 rounded-lg flex items-center justify-center transition-all"
                         :class="'bg-[var(--bg-app)] text-[var(--text-muted)] hover:bg-[var(--text-primary)] hover:text-white'"
-                        title="Satış Tarixçəsi"
+                        :title="t('reports.salesHistory')"
                       >
                         <UiIcon name="lucide:eye" class="w-4 h-4" />
                       </button>
@@ -718,8 +718,8 @@ const activeFilterLabel = computed(() => {
                       <span class="text-xs text-[var(--text-muted)] opacity-60">₼</span>
                     </div>
                     <div class="flex items-center justify-between text-[10px] font-bold">
-                      <span class="text-emerald-500">{{ stat.soldQty }} ədəd satılıb</span>
-                      <span v-if="stat.refundQty > 0" class="text-rose-500">{{ stat.refundQty }} qaytarılıb</span>
+                      <span class="text-emerald-500">{{ stat.soldQty }} {{ t('reports.piecesSold') }}</span>
+                      <span v-if="stat.refundQty > 0" class="text-rose-500">{{ stat.refundQty }} {{ t('reports.refunded') }}</span>
                     </div>
                   </div>
                 </div>
@@ -746,7 +746,7 @@ const activeFilterLabel = computed(() => {
             
             <div v-else class="flex flex-col items-center justify-center py-20 text-[var(--text-muted)]/40">
               <UiIcon name="lucide:database" class="w-16 h-16 mb-4 stroke-[1]" />
-              <p class="text-sm font-bold">Məlumat axtarılır...</p>
+              <p class="text-sm font-bold">{{ t('reports.searchingData') }}</p>
             </div>
           </div>
         </div>
@@ -759,18 +759,18 @@ const activeFilterLabel = computed(() => {
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
              <div class="w-2 h-8 bg-[var(--text-primary)] rounded-full"></div>
-             <h2 class="text-xl font-black text-[var(--text-app)] tracking-tight">Əməliyyat Tarixçəsi</h2>
+             <h2 class="text-xl font-black text-[var(--text-app)] tracking-tight">{{ t('reports.operationHistory') }}</h2>
           </div>
           <button @click="exportExcel(salesData?.sales || [], 'SalesHistory')" class="btn-premium-action">
             <UiIcon name="lucide:file-spreadsheet" class="w-4 h-4" />
-            <span>Excel Hesabatı</span>
+            <span>{{ t('reports.excelReport') }}</span>
           </button>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div class="card-premium h-fit">
             <div class="p-5 border-b border-[var(--border-app)]/50">
-               <h3 class="text-xs font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Ödəniş Metodları</h3>
+               <h3 class="text-xs font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">{{ t('reports.paymentMethods') }}</h3>
             </div>
             <div class="p-6">
               <div class="h-[200px] mb-8 relative" v-if="salesData?.paymentMethods">
@@ -779,7 +779,7 @@ const activeFilterLabel = computed(() => {
                   :options="doughnutOpts"
                 />
                 <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span class="text-xs font-black opacity-30 uppercase tracking-widest">Cəmi</span>
+                  <span class="text-xs font-black opacity-30 uppercase tracking-widest">{{ t('common.total') }}</span>
                   <span class="text-lg font-black tabular-nums">{{ fmt(salesData.paymentMethods.data.reduce((a:number,b:number)=>a+b, 0)) }} ₼</span>
                 </div>
               </div>
@@ -798,12 +798,12 @@ const activeFilterLabel = computed(() => {
               <table class="w-full text-left border-separate border-spacing-0">
                 <thead>
                   <tr class="bg-[var(--bg-app)]/50 backdrop-blur-sm">
-                    <th class="th-premium first:pl-6">Tarix & Zaman</th>
-                    <th class="th-premium">Sənəd No</th>
-                    <th class="th-premium">Kassir</th>
-                    <th class="th-premium">Kontragent</th>
-                    <th class="th-premium text-right">Endirim</th>
-                    <th class="th-premium text-right last:pr-6">Yekun Məbləğ</th>
+                    <th class="th-premium first:pl-6">{{ t('reports.dateTime') }}</th>
+                    <th class="th-premium">{{ t('reports.docNo') }}</th>
+                    <th class="th-premium">{{ t('sales.cashier') }}</th>
+                    <th class="th-premium">{{ t('reports.contractor') }}</th>
+                    <th class="th-premium text-right">{{ t('sales.discount') }}</th>
+                    <th class="th-premium text-right last:pr-6">{{ t('sales.total') }}</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-[var(--border-app)]/50">
@@ -815,11 +815,11 @@ const activeFilterLabel = computed(() => {
                       </div>
                     </td>
                     <td class="td-premium font-black text-[var(--text-primary)] tabular-nums">{{ sale.receiptNo }}</td>
-                    <td class="td-premium font-bold text-[var(--text-app)] opacity-60">{{ sale.cashierName || 'Sistem' }}</td>
+                    <td class="td-premium font-bold text-[var(--text-app)] opacity-60">{{ sale.cashierName || t('reports.system') }}</td>
                     <td class="td-premium">
                       <div class="flex items-center gap-2">
                         <div class="w-5 h-5 rounded-full bg-[var(--bg-app)] flex items-center justify-center text-[8px] font-black">{{ (sale.customerName || 'A')[0] }}</div>
-                        <span class="font-bold text-xs">{{ sale.customerName || 'Anonim Müştəri' }}</span>
+                        <span class="font-bold text-xs">{{ sale.customerName || t('orders.anonymousCustomer') }}</span>
                       </div>
                     </td>
                     <td class="td-premium text-right tabular-nums text-rose-500 font-bold">{{ sale.discountTotal > 0 ? '-' + fmt(sale.discountTotal) : '—' }}</td>
@@ -829,7 +829,7 @@ const activeFilterLabel = computed(() => {
               </table>
               <div v-if="!salesData?.sales?.length" class="flex flex-col items-center justify-center py-24 text-[var(--text-muted)] opacity-20">
                 <UiIcon name="lucide:inbox" class="w-16 h-16 mb-2" />
-                <p class="text-sm font-black uppercase tracking-widest">Əməliyyat tapılmadı</p>
+                <p class="text-sm font-black uppercase tracking-widest">{{ t('reports.noOperationsFound') }}</p>
               </div>
             </div>
           </div>
@@ -843,7 +843,7 @@ const activeFilterLabel = computed(() => {
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div class="card-premium h-fit">
             <div class="p-6 border-b border-[var(--border-app)]/50">
-               <h3 class="text-sm font-black text-[var(--text-app)]">Kateqoriya bölgüsü</h3>
+               <h3 class="text-sm font-black text-[var(--text-app)]">{{ t('reports.categoryDistribution') }}</h3>
             </div>
             <div class="p-8">
               <div class="h-[220px] mb-8 relative" v-if="expensesData?.categoryChart">
@@ -866,27 +866,27 @@ const activeFilterLabel = computed(() => {
 
           <div class="lg:col-span-2 card-premium overflow-hidden">
             <div class="p-6 border-b border-[var(--border-app)]/50 flex justify-between items-center bg-[var(--bg-app)]/30">
-               <h3 class="text-sm font-black text-[var(--text-app)]">Xərc Jurnalı</h3>
-               <button @click="exportExcel(expensesData?.expenses || [], 'Expenses')" class="btn-action">İxrac et</button>
+               <h3 class="text-sm font-black text-[var(--text-app)]">{{ t('reports.expenseJournal') }}</h3>
+               <button @click="exportExcel(expensesData?.expenses || [], 'Expenses')" class="btn-action">{{ t('common.export') }}</button>
             </div>
             <div class="overflow-x-auto overflow-y-auto" style="max-height: 600px;">
               <table class="w-full text-left">
                 <thead class="sticky top-0 bg-[var(--bg-app)] z-10">
                   <tr>
-                    <th class="th-premium first:pl-8">Tarix</th>
-                    <th class="th-premium">Növ / Kateqoriya</th>
-                    <th class="th-premium">Məsul Şəxs</th>
-                    <th class="th-premium">Detallar</th>
-                    <th class="th-premium text-right last:pr-8">Məbləğ</th>
+                    <th class="th-premium first:pl-8">{{ t('common.date') }}</th>
+                    <th class="th-premium">{{ t('reports.typeCategory') }}</th>
+                    <th class="th-premium">{{ t('common.operator') }}</th>
+                    <th class="th-premium">{{ t('reports.details') }}</th>
+                    <th class="th-premium text-right last:pr-8">{{ t('sales.amount') }}</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-[var(--border-app)]/50">
                   <tr v-for="exp in expensesData?.expenses" :key="exp.id" class="tr-premium group">
                     <td class="td-premium first:pl-8 font-bold opacity-70">{{ new Date(exp.createdAt).toLocaleDateString('az-AZ') }}</td>
                     <td class="td-premium">
-                      <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-[var(--border-app)]/30 text-[10px] font-black uppercase tracking-widest text-[var(--text-app)] border border-[var(--border-app)]">{{ exp.category || 'Daxili' }}</span>
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-[var(--border-app)]/30 text-[10px] font-black uppercase tracking-widest text-[var(--text-app)] border border-[var(--border-app)]">{{ exp.category || t('reports.internal') }}</span>
                     </td>
-                    <td class="td-premium text-[12px] font-bold opacity-60">{{ exp.employeeName || 'Sistem' }}</td>
+                    <td class="td-premium text-[12px] font-bold opacity-60">{{ exp.employeeName || t('reports.system') }}</td>
                     <td class="td-premium text-[12px] max-w-[200px] truncate opacity-50">{{ exp.notes || '-' }}</td>
                     <td class="td-premium text-right font-black text-rose-600 pr-8">-{{ fmt(exp.amount) }} ₼</td>
                   </tr>
@@ -908,7 +908,7 @@ const activeFilterLabel = computed(() => {
             <div class="card-header-premium">
               <div class="flex items-center gap-3">
                 <UiIcon name="lucide:users-2" class="w-5 h-5 text-[var(--text-primary)]" />
-                <h3 class="card-title-premium">Kassir Performansı</h3>
+                <h3 class="card-title-premium">{{ t('reports.cashierPerformance') }}</h3>
               </div>
             </div>
 
@@ -946,7 +946,7 @@ const activeFilterLabel = computed(() => {
             <div class="card-header-premium">
               <div class="flex items-center gap-3">
                 <UiIcon name="lucide:gem" class="w-5 h-5 text-amber-500" />
-                <h3 class="card-title-premium">Loyal Müştərilər</h3>
+                <h3 class="card-title-premium">{{ t('reports.loyalCustomers') }}</h3>
               </div>
             </div>
 
@@ -967,7 +967,7 @@ const activeFilterLabel = computed(() => {
                 </div>
                 <div v-if="!employeesData.topCustomers.length" class="flex flex-col items-center justify-center py-20 opacity-20">
                   <UiIcon name="lucide:users" class="w-16 h-16 mb-2" />
-                  <p class="text-xs font-bold uppercase tracking-widest">Məlumat yoxdur</p>
+                  <p class="text-xs font-bold uppercase tracking-widest">{{ t('common.noData') }}</p>
                 </div>
               </div>
             </div>
@@ -991,7 +991,7 @@ const activeFilterLabel = computed(() => {
               </div>
               <div>
                 <h3 class="text-xl font-black text-[var(--text-app)]">{{ productTimelineData?.product?.productName }}</h3>
-                <p class="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">{{ selectedAttribute }} • Ətraflı Satış Tarixçəsi</p>
+                <p class="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">{{ selectedAttribute }} • {{ t('reports.detailedSalesHistory') }}</p>
               </div>
             </div>
             <button 
@@ -1023,7 +1023,7 @@ const activeFilterLabel = computed(() => {
             </div>
             <div v-else class="py-12 flex flex-col items-center justify-center text-center">
               <UiIcon name="lucide:inbox" class="w-12 h-12 text-[var(--text-muted)] opacity-20 mb-3" />
-              <p class="text-sm font-bold text-[var(--text-muted)] opacity-60">Bu atribut üzrə heç bir əməliyyat tapılmadı</p>
+              <p class="text-sm font-bold text-[var(--text-muted)] opacity-60">{{ t('reports.noOperationsForAttribute') }}</p>
             </div>
           </div>
         </div>
