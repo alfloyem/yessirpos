@@ -90,7 +90,7 @@ onMounted(fetchDashboardData)
 // PDF yüklə funksiyası
 const downloadReport = () => {
   try {
-    generateDailyReport(locale.value)
+    generateDailyReport(locale.value, dashboardData.value)
     toast.success(t('dashboard.successMessage'))
   } catch (error) {
     console.error('Report generation error:', error)
