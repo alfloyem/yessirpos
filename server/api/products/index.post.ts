@@ -1,6 +1,7 @@
 import { defineEventHandler, createError, readBody } from 'h3'
 import prisma from '../../utils/prisma'
 import { saveBase64Image } from '../../utils/image'
+import { createNotification } from '../../utils/notifications'
 
 const processImages = async (images: any[], baseName: string, attributes?: any) => {
   if (!Array.isArray(images)) return []
@@ -112,6 +113,13 @@ export default defineEventHandler(async (event: any) => {
         createdBy: user?.name || user?.username || 'Admin',
         createdAt: createdAt ? new Date(createdAt) : undefined
       }
+    })
+
+    await createNotification({
+      type: 'PRODUCT_ADDED',
+      title: 'Yeni Məhsul',
+      message: `${finalProductName} adlı məhsul (Stok: ${Number(stock) || 0}) əlavə edildi.`,
+      data: { productId: product.id, name: finalProductName }
     })
 
     const parsedProduct = {

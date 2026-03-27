@@ -1,5 +1,6 @@
 import { defineEventHandler, readBody, createError } from 'h3'
 import prisma from '../../../utils/prisma'
+import { createNotification } from '../../../utils/notifications'
 
 export default defineEventHandler(async (event: any) => {
   const id = Number(event.context.params.id)
@@ -61,6 +62,13 @@ export default defineEventHandler(async (event: any) => {
         data: { debt: newDebt }
       })
     ])
+
+    await createNotification({
+      type: 'DEBT_PAYMENT',
+      title: 'Borc Ödənişi',
+      message: `${customer.firstName} ${customer.lastName} tərəfindən ${amount.toFixed(2)} ₼ borc ödənildi. Qalıq borc: ${newDebt.toFixed(2)} ₼.`,
+      data: { customerId: id, receiptNo, amount }
+    })
 
     return {
       success: true,

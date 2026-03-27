@@ -1,5 +1,6 @@
 import { defineEventHandler, readBody, createError } from 'h3'
 import prisma from '../../utils/prisma'
+import { createNotification } from '../../utils/notifications'
 
 export default defineEventHandler(async (event: any) => {
   const body = await readBody(event)
@@ -150,6 +151,14 @@ export default defineEventHandler(async (event: any) => {
       }
 
       return refundSale
+    })
+
+    // Add Notification
+    await createNotification({
+      type: 'REFUND_PROCESSED',
+      title: 'Geri Ödəniş (Qaytarma)',
+      message: `${originalSale.receiptNo} nömrəli çek üzrə ${Number(refundTotals.finalTotal).toFixed(2)} ₼ geri qaytarıldı.`,
+      data: { refundSaleId: result.id, originalReceiptNo: originalSale.receiptNo, amount: refundTotals.finalTotal }
     })
 
     return result

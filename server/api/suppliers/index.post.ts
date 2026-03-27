@@ -1,5 +1,6 @@
 import { defineEventHandler, readBody, createError } from 'h3'
 import prisma from '../../utils/prisma'
+import { createNotification } from '../../utils/notifications'
 
 export default defineEventHandler(async (event: any) => {
   const body = await readBody(event)
@@ -39,6 +40,13 @@ export default defineEventHandler(async (event: any) => {
       notes: body.notes || null,
       createdBy: body.createdBy || 'Admin'
     }
+  })
+
+  await createNotification({
+    type: 'SUPPLIER_ADDED',
+    title: 'Yeni Təchizatçı',
+    message: `${body.brandName} - ${companyName} sistemə əlavə edildi.`,
+    data: { supplierId: supplier.id, brandName: body.brandName }
   })
 
   return supplier

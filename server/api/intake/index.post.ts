@@ -1,5 +1,6 @@
 import { defineEventHandler, readBody, createError } from 'h3'
 import prisma from '../../utils/prisma'
+import { createNotification } from '../../utils/notifications'
 
 export default defineEventHandler(async (event: any) => {
   const body = await readBody(event)
@@ -73,6 +74,14 @@ export default defineEventHandler(async (event: any) => {
       }
 
       return intake
+    })
+
+    // Generate notification for Intake
+    await createNotification({
+      type: 'INTAKE_CREATED',
+      title: 'Mal Qəbulu',
+      message: `${supplierName || 'Naməlum tədarükçü'} tərəfindən ${receiptNo} nömrəli qaimə ilə yeni mal qəbul edildi.`,
+      data: { intakeId: result.id, receiptNo: result.receiptNo }
     })
 
     return result

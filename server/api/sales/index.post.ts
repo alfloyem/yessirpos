@@ -1,5 +1,6 @@
 import { defineEventHandler, readBody, createError } from 'h3'
 import prisma from '../../utils/prisma'
+import { createNotification } from '../../utils/notifications'
 
 export default defineEventHandler(async (event: any) => {
   const body = await readBody(event)
@@ -86,7 +87,7 @@ export default defineEventHandler(async (event: any) => {
       for (const item of items) {
         const pId = Number(item.productId)
         if (!isNaN(pId) && item.productId) {
-          await tx.product.update({
+          const updatedProduct = await tx.product.update({
             where: { id: pId },
             data: {
               stock: {
@@ -94,10 +95,30 @@ export default defineEventHandler(async (event: any) => {
               }
             }
           })
+
+          // Check for low stock notification
+          if (updatedProduct.reorderLevel !== null && updatedProduct.stock <= updatedProduct.reorderLevel) {
+            await (prisma as any).notification.create({ // Use raw prisma here as we are in transaction or prefer to wait until after tx
+              data: {
+                type: 'LOW_STOCK',
+                title: 'Stok Xəbərdarlığı',
+                message: `${updatedProduct.name} məhsulunun stoku bitmək üzrədir (${updatedProduct.stock} ədəd qalıb).`,
+                data: JSON.stringify({ productId: updatedProduct.id, barcode: updatedProduct.barcode }),
+              }
+            })
+          }
         }
       }
 
       return sale
+    })
+
+    // Sale completed notification
+    await createNotification({
+      type: 'SALE_COMPLETED',
+      title: 'Yeni Satış',
+      message: `${result.receiptNo} nömrəli çek ilə ${result.finalTotal.toFixed(2)} ₼ satış edildi.`,
+      data: { saleId: result.id, receiptNo: result.receiptNo, amount: result.finalTotal }
     })
 
     return result

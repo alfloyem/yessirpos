@@ -1,5 +1,6 @@
 import { defineEventHandler, createError, readBody } from 'h3'
 import prisma from '../../utils/prisma'
+import { createNotification } from '../../utils/notifications'
 
 export default defineEventHandler(async (event: any) => {
   const body = await readBody(event)
@@ -23,6 +24,13 @@ export default defineEventHandler(async (event: any) => {
         notes: body.notes || null,
         createdBy: user?.username || 'Sistem'
       }
+    })
+
+    await createNotification({
+      type: 'EXPENSE_ADDED',
+      title: 'Yeni Xərc',
+      message: `${expense.category ? expense.category + ' üzrə ' : ''}${expense.amount.toFixed(2)} ₼ məbləğində xərc qeydə alındı.`,
+      data: { expenseId: expense.id, amount: expense.amount }
     })
 
     return expense

@@ -1,5 +1,6 @@
 import { defineEventHandler, createError, readBody, getRouterParam, getQuery, getCookie, getHeader } from 'h3'
 import prisma from '../../utils/prisma'
+import { createNotification } from '../../utils/notifications'
 
 export default defineEventHandler(async (event: any) => {
   try {
@@ -44,6 +45,13 @@ export default defineEventHandler(async (event: any) => {
         createdBy: user?.name || user?.username || 'Sistem',
         createdAt: createdAt ? new Date(createdAt) : undefined
       }
+    })
+
+    await createNotification({
+      type: 'CUSTOMER_ADDED',
+      title: 'Yeni Müştəri',
+      message: `${firstName} ${lastName} adlı müştəri sistemə əlavə edildi.`,
+      data: { customerId: customer.id, name: `${firstName} ${lastName}` }
     })
 
     return {
