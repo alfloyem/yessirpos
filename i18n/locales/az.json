@@ -225,6 +225,7 @@
     "noDebt": "Borc yoxdur ✓",
     "paymentAmount": "Ödəniləcək Məbləğ (₼)",
     "confirmPayment": "Ödənişi Təsdiqlə",
+    "paymentHistory": "Ödəniş Tarixçəsi",
     "debtPaid": "Borc uğurla ödənildi!",
     "noData": "Hələ heç bir çek yoxdur",
     "noDataDescription": "Satış və ya qəbul əməliyyatları etdikdə burada görünəcək"

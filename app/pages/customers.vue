@@ -6,6 +6,9 @@ import DataTable from '~/components/ui/DataTable.vue'
 import Modal from '~/components/ui/Modal.vue'
 import UiButton from '~/components/ui/Button.vue'
 import DynamicForm, { type FormField } from '~/components/ui/DynamicForm.vue'
+import UiInput from '~/components/ui/Input.vue'
+import UiIcon from '~/components/ui/Icon.vue'
+import { printDebtPaymentReceipt } from '~/utils/receiptPrinter'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -337,6 +340,86 @@ const saveForm = async () => {
     loading.value = false
   }
 }
+
+// --- Debt Payment Logic ---
+const showPayDebtModal = ref(false)
+const selectedCustomerForDebt = ref<any>(null)
+const payDebtAmount = ref<number | string>('')
+const payDebtMethod = ref('Nəğd')
+const payDebtNotes = ref('')
+const debtHistory = ref<any[]>([])
+const loadingHistory = ref(false)
+const payingDebt = ref(false)
+
+const handlePayDebt = async (customer: any) => {
+  selectedCustomerForDebt.value = customer
+  payDebtAmount.value = ''
+  payDebtMethod.value = 'Nəğd'
+  payDebtNotes.value = ''
+  showPayDebtModal.value = true
+  
+  // Fetch history
+  loadingHistory.value = true
+  try {
+    const history = await $fetch(`/api/customers/${customer.id}/debt-history`)
+    debtHistory.value = history as any[]
+  } catch (err) {
+    console.error('Fetch history error:', err)
+  } finally {
+    loadingHistory.value = false
+  }
+}
+
+const submitPayDebt = async () => {
+  if (!selectedCustomerForDebt.value || !payDebtAmount.value || Number(payDebtAmount.value) <= 0) {
+    toast.error(t('common.fieldRequired', 'Məbləğ daxil edilmelidir'))
+    return
+  }
+
+  const { user } = useAuth()
+  payingDebt.value = true
+  
+  try {
+    const result = await $fetch(`/api/customers/${selectedCustomerForDebt.value.id}/pay-debt`, {
+      method: 'POST',
+      body: {
+        amount: Number(payDebtAmount.value),
+        paymentMethod: payDebtMethod.value,
+        cashierId: user.value?.id,
+        cashierName: `${user.value?.firstName || ''} ${user.value?.lastName || ''}`.trim(),
+        notes: payDebtNotes.value
+      }
+    }) as any
+
+    toast.success(t('orders.debtPaid', 'Borc uğurla ödənildi'))
+    
+    // Print receipt
+    printDebtPaymentReceipt({
+      receiptNo: result.payment.receiptNo,
+      counterpartyName: result.payment.customerName,
+      amount: result.payment.amount,
+      paymentMethod: result.payment.paymentMethod,
+      paidBy: result.payment.cashierName,
+      notes: result.payment.notes,
+      date: new Date(result.payment.createdAt).toLocaleString('az-AZ'),
+      remainingBalance: result.customer.debt,
+      isCustomer: true
+    })
+
+    // Update local list
+    const idx = mockData.value.findIndex(c => c.id === result.customer.id)
+    if (idx !== -1) {
+      mockData.value[idx].debt = result.customer.debt
+    }
+
+    showPayDebtModal.value = false
+    loadCustomers()
+  } catch (err: any) {
+    toast.error(err.statusMessage || t('toast.operationFailed'))
+  } finally {
+    payingDebt.value = false
+  }
+}
 </script>
 
 <template>
@@ -396,10 +479,11 @@ const saveForm = async () => {
       </template>
       
       <!-- Debt Custom Format with Highlight -->
-      <template #cell-debt="{ value, highlight }">
+      <template #cell-debt="{ value, row, highlight }">
         <span 
-          class="font-medium"
+          class="font-medium cursor-pointer hover:underline decoration-dotted transition-all"
           :class="Number(value || 0) > 0 ? 'text-[var(--color-brand-danger)]' : 'text-[var(--text-app)]'"
+          @click.stop="handlePayDebt(row)"
           v-html="highlight(Number(value || 0).toFixed(2)) + ' ₼'"
         >
         </span>
@@ -491,6 +575,68 @@ const saveForm = async () => {
         <UiButton variant="danger" @click="performDelete">
           {{ t('common.yesDelete', 'Bəli, Sil') }}
         </UiButton>
+      </template>
+    </Modal>
+
+    <!-- Borc Ödəniş Modalı -->
+    <Modal v-model="showPayDebtModal" :title="t('orders.payDebtTitle', 'Borcun Ödənilməsi')" max-width="2xl">
+      <div v-if="selectedCustomerForDebt" class="space-y-6">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="p-4 rounded-2xl bg-[var(--text-primary)]/5 border border-[var(--text-primary)]/10 text-center">
+            <span class="text-[10px] font-black opacity-40 uppercase tracking-widest block mb-1">{{ t('customers.firstName') }} {{ t('customers.lastName') }}</span>
+            <span class="text-sm font-black">{{ selectedCustomerForDebt.firstName }} {{ selectedCustomerForDebt.lastName }}</span>
+          </div>
+          <div class="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/15 text-center">
+            <span class="text-[10px] font-black opacity-50 uppercase tracking-widest block mb-1">{{ t('orders.remainingDebt', 'Qalıq Borc') }}</span>
+            <span class="text-xl font-black text-rose-600 font-mono">{{ Number(selectedCustomerForDebt.debt || 0).toFixed(2) }} ₼</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 items-end">
+          <UiInput 
+            v-model="payDebtAmount" 
+            type="number" 
+            :label="t('orders.paymentAmount', 'Ödəniş Məbləği')" 
+            placeholder="0.00"
+            icon="lucide:banknote"
+          />
+          <UiInput 
+            v-model="payDebtMethod" 
+            type="text" 
+            :label="t('sales.paymentMethod', 'Ödəniş Üsulu')" 
+            placeholder="Nəğd"
+            icon="lucide:credit-card"
+          />
+        </div>
+
+        <div>
+          <h3 class="text-xs font-black uppercase tracking-widest opacity-40 mb-3 flex items-center gap-2">
+            <UiIcon name="lucide:history" class="w-3 h-3" />
+            {{ t('orders.paymentHistory', 'Ödəniş Tarixçəsi') }}
+          </h3>
+          <div class="max-h-[200px] overflow-y-auto rounded-xl border border-[var(--border-app)] divide-y divide-[var(--border-app)]">
+            <template v-if="loadingHistory">
+              <div class="p-8 text-center opacity-40 italic text-sm">Yüklənir...</div>
+            </template>
+            <template v-else-if="debtHistory.length === 0">
+              <div class="p-8 text-center opacity-40 italic text-sm">{{ t('orders.noData', 'Məlumat yoxdur') }}</div>
+            </template>
+            <div v-for="item in debtHistory" :key="item.id" class="p-3 flex items-center justify-between hover:bg-[var(--text-primary)]/[0.02]">
+              <div>
+                <div class="text-sm font-black">{{ Number(item.amount).toFixed(2) }} ₼</div>
+                <div class="text-[10px] opacity-40">{{ new Date(item.createdAt).toLocaleString('az-AZ') }} • {{ item.paymentMethod }}</div>
+              </div>
+              <div class="text-[10px] font-mono opacity-60 bg-[var(--input-bg)] px-2 py-1 rounded-lg">
+                {{ item.receiptNo }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <UiButton variant="ghost" @click="showPayDebtModal = false">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
+        <UiButton variant="primary" icon="lucide:check" :loading="payingDebt" @click="submitPayDebt">{{ t('orders.confirmPayment', 'Təsdiqlə') }}</UiButton>
       </template>
     </Modal>
   </div>

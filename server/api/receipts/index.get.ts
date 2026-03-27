@@ -6,7 +6,7 @@ export default defineEventHandler(async (event: any) => {
     // Test database connection first
     await (prisma as any).$connect()
     
-    const [sales, intakes, debtPayments] = await Promise.all([
+    const [sales, intakes, debtPayments, customerDebtPayments] = await Promise.all([
       (prisma as any).sale.findMany({
         orderBy: { createdAt: 'desc' },
         include: { items: true }
@@ -26,6 +26,12 @@ export default defineEventHandler(async (event: any) => {
         include: { intake: { include: { items: true } } }
       }).catch((err: any) => {
         console.error('Debt payments query error:', err)
+        return []
+      }),
+      (prisma as any).customerDebtPayment.findMany({
+        orderBy: { createdAt: 'desc' }
+      }).catch((err: any) => {
+        console.error('Customer debt payments query error:', err)
         return []
       })
     ])
@@ -125,7 +131,30 @@ export default defineEventHandler(async (event: any) => {
       })) || []
     }))
 
-    const result = [...mappedSales, ...mappedIntakes, ...mappedDebtPayments].sort((a: any, b: any) =>
+    // Map customer debt payments
+    const mappedCustomerDebtPayments = customerDebtPayments.map((cdp: any) => ({
+      id: `cdp-${cdp.id}`,
+      dbId: cdp.id,
+      receiptNo: cdp.receiptNo,
+      createdAt: cdp.createdAt,
+      type: 'DEBT_PAYMENT',
+      counterparty: cdp.customerName || 'Məlum deyil',
+      operator: cdp.cashierName || 'Sistem',
+      total: cdp.amount,
+      subtotal: cdp.amount,
+      discountTotal: 0,
+      paymentDetails: {
+        method: cdp.paymentMethod,
+        paidAmount: cdp.amount,
+        balanceDue: 0,
+        notes: cdp.notes,
+        customerBarcode: cdp.customerBarcode,
+        isCustomer: true
+      },
+      items: []
+    }))
+
+    const result = [...mappedSales, ...mappedIntakes, ...mappedDebtPayments, ...mappedCustomerDebtPayments].sort((a: any, b: any) =>
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )
     

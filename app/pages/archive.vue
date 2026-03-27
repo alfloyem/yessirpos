@@ -83,14 +83,15 @@ const printOrder = (order: any) => {
   if (order.type === 'DEBT_PAYMENT') {
     printDebtPaymentReceipt({
       receiptNo: order.receiptNo,
-      relatedIntakeNo: order.paymentDetails?.relatedIntakeNo || '---',
-      supplierName: order.counterparty,
+      relatedIntakeNo: order.paymentDetails?.relatedIntakeNo,
+      counterpartyName: order.counterparty,
       amount: order.total,
       paymentMethod: order.paymentDetails?.method || t('sales.cash'),
       paidBy: order.operator !== 'Sistem' ? order.operator : undefined,
       notes: order.paymentDetails?.notes,
       date: order.createdAtFormatted,
       remainingBalance: 0,
+      isCustomer: order.paymentDetails?.isCustomer || false
     })
     return
   }
@@ -202,7 +203,7 @@ const submitPayDebt = async () => {
     printDebtPaymentReceipt({
       receiptNo: result.payment.receiptNo,
       relatedIntakeNo: result.intake.receiptNo,
-      supplierName: result.intake.supplierName,
+      counterpartyName: result.intake.supplierName,
       amount: result.payment.amount,
       paymentMethod: result.payment.paymentMethod,
       date: new Date().toLocaleString('az-AZ'),

@@ -388,30 +388,81 @@ export const buildBarcodeHtml = (data: BarcodeData, clientData: ClientData, barc
 }
 
 export const buildDebtPaymentHtml = (data: DebtPaymentReceiptData, clientData: ClientData, barcodeDataUrl: string) => {
+  const label = data.isCustomer ? 'MÜŞTƏRİ' : 'TƏDARÜKÇÜ'
   return `
     <html>
       <head>
+        <title>Borc Ödənişi</title>
         <style>
           @page { margin: 0; size: 80mm auto; }
-          body { font-family: 'Courier New', Courier, monospace; width: 80mm; margin: 0; padding: 5mm; color: #000; }
+          * { box-sizing: border-box; }
+          body { 
+            font-family: 'Courier New', Courier, monospace; 
+            width: 80mm; margin: 0; color: #000; padding: 5mm;
+            line-height: 1.2;
+          }
           .center { text-align: center; }
-          .title { font-size: 14px; font-weight: bold; border-top: 1px solid #000; border-bottom: 1px solid #000; margin: 10px 0; padding: 3px 0; }
-          .yekun { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; border-top: 1px solid #000; padding-top: 5px; margin-top: 10px; }
+          .logo { margin-bottom: 10px; }
+          .logo svg { max-width: 40mm; height: auto; }
+          .title { font-size: 14px; font-weight: bold; margin: 10px 0; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 3px 0; }
+          .info { font-size: 11px; margin-bottom: 10px; }
+          .yekun { display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; margin-top: 5px; border-top: 1px solid #000; padding-top: 5px; }
+          .divider { border-top: 1px dashed #000; margin: 10px 0; }
         </style>
       </head>
       <body>
         <div class="center">
-          <div class="title">BORC ÖDƏNİŞİ</div>
-          <div style="font-size: 11px; margin-bottom: 10px;">
+          ${clientData.logoSvg ? `<div class="logo">${clientData.logoSvg}</div>` : ''}
+          ${clientData.name && clientData.name !== '***' ? `<div style="font-weight: bold; font-size: 13px;">${clientData.name}</div>` : ''}
+          ${clientData.address && clientData.address !== '***' ? `<div style="font-size: 11px;">${clientData.address}</div>` : ''}
+          <div class="title">BORC ÖDƏNİŞ ÇEKİ</div>
+          <div class="info">
+            ÇEK NO: ${data.receiptNo} <br/>
             TARİX: ${data.date} <br/>
-            TƏDARÜKÇÜ: ${data.supplierName}
+            ${label}: ${data.counterpartyName.toUpperCase()} <br/>
+            ${data.paidBy ? `KASSİR: ${data.paidBy.toUpperCase()}` : ''}
           </div>
         </div>
+        
+        <div class="divider"></div>
+        
         <div class="yekun">
           <span>ÖDƏNİLDİ:</span>
           <span>${data.amount.toFixed(2)} ₼</span>
         </div>
-        ${data.remainingBalance > 0 ? `<div style="text-align: right; font-size: 11px; margin-top: 5px;">Qalıq Borc: ${data.remainingBalance.toFixed(2)} ₼</div>` : ''}
+
+        <div style="font-size: 12px; margin-top: 5px;">
+          <div style="display: flex; justify-content: space-between;">
+            <span>ÖDƏNİŞ ÜSULU:</span>
+            <span>${data.paymentMethod.toUpperCase()}</span>
+          </div>
+          ${data.remainingBalance > 0.01 ? `
+            <div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 5px; border-top: 1px dashed #000; padding-top: 5px;">
+              <span>QALIQ BORC:</span>
+              <span>${data.remainingBalance.toFixed(2)} ₼</span>
+            </div>
+          ` : `
+            <div style="text-align: center; font-weight: bold; margin-top: 10px; color: #000; padding: 5px; border: 1px solid #000;">
+              BORC TAM ÖDƏNİLDİ ✓
+            </div>
+          `}
+        </div>
+
+        ${data.notes ? `
+          <div style="margin-top: 10px; font-size: 10px; font-style: italic; border: 1px solid #eee; padding: 4px;">
+            Qeyd: ${data.notes}
+          </div>
+        ` : ''}
+
+        <div class="center" style="margin-top: 15px;">
+          ${barcodeDataUrl ? `
+            <div style="margin-top: 10px;">
+              <img src="${barcodeDataUrl}" style="max-width: 70%; height: auto;" />
+              <div style="font-size: 10px; margin-top: 3px; font-family: 'Courier New', monospace;">${data.receiptNo}</div>
+            </div>
+          ` : ''}
+          <div style="margin-top: 10px; font-size: 11px; font-weight: bold;">TƏŞƏKKÜR EDİRİK!</div>
+        </div>
       </body>
     </html>
   `

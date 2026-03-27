@@ -76,14 +76,15 @@ export interface BarcodeData {
 
 export interface DebtPaymentReceiptData {
   receiptNo: string
-  relatedIntakeNo: string
-  supplierName: string
+  relatedIntakeNo?: string
+  counterpartyName: string
   amount: number
   paymentMethod: string
   paidBy?: string
   notes?: string
   date: string
   remainingBalance: number
+  isCustomer?: boolean
 }
 
 // Optimized Print Functions

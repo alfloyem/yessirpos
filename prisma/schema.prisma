@@ -72,6 +72,7 @@ model Customer {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   giftCards GiftCard[]
+  debtPayments CustomerDebtPayment[]
 }
 
 model GiftCard {
@@ -216,4 +217,20 @@ model IntakePayment {
   paidBy        String?
   notes         String?
   createdAt     DateTime @default(now())
+}
+
+model CustomerDebtPayment {
+  id              Int      @id @default(autoincrement())
+  receiptNo       String   @unique // DXXXXXXX format
+  customerId      Int
+  customer        Customer @relation(fields: [customerId], references: [id])
+  customerName    String?
+  customerBarcode String?
+  amount          Float    @default(0)
+  paymentMethod   String?
+  notes           String?
+  cashierId       Int?
+  cashierName     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
