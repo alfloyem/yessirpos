@@ -55,10 +55,11 @@ const formatVariantAttr = (attr: any) => {
 
 <template>
   <div 
-    class="group relative flex flex-col h-full bg-[var(--bg-app)] border border-[var(--border-app)] rounded-xl overflow-hidden transition-colors duration-300 hover:border-[var(--text-primary)] hover:bg-[var(--text-primary)]/[0.02]"
+    class="group relative flex flex-col h-full bg-[var(--bg-app)] border border-[var(--border-app)] rounded-xl overflow-hidden transition-colors duration-300 hover:border-[var(--text-primary)] hover:bg-[var(--text-primary)]/[0.02] cursor-pointer"
+    @click="emit('edit', product)"
   >
     <!-- ── Image ── -->
-    <div class="relative w-full aspect-[4/3] bg-[var(--input-bg)] overflow-hidden cursor-pointer" @click="emit('quick-view', product)">
+    <div class="relative w-full aspect-[4/3] bg-[var(--input-bg)] overflow-hidden">
       <img 
         v-if="product.images?.length" 
         :src="product.images[0]" 
@@ -71,7 +72,7 @@ const formatVariantAttr = (attr: any) => {
 
 
       <!-- Actions (top-right) -->
-      <div class="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+      <div class="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200" @click.stop>
         <UiDropdown menuClass="absolute top-full right-0 mt-2 w-48 z-[60]">
           <template #trigger>
             <button class="w-8 h-8 rounded-md bg-[var(--bg-app)]/90 backdrop-blur-sm border border-[var(--border-app)] flex items-center justify-center text-[var(--text-app)] hover:bg-[var(--text-primary)] hover:text-[var(--bg-app)] hover:border-[var(--text-primary)] transition-colors">
@@ -115,9 +116,8 @@ const formatVariantAttr = (attr: any) => {
 
         <!-- Bottom Left: Title -->
         <h3 
-          class="text-sm font-bold text-[var(--text-app)] leading-none truncate cursor-pointer group-hover:text-[var(--text-primary)] transition-colors min-w-0" 
+          class="text-sm font-bold text-[var(--text-app)] leading-none truncate group-hover:text-[var(--text-primary)] transition-colors min-w-0" 
           :title="product.productName"
-          @click="emit('quick-view', product)"
         >
           {{ product.productName }}
         </h3>

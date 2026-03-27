@@ -20,6 +20,6 @@
 - ![x] settings-də barkod ve çek funksiyalarının sıraları düzəlməlidir.
 - ![x] hesabatlar reportsda atributlar göstermir ve tek mehsulun ümumi satışını göstermir.
 - ![x] satış sehifesinde satış zamanı stock sayı anlıq yenilensin
-- ![] product sehifesinde mehsulun üzerinde klik edilen zaman auto redakte dialogu açılsın
+- ![x] product sehifesinde mehsulun üzerinde klik edilen zaman auto redakte dialogu açılsın
 npx prisma db push
 npx prisma generate
