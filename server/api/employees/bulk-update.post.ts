@@ -27,6 +27,7 @@ export default defineEventHandler(async (event: any) => {
     if (updates.phone !== undefined) updateData.phone = updates.phone
     if (updates.gender !== undefined) updateData.gender = updates.gender
     if (updates.role !== undefined) updateData.role = Array.isArray(updates.role) ? JSON.stringify(updates.role) : (updates.role || '')
+    if (updates.notAllowed !== undefined) updateData.notAllowed = Array.isArray(updates.notAllowed) ? JSON.stringify(updates.notAllowed) : (updates.notAllowed || '[]')
     if (updates.status !== undefined) updateData.status = updates.status
     if (updates.notes !== undefined) updateData.notes = updates.notes
 

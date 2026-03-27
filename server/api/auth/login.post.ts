@@ -27,7 +27,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 403, statusMessage: 'Hesab aktiv deyil' })
   }
 
-  const token = signToken({ id: employee.id, username: employee.username, role: employee.role })
+  const notAllowed = employee.notAllowed ? JSON.parse(employee.notAllowed) : []
+  const token = signToken({ id: employee.id, username: employee.username, role: employee.role, notAllowed })
 
   return {
     token,
@@ -38,6 +39,7 @@ export default defineEventHandler(async (event) => {
       lastName: employee.lastName,
       email: employee.email,
       role: employee.role,
+      notAllowed: notAllowed
     }
   }
 })

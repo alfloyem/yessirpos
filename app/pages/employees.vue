@@ -6,6 +6,7 @@ import DataTable from '~/components/ui/DataTable.vue'
 import Modal from '~/components/ui/Modal.vue'
 import UiButton from '~/components/ui/Button.vue'
 import DynamicForm, { type FormField } from '~/components/ui/DynamicForm.vue'
+import { menuItems } from '~/utils/menu'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -122,10 +123,24 @@ const loadEmployees = async () => {
   }
 }
 
-// Sayfa yüklendiğinde verileri çek
 onMounted(() => {
   loadEmployees()
 })
+
+// --- Permissions Logic ---
+const showPermissionsModal = ref(false)
+const togglePermission = (path: string) => {
+  const current = formData.value.notAllowed || []
+  if (current.includes(path)) {
+    formData.value.notAllowed = current.filter((p: string) => p !== path)
+  } else {
+    formData.value.notAllowed = [...current, path]
+  }
+}
+
+const isPermissionRestricted = (path: string) => {
+  return (formData.value.notAllowed || []).includes(path)
+}
 
 // --- Modals State ---
 const showAddModal = ref(false)
@@ -479,11 +494,29 @@ const saveForm = async () => {
 
     <!-- Modal: Add / Edit -->
     <Modal v-model="showAddModal" :title="t('employees.addNew', 'Yeni Personel Ekle')" max-width="3xl">
-      <DynamicForm 
-        :fields="formFields"
-        v-model="formData" 
-        :errors="formErrors"
-      />
+      <div class="space-y-6">
+        <DynamicForm 
+          :fields="formFields"
+          v-model="formData" 
+          :errors="formErrors"
+        />
+        
+        <div class="h-px bg-[var(--border-app)] opacity-50"></div>
+        
+        <div class="flex items-center justify-between p-1">
+          <div class="flex flex-col">
+            <span class="text-sm font-bold text-[var(--text-app)]">{{ t('employees.pagePermissions', 'Səhifə İcazələri') }}</span>
+            <span class="text-xs text-[var(--text-muted)]">{{ t('employees.pagePermissionsDesc', 'İşçinin daxil ola bilməyəcəyi səhifələri seçin') }}</span>
+          </div>
+          <UiButton variant="ghost" icon="lucide:shield-off" size="sm" @click="showPermissionsModal = true">
+            {{ t('employees.managePermissions', 'İcazələri idarə et') }}
+            <span v-if="formData.notAllowed?.length" class="ml-2 px-1.5 py-0.5 bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)] rounded text-[10px]">
+              {{ formData.notAllowed.length }}
+            </span>
+          </UiButton>
+        </div>
+      </div>
+
       <template #footer>
         <UiButton variant="ghost" @click="showAddModal = false" class="!px-6">{{ t('common.cancel', 'İptal') }}</UiButton>
         <UiButton variant="primary" icon="lucide:check" @click="saveForm" class="!px-8 min-w-[120px]">{{ t('common.save', 'Kaydet') }}</UiButton>
@@ -501,15 +534,113 @@ const saveForm = async () => {
         {{ t('employees.bulkEditWarning', { count: bulkSelectedIds.length }) }}
       </div>
 
-      <!-- We omit password from edit/bulk-edit via computed or in-template filtering to make it more realistic -->
-      <DynamicForm 
-        :fields="showEditModal && bulkSelectedIds.length > 0 ? formFields.filter(f => !f.key.includes('password')) : formFields"
-        v-model="formData" 
-        :errors="formErrors"
-      />
+      <div class="space-y-6">
+        <!-- We omit password from edit/bulk-edit via computed or in-template filtering to make it more realistic -->
+        <DynamicForm 
+          :fields="showEditModal && bulkSelectedIds.length > 0 ? formFields.filter(f => !f.key.includes('password')) : formFields"
+          v-model="formData" 
+          :errors="formErrors"
+        />
+
+        <template v-if="bulkSelectedIds.length === 0">
+          <div class="h-px bg-[var(--border-app)] opacity-50"></div>
+          
+          <div class="flex items-center justify-between p-1">
+            <div class="flex flex-col">
+              <span class="text-sm font-bold text-[var(--text-app)]">{{ t('employees.pagePermissions', 'Səhifə İcazələri') }}</span>
+              <span class="text-xs text-[var(--text-muted)]">{{ t('employees.pagePermissionsDesc', 'İşçinin daxil ola bilməyəcəyi səhifələri seçin') }}</span>
+            </div>
+            <UiButton variant="ghost" icon="lucide:shield-off" size="sm" @click="showPermissionsModal = true">
+              {{ t('employees.managePermissions', 'İcazələri idarə et') }}
+              <span v-if="formData.notAllowed?.length" class="ml-2 px-1.5 py-0.5 bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)] rounded text-[10px]">
+                {{ formData.notAllowed.length }}
+              </span>
+            </UiButton>
+          </div>
+        </template>
+      </div>
+
       <template #footer>
         <UiButton variant="ghost" @click="showEditModal = false; bulkSelectedIds = []" class="!px-6">{{ t('common.cancel', 'İptal') }}</UiButton>
         <UiButton variant="primary" icon="lucide:check" @click="saveForm" class="!px-8 min-w-[120px]">{{ t('common.update', 'Güncelle') }}</UiButton>
+      </template>
+    </Modal>
+
+    <!-- NEW Permissions Modal -->
+    <Modal v-model="showPermissionsModal" :title="t('employees.managePermissions', 'İcazələri idarə et')" max-width="2xl">
+      <div class="p-2 space-y-8">
+        <div v-for="category in menuItems" :key="category.titleKey" class="space-y-4">
+          <div class="flex items-center gap-3 pb-2 border-b border-[var(--border-app)] opacity-80">
+            <Icon :name="category.icon" class="w-5 h-5 text-[var(--text-primary)]" />
+            <h3 class="text-sm font-bold uppercase tracking-widest text-[var(--text-app)]">{{ t(category.titleKey) }}</h3>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pl-2">
+            <div 
+              v-for="child in category.children" 
+              :key="child.to"
+              @click="togglePermission(child.to)"
+              class="flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer group"
+              :class="isPermissionRestricted(child.to) 
+                ? 'bg-red-500/5 border-red-500/20' 
+                : 'bg-[var(--input-bg)] border-[var(--border-app)] hover:border-[var(--text-primary)]/30'"
+            >
+              <div class="flex flex-col">
+                <span class="text-sm font-semibold" :class="isPermissionRestricted(child.to) ? 'text-red-600' : 'text-[var(--text-app)]'">
+                  {{ t(child.titleKey) }}
+                </span>
+                <span class="text-[10px] opacity-40 font-mono">{{ child.to }}</span>
+              </div>
+              
+              <div 
+                class="w-6 h-6 rounded-md border-2 transition-all flex items-center justify-center"
+                :class="isPermissionRestricted(child.to) 
+                  ? 'bg-red-500 border-red-500 shadow-lg shadow-red-500/20' 
+                  : 'bg-white/5 border-[var(--border-app)] group-hover:border-[var(--text-primary)]'"
+              >
+                <Icon v-if="isPermissionRestricted(child.to)" name="lucide:lock" class="w-3.5 h-3.5 text-white" />
+                <Icon v-else name="lucide:unlock" class="w-3.5 h-3.5 text-[var(--text-app)] opacity-20" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings separately -->
+        <div class="space-y-4">
+          <div class="flex items-center gap-3 pb-2 border-b border-[var(--border-app)] opacity-80">
+            <Icon name="lucide:settings" class="w-5 h-5 text-[var(--text-primary)]" />
+            <h3 class="text-sm font-bold uppercase tracking-widest text-[var(--text-app)]">{{ t('menu.settings') }}</h3>
+          </div>
+          <div 
+            @click="togglePermission('/settings')"
+            class="flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer group max-w-sm ml-2"
+            :class="isPermissionRestricted('/settings') 
+              ? 'bg-red-500/5 border-red-500/20' 
+              : 'bg-[var(--input-bg)] border-[var(--border-app)] hover:border-[var(--text-primary)]/30'"
+          >
+             <div class="flex flex-col">
+                <span class="text-sm font-semibold" :class="isPermissionRestricted('/settings') ? 'text-red-600' : 'text-[var(--text-app)]'">
+                  {{ t('menu.settings') }}
+                </span>
+                <span class="text-[10px] opacity-40 font-mono">/settings</span>
+              </div>
+              <div 
+                class="w-6 h-6 rounded-md border-2 transition-all flex items-center justify-center"
+                :class="isPermissionRestricted('/settings') 
+                  ? 'bg-red-500 border-red-500 shadow-lg shadow-red-500/20' 
+                  : 'bg-white/5 border-[var(--border-app)] group-hover:border-[var(--text-primary)]'"
+              >
+                <Icon v-if="isPermissionRestricted('/settings')" name="lucide:lock" class="w-3.5 h-3.5 text-white" />
+                <Icon v-else name="lucide:unlock" class="w-3.5 h-3.5 text-[var(--text-app)] opacity-20" />
+              </div>
+          </div>
+        </div>
+      </div>
+      
+      <template #footer>
+        <UiButton variant="primary" @click="showPermissionsModal = false" class="!px-10">
+          {{ t('common.done', 'Tamam') }}
+        </UiButton>
       </template>
     </Modal>
 

@@ -6,7 +6,7 @@ export default defineEventHandler(async (event: any) => {
   try {
     const id = parseInt(getRouterParam(event, 'id') || '0')
     const body = await readBody(event)
-    const { firstName, lastName, username, email, phone, gender, role, status, password, notes } = body
+    const { firstName, lastName, username, email, phone, gender, role, status, password, notes, notAllowed } = body
 
     if (!id) {
       throw createError({
@@ -50,6 +50,7 @@ export default defineEventHandler(async (event: any) => {
     if (phone !== undefined) updateData.phone = phone
     if (gender !== undefined) updateData.gender = gender
     if (role !== undefined) updateData.role = JSON.stringify(role)
+    if (notAllowed !== undefined) updateData.notAllowed = JSON.stringify(notAllowed)
     if (status !== undefined) updateData.status = status
     if (notes !== undefined) updateData.notes = notes
 
@@ -79,6 +80,7 @@ export default defineEventHandler(async (event: any) => {
         role: true,
         status: true,
         notes: true,
+        notAllowed: true,
         createdAt: true,
         updatedAt: true
       }
@@ -86,7 +88,8 @@ export default defineEventHandler(async (event: any) => {
 
     return {
       ...employee,
-      role: employee.role ? JSON.parse(employee.role) : []
+      role: employee.role ? JSON.parse(employee.role) : [],
+      notAllowed: employee.notAllowed ? JSON.parse(employee.notAllowed) : []
     }
   } catch (error: any) {
     if (error.statusCode) throw error

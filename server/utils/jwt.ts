@@ -11,6 +11,7 @@ export interface JwtPayload {
   id: number
   username: string
   role: string | null
+  notAllowed?: string[]
 }
 
 export const signToken = (payload: JwtPayload): string => {

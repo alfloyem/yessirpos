@@ -3,64 +3,16 @@ const isSidebarCollapsed = useState("sidebarCollapsed", () => false);
 const { t } = useI18n();
 const route = useRoute();
 
-interface MenuItem {
-    titleKey: string;
-    icon: string;
-    children: {
-        titleKey: string;
-        to: string;
-    }[];
-}
-
-const menuItems: MenuItem[] = [
-    {
-        titleKey: "menu.main_category",
-        icon: "heroicons:chart-bar",
-        children: [
-            { titleKey: "menu.home", to: "/" },
-            { titleKey: "menu.employees", to: "/employees" },
-        ],
-    },
-    {
-        titleKey: "menu.sales_category",
-        icon: "lucide:shopping-bag",
-        children: [
-            { titleKey: "menu.sales", to: "/sales" },
-            { titleKey: "menu.orders", to: "/archive" },
-            { titleKey: "menu.refund", to: "/refund" },
-        ],
-    },
-    {
-        titleKey: "menu.customers_category",
-        icon: "lucide:users",
-        children: [
-            { titleKey: "menu.customers", to: "/customers" },
-            { titleKey: "menu.giftCard", to: "/gift-cards" },
-        ],
-    },
-    {
-        titleKey: "menu.inventory_category",
-        icon: "lucide:package",
-        children: [
-            { titleKey: "menu.products", to: "/products" },
-            { titleKey: "menu.attributes", to: "/attributes" },
-            { titleKey: "menu.suppliers", to: "/suppliers" },
-            { titleKey: "menu.intake", to: "/received" },
-        ],
-    },
-    {
-        titleKey: "menu.finance_category",
-        icon: "lucide:pie-chart",
-        children: [
-            { titleKey: "menu.reports", to: "/reports" },
-            { titleKey: "menu.expenses", to: "/expenses" },
-        ],
-    },
-];
+import { menuItems } from '~/utils/menu'
+import type { MenuItem } from '~/utils/menu'
 
 const { user, logout } = useAuth();
 const clientData = getClientData()
-const notAllowedPaths = computed(() => clientData.permissions?.notAllowed || [])
+const notAllowedPaths = computed(() => {
+    const globalForbidden = clientData.permissions?.notAllowed || []
+    const localForbidden = user.value?.notAllowed || []
+    return [...new Set([...globalForbidden, ...localForbidden])]
+})
 
 const filteredMenuItems = computed(() => {
     return menuItems.map((category: MenuItem) => ({

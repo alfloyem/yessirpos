@@ -1,16 +1,17 @@
-import { defineNuxtRouteMiddleware, navigateTo } from '#imports'
-import { getClientData } from '~/utils/clientData'
-import { useLocalePath } from '#i18n'
+import { useAuth } from '~/composables/useAuth'
 
 export default defineNuxtRouteMiddleware((to: any) => {
     const clientData = getClientData()
+    const { user } = useAuth()
     const localePath = useLocalePath()
     
-    // Check if the client has restricted this page
-    const notAllowedPaths = clientData.permissions?.notAllowed || []
+    // Combine global and employee permissions
+    const globalForbidden = clientData.permissions?.notAllowed || []
+    const localForbidden = user.value?.notAllowed || []
+    const notAllowedPaths = [...new Set([...globalForbidden, ...localForbidden])]
     
     // Check if the current path (normalized) is in the restricted list (or its sub-routes)
-    const isRestricted = notAllowedPaths.some((path: string) => 
+    const isRestricted = notAllowedPaths.some((path: string | any) => 
         to.path === path || to.path.startsWith(path + '/')
     )
 
