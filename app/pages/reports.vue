@@ -25,7 +25,7 @@ useHead({ title: 'Hesabatlar' })
 
 // ── Tabs ──
 const tabs = [
-  { id: 'overview', label: 'Ümumi İcmal', icon: 'lucide:layout-dashboard' },
+  { id: 'overview', label: 'Ümumi', icon: 'lucide:layout-dashboard' },
   { id: 'products', label: 'Məhsullar', icon: 'lucide:package' },
   { id: 'sales', label: 'Satışlar', icon: 'lucide:receipt' },
   { id: 'expenses', label: 'Xərclər', icon: 'lucide:wallet' },
@@ -223,9 +223,14 @@ const loadTimeline = async (id: string|number) => {
   try { productTimelineData.value = await $fetch(`/api/analytics/product-timeline${params()}&productId=${id}`) } catch {}
   loading.value = false
 }
-const clearTimeline = () => { productTimelineData.value = null; selectedProductId.value = null; searchProductQuery.value = '' }
-
 const fmt = (n: number) => n?.toLocaleString('az-AZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? '0.00'
+
+const dateMenuOpen = ref(false)
+
+const activeFilterLabel = computed(() => {
+  const qf = quickFilters.find(f => f.id === activeQuickFilter.value)
+  return qf ? qf.label : 'Tarix Seç'
+})
 </script>
 
 <template>
@@ -233,6 +238,8 @@ const fmt = (n: number) => n?.toLocaleString('az-AZ', { minimumFractionDigits: 2
 
     <!-- ═══ PREMIUM HEADER ═══ -->
     <header class="shrink-0 bg-[var(--bg-app)] border-b border-[var(--border-app)] z-20 backdrop-blur-sm">
+      <!-- Dropdown backdrop -->
+      <div v-if="dateMenuOpen" @click="dateMenuOpen = false" class="fixed inset-0 z-40"></div>
       <!-- Row 1: Title & Main Actions -->
       <div class="flex items-center justify-between px-8 h-16">
         <div class="flex items-center gap-4">
@@ -246,16 +253,61 @@ const fmt = (n: number) => n?.toLocaleString('az-AZ', { minimumFractionDigits: 2
         </div>
 
         <div class="flex items-center gap-3">
-          <div class="flex items-center gap-2 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-xl py-1 px-3 h-10 transition-all focus-within:border-[var(--text-primary)]/50">
-            <div class="flex items-center gap-1">
-              <UiIcon name="lucide:calendar" class="w-3.5 h-3.5 text-[var(--text-muted)]" />
-              <input type="datetime-local" v-model="startDate" class="bg-transparent text-xs font-bold text-[var(--text-app)] outline-none w-[150px] tabular-nums" />
-            </div>
-            <div class="h-4 w-px bg-[var(--border-app)] mx-1"></div>
-            <div class="flex items-center gap-1">
-              <input type="datetime-local" v-model="endDate" class="bg-transparent text-xs font-bold text-[var(--text-app)] outline-none w-[150px] tabular-nums" />
-            </div>
+          <!-- Date Range Dropdown -->
+          <div class="relative">
+            <button
+              @click="dateMenuOpen = !dateMenuOpen"
+              class="flex items-center gap-2.5 h-10 px-4 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-xl text-sm font-bold text-[var(--text-app)] hover:border-[var(--text-primary)]/50 transition-all"
+              :class="dateMenuOpen && 'border-[var(--text-primary)]/50'"
+            >
+              <UiIcon name="lucide:calendar" class="w-4 h-4 text-[var(--text-primary)]" />
+              <span>{{ activeFilterLabel }}</span>
+              <UiIcon name="lucide:chevron-down" class="w-3.5 h-3.5 text-[var(--text-muted)] transition-transform" :class="dateMenuOpen && 'rotate-180'" />
+            </button>
+
+            <transition name="scale">
+              <div v-if="dateMenuOpen" class="absolute right-0 top-full mt-2 w-72 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-2xl shadow-xl z-50 overflow-hidden">
+                <!-- Quick Filters -->
+                <div class="p-3 border-b border-[var(--border-app)]/60">
+                  <p class="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50 mb-2 px-1">Sürətli Seçim</p>
+                  <div class="grid grid-cols-3 gap-1.5">
+                    <button
+                      v-for="qf in quickFilters" :key="qf.id"
+                      @click="setQuickFilter(qf.id); dateMenuOpen = false"
+                      class="px-2 py-2 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all text-center"
+                      :class="activeQuickFilter === qf.id
+                        ? 'bg-[var(--text-primary)] text-white'
+                        : 'text-[var(--text-muted)] hover:bg-[var(--bg-app)] hover:text-[var(--text-app)]'"
+                    >
+                      {{ qf.label }}
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Custom Date Range -->
+                <div class="p-3">
+                  <p class="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50 mb-2 px-1">Xüsusi Aralıq</p>
+                  <div class="space-y-2">
+                    <div class="flex items-center gap-2 bg-[var(--bg-app)] border border-[var(--border-app)] rounded-xl px-3 py-2 focus-within:border-[var(--text-primary)]/50 transition-all">
+                      <span class="text-[10px] font-black text-[var(--text-muted)] opacity-50 w-10 shrink-0">Başlanğıc</span>
+                      <input type="datetime-local" v-model="startDate" class="flex-1 bg-transparent text-xs font-bold text-[var(--text-app)] outline-none tabular-nums" />
+                    </div>
+                    <div class="flex items-center gap-2 bg-[var(--bg-app)] border border-[var(--border-app)] rounded-xl px-3 py-2 focus-within:border-[var(--text-primary)]/50 transition-all">
+                      <span class="text-[10px] font-black text-[var(--text-muted)] opacity-50 w-10 shrink-0">Son</span>
+                      <input type="datetime-local" v-model="endDate" class="flex-1 bg-transparent text-xs font-bold text-[var(--text-app)] outline-none tabular-nums" />
+                    </div>
+                    <button
+                      @click="activeQuickFilter = ''; refreshAll(); dateMenuOpen = false"
+                      class="w-full h-9 bg-[var(--text-primary)] text-white rounded-xl text-xs font-black hover:opacity-90 transition-all"
+                    >
+                      Tətbiq et
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </transition>
           </div>
+
           <button 
             @click="activeQuickFilter = ''; refreshAll()" 
             class="h-10 w-10 rounded-xl bg-[var(--input-bg)] border border-[var(--border-app)] text-[var(--text-app)] flex items-center justify-center hover:bg-[var(--text-primary)] hover:text-white hover:border-[var(--text-primary)] transition-all active:scale-95"
@@ -266,8 +318,8 @@ const fmt = (n: number) => n?.toLocaleString('az-AZ', { minimumFractionDigits: 2
         </div>
       </div>
 
-      <!-- Row 2: Sub-navigation & Quick Filters -->
-      <div class="flex items-center justify-between px-8 h-12 border-t border-[var(--border-app)]/50">
+      <!-- Row 2: Sub-navigation -->
+      <div class="flex items-center px-8 h-12 border-t border-[var(--border-app)]/50">
         <div class="flex items-center gap-1 overflow-x-auto no-scrollbar">
           <button
             v-for="tab in tabs" :key="tab.id"
@@ -280,19 +332,6 @@ const fmt = (n: number) => n?.toLocaleString('az-AZ', { minimumFractionDigits: 2
             <UiIcon :name="tab.icon" class="w-4 h-4 transition-transform group-hover:scale-110" />
             {{ tab.label }}
             <div v-if="activeTab === tab.id" class="absolute bottom-0 left-0 w-full h-[2px] bg-[var(--text-primary)]"></div>
-          </button>
-        </div>
-
-        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
-          <button
-            v-for="qf in quickFilters" :key="qf.id"
-            @click="setQuickFilter(qf.id)"
-            class="px-3 h-7 rounded-lg text-[10px] font-extrabold whitespace-nowrap transition-all border uppercase tracking-wider"
-            :class="activeQuickFilter === qf.id
-              ? 'bg-[var(--text-primary)] text-white border-[var(--text-primary)]'
-              : 'text-[var(--text-muted)] border-[var(--border-app)] hover:border-[var(--text-primary)]/30'"
-          >
-            {{ qf.label }}
           </button>
         </div>
       </div>
@@ -321,7 +360,7 @@ const fmt = (n: number) => n?.toLocaleString('az-AZ', { minimumFractionDigits: 2
         <div v-if="dashboardData">
 
           <!-- 1. Key Performance Indicators -->
-          <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+          <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
             <div class="kpi-card group border-l-4 border-l-blue-500">
               <div class="kpi-header">
                 <div class="kpi-icon-box bg-blue-500/10 text-blue-500">
@@ -383,7 +422,6 @@ const fmt = (n: number) => n?.toLocaleString('az-AZ', { minimumFractionDigits: 2
               </div>
               <div class="kpi-value-row">
                 <span class="kpi-value">{{ dashboardData.kpis.totalTransactions }}</span>
-                <span class="kpi-currency pt-1">#/{{ dashboardData.kpis.refundTransactions }}</span>
               </div>
             </div>
 
@@ -392,7 +430,7 @@ const fmt = (n: number) => n?.toLocaleString('az-AZ', { minimumFractionDigits: 2
                 <div class="kpi-icon-box bg-rose-500/10 text-rose-500">
                   <UiIcon name="lucide:rotate-ccw" class="w-4 h-4" />
                 </div>
-                <span class="kpi-label">Refund Faizi</span>
+                <span class="kpi-label">Refund</span>
               </div>
               <div class="kpi-value-row">
                 <span class="kpi-value text-rose-500">{{ dashboardData.kpis.refundRate.toFixed(1) }}%</span>
@@ -401,12 +439,12 @@ const fmt = (n: number) => n?.toLocaleString('az-AZ', { minimumFractionDigits: 2
           </div>
 
           <!-- 2. Detailed Grid Stats -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 py-4">
             <div class="mini-stat-card">
               <div class="mini-stat-icon text-rose-500"><UiIcon name="lucide:arrow-down-right" class="w-5 h-5" /></div>
               <div class="mini-stat-content">
                 <p class="mini-stat-label">Geri Qaytarma</p>
-                <p class="mini-stat-value text-rose-500">-{{ fmt(dashboardData.kpis.totalRefunds) }} ₼</p>
+                <p class="mini-stat-value text-rose-500">{{ fmt(dashboardData.kpis.totalRefunds) }} ₼</p>
               </div>
             </div>
             <div class="mini-stat-card">
@@ -433,7 +471,7 @@ const fmt = (n: number) => n?.toLocaleString('az-AZ', { minimumFractionDigits: 2
           </div>
 
           <!-- 3. Primary Charts Section -->
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2 card-premium">
               <div class="card-header-premium">
                 <div class="flex items-center gap-3">
@@ -886,6 +924,7 @@ const fmt = (n: number) => n?.toLocaleString('az-AZ', { minimumFractionDigits: 2
   flex-direction: column;
   gap: 12px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
 }
 .kpi-card:hover {
   transform: translateY(-4px);
@@ -939,8 +978,9 @@ const fmt = (n: number) => n?.toLocaleString('az-AZ', { minimumFractionDigits: 2
   border: 1px solid var(--border-app);
   border-radius: 18px;
   transition: all 0.25s;
+  cursor: pointer;
 }
-.mini-stat-card:hover { border-color: var(--text-primary)/20; }
+.mini-stat-card:hover { transform: translateY(-4px); border-color: var(--text-primary); }
 .mini-stat-icon {
   width: 44px;
   height: 44px;
