@@ -152,7 +152,10 @@
     "edit": "Edit Employee",
     "bulkEditWarning": "Warning: You are in bulk edit mode. The fields you fill here will overwrite the previous data of the selected {count} employees. Empty fields will remain unchanged.",
     "confirmDelete": "Are you sure you want to delete?",
-    "bulkDeleteCount": "Selected {count} items will be deleted."
+    "bulkDeleteCount": "Selected {count} items will be deleted.",
+    "pagePermissions": "Page Permissions",
+    "pagePermissionsDesc": "Select the pages the employee cannot access",
+    "managePermissions": "Manage Permissions"
   },
   "common": {
     "cancel": "Cancel",

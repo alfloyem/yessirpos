@@ -153,7 +153,10 @@
     "edit": "Əməkdaşı Redaktə Et",
     "bulkEditWarning": "Xəbərdarlıq: Toplu redaktə rejimindəsiniz. Burada doldurduğunuz qutular seçdiyiniz {count} əməkdaşın köhnə məlumatlarının üzərinə yazılacaq. Boş buraxdığınız xanalar isə dəyişməyəcək.",
     "confirmDelete": "Silmək istədiyinizə əminsiniz?",
-    "bulkDeleteCount": "Seçilmiş {count} maddə silinəcək."
+    "bulkDeleteCount": "Seçilmiş {count} maddə silinəcək.",
+    "pagePermissions": "Səhifə İcazələri",
+    "pagePermissionsDesc": "İşçinin daxil ola bilməyəcəyi səhifələri seçin",
+    "managePermissions": "İcazələri idarə et"
   },
   "common": {
     "cancel": "Ləğv et",
