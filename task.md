@@ -10,8 +10,12 @@
 - [] bildiriş sistemi
 - [x] settings
 - [] user access sistemi
-- [] nisyə satış imkanı
+- ![] borc satış imkanı
 - [] kredit satış imkanı
 - [] tauri və ya electron ilə program yazılmalıdır.
 - [] barkod scan və print slient olmalıdır.
 - [] multi barkod scan olmalıdır. (ideologiya düşünülsün)
+- ![] dashboardda exportda mockdata yerine real data istifade edilmelidir.
+- ![] hesabatlarda ui/ux yaxşılaşdırılmalıdır, lazımsız ve qarışıq görünen elementler silinmelidir.
+- ![] settings-də barkod ve çek funksiyalarının sıraları düzəlməlidir.
+- ![] hesabatlar reportsda atributlar göstermir ve tek mehsulun ümumi satışını göstermir.
