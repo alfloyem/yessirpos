@@ -77,6 +77,7 @@ const expensesData  = ref<any>(null)
 const employeesData = ref<any>(null)
 
 const selectedProductId = ref<string|null>(null)
+const selectedAttribute = ref<string|null>(null)
 const searchProductQuery = ref('')
 const searchProductResults = ref<any[]>([])
 const productTimelineData = ref<any>(null)
@@ -223,6 +224,43 @@ const loadTimeline = async (id: string|number) => {
   try { productTimelineData.value = await $fetch(`/api/analytics/product-timeline${params()}&productId=${id}`) } catch {}
   loading.value = false
 }
+
+const clearTimeline = () => { 
+  productTimelineData.value = null
+  selectedProductId.value = null
+  selectedAttribute.value = null
+  searchProductQuery.value = '' 
+}
+
+const viewAttributeDetails = (attribute: string) => {
+  selectedAttribute.value = selectedAttribute.value === attribute ? null : attribute
+}
+
+const filteredTimeline = computed(() => {
+  if (!productTimelineData.value?.timeline) return []
+  if (!selectedAttribute.value) return productTimelineData.value.timeline
+  
+  // Filter timeline by selected attribute
+  return productTimelineData.value.timeline.filter((log: any) => {
+    if (!log.attribute) return selectedAttribute.value === 'Standart'
+    
+    // Parse attribute
+    let attrKey = 'Standart'
+    try {
+      const parsed = JSON.parse(log.attribute)
+      if (Array.isArray(parsed)) {
+        attrKey = parsed.map((a: string) => a.split(':').pop()?.trim()).filter(Boolean).join(', ')
+      } else {
+        attrKey = log.attribute
+      }
+    } catch {
+      attrKey = log.attribute
+    }
+    
+    return attrKey === selectedAttribute.value
+  })
+})
+
 const fmt = (n: number) => n?.toLocaleString('az-AZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? '0.00'
 
 const dateMenuOpen = ref(false)
@@ -644,8 +682,43 @@ const activeFilterLabel = computed(() => {
                 </div>
               </div>
 
+              <!-- Attribute Breakdown -->
+              <div v-if="productTimelineData.attributeStats && productTimelineData.attributeStats.length > 0" class="mb-6">
+                <h3 class="text-sm font-black text-[var(--text-app)] mb-3 uppercase tracking-wider opacity-60">Atribut üzrə Satış</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div 
+                    v-for="(stat, idx) in productTimelineData.attributeStats" 
+                    :key="idx" 
+                    class="p-4 bg-[var(--bg-app)] border rounded-xl transition-all relative group"
+                    :class="selectedAttribute === stat.attribute ? 'border-[var(--text-primary)] bg-[var(--text-primary)]/5' : 'border-[var(--border-app)]'"
+                  >
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-xs font-black text-[var(--text-muted)] uppercase tracking-wider">{{ stat.attribute }}</span>
+                      <button 
+                        @click="viewAttributeDetails(stat.attribute)"
+                        class="w-7 h-7 rounded-lg flex items-center justify-center transition-all"
+                        :class="selectedAttribute === stat.attribute 
+                          ? 'bg-[var(--text-primary)] text-white' 
+                          : 'bg-[var(--border-app)] text-[var(--text-muted)] hover:bg-[var(--text-primary)] hover:text-white'"
+                        :title="selectedAttribute === stat.attribute ? 'Hamısını Göstər' : 'Satış Tarixçəsi'"
+                      >
+                        <UiIcon :name="selectedAttribute === stat.attribute ? 'lucide:x' : 'lucide:eye'" class="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div class="flex items-baseline gap-2 mb-1">
+                      <span class="text-lg font-black text-[var(--text-app)] tabular-nums">{{ fmt(stat.totalRevenue) }}</span>
+                      <span class="text-xs text-[var(--text-muted)] opacity-60">₼</span>
+                    </div>
+                    <div class="flex items-center justify-between text-[10px] font-bold">
+                      <span class="text-emerald-500">{{ stat.soldQty }} ədəd satılıb</span>
+                      <span v-if="stat.refundQty > 0" class="text-rose-500">{{ stat.refundQty }} qaytarılıb</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div class="relative pl-8 space-y-4 before:absolute before:left-[15px] before:top-4 before:h-[calc(100%-32px)] before:w-px before:bg-[var(--border-app)]">
-                <div v-for="(log, i) in productTimelineData.timeline" :key="i" class="relative group">
+                <div v-for="(log, i) in filteredTimeline" :key="i" class="relative group">
                   <div class="absolute -left-[25px] top-1.5 w-4 h-4 rounded-full border-2 border-[var(--bg-app)] z-10" :class="{ 'bg-blue-500': log.type === 'INTAKE', 'bg-emerald-500': log.type === 'SALE', 'bg-rose-500': log.type === 'REFUND' }"></div>
                   <div class="p-4 bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl flex items-center gap-4 transition-all hover:border-[var(--text-primary)]/40 hover:-translate-y-0.5">
                     <div class="flex-1 min-w-0">

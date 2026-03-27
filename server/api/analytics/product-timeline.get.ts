@@ -69,7 +69,8 @@ export default defineEventHandler(async (event: any) => {
       receiptNo: item.sale.receiptNo,
       qty: item.qty, // Will be negative for refunds
       amount: item.total, // For sales, it's selling total
-      details: type === 'SALE' ? 'Satış' : 'Geri Qaytarma'
+      details: type === 'SALE' ? 'Satış' : 'Geri Qaytarma',
+      attribute: item.attribute || null
     })
   }
 
@@ -91,15 +92,75 @@ export default defineEventHandler(async (event: any) => {
   // Sort by date ascending (oldest first)
   timeline.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
-  // Also include current stock
+  // Also include current stock and attribute breakdown
   const product = await (prisma as any).product.findUnique({
     where: { id: Number(productId) },
     select: { stock: true, productName: true, barcode: true }
   })
 
+  // Get all products with same productName for attribute analysis
+  const allVariants = await (prisma as any).product.findMany({
+    where: { productName: product.productName },
+    select: { id: true, barcode: true, attribute: true }
+  })
+
+  // Calculate sales by attribute
+  const attributeStats: Record<string, { soldQty: number, totalRevenue: number, refundQty: number }> = {}
+  
+  for (const variant of allVariants) {
+    const variantSales = await (prisma as any).saleItem.findMany({
+      where: {
+        productId: variant.id,
+        sale: {
+          createdAt: { gte: startDate, lte: endDate }
+        }
+      },
+      include: {
+        sale: {
+          select: {
+            paymentDetails: true
+          }
+        }
+      }
+    })
+
+    // Parse attribute - it can be JSON string or plain string
+    let attrKey = 'Standart'
+    if (variant.attribute) {
+      try {
+        const parsed = JSON.parse(variant.attribute)
+        if (Array.isArray(parsed)) {
+          attrKey = parsed.map((a: string) => a.split(':').pop()?.trim()).filter(Boolean).join(', ')
+        } else {
+          attrKey = variant.attribute
+        }
+      } catch {
+        attrKey = variant.attribute
+      }
+    }
+
+    if (!attributeStats[attrKey]) {
+      attributeStats[attrKey] = { soldQty: 0, totalRevenue: 0, refundQty: 0 }
+    }
+
+    for (const item of variantSales) {
+      const isRefund = item.qty < 0 || (item.sale.paymentDetails && JSON.parse(item.sale.paymentDetails).isRefund)
+      if (isRefund) {
+        attributeStats[attrKey].refundQty += Math.abs(item.qty)
+      } else {
+        attributeStats[attrKey].soldQty += item.qty
+        attributeStats[attrKey].totalRevenue += item.total
+      }
+    }
+  }
+
   return {
     product,
     netRevenue,
-    timeline
+    timeline,
+    attributeStats: Object.entries(attributeStats).map(([attr, stats]) => ({
+      attribute: attr,
+      ...stats
+    }))
   }
 })

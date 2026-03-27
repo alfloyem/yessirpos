@@ -15,10 +15,18 @@ export default defineEventHandler(async (event: any) => {
           { barcode: { contains: q, mode: 'insensitive' } }
         ]
       },
-      take: 10
+      orderBy: { id: 'asc' }
     })
 
-    return products
+    // Group by productName and return only first occurrence
+    const uniqueProducts = new Map()
+    for (const product of products) {
+      if (!uniqueProducts.has(product.productName)) {
+        uniqueProducts.set(product.productName, product)
+      }
+    }
+
+    return Array.from(uniqueProducts.values()).slice(0, 10)
   } catch (error: any) {
     return []
   }
