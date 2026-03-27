@@ -21,3 +21,5 @@
 - ![] hesabatlar reportsda atributlar göstermir ve tek mehsulun ümumi satışını göstermir.
 - ![] satış sehifesinde satış zamanı stock sayı anlıq yenilensin
 - ![] product sehifesinde mehsulun üzerinde klik edilen zaman auto redakte dialogu açılsın
+npx prisma db push
+npx prisma generate
