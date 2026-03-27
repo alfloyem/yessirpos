@@ -152,8 +152,8 @@ watch(isSidebarCollapsed, (collapsed) => {
                         :class="[
                             'flex items-center gap-3 px-4 py-2 text-sm transition-all duration-300 rounded-xl group/child relative',
                             isChildActive(child.to)
-                                ? 'bg-[var(--text-primary)] text-white shadow-sm shadow-[var(--text-primary)]/20 font-medium'
-                                : 'text-[var(--text-muted)] hover:bg-[var(--input-bg)] hover:text-[var(--text-app)]',
+                                ? 'bg-[var(--text-primary)] text-white font-medium'
+                                : 'text-[var(--text-muted)] hover:bg-[var(--text-primary)]/10 hover:text-[var(--text-primary)] shadow-none',
                             !isSidebarCollapsed ? 'mx-2 pl-12' : 'mx-1 my-0.5',
                         ]">
                         <span :class="['text-nowrap transition-all duration-300', isSidebarCollapsed ? 'opacity-90' : isChildActive(child.to) ? 'opacity-100' : 'opacity-80 group-hover/child:opacity-100']">

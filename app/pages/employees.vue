@@ -508,9 +508,9 @@ const saveForm = async () => {
             <span class="text-sm font-bold text-[var(--text-app)]">{{ t('employees.pagePermissions', 'Səhifə İcazələri') }}</span>
             <span class="text-xs text-[var(--text-muted)]">{{ t('employees.pagePermissionsDesc', 'İşçinin daxil ola bilməyəcəyi səhifələri seçin') }}</span>
           </div>
-          <UiButton variant="ghost" icon="lucide:shield-off" size="sm" @click="showPermissionsModal = true">
+          <UiButton variant="outline" icon="lucide:shield-off" size="sm" @click="showPermissionsModal = true" class="!border-[var(--border-app)] !bg-[var(--input-bg)] hover:!border-[var(--text-primary)]/30">
             {{ t('employees.managePermissions', 'İcazələri idarə et') }}
-            <span v-if="formData.notAllowed?.length" class="ml-2 px-1.5 py-0.5 bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)] rounded text-[10px]">
+            <span v-if="formData.notAllowed?.length" class="ml-2 px-1.5 py-0.5 bg-[var(--color-brand-danger)] text-white rounded text-[10px]">
               {{ formData.notAllowed.length }}
             </span>
           </UiButton>
@@ -550,9 +550,9 @@ const saveForm = async () => {
               <span class="text-sm font-bold text-[var(--text-app)]">{{ t('employees.pagePermissions', 'Səhifə İcazələri') }}</span>
               <span class="text-xs text-[var(--text-muted)]">{{ t('employees.pagePermissionsDesc', 'İşçinin daxil ola bilməyəcəyi səhifələri seçin') }}</span>
             </div>
-            <UiButton variant="ghost" icon="lucide:shield-off" size="sm" @click="showPermissionsModal = true">
+            <UiButton variant="outline" icon="lucide:shield-off" size="sm" @click="showPermissionsModal = true" class="!border-[var(--border-app)] !bg-[var(--input-bg)] hover:!border-[var(--text-primary)]/30">
               {{ t('employees.managePermissions', 'İcazələri idarə et') }}
-              <span v-if="formData.notAllowed?.length" class="ml-2 px-1.5 py-0.5 bg-[var(--color-brand-danger)]/10 text-[var(--color-brand-danger)] rounded text-[10px]">
+              <span v-if="formData.notAllowed?.length" class="ml-2 px-1.5 py-0.5 bg-[var(--color-brand-danger)] text-white rounded text-[10px]">
                 {{ formData.notAllowed.length }}
               </span>
             </UiButton>
