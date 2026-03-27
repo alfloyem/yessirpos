@@ -19,3 +19,5 @@
 - ![] hesabatlarda ui/ux yaxşılaşdırılmalıdır, lazımsız ve qarışıq görünen elementler silinmelidir.
 - ![] settings-də barkod ve çek funksiyalarının sıraları düzəlməlidir.
 - ![] hesabatlar reportsda atributlar göstermir ve tek mehsulun ümumi satışını göstermir.
+- ![] satış sehifesinde satış zamanı stock sayı anlıq yenilensin
+- ![] product sehifesinde mehsulun üzerinde klik edilen zaman auto redakte dialogu açılsın
