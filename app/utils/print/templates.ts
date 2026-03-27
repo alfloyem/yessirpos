@@ -2,12 +2,15 @@ import type { ClientData } from '~/utils/clientData'
 import type { ReceiptData, IntakeReceiptData, DebtPaymentReceiptData } from '../receiptPrinter'
 import type { BarcodeData } from '../receiptPrinter'
 
-export const buildReceiptHtml = (data: ReceiptData, clientData: ClientData, barcodeDataUrl: string, showFooterMessage: boolean = true) => {
+export const buildReceiptHtml = (data: ReceiptData, clientData: ClientData, barcodeDataUrl: string, showFooterMessage: boolean = true, showReturnPolicy: boolean = true) => {
   const itemsHtml = data.items.map(item => {
     let attrStr = ''
     if (item.attribute) {
-      if (Array.isArray(item.attribute)) attrStr = item.attribute.map((a: string) => a.split(':').pop()?.trim()).join(', ')
-      else attrStr = item.attribute.split(':').pop()?.trim() || item.attribute
+      if (Array.isArray(item.attribute)) {
+        attrStr = item.attribute.map((a: string) => a.split(':').pop()?.trim()).filter(Boolean).join(', ')
+      } else if (typeof item.attribute === 'string' && item.attribute.trim()) {
+        attrStr = item.attribute.split(':').pop()?.trim() || ''
+      }
     }
     const hasDiscount = item.discount > 0
 
@@ -168,7 +171,7 @@ export const buildReceiptHtml = (data: ReceiptData, clientData: ClientData, barc
         ${loyaltyHtml}
 
         <div class="center" style="margin-top: 15px;">
-          ${showFooterMessage ? '<div style="font-size: 10px; font-weight: bold;">MƏHSUL 14 GÜN ƏRZİNDƏ QAYTARILA BİLƏR</div>' : ''}
+          ${showReturnPolicy ? '<div style="font-size: 10px; font-weight: bold;">MƏHSUL 14 GÜN ƏRZİNDƏ QAYTARILA BİLƏR</div>' : ''}
           ${data.isArchive ? '<div style="font-size: 10px; margin-top: 2px;">*** ARXİV SURƏTİ ***</div>' : ''}
           <div style="margin-top: 10px;">
             ${barcodeDataUrl ? `<img src="${barcodeDataUrl}" style="max-width: 75%; height: auto;" />` : ''}

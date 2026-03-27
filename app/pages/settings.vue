@@ -17,13 +17,24 @@ definePageMeta({
 const colorMode = useColorMode()
 const { locales, locale, setLocale, t } = useI18n()
 
-const clientData = getClientData()
+const clientData = ref(getClientData())
+
+const dummyBarcodeUrl = ref('')
 
 const languageFlags: Record<string, string> = {
   az: azFlag,
   en: enFlag,
   ru: ruFlag
 }
+
+onMounted(() => {
+  if (import.meta.client) {
+    clientData.value = getClientData()
+    dummyBarcodeUrl.value = generateBarcodeDataUrl('123456789012', { height: 50, margin: 10, displayValue: false })
+    loadSettings()
+    loadAttributes()
+  }
+})
 
 // Prepare language options for UiSelect
 const languageOptions = computed(() => {
@@ -95,11 +106,11 @@ const settingsConfig: Record<SettingsTab, SettingsSection[]> = {
     {
       title: 'settings.sections.visual',
       items: [
+        { key: 'showStoreName', label: 'settings.items.showStoreName' },
         { key: 'showProductName', label: 'settings.items.showProductName' },
-        { key: 'showPrice', label: 'settings.items.showPrice' },
         { key: 'showAttribute', label: 'settings.items.showAttribute' },
         { key: 'showBarcodeString', label: 'settings.items.showBarcodeString' },
-        { key: 'showStoreName', label: 'settings.items.showStoreName' },
+        { key: 'showPrice', label: 'settings.items.showPrice' },
       ]
     }
   ],
@@ -113,6 +124,7 @@ const settingsConfig: Record<SettingsTab, SettingsSection[]> = {
         { key: 'showPhone', label: 'settings.items.showPhone' },
         { key: 'showCashierName', label: 'settings.items.showCashierName' },
         { key: 'showCustomerName', label: 'settings.items.showCustomerName' },
+        { key: 'showReturnPolicy', label: 'settings.items.showReturnPolicy' },
         { key: 'showFooterMessage', label: 'settings.items.showFooterMessage' },
       ]
     }
@@ -157,7 +169,8 @@ const defaultToggleState = {
   showPrice: true,
   showAttribute: true,
   showBarcodeString: true,
-  showFooterMessage: true
+  showFooterMessage: true,
+  showReturnPolicy: true
 }
 
 const toggleState = ref<Record<string, boolean>>({ ...defaultToggleState })
@@ -191,30 +204,20 @@ const toggleSetting = (key: string) => {
   saveSettings()
 }
 
-const dummyBarcodeUrl = ref('')
-
-onMounted(() => {
-  if (import.meta.client) {
-    dummyBarcodeUrl.value = generateBarcodeDataUrl('123456789012', { height: 50, margin: 10, displayValue: false })
-    loadSettings()
-    loadAttributes()
-  }
-})
-
 const receiptPreviewHtml = computed(() => {
-  // Create a mock clientData that respects toggleState
+  const cd = clientData.value
   const mockClientData = {
-    ...clientData,
-    logoSvg: toggleState.value['showLogo'] ? clientData.logoSvg : '',
-    name: toggleState.value['showStoreName'] ? clientData.name : '',
-    address: toggleState.value['showAddress'] ? clientData.address : '',
-    phone: toggleState.value['showPhone'] ? clientData.phone : ''
+    ...cd,
+    logoSvg: toggleState.value['showLogo'] ? cd.logoSvg : '',
+    name: toggleState.value['showStoreName'] ? cd.name : '',
+    address: toggleState.value['showAddress'] ? cd.address : '',
+    phone: toggleState.value['showPhone'] ? cd.phone : ''
   }
 
   // Use dynamic attribute for preview
-  const itemAttribute = toggleState.value['showAttribute'] && attributes.value.length > 0
+  const itemAttribute = (toggleState.value['showAttribute'] && attributes.value.length > 0 && previewAttribute.value)
     ? previewAttribute.value
-    : undefined
+    : null
 
   // Dummy receipt data
   const dummyData: any = {
@@ -260,13 +263,14 @@ const receiptPreviewHtml = computed(() => {
     }
   }
 
-  return buildReceiptHtml(dummyData, mockClientData as any, dummyBarcodeUrl.value, toggleState.value['showFooterMessage'])
+  return buildReceiptHtml(dummyData, mockClientData as any, dummyBarcodeUrl.value, toggleState.value['showFooterMessage'], toggleState.value['showReturnPolicy'])
 })
 
 const barcodePreviewHtml = computed(() => {
+  const cd = clientData.value
   const mockClientData = {
-    ...clientData,
-    name: toggleState.value['showStoreName'] ? clientData.name : ''
+    ...cd,
+    name: toggleState.value['showStoreName'] ? cd.name : ''
   }
 
   const dummyBarcode: any = {

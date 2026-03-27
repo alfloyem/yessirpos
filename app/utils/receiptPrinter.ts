@@ -96,7 +96,8 @@ export const printReceipt = (data: ReceiptData) => {
     showPhone: true,
     showCashierName: true,
     showCustomerName: true,
-    showFooterMessage: true
+    showFooterMessage: true,
+    showReturnPolicy: true
   }
   
   let settings = { ...defaultSettings }
@@ -129,8 +130,8 @@ export const printReceipt = (data: ReceiptData) => {
     customer: settings.showCustomerName ? data.customer : undefined
   }
 
-  const barcodeUrl = generateBarcodeDataUrl(data.receiptNo)
-  const html = buildReceiptHtml(modifiedData, modifiedClientData, barcodeUrl, settings.showFooterMessage)
+  const barcodeUrl = generateBarcodeDataUrl(data.receiptNo, { displayValue: false })
+  const html = buildReceiptHtml(modifiedData, modifiedClientData, barcodeUrl, settings.showFooterMessage, settings.showReturnPolicy ?? true)
   executePrintWindow(html, { width: 302, height: 800, dynamicHeight: true })
 }
 

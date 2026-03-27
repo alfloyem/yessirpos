@@ -522,7 +522,8 @@
       "showCashierName": "Cashier Name",
       "showCustomerName": "Customer Name",
       "showTaxRates": "VAT / Tax",
-      "showFooterMessage": "Thank You Message"
+      "showFooterMessage": "Thank You Message",
+      "showReturnPolicy": "Return Policy"
     }
   }
 }

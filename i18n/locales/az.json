@@ -524,7 +524,8 @@
       "showCashierName": "Kassir Adı",
       "showCustomerName": "Müştəri Adı",
       "showTaxRates": "ƏDV / Vergi",
-      "showFooterMessage": "Təşəkkür Mesajı"
+      "showFooterMessage": "Təşəkkür Mesajı",
+      "showReturnPolicy": "Geri Qaytarma"
     }
   }
 }

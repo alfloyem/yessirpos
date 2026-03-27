@@ -521,7 +521,8 @@
       "showCashierName": "Имя кассира",
       "showCustomerName": "Имя клиента",
       "showTaxRates": "НДС / Налог",
-      "showFooterMessage": "Благодарственное сообщение"
+      "showFooterMessage": "Благодарственное сообщение",
+      "showReturnPolicy": "Политика возврата"
     }
   }
 }
