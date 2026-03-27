@@ -58,6 +58,17 @@ const menuItems: MenuItem[] = [
     },
 ];
 
+const { user, logout } = useAuth();
+const clientData = getClientData()
+const notAllowedPaths = computed(() => clientData.permissions?.notAllowed || [])
+
+const filteredMenuItems = computed(() => {
+    return menuItems.map((category: MenuItem) => ({
+        ...category,
+        children: category.children.filter((child: any) => !notAllowedPaths.value.includes(child.to))
+    })).filter((category: any) => category.children.length > 0)
+})
+
 const expandedCategories = ref<Set<string>>(new Set());
 
 // Sync and persist state with localStorage
@@ -105,8 +116,6 @@ const toggleCategory = (titleKey: string) => {
     localStorage.setItem("sidebar_expanded_categories", JSON.stringify(Array.from(expandedCategories.value)));
 };
 
-const { user, logout } = useAuth();
-
 const isSidebarResizing = ref(false);
 
 const toggleSidebar = () => {
@@ -142,7 +151,7 @@ watch(isSidebarCollapsed, (collapsed) => {
 
         <!-- Navigation Menu -->
         <nav :class="['flex-1 flex flex-col gap-2 p-3 pt-2 no-scrollbar', isSidebarCollapsed || isSidebarResizing ? 'overflow-visible' : 'overflow-y-auto overflow-x-hidden']">
-            <div v-for="category in menuItems" :key="category.titleKey" class="group/category relative">
+            <div v-for="category in filteredMenuItems" :key="category.titleKey" class="group/category relative">
                 <!-- Category Header -->
                 <button
                     @click="toggleCategory(category.titleKey)"
@@ -204,7 +213,7 @@ watch(isSidebarCollapsed, (collapsed) => {
 
             <div class="flex-1"></div>
             <!-- Settings Button -->
-            <NuxtLink to="/settings" class="flex items-center gap-3 px-5 p-3 text-[var(--text-muted)] hover:text-[var(--text-app)] hover:bg-[var(--input-bg)] transition-all rounded-xl group/settings">
+            <NuxtLink v-if="!notAllowedPaths.includes('/settings')" to="/settings" class="flex items-center gap-3 px-5 p-3 text-[var(--text-muted)] hover:text-[var(--text-app)] hover:bg-[var(--input-bg)] transition-all rounded-xl group/settings">
                 <Icon name="lucide:settings" class="w-5 h-5 flex-shrink-0 opacity-60 group-hover/settings:opacity-100 transition-opacity" />
                 <span :class="['text-sm font-medium transition-all duration-300 whitespace-nowrap', isSidebarCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100']">
                     {{ t("menu.settings") }}

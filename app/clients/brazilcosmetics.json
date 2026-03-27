@@ -2,5 +2,8 @@
   "name": "Brazil Cosmetics",
   "address": "Nizami ray., Cəfər Cabbarlı küç. 13",
   "phone": "+994 51 515 51 15",
-  "logoSvg": ""
+  "logoSvg": "",
+  "permissions": {
+    "notAllowed": []
+  }
 }

@@ -3,6 +3,9 @@ export interface ClientData {
   address: string
   phone?: string
   logoSvg: string
+  permissions?: {
+    notAllowed?: string[]
+  }
 }
 
 // Automatically picks up all JSON files in ~/clients/
