@@ -232,8 +232,16 @@ const clearTimeline = () => {
   searchProductQuery.value = '' 
 }
 
+const isAttributeModalOpen = ref(false)
+
 const viewAttributeDetails = (attribute: string) => {
-  selectedAttribute.value = selectedAttribute.value === attribute ? null : attribute
+  selectedAttribute.value = attribute
+  isAttributeModalOpen.value = true
+}
+
+const closeAttributeModal = () => {
+  isAttributeModalOpen.value = false
+  setTimeout(() => { if (!isAttributeModalOpen.value) selectedAttribute.value = null }, 300)
 }
 
 const filteredTimeline = computed(() => {
@@ -242,6 +250,8 @@ const filteredTimeline = computed(() => {
   
   // Filter timeline by selected attribute
   return productTimelineData.value.timeline.filter((log: any) => {
+    if (log.type === 'INTAKE') return false
+    
     if (!log.attribute) return selectedAttribute.value === 'Standart'
     
     // Parse attribute
@@ -697,12 +707,10 @@ const activeFilterLabel = computed(() => {
                       <button 
                         @click="viewAttributeDetails(stat.attribute)"
                         class="w-7 h-7 rounded-lg flex items-center justify-center transition-all"
-                        :class="selectedAttribute === stat.attribute 
-                          ? 'bg-[var(--text-primary)] text-white' 
-                          : 'bg-[var(--border-app)] text-[var(--text-muted)] hover:bg-[var(--text-primary)] hover:text-white'"
-                        :title="selectedAttribute === stat.attribute ? 'Hamısını Göstər' : 'Satış Tarixçəsi'"
+                        :class="'bg-[var(--bg-app)] text-[var(--text-muted)] hover:bg-[var(--text-primary)] hover:text-white'"
+                        title="Satış Tarixçəsi"
                       >
-                        <UiIcon :name="selectedAttribute === stat.attribute ? 'lucide:x' : 'lucide:eye'" class="w-4 h-4" />
+                        <UiIcon name="lucide:eye" class="w-4 h-4" />
                       </button>
                     </div>
                     <div class="flex items-baseline gap-2 mb-1">
@@ -718,7 +726,7 @@ const activeFilterLabel = computed(() => {
               </div>
 
               <div class="relative pl-8 space-y-4 before:absolute before:left-[15px] before:top-4 before:h-[calc(100%-32px)] before:w-px before:bg-[var(--border-app)]">
-                <div v-for="(log, i) in filteredTimeline" :key="i" class="relative group">
+                <div v-for="(log, i) in productTimelineData?.timeline" :key="i" class="relative group">
                   <div class="absolute -left-[25px] top-1.5 w-4 h-4 rounded-full border-2 border-[var(--bg-app)] z-10" :class="{ 'bg-blue-500': log.type === 'INTAKE', 'bg-emerald-500': log.type === 'SALE', 'bg-rose-500': log.type === 'REFUND' }"></div>
                   <div class="p-4 bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl flex items-center gap-4 transition-all hover:border-[var(--text-primary)]/40 hover:-translate-y-0.5">
                     <div class="flex-1 min-w-0">
@@ -968,6 +976,60 @@ const activeFilterLabel = computed(() => {
       </div>
 
     </main>
+
+    <!-- ═══ ATTRIBUTE TIMELINE MODAL ═══ -->
+    <transition name="fade">
+      <div v-if="isAttributeModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+        <div class="absolute inset-0 bg-[#0A0A0B]/80 backdrop-blur-sm" @click="closeAttributeModal"></div>
+        
+        <div class="relative bg-[var(--bg-app)] border border-[var(--border-app)] rounded-3xl w-full max-w-2xl shadow-2xl flex flex-col overflow-hidden max-h-[90vh] animate-in zoom-in-95 duration-200">
+          <!-- Header -->
+          <div class="flex items-center justify-between p-5 sm:p-6 border-b border-[var(--border-app)] shrink-0 bg-[var(--input-bg)]">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-2xl bg-[var(--text-primary)]/10 flex items-center justify-center text-[var(--text-primary)]">
+                <UiIcon name="lucide:layers" class="w-6 h-6" />
+              </div>
+              <div>
+                <h3 class="text-xl font-black text-[var(--text-app)]">{{ productTimelineData?.product?.productName }}</h3>
+                <p class="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">{{ selectedAttribute }} • Ətraflı Satış Tarixçəsi</p>
+              </div>
+            </div>
+            <button 
+              @click="closeAttributeModal"
+              class="w-10 h-10 rounded-xl bg-[var(--bg-app)] border border-[var(--border-app)] text-[var(--text-muted)] flex items-center justify-center hover:bg-rose-500 hover:text-white hover:border-transparent transition-all"
+            >
+              <UiIcon name="lucide:x" class="w-5 h-5" />
+            </button>
+          </div>
+
+          <!-- Body -->
+          <div class="p-5 sm:p-6 overflow-y-auto custom-scrollbar flex-1 bg-[var(--bg-app)]">
+            <div v-if="filteredTimeline.length > 0" class="relative pl-8 space-y-4 before:absolute before:left-[15px] before:top-4 before:h-[calc(100%-32px)] before:w-px before:bg-[var(--border-app)]">
+              <div v-for="(log, i) in filteredTimeline" :key="i" class="relative group">
+                <div class="absolute -left-[25px] top-1.5 w-4 h-4 rounded-full border-2 border-[var(--bg-app)] z-10" :class="{ 'bg-blue-500': log.type === 'INTAKE', 'bg-emerald-500': log.type === 'SALE', 'bg-rose-500': log.type === 'REFUND' }"></div>
+                <div class="p-4 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-2xl flex items-center gap-4 transition-all hover:border-[var(--text-primary)]/40 hover:-translate-y-0.5">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-[var(--text-app)]">{{ log.details }}</p>
+                    <p class="text-[11px] font-bold opacity-40 tabular-nums uppercase">{{ new Date(log.date).toLocaleString('az-AZ') }} · {{ log.receiptNo }}</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-sm font-black tabular-nums" :class="{ 'text-blue-500': log.type === 'INTAKE', 'text-emerald-500': log.type === 'SALE', 'text-rose-500': log.type === 'REFUND' }">
+                      {{ log.qty > 0 ? '+' : '' }}{{ log.qty }}
+                    </p>
+                    <p class="text-[10px] font-bold opacity-30">{{ log.amount?.toFixed(2) }} ₼</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-else class="py-12 flex flex-col items-center justify-center text-center">
+              <UiIcon name="lucide:inbox" class="w-12 h-12 text-[var(--text-muted)] opacity-20 mb-3" />
+              <p class="text-sm font-bold text-[var(--text-muted)] opacity-60">Bu atribut üzrə heç bir əməliyyat tapılmadı</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+
   </div>
 </template>
 

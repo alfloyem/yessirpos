@@ -13,9 +13,22 @@ export default defineEventHandler(async (event: any) => {
   // We want to fetch all IntakeItems and SaleItems (both sales and refunds) for this product
   // Then sort them by date (createdAt) to generate a timeline
 
+  const product = await (prisma as any).product.findUnique({
+    where: { id: Number(productId) },
+    select: { stock: true, productName: true, barcode: true }
+  })
+
+  // Get all products with same productName for attribute analysis
+  const allVariants = await (prisma as any).product.findMany({
+    where: { productName: product.productName },
+    select: { id: true, barcode: true, attribute: true }
+  })
+
+  const variantIds = allVariants.map((v: any) => v.id)
+
   const saleItems = await (prisma as any).saleItem.findMany({
     where: {
-      productId: Number(productId),
+      productId: { in: variantIds },
       sale: {
         createdAt: { gte: startDate, lte: endDate }
       }
@@ -33,7 +46,7 @@ export default defineEventHandler(async (event: any) => {
 
   const intakeItems = await (prisma as any).intakeItem.findMany({
     where: {
-      productId: Number(productId),
+      productId: { in: variantIds },
       intake: {
         createdAt: { gte: startDate, lte: endDate }
       }
@@ -92,17 +105,7 @@ export default defineEventHandler(async (event: any) => {
   // Sort by date ascending (oldest first)
   timeline.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
-  // Also include current stock and attribute breakdown
-  const product = await (prisma as any).product.findUnique({
-    where: { id: Number(productId) },
-    select: { stock: true, productName: true, barcode: true }
-  })
-
-  // Get all products with same productName for attribute analysis
-  const allVariants = await (prisma as any).product.findMany({
-    where: { productName: product.productName },
-    select: { id: true, barcode: true, attribute: true }
-  })
+  // Calculate sales by attribute
 
   // Calculate sales by attribute
   const attributeStats: Record<string, { soldQty: number, totalRevenue: number, refundQty: number }> = {}
