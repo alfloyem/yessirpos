@@ -11,15 +11,15 @@
 - [x] settings
 - [x] user access sistemi
 - [x] borc satış imkanı
-- [] kredit satış imkanı
 - [] tauri və ya electron ilə program yazılmalıdır.
 - [] barkod scan və print slient olmalıdır.
-- [] multi barkod scan olmalıdır. (ideologiya düşünülsün)
+- [] multi barkod scan olmalıdır.
 - ![x] dashboardda exportda mockdata yerine real data istifade edilmelidir.
 - ![x] hesabatlarda ui/ux yaxşılaşdırılmalıdır, lazımsız ve qarışıq görünen elementler silinmelidir.
 - ![x] settings-də barkod ve çek funksiyalarının sıraları düzəlməlidir.
 - ![x] hesabatlar reportsda atributlar göstermir ve tek mehsulun ümumi satışını göstermir.
 - ![x] satış sehifesinde satış zamanı stock sayı anlıq yenilensin
 - ![x] product sehifesinde mehsulun üzerinde klik edilen zaman auto redakte dialogu açılsın
+- ![] reports mehsullar hissesine pagination elave edilmelidir.
 npx prisma db push
 npx prisma generate
