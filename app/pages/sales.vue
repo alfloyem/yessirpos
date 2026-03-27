@@ -616,6 +616,14 @@ const completeOrder = async (details?: any) => {
     toast.success(msg)
     printReceipt(savedSale.receiptNo, details) // Pass details to ensure final payment state is printed
     
+    // Anlıq stok yenilənməsi
+    cart.value.forEach((item: any) => {
+      const p = products.value.find((prov: any) => prov.id === item.id)
+      if (p && typeof p.stock === 'number') {
+        p.stock -= item.qty
+      }
+    })
+    
     clearCart()
     selectedCustomer.value = null
     giftCardBarcode.value = ''

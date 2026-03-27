@@ -18,8 +18,8 @@
 - ![x] dashboardda exportda mockdata yerine real data istifade edilmelidir.
 - ![x] hesabatlarda ui/ux yaxşılaşdırılmalıdır, lazımsız ve qarışıq görünen elementler silinmelidir.
 - ![x] settings-də barkod ve çek funksiyalarının sıraları düzəlməlidir.
-- ![] hesabatlar reportsda atributlar göstermir ve tek mehsulun ümumi satışını göstermir.
-- ![] satış sehifesinde satış zamanı stock sayı anlıq yenilensin
+- ![x] hesabatlar reportsda atributlar göstermir ve tek mehsulun ümumi satışını göstermir.
+- ![x] satış sehifesinde satış zamanı stock sayı anlıq yenilensin
 - ![] product sehifesinde mehsulun üzerinde klik edilen zaman auto redakte dialogu açılsın
 npx prisma db push
 npx prisma generate
