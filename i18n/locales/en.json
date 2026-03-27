@@ -191,7 +191,9 @@
     "date": "Date",
     "notSelected": "Not Selected",
     "search": "Search...",
-    "noDataFound": "No data found"
+    "noDataFound": "No data found",
+    "previous": "Previous",
+    "next": "Next"
   },
   "orders": {
     "title": "Receipt Archive",

@@ -191,7 +191,9 @@
     "date": "Дата",
     "notSelected": "Не выбрано",
     "search": "Поиск...",
-    "noDataFound": "Данные не найдены"
+    "noDataFound": "Данные не найдены",
+    "previous": "Предыдущий",
+    "next": "Следующий"
   },
   "orders": {
     "title": "Архив чеков",

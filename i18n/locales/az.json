@@ -193,7 +193,9 @@
     "date": "Tarix",
     "notSelected": "Seçilməyib",
     "search": "Axtar...",
-    "noDataFound": "Məlumat tapılmadı"
+    "noDataFound": "Məlumat tapılmadı",
+    "previous": "Əvvəlki",
+    "next": "Sonrakı"
   },
   "orders": {
     "title": "Çek Arxivi",

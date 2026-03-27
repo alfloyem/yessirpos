@@ -279,6 +279,44 @@ const activeFilterLabel = computed(() => {
   const qf = quickFilters.value.find((f: any) => f.id === activeQuickFilter.value)
   return qf ? qf.label : t('reports.selectDate')
 })
+
+// ── Pagination for Products Tab ──
+const currentPageTopSellers = ref(1)
+const currentPageMostRefunded = ref(1)
+const itemsPerPage = 8
+
+const paginatedTopSellers = computed(() => {
+  if (!productsData.value?.topSellers) return []
+  const start = (currentPageTopSellers.value - 1) * itemsPerPage
+  return productsData.value.topSellers.slice(start, start + itemsPerPage)
+})
+
+const paginatedMostRefunded = computed(() => {
+  if (!productsData.value?.mostRefunded) return []
+  const start = (currentPageMostRefunded.value - 1) * itemsPerPage
+  return productsData.value.mostRefunded.slice(start, start + itemsPerPage)
+})
+
+const totalPagesTopSellers = computed(() => Math.ceil((productsData.value?.topSellers?.length || 0) / itemsPerPage))
+const totalPagesMostRefunded = computed(() => Math.ceil((productsData.value?.mostRefunded?.length || 0) / itemsPerPage))
+
+// Timeline Pagination
+const currentPageTimeline = ref(1)
+const paginatedTimeline = computed(() => {
+  if (!productTimelineData.value?.timeline) return []
+  const start = (currentPageTimeline.value - 1) * itemsPerPage
+  return productTimelineData.value.timeline.slice(start, start + itemsPerPage)
+})
+const totalPagesTimeline = computed(() => Math.ceil((productTimelineData.value?.timeline?.length || 0) / itemsPerPage))
+
+watch(productsData, () => {
+  currentPageTopSellers.value = 1
+  currentPageMostRefunded.value = 1
+})
+
+watch(productTimelineData, () => {
+  currentPageTimeline.value = 1
+})
 </script>
 
 <template>
@@ -588,14 +626,14 @@ const activeFilterLabel = computed(() => {
               </button>
             </div>
             
-            <div class="divide-y divide-[var(--border-app)]/50 px-2">
+            <div class="divide-y divide-[var(--border-app)]/50 px-2 flex-1">
               <div
-                v-for="(p, idx) in productsData.topSellers" :key="p.id"
+                v-for="(p, idx) in paginatedTopSellers" :key="p.id"
                 @click="selectProduct(p)"
                 class="list-item group"
               >
                 <div class="w-8 h-8 rounded-lg bg-[var(--input-bg)] border border-[var(--border-app)] flex items-center justify-center text-[11px] font-black opacity-40 group-hover:bg-[var(--text-primary)] group-hover:text-white group-hover:opacity-100 group-hover:border-transparent transition-all">
-                  {{ Number(idx) + 1 }}
+                  {{ ((currentPageTopSellers - 1) * itemsPerPage) + Number(idx) + 1 }}
                 </div>
                 <div class="flex-1 min-w-0">
                   <p class="text-sm font-bold text-[var(--text-app)] truncate">{{ p.name }}</p>
@@ -609,6 +647,25 @@ const activeFilterLabel = computed(() => {
                 </div>
               </div>
             </div>
+
+            <!-- Pagination Controls -->
+            <div v-if="totalPagesTopSellers > 1" class="p-4 border-t border-[var(--border-app)]/30 flex items-center justify-between">
+              <button 
+                @click="currentPageTopSellers--" 
+                :disabled="currentPageTopSellers === 1"
+                class="p-2 rounded-lg hover:bg-[var(--bg-app)] disabled:opacity-20 transition-all"
+              >
+                <UiIcon name="lucide:chevron-left" class="w-4 h-4" />
+              </button>
+              <span class="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">{{ currentPageTopSellers }} / {{ totalPagesTopSellers }}</span>
+              <button 
+                @click="currentPageTopSellers++" 
+                :disabled="currentPageTopSellers === totalPagesTopSellers"
+                class="p-2 rounded-lg hover:bg-[var(--bg-app)] disabled:opacity-20 transition-all"
+              >
+                <UiIcon name="lucide:chevron-right" class="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           <div class="card-premium">
@@ -619,14 +676,14 @@ const activeFilterLabel = computed(() => {
               </div>
             </div>
             
-            <div class="divide-y divide-[var(--border-app)]/50 px-2">
+            <div class="divide-y divide-[var(--border-app)]/50 px-2 flex-1">
               <div
-                v-for="(p, idx) in productsData.mostRefunded" :key="p.id"
+                v-for="(p, idx) in paginatedMostRefunded" :key="p.id"
                 @click="selectProduct(p)"
                 class="list-item group"
               >
                 <div class="w-8 h-8 rounded-lg bg-[var(--input-bg)] border border-[var(--border-app)] flex items-center justify-center text-[11px] font-black opacity-40 group-hover:bg-rose-500 group-hover:text-white group-hover:opacity-100 group-hover:border-transparent transition-all">
-                  {{ Number(idx) + 1 }}
+                  {{ ((currentPageMostRefunded - 1) * itemsPerPage) + Number(idx) + 1 }}
                 </div>
                 <div class="flex-1 min-w-0">
                   <p class="text-sm font-bold text-[var(--text-app)] truncate">{{ p.name }}</p>
@@ -639,6 +696,25 @@ const activeFilterLabel = computed(() => {
                   </div>
                 </div>
               </div>
+            </div>
+
+            <!-- Pagination Controls -->
+            <div v-if="totalPagesMostRefunded > 1" class="p-4 border-t border-[var(--border-app)]/30 flex items-center justify-between">
+              <button 
+                @click="currentPageMostRefunded--" 
+                :disabled="currentPageMostRefunded === 1"
+                class="p-2 rounded-lg hover:bg-[var(--bg-app)] disabled:opacity-20 transition-all"
+              >
+                <UiIcon name="lucide:chevron-left" class="w-4 h-4" />
+              </button>
+              <span class="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">{{ currentPageMostRefunded }} / {{ totalPagesMostRefunded }}</span>
+              <button 
+                @click="currentPageMostRefunded++" 
+                :disabled="currentPageMostRefunded === totalPagesMostRefunded"
+                class="p-2 rounded-lg hover:bg-[var(--bg-app)] disabled:opacity-20 transition-all"
+              >
+                <UiIcon name="lucide:chevron-right" class="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>
@@ -726,7 +802,7 @@ const activeFilterLabel = computed(() => {
               </div>
 
               <div class="relative pl-8 space-y-4 before:absolute before:left-[15px] before:top-4 before:h-[calc(100%-32px)] before:w-px before:bg-[var(--border-app)]">
-                <div v-for="(log, i) in productTimelineData?.timeline" :key="i" class="relative group">
+                <div v-for="(log, i) in paginatedTimeline" :key="i" class="relative group">
                   <div class="absolute -left-[25px] top-1.5 w-4 h-4 rounded-full border-2 border-[var(--bg-app)] z-10" :class="{ 'bg-blue-500': log.type === 'INTAKE', 'bg-emerald-500': log.type === 'SALE', 'bg-rose-500': log.type === 'REFUND' }"></div>
                   <div class="p-4 bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl flex items-center gap-4 transition-all hover:border-[var(--text-primary)]/40 hover:-translate-y-0.5">
                     <div class="flex-1 min-w-0">
@@ -741,6 +817,27 @@ const activeFilterLabel = computed(() => {
                     </div>
                   </div>
                 </div>
+              </div>
+
+              <!-- Pagination for Timeline -->
+              <div v-if="totalPagesTimeline > 1" class="mt-6 flex items-center justify-center gap-4 py-4 border-t border-[var(--border-app)]/30">
+                <button 
+                  @click="currentPageTimeline--" 
+                  :disabled="currentPageTimeline === 1"
+                  class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--input-bg)] border border-[var(--border-app)] text-xs font-bold hover:bg-[var(--text-primary)] hover:text-white disabled:opacity-20 transition-all"
+                >
+                  <UiIcon name="lucide:chevron-left" class="w-3.5 h-3.5" />
+                  {{ t('common.previous') }}
+                </button>
+                <span class="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">{{ currentPageTimeline }} / {{ totalPagesTimeline }}</span>
+                <button 
+                  @click="currentPageTimeline++" 
+                  :disabled="currentPageTimeline === totalPagesTimeline"
+                  class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--input-bg)] border border-[var(--border-app)] text-xs font-bold hover:bg-[var(--text-primary)] hover:text-white disabled:opacity-20 transition-all"
+                >
+                  {{ t('common.next') }}
+                  <UiIcon name="lucide:chevron-right" class="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
             

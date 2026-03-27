@@ -52,8 +52,8 @@ export default defineEventHandler(async (event: any) => {
 
   const allProducts = Object.values(productStats)
   
-  const topSellers = [...allProducts].sort((a, b) => b.soldQty - a.soldQty).slice(0, 10)
-  const mostRefunded = [...allProducts].sort((a, b) => b.refundQty - a.refundQty).filter(p => p.refundQty > 0).slice(0, 10)
+  const topSellers = [...allProducts].sort((a, b) => b.soldQty - a.soldQty)
+  const mostRefunded = [...allProducts].sort((a, b) => b.refundQty - a.refundQty).filter(p => p.refundQty > 0)
 
   return {
     topSellers,
