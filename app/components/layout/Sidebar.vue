@@ -7,6 +7,7 @@ import { menuItems } from '~/utils/menu'
 import type { MenuItem } from '~/utils/menu'
 
 const { user, logout } = useAuth();
+const { unreadCount, fetchNotifications } = useNotifications();
 const clientData = getClientData()
 const notAllowedPaths = computed(() => {
     const globalForbidden = clientData.permissions?.notAllowed || []
@@ -41,6 +42,10 @@ onMounted(() => {
             console.error("Failed to parse expanded categories", e);
         }
     }
+
+    // Notifications polling
+    fetchNotifications();
+    setInterval(fetchNotifications, 60000);
 });
 
 const isCategoryActive = (category: MenuItem) => {
@@ -164,6 +169,21 @@ watch(isSidebarCollapsed, (collapsed) => {
             </div>
 
             <div class="flex-1"></div>
+            <!-- Notifications Button -->
+            <NuxtLink v-if="!notAllowedPaths.includes('/notifications')" to="/notifications" class="relative flex items-center gap-3 px-5 p-3 text-[var(--text-muted)] hover:text-[var(--text-app)] hover:bg-[var(--input-bg)] transition-all rounded-xl group/notifications">
+                <div class="relative flex-shrink-0">
+                    <Icon name="lucide:bell" class="w-5 h-5 opacity-60 group-hover/notifications:opacity-100 transition-opacity" />
+                    <span 
+                        v-if="unreadCount > 0"
+                        class="absolute -top-1 -right-1 flex h-[14px] min-w-[14px] px-[3px] items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white shadow-sm ring-2 ring-[var(--bg-app)]"
+                    >
+                        {{ unreadCount > 99 ? '99+' : unreadCount }}
+                    </span>
+                </div>
+                <span :class="['text-sm font-medium transition-all duration-300 whitespace-nowrap', isSidebarCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100']">
+                    {{ t("notifications.title", "Bildirişlər") }}
+                </span>
+            </NuxtLink>
             <!-- Settings Button -->
             <NuxtLink v-if="!notAllowedPaths.includes('/settings')" to="/settings" class="flex items-center gap-3 px-5 p-3 text-[var(--text-muted)] hover:text-[var(--text-app)] hover:bg-[var(--input-bg)] transition-all rounded-xl group/settings">
                 <Icon name="lucide:settings" class="w-5 h-5 flex-shrink-0 opacity-60 group-hover/settings:opacity-100 transition-opacity" />

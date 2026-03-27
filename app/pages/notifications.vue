@@ -5,9 +5,11 @@ import { useI18n } from '#i18n'
 import UiButton from '~/components/ui/Button.vue'
 import UiIcon from '~/components/ui/Icon.vue'
 import { useNotifications } from '~/composables/useNotifications'
+import { useRouter } from 'vue-router'
 
 const { t } = useI18n()
 const toast = useToast()
+const router = useRouter()
 
 useHead({ title: t('notifications.title', 'Bildirişlər') + ' | YESSIR POS' })
 
@@ -59,6 +61,74 @@ const handleMarkAsReadClicked = async (id: number) => {
   await markAsRead(id)
   const n = localNotifications.value.find(x => x.id === id)
   if (n) n.isRead = true
+}
+
+const parseData = (dataStr: any) => {
+  if (!dataStr) return {}
+  if (typeof dataStr === 'object') return dataStr
+  try { return JSON.parse(dataStr) } catch(e) { return {} }
+}
+
+const renderMessage = (notif: any) => {
+  const data = parseData(notif.data)
+  
+  switch (notif.type) {
+    case 'SALE_COMPLETED':
+      return { main: `${Number(data.amount || 0).toFixed(2)} ₼ satış edildi.`, sub: `${data.receiptNo || ''} nömrəli çek` }
+    case 'REFUND_PROCESSED':
+      return { main: `${Number(data.amount || 0).toFixed(2)} ₼ geri qaytarıldı.`, sub: `${data.originalReceiptNo || ''} nömrəli çek üzrə` }
+    case 'DEBT_PAYMENT':
+      return { main: `${Number(data.amount || 0).toFixed(2)} ₼ borc ödənildi.`, sub: `${data.receiptNo || ''} nömrəli çek` }
+    case 'INTAKE_CREATED':
+      return { main: `Yeni mal qəbul edildi.`, sub: `${data.receiptNo || ''} nömrəli qaimə` }
+    case 'LOW_STOCK':
+      return { main: `${notif.message.split(' (')[0]}`, sub: `Barkod: ${data.barcode || 'Yoxdur'}` }
+    case 'CUSTOMER_ADDED':
+      return { main: `${data.name || ''} sistemə əlavə edildi.`, sub: `Yeni müştəri profili` }
+    case 'PRODUCT_ADDED':
+      return { main: `${data.name || ''} siyahıya əlavə edildi.`, sub: `Yeni məhsul` }
+    case 'EXPENSE_ADDED':
+      return { main: `${Number(data.amount || 0).toFixed(2)} ₼ xərc yazıldı.`, sub: `Məxaric qeydi` }
+    case 'SUPPLIER_ADDED':
+      return { main: `${data.brandName || ''} təchizatçısı əlavə edildi.`, sub: `Yeni təchizatçı` }
+    default:
+      return { main: notif.message, sub: null }
+  }
+}
+
+const handleNotificationClick = async (notif: any) => {
+  // Auto read
+  if (!notif.isRead) {
+    await markAsRead(notif.id)
+    notif.isRead = true
+  }
+  
+  // Parse routing data
+  const data = parseData(notif.data)
+  
+  // Navigate
+  switch (notif.type) {
+    case 'SALE_COMPLETED':
+    case 'REFUND_PROCESSED':
+      router.push({ path: '/archive', query: { search: data.receiptNo || data.originalReceiptNo } })
+      break;
+    case 'CUSTOMER_ADDED':
+    case 'DEBT_PAYMENT':
+      router.push('/customers')
+      break;
+    case 'PRODUCT_ADDED':
+    case 'LOW_STOCK':
+      // If we have barcode, we can search for it in products
+      router.push(data.barcode ? { path: '/products', query: { search: data.barcode } } : '/products')
+      break;
+    case 'INTAKE_CREATED':
+    case 'SUPPLIER_ADDED':
+      router.push('/intake')
+      break;
+    case 'EXPENSE_ADDED':
+      router.push('/expenses')
+      break;
+  }
 }
 
 const getIconForType = (type: string) => {
@@ -147,8 +217,9 @@ const getColorForType = (type: string) => {
           <div 
             v-for="notif in localNotifications" 
             :key="notif.id"
-            class="p-4 md:p-6 hover:bg-[var(--text-primary)]/[0.02] transition-colors relative"
-            :class="!notif.isRead ? 'bg-[var(--text-primary)]/[0.05]' : ''"
+            @click="handleNotificationClick(notif)"
+            class="p-4 md:p-5 hover:bg-[var(--text-primary)]/[0.04] cursor-pointer transition-colors relative flex flex-col justify-center min-h-[80px]"
+            :class="!notif.isRead ? 'bg-[var(--text-primary)]/[0.02]' : ''"
           >
             <div class="flex gap-4">
               <!-- Icon Base -->
@@ -157,49 +228,33 @@ const getColorForType = (type: string) => {
               </div>
 
               <!-- Content -->
-              <div class="flex-1 min-w-0">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4 mb-2">
-                  <h3 class="font-bold text-[var(--text-primary)] md:text-lg flex items-center gap-2">
-                    <div class="sm:hidden w-6 h-6 rounded-full flex items-center justify-center" :class="getColorForType(notif.type)">
+              <div class="flex-1 min-w-0 flex flex-col justify-center">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
+                  <h3 class="font-bold text-[var(--text-primary)] md:text-[15px] flex items-center gap-2">
+                    <div class="sm:hidden w-6 h-6 rounded-full flex items-center justify-center bg-opacity-20" :class="getColorForType(notif.type)">
                       <UiIcon :name="getIconForType(notif.type)" class="w-3.5 h-3.5" />
                     </div>
-                    {{ notif.title }}
+                    <span>{{ renderMessage(notif).main }}</span>
+                    <span v-if="renderMessage(notif).sub" class="text-[var(--text-app)] opacity-40 font-normal text-sm ml-1 hidden md:inline">
+                      ({{ renderMessage(notif).sub }})
+                    </span>
                   </h3>
-                  <div class="text-xs text-[var(--text-app)] opacity-50 flex items-center gap-1.5 whitespace-nowrap">
-                    <UiIcon name="lucide:calendar" class="w-3.5 h-3.5" />
+                  <div class="text-[11px] text-[var(--text-app)] opacity-40 flex items-center gap-1.5 whitespace-nowrap">
                     {{ new Date(notif.createdAt).toLocaleDateString('az-AZ') }}
-                    <UiIcon name="lucide:clock" class="w-3.5 h-3.5 ml-1" />
+                    <span class="opacity-30">•</span>
                     {{ new Date(notif.createdAt).toLocaleTimeString('az-AZ', {hour: '2-digit', minute:'2-digit'}) }}
                   </div>
                 </div>
                 
-                <p class="text-[var(--text-app)] opacity-80 text-sm md:text-base leading-relaxed">
-                  {{ notif.message }}
+                <!-- Display Sub on mobile since it's hidden on the main line -->
+                <p v-if="renderMessage(notif).sub" class="md:hidden text-[var(--text-app)] opacity-50 text-[13px] leading-relaxed mb-1">
+                  {{ renderMessage(notif).sub }}
                 </p>
-
-                <!-- Action / Metadata / Read Toggle -->
-                <div class="mt-4 flex items-center justify-between">
-                  <div class="text-xs font-mono opacity-50">
-                    ID: {{ notif.id }} • {{ notif.type.replace('_', ' ') }}
-                  </div>
-                  <button 
-                    v-if="!notif.isRead"
-                    @click="handleMarkAsReadClicked(notif.id)"
-                    class="text-xs font-semibold text-[var(--text-primary)] hover:underline opacity-80 hover:opacity-100 flex items-center gap-1"
-                  >
-                    <UiIcon name="lucide:check" class="w-3.5 h-3.5" />
-                    Oxunmuş et
-                  </button>
-                  <span v-else class="text-xs opacity-40 flex items-center gap-1">
-                    <UiIcon name="lucide:check-check" class="w-3.5 h-3.5" />
-                    Oxunub
-                  </span>
-                </div>
               </div>
             </div>
             
-            <!-- Unread Dot Indicator -->
-            <div v-if="!notif.isRead" class="absolute top-1/2 -translate-y-1/2 left-0 w-[4px] h-3/4 bg-red-500 rounded-r-md"></div>
+            <!-- Unread Line Indicator (instead of dot) -->
+            <div v-if="!notif.isRead" class="absolute top-1/2 -translate-y-1/2 left-0 w-[3px] h-1/2 bg-[var(--text-primary)] rounded-r-md opacity-80"></div>
           </div>
         </div>
 
