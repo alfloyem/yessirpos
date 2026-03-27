@@ -276,7 +276,8 @@
     "updated": "Yeniləndi",
     "added": "Əlavə edildi",
     "deleted": "Silindi",
-    "error": "Xəta baş verdi!"
+    "error": "Xəta baş verdi!",
+    "debtAdded": "Borc müştəri hesabına daxil edildi!"
   },
   "giftCards": {
     "title": "Hədiyyə Kartları",
@@ -435,7 +436,9 @@
     "card": "Bank Kartı",
     "saleDate": "Satış Tarixi",
     "originalTotal": "Orijinal Yekun",
-    "amount": "Məbləğ"
+    "amount": "Məbləğ",
+    "debt": "Borc",
+    "debtCustomerRequired": "Borclu satış üçün müştəri seçilməlidir!"
   },
   "cart": {
     "empty": "Səbət boşdur",

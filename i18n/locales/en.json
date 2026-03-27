@@ -275,7 +275,8 @@
     "updated": "Updated",
     "added": "Added",
     "deleted": "Deleted",
-    "error": "An error occurred!"
+    "error": "An error occurred!",
+    "debtAdded": "Debt has been added to the customer's account!"
   },
   "giftCards": {
     "title": "Gift Cards",
@@ -433,7 +434,9 @@
     "card": "Bank Card",
     "saleDate": "Sale Date",
     "originalTotal": "Original Total",
-    "amount": "Amount"
+    "amount": "Amount",
+    "debt": "Debt",
+    "debtCustomerRequired": "Customer must be selected for debt/partial payment!"
   },
   "cart": {
     "empty": "Cart is empty",

@@ -537,9 +537,15 @@ const completeOrder = async (details?: any) => {
       if (bonusSpent > 0) finalBonusUpdate -= bonusSpent
       finalBonusUpdate += currentCashback
 
+      const debtToAdd = Number(details?.debtAmount) || 0
+      const newDebt = (Number(customer.debt) || 0) + debtToAdd
+
       await $fetch<any>(`/api/customers/${customer.id}`, {
         method: 'PUT',
-        body: { bonus: Number(finalBonusUpdate.toFixed(2)) },
+        body: { 
+          bonus: Number(finalBonusUpdate.toFixed(2)),
+          debt: Number(newDebt.toFixed(2))
+        },
         headers: { Authorization: `Bearer ${token.value}` }
       })
     }
@@ -557,7 +563,8 @@ const completeOrder = async (details?: any) => {
         received: paymentDetails.value?.received,
         change: paymentDetails.value?.change,
         giftCardBarcode: details?.giftCardBarcode || giftCardBarcode.value,
-        bonusBarcode: customer?.barcode
+        bonusBarcode: customer?.barcode,
+        debtAmount: details?.debtAmount || 0
       },
       cashierId: selectedEmployee.value?.id,
       cashierName: selectedEmployee.value ? `${selectedEmployee.value.firstName} ${selectedEmployee.value.lastName}` : null,
@@ -599,6 +606,11 @@ const completeOrder = async (details?: any) => {
         msg += `\n${t('toast.bonusDeducted', { amount: bonusSpent.toFixed(2) })}`
       }
       msg += `\n${t('toast.cashbackAdded', { name: customerName, amount: currentCashback.toFixed(2) })}`
+      
+      const debtAmount = Number(details?.debtAmount) || 0
+      if (debtAmount > 0) {
+        msg += `\n${t('toast.debtAdded')} (${debtAmount.toFixed(2)} ₼)`
+      }
     }
     
     toast.success(msg)

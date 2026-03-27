@@ -91,6 +91,14 @@ const handleConfirm = () => {
   
   if (isMultiPayment.value) {
     details.payments = { ...multiPayments.value }
+    details.debtAmount = remainingMultiTotal.value > 0.01 ? remainingMultiTotal.value : 0
+    
+    // Check if debt exists and customer is missing
+    if (details.debtAmount > 0 && !props.customer) {
+      toast.error(t('sales.debtCustomerRequired'))
+      return
+    }
+
     // Calculate Multi-Cash change
     const cashVal = multiPayments.value ? (multiPayments.value['Cash'] || 0) : 0
     if (cashVal >= 0) {
@@ -111,9 +119,20 @@ const handleConfirm = () => {
       const r = parseFloat(receivedAmount.value) || 0
       details.received = r
       details.change = changeAmount.value
+      
+      if (changeAmount.value < -0.01) {
+        details.debtAmount = Math.abs(changeAmount.value)
+        if (!props.customer) {
+          toast.error(t('sales.debtCustomerRequired'))
+          return
+        }
+      } else {
+        details.debtAmount = 0
+      }
     } else {
       // For single methods like Card, we assume full payment unless logic changes
       details.received = props.total
+      details.debtAmount = 0
     }
     
     if (internalMethod.value === 'Gift Card') {
@@ -467,7 +486,7 @@ const handleFocus = (event: Event) => {
         size="lg"
         variant="primary"
         :loading="isSaving"
-        :disabled="isMultiPayment && remainingMultiTotal > 0.01"
+        :disabled="isMultiPayment && remainingMultiTotal > 0.01 && !customer"
         @click="handleConfirm"
       >
         <div class="flex items-center gap-2">
