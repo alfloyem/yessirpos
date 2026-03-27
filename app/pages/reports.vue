@@ -240,19 +240,25 @@ const activeFilterLabel = computed(() => {
     <header class="shrink-0 bg-[var(--bg-app)] border-b border-[var(--border-app)] z-20 backdrop-blur-sm">
       <!-- Dropdown backdrop -->
       <div v-if="dateMenuOpen" @click="dateMenuOpen = false" class="fixed inset-0 z-40"></div>
-      <!-- Row 1: Title & Main Actions -->
-      <div class="flex items-center justify-between px-8 h-16">
-        <div class="flex items-center gap-4">
-          <div class="w-10 h-10 rounded-xl bg-[var(--text-primary)]/10 flex items-center justify-center transition-transform hover:scale-105">
-            <UiIcon name="lucide:pie-chart" class="w-5 h-5 text-[var(--text-primary)]" />
-          </div>
-          <div>
-            <h1 class="text-xl font-extrabold text-[var(--text-app)] tracking-tight leading-none">Biznes Analitika</h1>
-            <p class="text-[11px] font-bold text-[var(--text-muted)] mt-1 uppercase tracking-widest opacity-60">Hesabatlar və İcmal</p>
-          </div>
+
+      <!-- Single Row: Tabs + Actions -->
+      <div class="flex items-center justify-between px-8 h-14">
+        <div class="flex items-center gap-1 overflow-x-auto no-scrollbar">
+          <button
+            v-for="tab in tabs" :key="tab.id"
+            @click="activeTab = tab.id"
+            class="group flex items-center gap-2 px-4 h-8 rounded-lg text-[12px] font-bold whitespace-nowrap transition-all relative overflow-hidden"
+            :class="activeTab === tab.id
+              ? 'text-[var(--text-primary)] bg-[var(--text-primary)]/5'
+              : 'text-[var(--text-muted)] hover:text-[var(--text-app)] hover:bg-[var(--input-bg)]'"
+          >
+            <UiIcon :name="tab.icon" class="w-4 h-4 transition-transform group-hover:scale-110" />
+            {{ tab.label }}
+            <div v-if="activeTab === tab.id" class="absolute bottom-0 left-0 w-full h-[2px] bg-[var(--text-primary)]"></div>
+          </button>
         </div>
 
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 shrink-0">
           <!-- Date Range Dropdown -->
           <div class="relative">
             <button
@@ -308,30 +314,12 @@ const activeFilterLabel = computed(() => {
             </transition>
           </div>
 
-          <button 
-            @click="activeQuickFilter = ''; refreshAll()" 
+          <button
+            @click="activeQuickFilter = ''; refreshAll()"
             class="h-10 w-10 rounded-xl bg-[var(--input-bg)] border border-[var(--border-app)] text-[var(--text-app)] flex items-center justify-center hover:bg-[var(--text-primary)] hover:text-white hover:border-[var(--text-primary)] transition-all active:scale-95"
             title="Yenilə"
           >
             <UiIcon name="lucide:rotate-cw" class="w-4 h-4" :class="loading ? 'animate-spin' : ''" />
-          </button>
-        </div>
-      </div>
-
-      <!-- Row 2: Sub-navigation -->
-      <div class="flex items-center px-8 h-12 border-t border-[var(--border-app)]/50">
-        <div class="flex items-center gap-1 overflow-x-auto no-scrollbar">
-          <button
-            v-for="tab in tabs" :key="tab.id"
-            @click="activeTab = tab.id"
-            class="group flex items-center gap-2 px-4 h-8 rounded-lg text-[12px] font-bold whitespace-nowrap transition-all relative overflow-hidden"
-            :class="activeTab === tab.id
-              ? 'text-[var(--text-primary)] bg-[var(--text-primary)]/5'
-              : 'text-[var(--text-muted)] hover:text-[var(--text-app)] hover:bg-[var(--input-bg)]'"
-          >
-            <UiIcon :name="tab.icon" class="w-4 h-4 transition-transform group-hover:scale-110" />
-            {{ tab.label }}
-            <div v-if="activeTab === tab.id" class="absolute bottom-0 left-0 w-full h-[2px] bg-[var(--text-primary)]"></div>
           </button>
         </div>
       </div>
