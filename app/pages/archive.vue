@@ -338,6 +338,33 @@ const submitPayDebt = async () => {
       <template #row-actions="{ row }">
         <UiButton variant="ghost" size="icon" icon="lucide:eye" @click="handleViewDetails(row)" class="hover:text-[var(--text-primary)]" />
       </template>
+
+      <template #context-menu="{ row }">
+        <button 
+          @click="handleViewDetails(row)" 
+          class="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg hover:bg-[var(--text-primary)]/10 hover:text-[var(--text-primary)] transition-all group"
+        >
+          <UiIcon name="lucide:eye" class="w-4 h-4 opacity-50 group-hover:opacity-100" />
+          <span>{{ t('common.show', 'Göstər') }}</span>
+        </button>
+        <button 
+          @click="printOrder(row)" 
+          class="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg hover:bg-[var(--text-primary)]/10 hover:text-[var(--text-primary)] transition-all group"
+        >
+          <UiIcon name="lucide:printer" class="w-4 h-4 opacity-50 group-hover:opacity-100" />
+          <span>{{ t('orders.print', 'Çap et') }}</span>
+        </button>
+        <template v-if="row.type === 'INTAKE' && row.paymentDetails?.balanceDue > 0">
+          <div class="my-1 h-px bg-[var(--border-app)]"></div>
+          <button 
+            @click="selectedOrder = row; openPayDebt(row)" 
+            class="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg hover:bg-rose-500/10 text-rose-600 transition-all group"
+          >
+            <UiIcon name="lucide:wallet" class="w-4 h-4 opacity-70 group-hover:opacity-100" />
+            <span>{{ t('orders.payDebt', 'Borcu ödə') }}</span>
+          </button>
+        </template>
+      </template>
     </DataTable>
 
     <!-- Details Modal -->

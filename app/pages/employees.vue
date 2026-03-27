@@ -432,6 +432,16 @@ const saveForm = async () => {
       @bulk-edit="handleBulkEdit"
       @duplicate="handleDuplicate"
     >
+      <!-- Context Menu Slot for Specialized Actions -->
+      <template #context-menu="{ row }">
+        <button 
+          @click="formData = { ...row }; showPermissionsModal = true" 
+          class="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg hover:bg-[var(--text-primary)]/10 hover:text-[var(--text-primary)] transition-all group"
+        >
+          <Icon name="lucide:shield-off" class="!w-5 !h-5 opacity-50 group-hover:opacity-100" />
+          <span>{{ t('employees.managePermissions', 'İcazələri idarə et') }}</span>
+        </button>
+      </template>
       <!-- Contact links with Highlighting -->
       <template #cell-email="{ value, highlight }">
         <a 

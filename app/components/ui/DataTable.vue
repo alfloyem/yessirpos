@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from '#i18n'
 
 interface Column {
@@ -273,6 +273,33 @@ watch(searchQuery, () => {
 watch(() => selectedIds.value, (newSet: Set<string | number>) => {
   emit('update:selected-ids', Array.from(newSet))
 }, { deep: true, immediate: true })
+
+// Context Menu
+const showContextMenu = ref(false)
+const contextMenuPos = ref({ x: 0, y: 0 })
+const contextMenuRow = ref<any>(null)
+
+const handleContextMenu = (e: MouseEvent, row: any) => {
+  if (!props.actions) return
+  e.preventDefault()
+  contextMenuRow.value = row
+  contextMenuPos.value = { x: e.clientX, y: e.clientY }
+  showContextMenu.value = true
+}
+
+const closeContextMenu = () => {
+  showContextMenu.value = false
+}
+
+onMounted(() => {
+  window.addEventListener('click', closeContextMenu)
+  window.addEventListener('scroll', closeContextMenu, true)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('click', closeContextMenu)
+  window.removeEventListener('scroll', closeContextMenu, true)
+})
 </script>
 
 <template>
@@ -441,6 +468,7 @@ watch(() => selectedIds.value, (newSet: Set<string | number>) => {
               <tr 
                 v-for="row in paginatedData" 
                 :key="row.id"
+                @contextmenu="handleContextMenu($event, row)"
                 class="hover:bg-[var(--bg-app)]/50 transition-colors group"
                 :class="[
                   {'bg-[var(--text-primary)]/5': selectedIds.has(row.id)},
@@ -617,6 +645,45 @@ watch(() => selectedIds.value, (newSet: Set<string | number>) => {
       </div>
     </div>
   </div>
+
+  <!-- Context Menu Teleport -->
+  <Teleport to="body">
+    <Transition name="fade">
+      <div 
+        v-if="showContextMenu" 
+        class="fixed z-[9999] min-w-[180px] bg-[var(--bg-sidebar)] border border-[var(--border-app)] rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] p-1.5 backdrop-blur-md overflow-hidden"
+        :style="{ left: contextMenuPos.x + 'px', top: contextMenuPos.y + 'px' }"
+      >
+
+        <slot name="context-menu" :row="contextMenuRow"></slot>
+
+        <template v-if="showDefaultActions">
+          <button 
+            @click="emit('duplicate', contextMenuRow)" 
+            class="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg hover:bg-[var(--text-primary)]/10 hover:text-[var(--text-primary)] transition-all group"
+          >
+            <UiIcon name="lucide:copy" class="w-4 h-4 opacity-50 group-hover:opacity-100" />
+            <span>{{ t('common.duplicate', 'Kopyala') }}</span>
+          </button>
+          <button 
+            @click="emit('edit', contextMenuRow)" 
+            class="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg hover:bg-[var(--text-primary)]/10 hover:text-[var(--text-primary)] transition-all group"
+          >
+            <UiIcon name="lucide:edit-2" class="w-4 h-4 opacity-50 group-hover:opacity-100" />
+            <span>{{ t('common.edit', 'Düzəliş et') }}</span>
+          </button>
+          <div class="my-1 h-px bg-[var(--border-app)]"></div>
+          <button 
+            @click="emit('delete', contextMenuRow)" 
+            class="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg hover:bg-red-500/10 text-red-500 transition-all group"
+          >
+            <UiIcon name="lucide:trash-2" class="w-4 h-4 opacity-70 group-hover:opacity-100" />
+            <span>{{ t('common.delete', 'Sil') }}</span>
+          </button>
+        </template>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <style scoped>
