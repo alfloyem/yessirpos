@@ -227,6 +227,7 @@ model CustomerDebtPayment {
   customerName    String?
   customerBarcode String?
   amount          Float    @default(0)
+  remainingDebt   Float    @default(0)
   paymentMethod   String?
   notes           String?
   cashierId       Int?

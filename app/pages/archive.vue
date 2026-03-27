@@ -90,7 +90,7 @@ const printOrder = (order: any) => {
       paidBy: order.operator !== 'Sistem' ? order.operator : undefined,
       notes: order.paymentDetails?.notes,
       date: order.createdAtFormatted,
-      remainingBalance: 0,
+      remainingBalance: order.paymentDetails?.remainingDebt || 0,
       isCustomer: order.paymentDetails?.isCustomer || false
     })
     return

@@ -436,16 +436,10 @@ export const buildDebtPaymentHtml = (data: DebtPaymentReceiptData, clientData: C
             <span>ÖDƏNİŞ ÜSULU:</span>
             <span>${data.paymentMethod.toUpperCase()}</span>
           </div>
-          ${data.remainingBalance > 0.01 ? `
-            <div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 5px; border-top: 1px dashed #000; padding-top: 5px;">
-              <span>QALIQ BORC:</span>
-              <span>${data.remainingBalance.toFixed(2)} ₼</span>
-            </div>
-          ` : `
-            <div style="text-align: center; font-weight: bold; margin-top: 10px; color: #000; padding: 5px; border: 1px solid #000;">
-              BORC TAM ÖDƏNİLDİ ✓
-            </div>
-          `}
+          <div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 5px; border-top: 1px dashed #000; padding-top: 5px;">
+            <span>QALIQ BORC:</span>
+            <span>${data.remainingBalance.toFixed(2)} ₼</span>
+          </div>
         </div>
 
         ${data.notes ? `

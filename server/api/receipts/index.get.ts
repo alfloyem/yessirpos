@@ -144,12 +144,10 @@ export default defineEventHandler(async (event: any) => {
       subtotal: cdp.amount,
       discountTotal: 0,
       paymentDetails: {
-        method: cdp.paymentMethod,
-        paidAmount: cdp.amount,
-        balanceDue: 0,
+        method: cdp.paymentMethod || 'Nəğd',
         notes: cdp.notes,
-        customerBarcode: cdp.customerBarcode,
-        isCustomer: true
+        isCustomer: true,
+        remainingDebt: cdp.remainingDebt || 0
       },
       items: []
     }))

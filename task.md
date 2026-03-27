@@ -9,8 +9,8 @@
 - [x] product kopyalanan zaman atributlarda kopyalanmalıdır.
 - [] bildiriş sistemi
 - [x] settings
-- [] user access sistemi
-- ![] borc satış imkanı
+- [x] user access sistemi
+- [x] borc satış imkanı
 - [] kredit satış imkanı
 - [] tauri və ya electron ilə program yazılmalıdır.
 - [] barkod scan və print slient olmalıdır.

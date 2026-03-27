@@ -49,6 +49,7 @@ export default defineEventHandler(async (event: any) => {
           customerName: `${customer.firstName} ${customer.lastName}`,
           customerBarcode: customer.barcode,
           amount: Number(amount),
+          remainingDebt: Number(newDebt),
           paymentMethod: paymentMethod || 'Nəğd',
           cashierId: cashierId ? Number(cashierId) : null,
           cashierName: cashierName || null,

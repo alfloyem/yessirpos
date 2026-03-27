@@ -8,6 +8,7 @@ import UiButton from '~/components/ui/Button.vue'
 import DynamicForm, { type FormField } from '~/components/ui/DynamicForm.vue'
 import UiInput from '~/components/ui/Input.vue'
 import UiIcon from '~/components/ui/Icon.vue'
+import UiSelect from '~/components/ui/Select.vue'
 import { printDebtPaymentReceipt } from '~/utils/receiptPrinter'
 
 const { t } = useI18n()
@@ -103,8 +104,38 @@ const loadCustomers = async () => {
   }
 }
 
+const availablePaymentMethods = ref<{ label: string, value: string }[]>([
+  { label: 'Nəğd', value: 'Nəğd' },
+  { label: 'Kart', value: 'Kart' }
+])
+const loadPaymentMethods = async () => {
+  try {
+    const data = await $fetch('/api/payment-methods')
+    const methods = (data as any[]).map(m => ({
+      label: m.name,
+      value: m.name
+    }))
+    
+    // Merge with defaults, avoiding duplicates
+    const combined = [...availablePaymentMethods.value]
+    methods.forEach(m => {
+      if (!combined.some(c => c.value === m.value)) {
+        combined.push(m)
+      }
+    })
+    availablePaymentMethods.value = combined
+    
+    if (availablePaymentMethods.value.length > 0) {
+      payDebtMethod.value = availablePaymentMethods.value[0]?.value || 'Nəğd'
+    }
+  } catch (err) {
+    console.error('Load payment methods error:', err)
+  }
+}
+
 onMounted(() => {
   loadCustomers()
+  loadPaymentMethods()
 })
 
 // --- Modals State ---
@@ -354,7 +385,12 @@ const payingDebt = ref(false)
 const handlePayDebt = async (customer: any) => {
   selectedCustomerForDebt.value = customer
   payDebtAmount.value = ''
-  payDebtMethod.value = 'Nəğd'
+  // Set default payment method if available
+  if (availablePaymentMethods.value.length > 0) {
+    payDebtMethod.value = availablePaymentMethods.value[0]?.value || 'Nəğd'
+  } else {
+    payDebtMethod.value = 'Nəğd'
+  }
   payDebtNotes.value = ''
   showPayDebtModal.value = true
   
@@ -600,13 +636,14 @@ const submitPayDebt = async () => {
             placeholder="0.00"
             icon="lucide:banknote"
           />
-          <UiInput 
-            v-model="payDebtMethod" 
-            type="text" 
-            :label="t('sales.paymentMethod', 'Ödəniş Üsulu')" 
-            placeholder="Nəğd"
-            icon="lucide:credit-card"
-          />
+          <div class="space-y-1.5">
+            <label class="text-[13px] font-bold opacity-50 ml-1">{{ t('sales.paymentMethod', 'Ödəniş Üsulu') }}</label>
+            <UiSelect 
+              v-model="payDebtMethod" 
+              :options="availablePaymentMethods"
+              icon="lucide:credit-card"
+            />
+          </div>
         </div>
 
         <div>
