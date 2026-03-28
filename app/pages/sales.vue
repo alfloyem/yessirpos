@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useI18n } from '#i18n'
-import { useHead, useToast, useAuth } from '#imports'
+import { useHead, useToast, useAuth, useNuxtApp } from '#imports'
 import UiButton from '~/components/ui/Button.vue'
 import UiInput from '~/components/ui/Input.vue'
 import UiIcon from '~/components/ui/Icon.vue'
@@ -14,6 +14,7 @@ import { printReceipt as printReceiptGlobal, type ReceiptData } from '~/utils/re
 const { t } = useI18n()
 const { token, user } = useAuth()
 const toast = useToast()
+const { $api } = useNuxtApp()
 
 const shiftReceiptCount = ref(0)
 

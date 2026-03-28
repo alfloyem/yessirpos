@@ -1,7 +1,9 @@
 export default defineNuxtPlugin(() => {
+  const config = useRuntimeConfig()
   const { token, logout } = useAuth()
 
   const apiFetch = $fetch.create({
+    baseURL: config.public.apiBaseUrl || '',
     onRequest({ options }) {
       // Her istekte token'ı ekle
       if (token.value) {

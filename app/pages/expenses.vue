@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
-import { useHead, useToast, useAuth } from '#imports'
+import { useHead, useToast, useAuth, useNuxtApp } from '#imports'
 import { useI18n } from '#i18n'
 import DataTable from '~/components/ui/DataTable.vue'
 import Modal from '~/components/ui/Modal.vue'
@@ -9,6 +9,7 @@ import DynamicForm, { type FormField } from '~/components/ui/DynamicForm.vue'
 
 const { t } = useI18n()
 const toast = useToast()
+const { $api } = useNuxtApp()
 
 useHead({
   title: t('menu.expenses', 'Xərclər')
@@ -73,9 +74,9 @@ const loadData = async () => {
   
   try {
     const [expensesRes, employeesRes, paymentMethodsRes] = await Promise.all([
-      $fetch('/api/expenses'),
-      $fetch('/api/employees'),
-      $fetch('/api/payment-methods')
+      $api('/api/expenses'),
+      $api('/api/employees'),
+      $api('/api/payment-methods')
     ])
 
     expenses.value = (expensesRes as any[]).map(e => ({
@@ -174,10 +175,10 @@ const performDelete = async () => {
   
   try {
     if (deleteTarget.value.type === 'single') {
-      await $fetch(`/api/expenses/${deleteTarget.value.id}`, { method: 'DELETE' })
+      await $api(`/api/expenses/${deleteTarget.value.id}`, { method: 'DELETE' })
       toast.success(t('toast.expenseDeleted', 'Xərc uğurla silindi'))
     } else {
-      await $fetch('/api/expenses/bulk-delete', {
+      await $api('/api/expenses/bulk-delete', {
         method: 'POST',
         body: { ids: deleteTarget.value.ids }
       })
@@ -197,7 +198,7 @@ const handleDuplicate = async (row: any) => {
   loading.value = true
   try {
     const { token } = useAuth()
-    await $fetch('/api/expenses', {
+    await $api('/api/expenses', {
       method: 'POST',
       body: {
         ...row,
@@ -248,7 +249,7 @@ const saveForm = async () => {
     const method = showAddModal.value ? 'POST' : 'PUT'
     const url = showAddModal.value ? '/api/expenses' : `/api/expenses/${formData.value.id}`
     
-    await $fetch(url, {
+    await $api(url, {
       method,
       body: {
         ...formData.value,

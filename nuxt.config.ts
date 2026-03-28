@@ -11,6 +11,7 @@ export default defineNuxtConfig({
     firebaseServiceAccountPath: process.env.FIREBASE_SERVICE_ACCOUNT_PATH,
     public: {
       clientId: process.env.CLIENT_ID ?? 'bakustreet',
+      apiBaseUrl: process.env.NUXT_PUBLIC_API_URL ?? '',
       firebase: {
         apiKey: process.env.FIREBASE_API_KEY,
         authDomain: process.env.FIREBASE_AUTH_DOMAIN,
