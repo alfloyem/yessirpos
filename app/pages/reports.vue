@@ -424,7 +424,7 @@ onUnmounted(() => {
     </header>
 
     <!-- ═══ MAIN CONTENT AREA ═══ -->
-    <main class="flex-1 overflow-y-auto custom-scrollbar relative p-8">
+    <main class="flex-1 overflow-y-auto custom-scrollbar relative p-3 sm:p-6 lg:p-8">
       
       <!-- Loading Overlay -->
       <transition name="fade">
@@ -446,7 +446,7 @@ onUnmounted(() => {
         <div v-if="dashboardData">
 
           <!-- 1. Key Performance Indicators -->
-          <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+          <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-6">
             <div class="kpi-card group border-l-4 border-l-blue-500">
               <div class="kpi-header">
                 <div class="kpi-icon-box bg-blue-500/10 text-blue-500">
@@ -525,7 +525,7 @@ onUnmounted(() => {
           </div>
 
           <!-- 2. Detailed Grid Stats -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 py-4">
+          <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 py-4">
             <div class="mini-stat-card">
               <div class="mini-stat-icon text-rose-500"><UiIcon name="lucide:arrow-down-right" class="w-5 h-5" /></div>
               <div class="mini-stat-content">
@@ -557,7 +557,7 @@ onUnmounted(() => {
           </div>
 
           <!-- 3. Primary Charts Section -->
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             <div class="lg:col-span-2 card-premium">
               <div class="card-header-premium p-4 md:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
@@ -740,15 +740,15 @@ onUnmounted(() => {
               <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center"><UiIcon name="lucide:search" class="w-4 h-4" /></div>
               <h3 class="card-title-premium">{{ t('reports.productAnalysis') }}</h3>
             </div>
-            <div v-if="productTimelineData" class="flex gap-2">
+            <div v-if="productTimelineData" class="flex flex-wrap gap-2">
               <div class="px-3 py-1 bg-green-500/5 border border-green-500/20 rounded-lg text-green-600 text-[11px] font-black tabular-nums">P&L: {{ fmt(productTimelineData.netRevenue) }} ₼</div>
               <div class="px-3 py-1 bg-blue-500/5 border border-blue-500/20 rounded-lg text-blue-600 text-[11px] font-black tabular-nums">STOK: {{ productTimelineData.product.stock }}</div>
               <button @click="clearTimeline" class="hover:text-red-500 transition-colors"><UiIcon name="lucide:x-circle" class="w-5 h-5" /></button>
             </div>
           </div>
 
-          <div class="p-6">
-            <div class="relative max-w-xl mb-8">
+          <div class="p-4 sm:p-6">
+            <div class="relative max-w-xl mb-6 sm:mb-8">
               <UiIcon name="lucide:search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
               <input
                 v-model="searchProductQuery"
@@ -867,19 +867,20 @@ onUnmounted(() => {
       <!-- TAB: SALES                      -->
       <!-- ══════════════════════════ -->
       <div v-else-if="activeTab === 'sales'" class="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div class="flex items-center gap-3">
              <div class="w-2 h-8 bg-[var(--text-primary)] rounded-full"></div>
-             <h2 class="text-xl font-black text-[var(--text-app)] tracking-tight">{{ t('reports.operationHistory') }}</h2>
+             <h2 class="text-lg sm:text-xl font-black text-[var(--text-app)] tracking-tight">{{ t('reports.operationHistory') }}</h2>
           </div>
-          <button @click="exportExcel(salesData?.sales || [], 'SalesHistory')" class="btn-premium-action">
+          <button @click="exportExcel(salesData?.sales || [], 'SalesHistory')" class="btn-premium-action self-start sm:self-auto">
             <UiIcon name="lucide:file-spreadsheet" class="w-4 h-4" />
             <span>{{ t('reports.excelReport') }}</span>
           </button>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <div class="card-premium h-fit">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
+          <!-- Payment Methods: appears below table on mobile, left on desktop -->
+          <div class="card-premium h-fit lg:order-first order-last">
             <div class="p-5 border-b border-[var(--border-app)]/50">
                <h3 class="text-xs font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">{{ t('reports.paymentMethods') }}</h3>
             </div>
@@ -1379,4 +1380,17 @@ onUnmounted(() => {
 .scale-enter-from, .scale-leave-to { opacity: 0; transform: scale(0.95); }
 
 .tabular-nums { font-variant-numeric: tabular-nums; }
+/* ── KPI Cards Mobile ── */
+@media (max-width: 640px) {
+  .kpi-card { padding: 14px; gap: 8px; border-radius: 16px; }
+  .kpi-value { font-size: 16px; }
+  .kpi-label { font-size: 9px; }
+  .mini-stat-card { padding: 12px 14px; gap: 10px; }
+  .mini-stat-value { font-size: 14px; }
+  .card-header-premium { padding: 16px; }
+  .card-title-premium { font-size: 14px; }
+  .card-premium { border-radius: 18px; }
+  .btn-premium-action { height: 38px; padding: 0 14px; font-size: 12px; }
+  .list-item { padding: 10px 12px; gap: 10px; }
+}
 </style>
