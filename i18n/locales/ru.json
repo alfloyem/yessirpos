@@ -195,7 +195,10 @@
     "previous": "Предыдущий",
     "next": "Следующий",
     "loading": "Загрузка...",
-    "pleaseWait": "Подождите..."
+    "pleaseWait": "Подождите...",
+    "add": "добавить",
+    "typeAndPressEnter": "Введите и нажмите Enter...",
+    "noResultsFound": "Результаты не найдены"
   },
   "orders": {
     "title": "Архив чеков",
@@ -250,7 +253,11 @@
     "customerDeleted": "Клиент успешно удален",
     "customersDeleted": "{count} клиентов успешно удалены",
     "customerDuplicated": "Клиент скопирован",
+    "attributeAdded": "Атрибут добавлен",
     "attributeUpdated": "Атрибут обновлен",
+    "attributesUpdated": "{count} атрибутов обновлено",
+    "attributeDeleted": "Атрибут удален",
+    "attributesDeleted": "{count} атрибутов удалено",
     "attributeDuplicated": "Атрибут скопирован",
     "barcodeCopied": "Штрих-код скопирован!",
     "expenseAdded": "Расход успешно добавлен",
@@ -357,7 +364,8 @@
     "values": "Значения",
     "addNew": "Добавить новый атрибут",
     "edit": "Редактировать атрибут",
-    "bulkDeleteCount": "Выбранные {count} атрибутов будут удалены."
+    "bulkDeleteCount": "Выбранные {count} атрибутов будут удалены.",
+    "title": "Атрибуты"
   },
   "products": {
     "image": "Изображение товара",

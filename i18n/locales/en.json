@@ -195,7 +195,10 @@
     "previous": "Previous",
     "next": "Next",
     "loading": "Loading...",
-    "pleaseWait": "Please wait..."
+    "pleaseWait": "Please wait...",
+    "add": "add",
+    "typeAndPressEnter": "Type and press Enter...",
+    "noResultsFound": "No results found"
   },
   "orders": {
     "title": "Receipt Archive",
@@ -252,6 +255,9 @@
     "customerDuplicated": "Customer duplicated",
     "attributeAdded": "Attribute added successfully",
     "attributeUpdated": "Attribute updated",
+    "attributesUpdated": "{count} attributes updated",
+    "attributeDeleted": "Attribute deleted",
+    "attributesDeleted": "{count} attributes deleted",
     "attributeDuplicated": "Attribute duplicated",
     "barcodeCopied": "Barcode copied!",
     "expenseAdded": "Expense added",
@@ -358,7 +364,8 @@
     "values": "Values",
     "addNew": "Add New Attribute",
     "edit": "Edit Attribute",
-    "bulkDeleteCount": "Selected {count} attributes will be deleted."
+    "bulkDeleteCount": "Selected {count} attributes will be deleted.",
+    "title": "Attributes"
   },
   "products": {
     "image": "Product Image",

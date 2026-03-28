@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
+import { useI18n } from '#i18n'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   modelValue: string[]
@@ -152,7 +155,7 @@ const handleBlur = () => {
         @focus="isFocused = true"
         @blur="handleBlur"
         @keydown="handleKeydown"
-        :placeholder="modelValue.length === 0 ? (placeholder || 'Yazın və Enter basın...') : ''"
+        :placeholder="modelValue.length === 0 ? (placeholder || t('common.typeAndPressEnter', 'Yazın və Enter basın...')) : ''"
         class="flex-1 min-w-[120px] ml-1 bg-transparent outline-none text-[15px] font-medium text-[var(--text-app)] placeholder:text-[var(--text-app)] placeholder:opacity-40 placeholder:font-normal"
       />
     </div>
@@ -185,7 +188,7 @@ const handleBlur = () => {
           />
           <span class="flex-1">
             <template v-if="item.type === 'new'">
-              "{{ item.value }}" əlavə et
+              "{{ item.value }}" {{ t('common.add', 'əlavə et') }}
             </template>
             <template v-else>
               {{ item.value }}
@@ -199,7 +202,7 @@ const handleBlur = () => {
         </div>
 
         <div v-if="dropdownItems.length === 0 && inputValue.trim()" class="px-4 py-3 text-sm text-[var(--text-app)] opacity-60 text-center">
-          Nəticə tapılmadı
+          {{ t('common.noResultsFound', 'Nəticə tapılmadı') }}
         </div>
       </div>
     </Transition>

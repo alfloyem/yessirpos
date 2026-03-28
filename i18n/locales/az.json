@@ -197,7 +197,10 @@
     "previous": "Əvvəlki",
     "next": "Sonrakı",
     "loading": "Yüklənir...",
-    "pleaseWait": "Gözləyin..."
+    "pleaseWait": "Gözləyin...",
+    "add": "əlavə et",
+    "typeAndPressEnter": "Yazın və Enter basın...",
+    "noResultsFound": "Nəticə tapılmadı"
   },
   "orders": {
     "title": "Çek Arxivi",
@@ -253,7 +256,11 @@
     "customerDeleted": "Müştəri uğurla silindi",
     "customersDeleted": "{count} müştəri uğurla silindi",
     "customerDuplicated": "Müştəri kopyalandı",
+    "attributeAdded": "Atribut əlavə edildi",
     "attributeUpdated": "Atribut yeniləndi",
+    "attributesUpdated": "{count} atribut yeniləndi",
+    "attributeDeleted": "Atribut silindi",
+    "attributesDeleted": "{count} atribut silindi",
     "attributeDuplicated": "Atribut kopyalandı",
     "barcodeCopied": "Barkod uğurla kopyalandı!",
     "expenseAdded": "Xərc uğurla əlavə edildi",
@@ -360,7 +367,8 @@
     "values": "Dəyərlər",
     "addNew": "Yeni Atribut Əlavə Et",
     "edit": "Atributu Redaktə Et",
-    "bulkDeleteCount": "Seçilmiş {count} atribut silinəcək."
+    "bulkDeleteCount": "Seçilmiş {count} atribut silinəcək.",
+    "title": "Atributlar"
   },
   "products": {
     "image": "Məhsulun şəkli",

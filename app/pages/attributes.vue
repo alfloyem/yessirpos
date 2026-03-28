@@ -12,7 +12,7 @@ const { token, logout } = useAuth()
 const toast = useToast()
 
 useHead({
-  title: t('menu.attributes', 'Atributlar')
+  title: t('attributes.title', 'Atributlar')
 })
 
 // --- Centralized Schema ---
@@ -157,14 +157,15 @@ const performDelete = async () => {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token.value}` }
       })
+      toast.success(t('toast.attributeDeleted', 'Atribut silindi'))
     } else if (deleteTarget.value.type === 'bulk') {
       await $fetch('/api/attributes/bulk-delete', {
         method: 'POST',
         body: { ids: deleteTarget.value.ids },
         headers: { Authorization: `Bearer ${token.value}` }
       })
+      toast.success(t('toast.attributesDeleted', { count: deleteTarget.value.ids?.length, default: `${deleteTarget.value.ids?.length} atribut silindi` }))
     }
-    toast.success(t('common.delete', 'Silindi'))
     await loadAttributes()
     showDeleteConfirmModal.value = false
     deleteTarget.value = null
@@ -215,6 +216,7 @@ const saveForm = async () => {
           body: { ids: bulkSelectedIds.value, updates },
           headers
         })
+        toast.success(t('toast.attributesUpdated', { count: bulkSelectedIds.value.length, default: `${bulkSelectedIds.value.length} atribut yeniləndi` }))
         bulkSelectedIds.value = []
       } else {
         await $fetch(`/api/attributes/${formData.value.id}`, {
@@ -239,13 +241,13 @@ const saveForm = async () => {
   <div class="space-y-6 font-sans">
     <div class="flex items-center justify-between">
       <h1 class="text-2xl font-bold text-[var(--text-app)]">
-        {{ t('menu.attributes', 'Atributlar') }}
+        {{ t('attributes.title', 'Atributlar') }}
       </h1>
     </div>
 
     <!-- Smart Data Table -->
     <DataTable 
-      :title="t('menu.attributes', 'Atributlar')"
+      :title="t('attributes.title', 'Atributlar')"
       :data="mockData" 
       :columns="columns"
       :selectable="true"
