@@ -21,9 +21,11 @@
 - ![x] satış sehifesinde satış zamanı stock sayı anlıq yenilensin
 - ![x] product sehifesinde mehsulun üzerinde klik edilen zaman auto redakte dialogu açılsın
 - ![x] reports mehsullar hissesine pagination elave edilmelidir.
-npx prisma db push
-npx prisma generate
+  npx prisma db push
+  npx prisma generate
 - [] vercelde .env elave edilmelidir.
 - [] saytda tr dili qalmamalıdır. her şey i18n bağlı olmalıdır.
 - [] sayt tam responsive olmalıdır
 - [] QA test edilmelidir.
+- [] Whatsappdan/mailden mesaj gönderme
+- [] AI söhbeti
