@@ -20,7 +20,7 @@
 - [x] reports mehsullar hissesine pagination elave edilmelidir.
 - [] vercelde .env elave edilmelidir.
 - ![x] saytda tr dili qalmamalıdır. her şey i18n bağlı olmalıdır.
-- ![] sayt tam responsive olmalıdır
+- ![x] sayt tam responsive olmalıdır
 - ![] QA test edilmelidir.
 - [] Whatsappdan/mailden mesaj gönderme
 - [] AI söhbeti
