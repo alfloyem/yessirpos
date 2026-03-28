@@ -193,7 +193,8 @@
     "search": "Search...",
     "noDataFound": "No data found",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "loading": "Loading..."
   },
   "orders": {
     "title": "Receipt Archive",
@@ -347,7 +348,9 @@
     "createdBy": "Employee",
     "addNew": "Add New Customer",
     "edit": "Edit Customer",
-    "bulkDeleteCount": "Selected {count} customers will be deleted."
+    "bulkDeleteCount": "Selected {count} customers will be deleted.",
+    "title": "Customers",
+    "showMore": "Show More"
   },
   "attributes": {
     "name": "Attribute Name",

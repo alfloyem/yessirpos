@@ -15,7 +15,7 @@ const { t } = useI18n()
 const toast = useToast()
 
 useHead({
-  title: t('menu.customers', 'Müştərilər')
+  title: t('customers.title', 'Müştərilər')
 })
 
 // --- Helper for Barcode Generation ---
@@ -506,13 +506,13 @@ const submitPayDebt = async () => {
   <div class="space-y-6">
     <div class="flex items-center justify-between">
       <h1 class="text-2xl font-bold text-[var(--text-app)]">
-        {{ t('menu.customers', 'Müştərilər') }}
+        {{ t('customers.title', 'Müştərilər') }}
       </h1>
     </div>
 
     <!-- Smart Data Table -->
     <DataTable 
-      :title="t('menu.customers', 'Müştərilər')"
+      :title="t('customers.title', 'Müştərilər')"
       :data="mockData" 
       :columns="columns"
       :selectable="true"
@@ -697,7 +697,7 @@ const submitPayDebt = async () => {
           </h3>
           <div class="max-h-[200px] overflow-y-auto rounded-xl border border-[var(--border-app)] divide-y divide-[var(--border-app)]">
             <template v-if="loadingHistory">
-              <div class="p-8 text-center opacity-40 italic text-sm">Yüklənir...</div>
+              <div class="p-8 text-center opacity-40 italic text-sm">{{ t('common.loading', 'Yüklənir...') }}</div>
             </template>
             <template v-else-if="debtHistory.length === 0">
               <div class="p-8 text-center opacity-40 italic text-sm">{{ t('orders.noData', 'Məlumat yoxdur') }}</div>
@@ -720,7 +720,7 @@ const submitPayDebt = async () => {
               :loading="loadingMoreHistory"
               @click="loadMoreHistory"
             >
-              {{ t('common.showMore', 'Daha çox göstər') }}
+              {{ t('customers.showMore', 'Daha çox göstər') }}
             </UiButton>
           </div>
         </div>

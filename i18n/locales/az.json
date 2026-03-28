@@ -195,7 +195,8 @@
     "search": "Axtar...",
     "noDataFound": "Məlumat tapılmadı",
     "previous": "Əvvəlki",
-    "next": "Sonrakı"
+    "next": "Sonrakı",
+    "loading": "Yüklənir..."
   },
   "orders": {
     "title": "Çek Arxivi",
@@ -349,7 +350,9 @@
     "createdBy": "Əməkdaş",
     "addNew": "Yeni Müştəri Əlavə Et",
     "edit": "Müştərini Redaktə Et",
-    "bulkDeleteCount": "Seçilmiş {count} müştəri silinəcək."
+    "bulkDeleteCount": "Seçilmiş {count} müştəri silinəcək.",
+    "title": "Müştərilər",
+    "showMore": "Daha çox göstər"
   },
   "attributes": {
     "name": "Atributun adı",
