@@ -163,14 +163,14 @@ const isPasswordMismatch = (field: any) => {
       />
       
       <!-- DateTime Input -->
-      <div v-else-if="field.type === 'datetime'" class="relative">
+      <div v-else-if="field.type === 'datetime'" class="relative w-full overflow-hidden">
         <UiInput 
           type="datetime-local"
           :modelValue="modelValue[field.key]"
           @update:modelValue="val => updateField(field.key, val)"
           :disabled="isLoading || field.disabled"
           :icon="field.icon"
-          class="hover:border-[var(--text-primary)] transition-colors"
+          class="hover:border-[var(--text-primary)] transition-colors w-full"
           :class="{ '!border-[var(--color-brand-danger)]': errors?.[field.key] }"
         />
       </div>

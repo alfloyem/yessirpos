@@ -68,7 +68,7 @@ const formatPrice = (price: number | string) => {
 
 <template>
   <div 
-    class="bg-[var(--input-bg)] border border-[var(--border-app)] rounded-2xl overflow-hidden transition-all duration-300 group"
+    class="bg-[var(--input-bg)] border border-[var(--border-app)] rounded-2xl overflow-hidden transition-all duration-200 group select-none"
     :class="[
       isExpanded ? 'border-[var(--text-primary)] ring-2 ring-[var(--text-primary)]/10' : 'hover:border-[var(--text-primary)]/40 shadow-sm hover:shadow-md'
     ]"
@@ -76,7 +76,7 @@ const formatPrice = (price: number | string) => {
     <!-- Main Product Section - Compact & Elegant -->
     <div 
       @click="toggleExpand"
-      class="p-2.5 cursor-pointer flex items-center gap-3 relative"
+      class="p-2.5 cursor-pointer flex items-center gap-3 relative transition-all duration-150 active:bg-[var(--text-primary)]/5 active:scale-[0.98]"
     >
       <!-- Image - Balanced & Premium -->
       <div class="w-14 h-14 bg-[var(--text-primary)]/5 rounded-[18px] flex items-center justify-center p-1.5 relative overflow-hidden group-hover:bg-[var(--text-primary)]/10 transition-colors shrink-0 border border-[var(--border-app)]/50">
@@ -125,7 +125,7 @@ const formatPrice = (price: number | string) => {
           v-for="variant in product.variants" 
           :key="variant.id"
           @click="addVariantToCart(variant)"
-          class="p-2 flex items-center gap-3 rounded-xl hover:bg-[var(--text-primary)]/5 cursor-pointer border border-transparent hover:border-[var(--text-primary)]/15 transition-all group/v"
+          class="p-2 flex items-center gap-3 rounded-xl hover:bg-[var(--text-primary)]/5 active:bg-[var(--text-primary)]/10 active:scale-[0.98] cursor-pointer border border-transparent hover:border-[var(--text-primary)]/15 active:border-[var(--text-primary)]/20 transition-all duration-150 group/v select-none"
         >
           <div class="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2 min-w-0">
             <div class="flex items-center gap-2 min-w-0 flex-1">
