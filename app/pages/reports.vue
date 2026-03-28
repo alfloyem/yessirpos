@@ -544,7 +544,7 @@ onUnmounted(() => {
               <div class="mini-stat-icon text-blue-500"><UiIcon name="lucide:package-2" class="w-5 h-5" /></div>
               <div class="mini-stat-content">
                 <p class="mini-stat-label">{{ t('reports.productSales') }}</p>
-                <p class="mini-stat-value">{{ dashboardData.kpis.totalItemsSold }} ədəd</p>
+                <p class="mini-stat-value">{{ dashboardData.kpis.totalItemsSold }} {{ t('dashboard.pieces') }}</p>
               </div>
             </div>
             <div class="mini-stat-card">
