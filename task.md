@@ -19,7 +19,7 @@
 - [x] product sehifesinde mehsulun üzerinde klik edilen zaman auto redakte dialogu açılsın
 - [x] reports mehsullar hissesine pagination elave edilmelidir.
 - [] vercelde .env elave edilmelidir.
-- ![] saytda tr dili qalmamalıdır. her şey i18n bağlı olmalıdır.
+- ![x] saytda tr dili qalmamalıdır. her şey i18n bağlı olmalıdır.
 - ![] sayt tam responsive olmalıdır
 - ![] QA test edilmelidir.
 - [] Whatsappdan/mailden mesaj gönderme
