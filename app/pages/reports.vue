@@ -317,6 +317,16 @@ watch(productsData, () => {
 watch(productTimelineData, () => {
   currentPageTimeline.value = 1
 })
+
+const windowWidth = ref(0)
+const updateWidth = () => { windowWidth.value = window.innerWidth }
+onMounted(() => {
+  windowWidth.value = window.innerWidth
+  window.addEventListener('resize', updateWidth)
+})
+onUnmounted(() => {
+  window.removeEventListener('resize', updateWidth)
+})
 </script>
 
 <template>
@@ -328,32 +338,34 @@ watch(productTimelineData, () => {
       <div v-if="dateMenuOpen" @click="dateMenuOpen = false" class="fixed inset-0 z-40"></div>
 
       <!-- Single Row: Tabs + Actions -->
-      <div class="flex items-center justify-between px-8 h-14">
-        <div class="flex items-center gap-1 overflow-x-auto no-scrollbar">
+      <div class="flex flex-col md:flex-row md:items-center justify-between px-4 md:px-8 py-2 md:h-auto md:min-h-[56px] gap-3">
+        <div class="flex-1 flex items-center gap-1 overflow-x-auto no-scrollbar pb-1 md:pb-0 shrink-0">
           <button
             v-for="tab in tabs" :key="tab.id"
             @click="activeTab = tab.id"
-            class="group flex items-center gap-2 px-4 h-8 rounded-lg text-[12px] font-bold whitespace-nowrap transition-all relative overflow-hidden"
+            class="group flex items-center gap-2 px-3 md:px-4 h-9 rounded-xl text-[12px] font-black whitespace-nowrap transition-all relative shrink-0"
             :class="activeTab === tab.id
               ? 'text-[var(--text-primary)] bg-[var(--text-primary)]/5'
               : 'text-[var(--text-muted)] hover:text-[var(--text-app)] hover:bg-[var(--input-bg)]'"
           >
             <UiIcon :name="tab.icon" class="w-4 h-4 transition-transform group-hover:scale-110" />
-            {{ tab.label }}
-            <div v-if="activeTab === tab.id" class="absolute bottom-0 left-0 w-full h-[2px] bg-[var(--text-primary)]"></div>
+            <span>{{ tab.label }}</span>
+            <div v-if="activeTab === tab.id" class="absolute bottom-0 left-0 w-full h-[2.5px] bg-[var(--text-primary)] rounded-full"></div>
           </button>
         </div>
 
-        <div class="flex items-center gap-3 shrink-0">
+        <div class="flex items-center gap-2 md:gap-3 shrink-0">
           <!-- Date Range Dropdown -->
-          <div class="relative">
+          <div class="relative flex-1 md:flex-none">
             <button
               @click="dateMenuOpen = !dateMenuOpen"
-              class="flex items-center gap-2.5 h-10 px-4 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-xl text-sm font-bold text-[var(--text-app)] hover:border-[var(--text-primary)]/50 transition-all"
+              class="flex items-center justify-between md:justify-start w-full md:w-auto gap-2.5 h-10 px-4 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-xl text-xs font-black text-[var(--text-app)] hover:border-[var(--text-primary)]/50 transition-all shadow-sm"
               :class="dateMenuOpen ? 'border-[var(--text-primary)]/50' : ''"
             >
-              <UiIcon name="lucide:calendar" class="w-4 h-4 text-[var(--text-primary)]" />
-              <span>{{ activeFilterLabel }}</span>
+              <div class="flex items-center gap-2">
+                <UiIcon name="lucide:calendar" class="w-4 h-4 text-[var(--text-primary)]" />
+                <span>{{ activeFilterLabel }}</span>
+              </div>
               <UiIcon name="lucide:chevron-down" class="w-3.5 h-3.5 text-[var(--text-muted)] transition-transform" :class="dateMenuOpen ? 'rotate-180' : ''" />
             </button>
 
@@ -545,40 +557,42 @@ watch(productTimelineData, () => {
           </div>
 
           <!-- 3. Primary Charts Section -->
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
             <div class="lg:col-span-2 card-premium">
-              <div class="card-header-premium">
+              <div class="card-header-premium p-4 md:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
                   <UiIcon name="lucide:timer" class="w-5 h-5 text-[var(--text-primary)]" />
-                  <h3 class="card-title-premium">{{ t('reports.hourlyActivity') }}</h3>
+                  <h3 class="card-title-premium text-sm md:text-base font-black">{{ t('reports.hourlyActivity') }}</h3>
                 </div>
-                <div class="flex items-center gap-4">
-                  <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-[var(--text-primary)]"></div><span class="text-[10px] uppercase font-bold opacity-60">{{ t('orders.sale') }}</span></div>
-                  <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-[var(--text-muted)] opacity-30"></div><span class="text-[10px] uppercase font-bold opacity-60">{{ t('orders.refund') }}</span></div>
+                <div class="flex items-center gap-4 shrink-0">
+                  <div class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full bg-[var(--text-primary)]"></div><span class="text-[10px] uppercase font-black opacity-60">{{ t('orders.sale') }}</span></div>
+                  <div class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full bg-[var(--border-app)]"></div><span class="text-[10px] uppercase font-black opacity-60">{{ t('orders.refund') }}</span></div>
                 </div>
               </div>
-              <div class="h-[300px] w-full px-2">
-                <Bar
-                  :data="{
-                    labels: dashboardData.hourlyChart.labels,
-                    datasets: [
-                      { label: t('orders.sale'), data: dashboardData.hourlyChart.revenue, backgroundColor: '#7367F0', borderRadius: 4, barThickness: 12 },
-                      { label: t('orders.refund'), data: dashboardData.hourlyChart.refunds, backgroundColor: '#EBEBEF', borderRadius: 4, barThickness: 12 }
-                    ]
-                  }"
-                  :options="chartOpts(false)"
-                />
+              <div class="h-[300px] w-full px-2 overflow-x-auto no-scrollbar">
+                <div class="h-full min-w-[600px] md:min-w-0">
+                  <Bar
+                    :data="{
+                      labels: dashboardData.hourlyChart.labels,
+                      datasets: [
+                        { label: t('orders.sale'), data: dashboardData.hourlyChart.revenue, backgroundColor: '#7367F0', borderRadius: 4, barThickness: windowWidth < 640 ? 8 : 12 },
+                        { label: t('orders.refund'), data: dashboardData.hourlyChart.refunds, backgroundColor: 'rgba(var(--border-app-rgb, 200, 200, 200), 0.5)', borderRadius: 4, barThickness: windowWidth < 640 ? 8 : 12 }
+                      ]
+                    }"
+                    :options="chartOpts(false)"
+                  />
+                </div>
               </div>
             </div>
 
             <div class="card-premium">
-              <div class="card-header-premium">
+              <div class="card-header-premium p-4 md:p-6">
                 <div class="flex items-center gap-3">
                   <UiIcon name="lucide:flame" class="w-5 h-5 text-rose-500" />
-                  <h3 class="card-title-premium">{{ t('reports.incomeTrend') }}</h3>
+                  <h3 class="card-title-premium text-sm md:text-base font-black">{{ t('reports.incomeTrend') }}</h3>
                 </div>
               </div>
-              <div class="h-[300px] w-full px-2">
+              <div class="h-[250px] md:h-[300px] w-full px-2">
                 <Line
                   :data="{
                     labels: dashboardData.dailyChart.labels,
@@ -891,7 +905,8 @@ watch(productTimelineData, () => {
           </div>
 
           <div class="lg:col-span-3 card-premium overflow-hidden">
-            <div class="overflow-x-auto">
+            <!-- Desktop Table View -->
+            <div class="hidden md:block overflow-x-auto">
               <table class="w-full text-left border-separate border-spacing-0">
                 <thead>
                   <tr class="bg-[var(--bg-app)]/50 backdrop-blur-sm">
@@ -924,10 +939,35 @@ watch(productTimelineData, () => {
                   </tr>
                 </tbody>
               </table>
-              <div v-if="!salesData?.sales?.length" class="flex flex-col items-center justify-center py-24 text-[var(--text-muted)] opacity-20">
-                <UiIcon name="lucide:inbox" class="w-16 h-16 mb-2" />
-                <p class="text-sm font-black uppercase tracking-widest">{{ t('reports.noOperationsFound') }}</p>
+            </div>
+
+            <!-- Mobile Card View -->
+            <div class="md:hidden divide-y divide-[var(--border-app)]/50">
+              <div v-for="sale in salesData?.sales" :key="sale.id" class="p-4 flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-black text-[var(--text-primary)] tabular-nums">{{ sale.receiptNo }}</span>
+                  <span class="text-[11px] font-bold text-[var(--text-muted)] opacity-50">{{ new Date(sale.createdAt).toLocaleString('az-AZ', { dateStyle: 'short', timeStyle: 'short' }) }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-full bg-[var(--bg-app)] flex items-center justify-center text-[10px] font-black border border-[var(--border-app)]">{{ (sale.customerName || 'A')[0] }}</div>
+                    <span class="text-xs font-black text-[var(--text-app)]">{{ sale.customerName || t('orders.anonymousCustomer') }}</span>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-sm font-black tabular-nums" :class="sale.finalTotal < 0 ? 'text-rose-600' : 'text-[var(--text-app)]'">{{ fmt(sale.finalTotal) }} ₼</p>
+                    <p v-if="sale.discountTotal > 0" class="text-[10px] font-bold text-rose-500">-{{ fmt(sale.discountTotal) }} ₼ {{ t('sales.discount').toLowerCase() }}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 text-[10px] font-bold text-[var(--text-muted)] opacity-60">
+                   <UiIcon name="lucide:user" class="w-3 h-3" />
+                   <span>{{ sale.cashierName || t('reports.system') }}</span>
+                </div>
               </div>
+            </div>
+
+            <div v-if="!salesData?.sales?.length" class="flex flex-col items-center justify-center py-20 text-[var(--text-muted)] opacity-20">
+              <UiIcon name="lucide:inbox" class="w-16 h-16 mb-2" />
+              <p class="text-sm font-black uppercase tracking-widest">{{ t('reports.noOperationsFound') }}</p>
             </div>
           </div>
         </div>
@@ -962,11 +1002,13 @@ watch(productTimelineData, () => {
           </div>
 
           <div class="lg:col-span-2 card-premium overflow-hidden">
-            <div class="p-6 border-b border-[var(--border-app)]/50 flex justify-between items-center bg-[var(--bg-app)]/30">
+            <div class="p-4 md:p-6 border-b border-[var(--border-app)]/50 flex flex-col sm:flex-row justify-between items-center bg-[var(--bg-app)]/30 gap-4">
                <h3 class="text-sm font-black text-[var(--text-app)]">{{ t('reports.expenseJournal') }}</h3>
-               <button @click="exportExcel(expensesData?.expenses || [], 'Expenses')" class="btn-action">{{ t('common.export') }}</button>
+               <button @click="exportExcel(expensesData?.expenses || [], 'Expenses')" class="btn-action w-full sm:w-auto justify-center">{{ t('common.export') }}</button>
             </div>
-            <div class="overflow-x-auto overflow-y-auto" style="max-height: 600px;">
+            
+            <!-- Desktop Table View -->
+            <div class="hidden md:block overflow-x-auto overflow-y-auto" style="max-height: 600px;">
               <table class="w-full text-left">
                 <thead class="sticky top-0 bg-[var(--bg-app)] z-10">
                   <tr>
@@ -989,6 +1031,24 @@ watch(productTimelineData, () => {
                   </tr>
                 </tbody>
               </table>
+            </div>
+
+            <!-- Mobile Card View -->
+            <div class="md:hidden divide-y divide-[var(--border-app)]/50">
+              <div v-for="exp in expensesData?.expenses" :key="exp.id" class="p-4 flex flex-col gap-2">
+                <div class="flex items-center justify-between">
+                  <span class="px-2 py-0.5 rounded-lg bg-[var(--border-app)]/30 text-[9px] font-black uppercase tracking-widest text-[var(--text-app)] border border-[var(--border-app)]">{{ exp.category || t('reports.internal') }}</span>
+                  <span class="text-[10px] font-bold text-[var(--text-muted)] opacity-50">{{ new Date(exp.createdAt).toLocaleDateString('az-AZ') }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-[var(--text-app)]">{{ exp.notes || '-' }}</span>
+                  <span class="text-sm font-black text-rose-600 tabular-nums">-{{ fmt(exp.amount) }} ₼</span>
+                </div>
+                <div class="flex items-center gap-2 text-[10px] font-bold text-[var(--text-muted)] opacity-60">
+                   <UiIcon name="lucide:user" class="w-3 h-3" />
+                   <span>{{ exp.employeeName || t('reports.system') }}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1015,8 +1075,8 @@ watch(productTimelineData, () => {
                   :data="{
                     labels: employeesData.cashiers.map((c: any) => c.name),
                     datasets: [
-                      { label: t('orders.sale') + ' (₼)', data: employeesData.cashiers.map((c: any) => c.totalRevenue), backgroundColor: '#7367F0', borderRadius: 6, maxBarThickness: 40 },
-                      { label: t('orders.totalDiscount') + ' (₼)', data: employeesData.cashiers.map((c: any) => c.totalDiscount), backgroundColor: 'rgba(115,103,240,0.15)', borderRadius: 6, maxBarThickness: 40 }
+                      { label: t('orders.sale') + ' (₼)', data: employeesData.cashiers.map((c: any) => c.totalRevenue), backgroundColor: '#7367F0', borderRadius: 6, barThickness: windowWidth < 640 ? 12 : 30 },
+                      { label: t('orders.totalDiscount') + ' (₼)', data: employeesData.cashiers.map((c: any) => c.totalDiscount), backgroundColor: 'rgba(115,103,240,0.15)', borderRadius: 6, barThickness: windowWidth < 640 ? 12 : 30 }
                     ]
                   }"
                   :options="chartOpts(true)"
@@ -1049,19 +1109,19 @@ watch(productTimelineData, () => {
 
             <div class="p-6">
               <div class="grid grid-cols-1 gap-3">
-                <div v-for="(c, idx) in employeesData.topCustomers" :key="c.name" class="flex items-center gap-4 p-4 rounded-2xl bg-[var(--input-bg)] group hover:bg-[var(--text-primary)] hover:text-white transition-all">
-                  <div class="w-10 h-10 rounded-full bg-[var(--bg-app)] flex items-center justify-center text-[var(--text-primary)] group-hover:bg-white/20 group-hover:text-white transition-colors">
-                    <UiIcon v-if="Number(idx) === 0" name="lucide:medal" class="w-5 h-5 text-amber-500" />
-                    <span v-else class="text-xs font-black">{{ Number(idx) + 1 }}</span>
+                  <div v-for="(c, idx) in employeesData.topCustomers" :key="c.name" class="flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-2xl bg-[var(--input-bg)] group hover:bg-[var(--text-primary)] hover:text-white transition-all">
+                    <div class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[var(--bg-app)] flex items-center justify-center text-[var(--text-primary)] group-hover:bg-white/20 group-hover:text-white transition-colors shrink-0">
+                      <UiIcon v-if="Number(idx) === 0" name="lucide:medal" class="w-4 h-4 md:w-5 md:h-5 text-amber-500" />
+                      <span v-else class="text-[10px] md:text-xs font-black">{{ Number(idx) + 1 }}</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-xs md:text-sm font-black group-hover:text-white truncate">{{ c.name }}</p>
+                      <p class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest group-hover:text-white/60">VIP Client</p>
+                    </div>
+                    <div class="text-right shrink-0">
+                      <p class="text-sm md:text-lg font-black tabular-nums group-hover:text-white">{{ fmt(c.totalSpent) }} <span class="text-[10px] md:text-xs opacity-30">₼</span></p>
+                    </div>
                   </div>
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-black group-hover:text-white">{{ c.name }}</p>
-                    <p class="text-[10px] font-bold opacity-40 uppercase tracking-widest group-hover:text-white/60">VIP Client</p>
-                  </div>
-                  <div class="text-right">
-                    <p class="text-lg font-black tabular-nums group-hover:text-white">{{ fmt(c.totalSpent) }} <span class="text-xs opacity-30">₼</span></p>
-                  </div>
-                </div>
                 <div v-if="!employeesData.topCustomers.length" class="flex flex-col items-center justify-center py-20 opacity-20">
                   <UiIcon name="lucide:users" class="w-16 h-16 mb-2" />
                   <p class="text-xs font-bold uppercase tracking-widest">{{ t('common.noData') }}</p>

@@ -9,6 +9,8 @@ import type { MenuItem } from '~/utils/menu'
 const { user, logout } = useAuth();
 const { unreadCount, fetchNotifications } = useNotifications();
 const clientData = getClientData()
+const isMobileMenuOpen = useState('mobileMenuOpen', () => false)
+
 const notAllowedPaths = computed(() => {
     const globalForbidden = clientData.permissions?.notAllowed || []
     const localForbidden = user.value?.notAllowed || []
@@ -97,7 +99,26 @@ watch(isSidebarCollapsed, (collapsed) => {
 </script>
 
 <template>
-    <aside :class="['h-screen border-r border-[var(--border-app)] flex flex-col transition-all duration-300 ease-in-out', isSidebarCollapsed ? 'w-20' : 'w-64']">
+    <div>
+        <!-- Mobile Backdrop Overlay -->
+        <transition name="fade">
+            <div 
+                v-if="isMobileMenuOpen" 
+                @click="isMobileMenuOpen = false" 
+                class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 lg:hidden"
+            ></div>
+        </transition>
+
+        <!-- Sidebar aside element -->
+        <aside 
+            :class="[
+                'h-screen border-r border-[var(--border-app)] flex flex-col transition-all duration-300 ease-in-out bg-[var(--bg-app)]',
+                'fixed lg:sticky top-0 left-0 z-50 lg:z-30 shrink-0',
+                isSidebarCollapsed ? 'w-20' : 'w-64',
+                // Mobile behavior: toggle placement
+                isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+            ]"
+        >
         <!-- Logo Section -->
         <div class="h-16 flex items-center px-4">
             <div class="flex items-center gap-1 overflow-hidden">
@@ -154,6 +175,7 @@ watch(isSidebarCollapsed, (collapsed) => {
                         v-for="child in category.children"
                         :key="child.to"
                         :to="child.to"
+                        @click="isMobileMenuOpen = false"
                         :class="[
                             'flex items-center gap-3 px-4 py-2 text-sm transition-all duration-300 rounded-xl group/child relative',
                             isChildActive(child.to)
@@ -170,7 +192,12 @@ watch(isSidebarCollapsed, (collapsed) => {
 
             <div class="flex-1"></div>
             <!-- Notifications Button -->
-            <NuxtLink v-if="!notAllowedPaths.includes('/notifications')" to="/notifications" class="relative flex items-center gap-3 px-5 p-3 text-[var(--text-muted)] hover:text-[var(--text-app)] hover:bg-[var(--input-bg)] transition-all rounded-xl group/notifications">
+            <NuxtLink 
+                v-if="!notAllowedPaths.includes('/notifications')" 
+                to="/notifications" 
+                @click="isMobileMenuOpen = false"
+                class="relative flex items-center gap-3 px-5 p-3 text-[var(--text-muted)] hover:text-[var(--text-app)] hover:bg-[var(--input-bg)] transition-all rounded-xl group/notifications"
+            >
                 <div class="relative flex-shrink-0">
                     <Icon name="lucide:bell" class="w-5 h-5 opacity-60 group-hover/notifications:opacity-100 transition-opacity" />
                     <span 
@@ -185,7 +212,12 @@ watch(isSidebarCollapsed, (collapsed) => {
                 </span>
             </NuxtLink>
             <!-- Settings Button -->
-            <NuxtLink v-if="!notAllowedPaths.includes('/settings')" to="/settings" class="flex items-center gap-3 px-5 p-3 text-[var(--text-muted)] hover:text-[var(--text-app)] hover:bg-[var(--input-bg)] transition-all rounded-xl group/settings">
+            <NuxtLink 
+                v-if="!notAllowedPaths.includes('/settings')" 
+                to="/settings" 
+                @click="isMobileMenuOpen = false"
+                class="flex items-center gap-3 px-5 p-3 text-[var(--text-muted)] hover:text-[var(--text-app)] hover:bg-[var(--input-bg)] transition-all rounded-xl group/settings"
+            >
                 <Icon name="lucide:settings" class="w-5 h-5 flex-shrink-0 opacity-60 group-hover/settings:opacity-100 transition-opacity" />
                 <span :class="['text-sm font-medium transition-all duration-300 whitespace-nowrap', isSidebarCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100']">
                     {{ t("menu.settings") }}
@@ -200,4 +232,18 @@ watch(isSidebarCollapsed, (collapsed) => {
             </button>
         </nav>
     </aside>
+    </div>
 </template>
+
+<style scoped>
+/* Nuxt Page Transitions for Mobile Backdrop */
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+</style>
