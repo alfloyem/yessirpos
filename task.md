@@ -23,3 +23,4 @@
 - ![x] reports mehsullar hissesine pagination elave edilmelidir.
 npx prisma db push
 npx prisma generate
+- [] vercelde .env elave edilmelidir.
