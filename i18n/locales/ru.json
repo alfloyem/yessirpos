@@ -194,7 +194,8 @@
     "noDataFound": "Данные не найдены",
     "previous": "Предыдущий",
     "next": "Следующий",
-    "loading": "Загрузка..."
+    "loading": "Загрузка...",
+    "pleaseWait": "Подождите..."
   },
   "orders": {
     "title": "Архив чеков",
@@ -388,7 +389,15 @@
     "deleted": "Товар удален",
     "bulkDeleted": "Выбранные товары удалены",
     "variantAdded": "Вариант добавлен",
-    "variantUpdated": "Вариант обновлен"
+    "variantUpdated": "Вариант обновлен",
+    "title": "Товары",
+    "variants": "Варианты",
+    "attribute": "Атрибут",
+    "wholesalePriceShort": "Оптом (₼)",
+    "retailPriceShort": "Розница (₼)",
+    "deleteConfirmMessage": "Вы уверены, что хотите удалить этот товар и все его варианты?",
+    "deleteVariant": "Удалить вариант",
+    "deleteVariantConfirm": "Вы уверены, что хотите удалить этот вариант?"
   },
   "sales": {
     "receiptNo": "Номер чека",

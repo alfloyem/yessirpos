@@ -194,7 +194,8 @@
     "noDataFound": "No data found",
     "previous": "Previous",
     "next": "Next",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "pleaseWait": "Please wait..."
   },
   "orders": {
     "title": "Receipt Archive",
@@ -389,7 +390,15 @@
     "deleted": "Product deleted",
     "bulkDeleted": "Selected products deleted",
     "variantAdded": "Variant added",
-    "variantUpdated": "Variant updated"
+    "variantUpdated": "Variant updated",
+    "title": "Products",
+    "variants": "Variants",
+    "attribute": "Attribute",
+    "wholesalePriceShort": "Wholesale (₼)",
+    "retailPriceShort": "Retail (₼)",
+    "deleteConfirmMessage": "Are you sure you want to delete this product and all its variants?",
+    "deleteVariant": "Delete Variant",
+    "deleteVariantConfirm": "Are you sure you want to delete this variant?"
   },
   "sales": {
     "receiptNo": "Receipt No",

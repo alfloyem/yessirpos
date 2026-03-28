@@ -196,7 +196,8 @@
     "noDataFound": "Məlumat tapılmadı",
     "previous": "Əvvəlki",
     "next": "Sonrakı",
-    "loading": "Yüklənir..."
+    "loading": "Yüklənir...",
+    "pleaseWait": "Gözləyin..."
   },
   "orders": {
     "title": "Çek Arxivi",
@@ -392,7 +393,14 @@
     "deleted": "Məhsul silindi",
     "bulkDeleted": "Seçilmiş məhsullar silindi",
     "variantAdded": "Variant əlavə edildi",
-    "variantUpdated": "Variant yeniləndi"
+    "variantUpdated": "Variant yeniləndi",
+    "title": "Məhsullar",
+    "attribute": "Atribut",
+    "wholesalePriceShort": "Topdan (₼)",
+    "retailPriceShort": "Pərakəndə (₼)",
+    "deleteConfirmMessage": "Məhsulu və bağlı olan bütün variantları silmək istədiyinizə əminsiniz?",
+    "deleteVariant": "Variantı Sil",
+    "deleteVariantConfirm": "Bu variantı silmək istədiyinizə əminsiniz?"
   },
   "sales": {
     "receiptNo": "Çek No",

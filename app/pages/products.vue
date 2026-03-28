@@ -20,7 +20,7 @@ const { token } = useAuth()
 const toast = useToast()
 
 useHead({
-  title: t('menu.products')
+  title: t('products.title', 'Məhsullar')
 })
 
 // --- Helper for Barcode Generation ---
@@ -70,16 +70,16 @@ const productColumns = [
   { key: 'productName', label: t('products.name', 'Məhsulun adı') },
   { key: 'brandName', label: t('products.brand', 'Brendin adı') },
   { key: 'category', label: t('products.category', 'Kateqoriyası') },
-  { key: 'barcode', label: 'Barkod' },
-  { key: 'wholesalePrice', label: 'Topdan qiymət (₼)' },
-  { key: 'retailPrice', label: 'Pərakəndə qiymət (₼)' },
-  { key: 'stock', label: 'Stok' },
-  { key: 'reorderLevel', label: 'Yenidən sifariş limiti' }, // This often exists in parent but also variants
-  { key: 'attribute', label: 'Variant/Atribut' }
+  { key: 'barcode', label: t('products.barcode', 'Barkod') },
+  { key: 'wholesalePrice', label: t('products.wholesalePrice', 'Topdan qiymət (₼)') },
+  { key: 'retailPrice', label: t('products.retailPrice', 'Pərakəndə qiymət (₼)') },
+  { key: 'stock', label: t('products.stock', 'Stok') },
+  { key: 'reorderLevel', label: t('products.reorderLevel', 'Yenidən sifariş limiti') },
+  { key: 'attribute', label: t('products.attribute', 'Variant/Atribut') }
 ]
 
 const handleExport = (format: 'csv' | 'pdf' | 'json' | 'xml') => {
-  const title = t('menu.products', 'Məhsullar')
+  const title = t('products.title', 'Məhsullar')
   
   // Pre-process data to flatten arrays (categories, attributes, etc.) for better readability in Excel/PDF
   const dataToExport = filteredProducts.value.map(p => {
@@ -201,12 +201,12 @@ const newVariantsList = ref<any[]>([])
 const baseFormFields = computed<FormField[]>(() => [
   { key: 'productName', label: t('products.name', 'Məhsulun adı'), type: 'text', required: true },
   { key: 'brandName', label: t('products.brand', 'Brendin adı'), type: 'autocomplete', options: suppliersOptions.value },
-  { key: 'category', label: t('products.category', 'Kateqoriyası'), type: 'tags' }, // Simplified
-  { key: 'barcode', label: 'Barkod', type: 'barcode', barcodePrefix: 'P', required: true },
-  { key: 'wholesalePrice', label: 'Topdan qiymət (₼)', type: 'number' },
-  { key: 'retailPrice', label: 'Pərakəndə qiymət (₼)', type: 'number', required: true },
-  { key: 'stock', label: 'Stok', type: 'integer' },
-  { key: 'reorderLevel', label: 'Yenidən sifariş limiti', type: 'integer' }
+  { key: 'category', label: t('products.category', 'Kateqoriyası'), type: 'tags' },
+  { key: 'barcode', label: t('products.barcode', 'Barkod'), type: 'barcode', barcodePrefix: 'P', required: true },
+  { key: 'wholesalePrice', label: t('products.wholesalePrice', 'Topdan qiymət (₼)'), type: 'number' },
+  { key: 'retailPrice', label: t('products.retailPrice', 'Pərakəndə qiymət (₼)'), type: 'number', required: true },
+  { key: 'stock', label: t('products.stock', 'Stok'), type: 'integer' },
+  { key: 'reorderLevel', label: t('products.reorderLevel', 'Yenidən sifariş limiti'), type: 'integer' }
 ])
 
 const handleAdd = () => {
@@ -460,7 +460,7 @@ const formatVariantAttr = (attr: any) => {
   <div class="space-y-6 font-sans">
     <!-- Header -->
     <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-      <h1 class="text-2xl font-bold text-[var(--text-app)]">{{ t('menu.products') }}</h1>
+      <h1 class="text-2xl font-bold text-[var(--text-app)]">{{ t('products.title', 'Məhsullar') }}</h1>
       <div class="flex items-center gap-3 w-full md:w-auto">
         <!-- Export Dropdown -->
         <UiDropdown menuClass="absolute right-0 top-full mt-2 w-48 p-2 z-[60]">
@@ -559,7 +559,7 @@ const formatVariantAttr = (attr: any) => {
           <!-- Variants Header & Switch -->
           <div class="flex items-center justify-between pt-2">
             <div class="flex items-center gap-4 cursor-pointer group" @click="addVariantsEnabled = !addVariantsEnabled">
-              <h4 class="text-sm font-bold text-[var(--text-app)] group-hover:text-[var(--text-primary)] transition-colors">Variantlar</h4>
+              <h4 class="text-sm font-bold text-[var(--text-app)] group-hover:text-[var(--text-primary)] transition-colors">{{ t('products.variants', 'Variantlar') }}</h4>
               <UiSwitch v-model="addVariantsEnabled" @click.stop />
             </div>
             <UiButton 
@@ -569,7 +569,7 @@ const formatVariantAttr = (attr: any) => {
               icon="lucide:plus" 
               @click="addVariantRow"
             >
-              Yeni Variant
+              {{ t('products.addVariant', 'Yeni Variant') }}
             </UiButton>
           </div>
 
@@ -581,14 +581,14 @@ const formatVariantAttr = (attr: any) => {
                 <button 
                   @click="duplicateVariantRow(v)"
                   class="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-app)] opacity-40 hover:bg-[var(--text-primary)]/10 hover:opacity-100 transition-all"
-                  title="Kopyala"
+                  :title="t('common.duplicate', 'Kopyala')"
                 >
                   <UiIcon name="lucide:copy" class="w-4 h-4" />
                 </button>
                 <button 
                   @click="removeVariantRow(index)"
                   class="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--color-brand-danger)] opacity-40 hover:bg-[var(--color-brand-danger)]/10 hover:opacity-100 transition-all"
-                  title="Sil"
+                  :title="t('common.delete', 'Sil')"
                 >
                   <UiIcon name="lucide:trash-2" class="w-4 h-4" />
                 </button>
@@ -630,7 +630,7 @@ const formatVariantAttr = (attr: any) => {
                     <button 
                       @click="v.attribute.splice(i, 1)" 
                       class="ml-1 text-[var(--text-app)] opacity-30 hover:opacity-100 hover:text-[var(--color-brand-danger)] transition-colors"
-                      title="Sil"
+                      :title="t('common.delete', 'Sil')"
                     >
                       <UiIcon name="lucide:x" class="w-3.5 h-3.5" stroke-width="2.5" />
                     </button>
@@ -644,7 +644,7 @@ const formatVariantAttr = (attr: any) => {
                     <template #trigger>
                       <div class="flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-[var(--text-primary)]/20 hover:border-[var(--text-primary)]/50 text-[var(--text-app)] opacity-60 hover:opacity-100 transition-all cursor-pointer group">
                         <UiIcon name="lucide:plus" class="w-3.5 h-3.5" />
-                        <span class="font-bold text-xs tracking-wider">Atribut</span>
+                        <span class="font-bold text-xs tracking-wider">{{ t('products.attribute', 'Atribut') }}</span>
                       </div>
                     </template>
                     <template #menu="{ close }">
@@ -665,14 +665,14 @@ const formatVariantAttr = (attr: any) => {
                 <!-- Inputs Labeled Grid -->
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
                   <div class="flex flex-col gap-1.5">
-                    <label class="block text-xs font-semibold opacity-40 tracking-wider whitespace-nowrap pl-1">Barkod</label>
+                    <label class="block text-xs font-semibold opacity-40 tracking-wider whitespace-nowrap pl-1">{{ t('products.barcode', 'Barkod') }}</label>
                     <UiInput 
                       v-model="v.barcode" 
                       class="!bg-[var(--input-bg)]/50 hover:!bg-[var(--input-bg)] focus:!bg-[var(--input-bg)] transition-colors !border-none !shadow-none font-mono text-sm"
                     />
                   </div>
                   <div class="flex flex-col gap-1.5">
-                    <label class="block text-xs font-semibold opacity-40 tracking-wider whitespace-nowrap pl-1">Topdan (₼)</label>
+                    <label class="block text-xs font-semibold opacity-40 tracking-wider whitespace-nowrap pl-1">{{ t('products.wholesalePriceShort', 'Topdan (₼)') }}</label>
                     <UiInput 
                       v-model="v.wholesalePrice" 
                       type="number" 
@@ -680,7 +680,7 @@ const formatVariantAttr = (attr: any) => {
                     />
                   </div>
                   <div class="flex flex-col gap-1.5">
-                    <label class="block text-xs font-semibold opacity-40 tracking-wider whitespace-nowrap pl-1">Pərakəndə (₼)</label>
+                    <label class="block text-xs font-semibold opacity-40 tracking-wider whitespace-nowrap pl-1">{{ t('products.retailPriceShort', 'Pərakəndə (₼)') }}</label>
                     <UiInput 
                       v-model="v.retailPrice" 
                       type="number" 
@@ -688,7 +688,7 @@ const formatVariantAttr = (attr: any) => {
                     />
                   </div>
                   <div class="flex flex-col gap-1.5">
-                    <label class="block text-xs font-semibold opacity-40 tracking-wider whitespace-nowrap pl-1">Stok</label>
+                    <label class="block text-xs font-semibold opacity-40 tracking-wider whitespace-nowrap pl-1">{{ t('products.stock', 'Stok') }}</label>
                     <UiInput 
                       v-model="v.stock" 
                       type="number" 
@@ -705,7 +705,7 @@ const formatVariantAttr = (attr: any) => {
       <template #footer>
         <UiButton variant="ghost" @click="showProductModal = false">{{ t('common.cancel') }}</UiButton>
         <UiButton variant="primary" icon="lucide:check" @click="handleSaveProduct" :disabled="isSaving">
-          {{ isSaving ? 'Gözləyin...' : 'Yadda Saxla' }}
+          {{ isSaving ? t('common.pleaseWait', 'Gözləyin...') : t('common.save', 'Yadda Saxla') }}
         </UiButton>
       </template>
     </Modal>
@@ -718,11 +718,11 @@ const formatVariantAttr = (attr: any) => {
         </div>
         <h3 class="text-xl font-bold text-[var(--text-app)] mb-2 tracking-wide">{{ t('common.delete') }}</h3>
         <p class="text-base font-medium text-[var(--text-app)] opacity-60 leading-relaxed mb-8 max-w-[280px]">
-          Məhsulu və bağlı olan bütün variantları silmək istədiyinizə əminsiniz?
+          {{ t('products.deleteConfirmMessage', 'Məhsulu və bağlı olan bütün variantları silmək istədiyinizə əminsiniz?') }}
         </p>
         <div class="flex items-center gap-3 w-full">
           <UiButton variant="ghost" class="flex-1 !h-12" @click="showDeleteConfirmModal = false">{{ t('common.cancel') }}</UiButton>
-          <UiButton variant="danger" class="flex-1 !h-12" @click="performDelete" :disabled="isSaving">Sil</UiButton>
+          <UiButton variant="danger" class="flex-1 !h-12" @click="performDelete" :disabled="isSaving">{{ t('common.delete', 'Sil') }}</UiButton>
         </div>
       </div>
     </Modal>
@@ -733,13 +733,13 @@ const formatVariantAttr = (attr: any) => {
         <div class="w-16 h-16 rounded-2xl bg-[var(--color-brand-danger)]/10 flex items-center justify-center mb-6 text-[var(--color-brand-danger)]">
           <UiIcon name="lucide:trash-2" class="w-8 h-8" stroke-width="2" />
         </div>
-        <h3 class="text-xl font-bold text-[var(--text-app)] mb-2 tracking-wide">Variantı Sil</h3>
+        <h3 class="text-xl font-bold text-[var(--text-app)] mb-2 tracking-wide">{{ t('products.deleteVariant', 'Variantı Sil') }}</h3>
         <p class="text-base font-medium text-[var(--text-app)] opacity-60 leading-relaxed mb-8 max-w-[280px]">
-          Bu variantı silmək istədiyinizə əminsiniz?
+          {{ t('products.deleteVariantConfirm', 'Bu variantı silmək istədiyinizə əminsiniz?') }}
         </p>
         <div class="flex items-center gap-3 w-full">
           <UiButton variant="ghost" class="flex-1 !h-12" @click="showDeleteVariantConfirmModal = false">{{ t('common.cancel') }}</UiButton>
-          <UiButton variant="danger" class="flex-1 !h-12" @click="confirmDeleteVariant">Bəli, Sil</UiButton>
+          <UiButton variant="danger" class="flex-1 !h-12" @click="confirmDeleteVariant">{{ t('common.yesDelete', 'Bəli, Sil') }}</UiButton>
         </div>
       </div>
     </Modal>
