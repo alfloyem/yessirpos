@@ -256,19 +256,19 @@ const submitPayDebt = async () => {
 
 <template>
   <div class="space-y-6">
-    <div class="flex items-center justify-between flex-wrap gap-3">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <h1 class="text-2xl font-bold text-[var(--text-app)]">{{ t('orders.title') }}</h1>
-      <div class="flex items-center gap-3 flex-wrap">
+      <div class="flex flex-wrap items-center gap-3">
         <!-- Debt filter toggle -->
-        <div class="flex items-center gap-1 p-1 bg-[var(--input-bg)] rounded-xl border border-[var(--border-app)]">
+        <div class="flex items-center gap-1 p-1 bg-[var(--input-bg)] rounded-xl border border-[var(--border-app)] w-full sm:w-auto">
           <button
             @click="activeFilter = 'ALL'"
-            class="px-3 py-1.5 rounded-lg text-xs font-black transition-all"
+            class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-black transition-all"
             :class="activeFilter === 'ALL' ? 'bg-[var(--text-primary)] text-[var(--bg-app)]' : 'opacity-50 hover:opacity-80'"
           >{{ t('orders.filterAll') }}</button>
           <button
             @click="activeFilter = 'DEBT'"
-            class="px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1.5"
+            class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center justify-center gap-1.5"
             :class="activeFilter === 'DEBT' ? 'bg-rose-500 text-white' : 'opacity-50 hover:opacity-80'"
           >
             <UiIcon name="lucide:alert-circle" class="w-3 h-3" />
@@ -280,15 +280,17 @@ const submitPayDebt = async () => {
           </button>
         </div>
         <!-- Stats -->
-        <div class="px-4 py-2 bg-[var(--text-primary)]/5 rounded-xl border border-[var(--text-primary)]/10">
-          <span class="text-[10px] font-black opacity-40 uppercase tracking-widest block mb-1">{{ t('orders.totalRevenue') }}</span>
-          <span class="text-lg font-black text-[var(--text-primary)] font-mono">
-            {{ orders.reduce((sum: number, o: any) => sum + Math.abs(Number(o.total)), 0).toFixed(2) }} ₼
-          </span>
-        </div>
-        <div class="px-4 py-2 bg-[var(--bg-app)] rounded-xl border border-[var(--border-app)]">
-          <span class="text-[10px] font-black opacity-40 uppercase tracking-widest block mb-1">{{ t('orders.transactionCount') }}</span>
-          <span class="text-lg font-black font-mono">{{ orders.length }}</span>
+        <div class="flex items-center gap-3 w-full sm:w-auto">
+          <div class="flex-1 sm:flex-none px-4 py-2 bg-[var(--text-primary)]/5 rounded-xl border border-[var(--text-primary)]/10 text-center sm:text-left">
+            <span class="text-[10px] font-black opacity-40 uppercase tracking-widest block mb-1 whitespace-nowrap">{{ t('orders.totalRevenue') }}</span>
+            <span class="text-base sm:text-lg font-black text-[var(--text-primary)] font-mono whitespace-nowrap">
+              {{ orders.reduce((sum: number, o: any) => sum + Math.abs(Number(o.total)), 0).toFixed(2) }} ₼
+            </span>
+          </div>
+          <div class="flex-1 sm:flex-none px-4 py-2 bg-[var(--bg-app)] rounded-xl border border-[var(--border-app)] text-center sm:text-left">
+            <span class="text-[10px] font-black opacity-40 uppercase tracking-widest block mb-1 whitespace-nowrap">{{ t('orders.transactionCount') }}</span>
+            <span class="text-base sm:text-lg font-black font-mono">{{ orders.length }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -381,30 +383,30 @@ const submitPayDebt = async () => {
           </div>
         </div>
 
-        <div class="grid grid-cols-3 gap-4">
-          <div class="p-4 rounded-2xl bg-[var(--bg-app)] border border-[var(--border-app)]">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+          <div class="p-3 md:p-4 rounded-2xl bg-[var(--bg-app)] border border-[var(--border-app)] flex flex-col justify-center">
             <span class="text-[9px] font-black opacity-40 uppercase tracking-widest block mb-1">{{ t('common.operator') }}</span>
             <span class="font-black text-sm">{{ selectedOrder.operator }}</span>
           </div>
-          <div class="p-4 rounded-2xl bg-[var(--bg-app)] border border-[var(--border-app)]">
+          <div class="p-3 md:p-4 rounded-2xl bg-[var(--bg-app)] border border-[var(--border-app)] flex flex-col justify-center">
             <span class="text-[9px] font-black opacity-40 uppercase tracking-widest block mb-1">{{ t('common.date') }}</span>
             <span class="font-black text-sm">{{ selectedOrder.createdAtFormatted }}</span>
           </div>
-          <div class="p-4 rounded-2xl bg-[var(--bg-app)] border border-[var(--border-app)]">
+          <div class="p-3 md:p-4 rounded-2xl bg-[var(--bg-app)] border border-[var(--border-app)] flex flex-col justify-center sm:col-span-2 lg:col-span-1">
             <span class="text-[9px] font-black opacity-40 uppercase tracking-widest block mb-1">{{ t('common.counterparty') }}</span>
-            <span class="font-black text-sm">{{ selectedOrder.counterparty }}</span>
+            <span class="font-black text-sm truncate">{{ selectedOrder.counterparty }}</span>
           </div>
         </div>
 
         <!-- Items table (hidden for DEBT_PAYMENT if no items) -->
-        <div v-if="selectedOrder.items?.length" class="rounded-2xl border border-[var(--border-app)] overflow-hidden">
-          <table class="w-full text-left border-collapse">
+        <div v-if="selectedOrder.items?.length" class="rounded-2xl border border-[var(--border-app)] overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left border-collapse min-w-[600px] lg:min-w-full">
             <thead>
               <tr class="bg-[var(--input-bg)]">
-                <th class="px-4 py-3 text-[10px] font-black uppercase tracking-widest opacity-40">{{ t('orders.product') }}</th>
-                <th class="px-4 py-3 text-[10px] font-black uppercase tracking-widest opacity-40">{{ t('orders.qtyPrice') }}</th>
-                <th v-if="selectedOrder.type === 'SALE' || selectedOrder.type === 'REFUND'" class="px-4 py-3 text-[10px] font-black uppercase tracking-widest opacity-40">{{ t('orders.profit') }}</th>
-                <th class="px-4 py-3 text-[10px] font-black uppercase tracking-widest opacity-40 text-right">{{ t('intake.lineTotal') }}</th>
+                <th class="px-4 py-3 text-[10px] font-black uppercase tracking-widest opacity-40 whitespace-nowrap">{{ t('orders.product') }}</th>
+                <th class="px-4 py-3 text-[10px] font-black uppercase tracking-widest opacity-40 whitespace-nowrap">{{ t('orders.qtyPrice') }}</th>
+                <th v-if="selectedOrder.type === 'SALE' || selectedOrder.type === 'REFUND'" class="px-4 py-3 text-[10px] font-black uppercase tracking-widest opacity-40 whitespace-nowrap">{{ t('orders.profit') }}</th>
+                <th class="px-4 py-3 text-[10px] font-black uppercase tracking-widest opacity-40 text-right whitespace-nowrap">{{ t('intake.lineTotal') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-[var(--border-app)]">
@@ -417,16 +419,16 @@ const submitPayDebt = async () => {
                   </div>
                 </td>
                 <td class="px-4 py-3">
-                  <div class="text-sm font-black tabular-nums">{{ item.qty }} x {{ item.price.toFixed(2) }} ₼</div>
-                  <div v-if="item.discount > 0" class="text-[10px] text-rose-600 font-bold">{{ t('sales.discount') }}: -{{ item.discount.toFixed(2) }} ₼</div>
+                  <div class="text-sm font-black tabular-nums whitespace-nowrap">{{ item.qty }} x {{ item.price.toFixed(2) }} ₼</div>
+                  <div v-if="item.discount > 0" class="text-[10px] text-rose-600 font-bold whitespace-nowrap">{{ t('sales.discount') }}: -{{ item.discount.toFixed(2) }} ₼</div>
                 </td>
                 <td v-if="selectedOrder.type === 'SALE' || selectedOrder.type === 'REFUND'" class="px-4 py-3">
-                  <div class="text-sm font-black font-mono" :class="item.qty < 0 ? 'text-rose-500' : 'text-emerald-600'">
+                  <div class="text-sm font-black font-mono whitespace-nowrap" :class="item.qty < 0 ? 'text-rose-500' : 'text-emerald-600'">
                     {{ ((item.price - item.wholesalePrice) * item.qty - item.discount).toFixed(2) }} ₼
                   </div>
                 </td>
                 <td class="px-4 py-3 text-right">
-                  <span class="font-black text-sm tabular-nums font-mono">{{ item.total.toFixed(2) }} ₼</span>
+                  <span class="font-black text-sm tabular-nums font-mono whitespace-nowrap">{{ item.total.toFixed(2) }} ₼</span>
                 </td>
               </tr>
             </tbody>
@@ -434,26 +436,33 @@ const submitPayDebt = async () => {
         </div>
 
         <!-- Totals -->
-        <div class="flex justify-between items-start">
-          <div class="text-[11px] font-bold opacity-40 max-w-[200px]">
-            * {{ t('orders.archiveNotice', { method: getPaymentMethodLabel(selectedOrder) }) }}
-            <p v-if="selectedOrder.paymentDetails?.notes" class="mt-2 text-amber-600 italic">{{ t('orders.note') }}: {{ selectedOrder.paymentDetails.notes }}</p>
+        <div class="flex flex-col lg:flex-row justify-between items-start gap-6">
+          <div class="text-[11px] font-bold opacity-40 w-full lg:max-w-md bg-[var(--input-bg)]/50 p-4 rounded-2xl border border-[var(--border-app)] order-2 lg:order-1">
+            <div class="flex items-start gap-2">
+              <UiIcon name="lucide:info" class="w-4 h-4 shrink-0 mt-0.5 opacity-50" />
+              <span>{{ t('orders.archiveNotice', { method: getPaymentMethodLabel(selectedOrder) }) }}</span>
+            </div>
+            <div v-if="selectedOrder.paymentDetails?.notes" class="mt-3 pt-3 border-t border-[var(--border-app)] border-dashed">
+              <span class="text-[9px] uppercase tracking-widest opacity-60 block mb-1">{{ t('orders.note') }}</span>
+              <p class="text-amber-600 italic font-medium">{{ selectedOrder.paymentDetails.notes }}</p>
+            </div>
           </div>
-          <div class="space-y-2 min-w-[240px]">
-            <div v-if="selectedOrder.type !== 'DEBT_PAYMENT'" class="flex justify-between text-xs font-bold">
+          
+          <div class="space-y-2 w-full lg:min-w-[280px] lg:w-auto order-1 lg:order-2">
+            <div v-if="selectedOrder.type !== 'DEBT_PAYMENT'" class="flex justify-between text-xs font-bold px-1">
               <span class="opacity-50">{{ t('sales.subtotal') }}:</span>
               <span class="font-mono">{{ selectedOrder.subtotal.toFixed(2) }} ₼</span>
             </div>
-            <div v-if="selectedOrder.discountTotal > 0" class="flex justify-between text-xs font-bold text-rose-600">
+            <div v-if="selectedOrder.discountTotal > 0" class="flex justify-between text-xs font-bold text-rose-600 px-1">
               <span>{{ t('orders.totalDiscount') }}:</span>
               <span class="font-mono">-{{ selectedOrder.discountTotal.toFixed(2) }} ₼</span>
             </div>
-            <div v-if="selectedOrder.type === 'SALE' || selectedOrder.type === 'REFUND'" class="flex justify-between text-xs font-black text-emerald-600 p-2 bg-emerald-500/5 rounded-xl">
+            <div v-if="selectedOrder.type === 'SALE' || selectedOrder.type === 'REFUND'" class="flex justify-between text-xs font-black text-emerald-600 p-2 bg-emerald-500/5 rounded-xl border border-emerald-500/10">
               <span>{{ t('orders.approxProfit') }}:</span>
               <span class="font-mono">{{ getProfit(selectedOrder).toFixed(2) }} ₼</span>
             </div>
             <template v-if="selectedOrder.type === 'INTAKE'">
-              <div class="flex justify-between text-xs font-bold text-emerald-600">
+              <div class="flex justify-between text-xs font-bold text-emerald-600 px-1">
                 <span>{{ t('orders.paid') }}:</span>
                 <span class="font-mono">{{ (selectedOrder.paymentDetails?.paidAmount || 0).toFixed(2) }} ₼</span>
               </div>
@@ -461,11 +470,11 @@ const submitPayDebt = async () => {
                 <span>{{ t('orders.remainingDebt') }}:</span>
                 <span class="font-mono">{{ selectedOrder.paymentDetails.balanceDue.toFixed(2) }} ₼</span>
               </div>
-              <div v-else class="flex justify-between text-xs font-black text-emerald-600 p-2 bg-emerald-500/5 rounded-xl">
+              <div v-else class="flex justify-between text-xs font-black text-emerald-600 p-2 bg-emerald-500/5 rounded-xl border border-emerald-500/10">
                 <span>{{ t('orders.noDebt') }}</span>
               </div>
             </template>
-            <div class="flex justify-between items-end pt-3 border-t border-[var(--border-app)]">
+            <div class="flex justify-between items-center pt-3 border-t border-[var(--border-app)] px-1">
               <span class="text-xs font-black uppercase tracking-widest">{{ t('sales.total') }}:</span>
               <span class="text-2xl font-black text-[var(--text-primary)] font-mono">{{ selectedOrder.total.toFixed(2) }} ₼</span>
             </div>
@@ -473,17 +482,19 @@ const submitPayDebt = async () => {
         </div>
       </div>
       <template #footer>
-        <UiButton variant="ghost" @click="showDetailsModal = false" class="!px-6">{{ t('orders.close') }}</UiButton>
-        <UiButton
-          v-if="selectedOrder?.type === 'INTAKE' && selectedOrder?.paymentDetails?.balanceDue > 0"
-          variant="outline"
-          icon="lucide:wallet"
-          @click="openPayDebt(selectedOrder)"
-          class="!px-6 text-rose-600 border-rose-500/25 hover:bg-rose-500/5 font-black"
-        >
-          {{ t('orders.payDebt') }} ({{ selectedOrder.paymentDetails.balanceDue.toFixed(2) }} ₼)
-        </UiButton>
-        <UiButton variant="primary" icon="lucide:printer" @click="printOrder(selectedOrder)" class="!px-8">{{ t('orders.print') }}</UiButton>
+        <div class="flex flex-col sm:flex-row items-center justify-end gap-3 w-full">
+          <UiButton variant="ghost" @click="showDetailsModal = false" class="w-full sm:w-auto px-6">{{ t('orders.close') }}</UiButton>
+          <UiButton
+            v-if="selectedOrder?.type === 'INTAKE' && selectedOrder?.paymentDetails?.balanceDue > 0"
+            variant="outline"
+            icon="lucide:wallet"
+            @click="openPayDebt(selectedOrder)"
+            class="w-full sm:w-auto px-6 text-rose-600 border-rose-500/25 hover:bg-rose-500/5 font-black"
+          >
+            {{ t('orders.payDebt') }} ({{ selectedOrder.paymentDetails.balanceDue.toFixed(2) }} ₼)
+          </UiButton>
+          <UiButton variant="primary" icon="lucide:printer" @click="printOrder(selectedOrder)" class="w-full sm:w-auto px-8">{{ t('orders.print') }}</UiButton>
+        </div>
       </template>
     </Modal>
 
