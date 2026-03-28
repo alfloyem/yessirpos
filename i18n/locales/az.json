@@ -289,7 +289,13 @@
     "added": "Əlavə edildi",
     "deleted": "Silindi",
     "error": "Xəta baş verdi!",
-    "debtAdded": "Borc müştəri hesabına daxil edildi!"
+    "debtAdded": "Borc müştəri hesabına daxil edildi!",
+    "supplierAdded": "Tədarükçü uğurla əlavə edildi",
+    "supplierUpdated": "Tədarükçü uğurla yeniləndi",
+    "suppliersUpdated": "{count} tədarükçü yeniləndi",
+    "supplierDeleted": "Tədarükçü uğurla silindi",
+    "suppliersDeleted": "{count} tədarükçü uğurla silindi",
+    "supplierDuplicated": "Tədarükçü kopyalandı"
   },
   "giftCards": {
     "title": "Hədiyyə Kartları",
@@ -549,6 +555,15 @@
       "showFooterMessage": "Təşəkkür Mesajı",
       "showReturnPolicy": "Geri Qaytarma"
     }
+  },
+  "suppliers": {
+    "title": "Tədarükçülər",
+    "brandName": "Brendin adı",
+    "companyName": "Şirkətin adı",
+    "voen": "VÖEN",
+    "addNew": "Yeni Tədarükçü Əlavə Et",
+    "edit": "Tədarükçünü Redaktə Et",
+    "bulkDeleteCount": "Seçilmiş {count} tədarükçü silinəcək"
   },
   "reports": {
     "overview": "Ümumi",

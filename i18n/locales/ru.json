@@ -286,7 +286,13 @@
     "added": "Добавлено",
     "deleted": "Удалено",
     "error": "Произошла ошибка!",
-    "debtAdded": "Долг добавлен на счет клиента!"
+    "debtAdded": "Долг добавлен на счет клиента!",
+    "supplierAdded": "Поставщик успешно добавлен",
+    "supplierUpdated": "Поставщик успешно обновлен",
+    "suppliersUpdated": "{count} поставщиков обновлено",
+    "supplierDeleted": "Поставщик успешно удален",
+    "suppliersDeleted": "{count} поставщиков успешно удалены",
+    "supplierDuplicated": "Поставщик скопирован"
   },
   "giftCards": {
     "title": "Подарочные карты",
@@ -546,6 +552,15 @@
       "showFooterMessage": "Благодарственное сообщение",
       "showReturnPolicy": "Политика возврата"
     }
+  },
+  "suppliers": {
+    "title": "Поставщики",
+    "brandName": "Название бренда",
+    "companyName": "Название компании",
+    "voen": "ИНН",
+    "addNew": "Добавить нового поставщика",
+    "edit": "Редактировать поставщика",
+    "bulkDeleteCount": "Выбранные {count} поставщиков будут удалены"
   },
   "reports": {
     "overview": "Обзор",

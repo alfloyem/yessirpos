@@ -11,25 +11,25 @@ const { t } = useI18n()
 const toast = useToast()
 
 useHead({
-  title: t('menu.suppliers') || 'Tədarükçülər'
+  title: t('suppliers.title', 'Tədarükçülər')
 })
 
 // --- Centralized Schema ---
 const supplierSchema: (FormField & { inTable?: boolean, sortable?: boolean })[] = [
-  { key: 'rowNumber', label: 'Sıra sayı', type: 'text', inTable: true, sortable: false },
-  { key: 'brandName', label: 'Brendin adı', icon: 'lucide:tag', type: 'text', inTable: true, sortable: true, required: true },
-  { key: 'companyName', label: 'Şirkətin adı', icon: 'lucide:building-2', type: 'tags', inTable: true, sortable: true, required: true, historyKey: 'company_names' },
-  { key: 'firstName', label: 'Ad', type: 'text', inTable: true, sortable: true },
-  { key: 'lastName', label: 'Soyad', type: 'text', inTable: true, sortable: true },
-  { key: 'email', label: 'E-poçt', icon: 'lucide:mail', type: 'email', inTable: true, sortable: true },
-  { key: 'phone', label: 'Telefon', icon: 'lucide:phone', type: 'tel', inTable: true, sortable: true },
-  { key: 'voen', label: 'VÖEN', icon: 'lucide:file-text', type: 'tags', inTable: true, sortable: true, historyKey: 'voen_numbers' },
-  { key: 'address', label: 'Ünvan', icon: 'lucide:map-pin', type: 'text', colSpan: 2, inTable: false },
-  { key: 'city', label: 'Şəhər/rayon', type: 'tags', inTable: false, sortable: true, historyKey: 'cities' },
-  { key: 'country', label: 'Ölkə', icon: 'lucide:globe', type: 'select', inTable: false, isCountry: true },
-  { key: 'notes', label: 'Xüsusi qeyd', type: 'textarea', colSpan: 2, inTable: false },
-  { key: 'createdAt', label: 'Tarix', type: 'text', inTable: false, sortable: true },
-  { key: 'createdBy', label: 'Əməkdaş', type: 'text', inTable: false, sortable: true },
+  { key: 'rowNumber', label: t('common.rowNumber', 'Sıra sayı'), type: 'text', inTable: true, sortable: false },
+  { key: 'brandName', label: t('suppliers.brandName', 'Brendin adı'), icon: 'lucide:tag', type: 'text', inTable: true, sortable: true, required: true },
+  { key: 'companyName', label: t('suppliers.companyName', 'Şirkətin adı'), icon: 'lucide:building-2', type: 'tags', inTable: true, sortable: true, required: true, historyKey: 'company_names' },
+  { key: 'firstName', label: t('employees.firstName', 'Ad'), type: 'text', inTable: true, sortable: true },
+  { key: 'lastName', label: t('employees.lastName', 'Soyad'), type: 'text', inTable: true, sortable: true },
+  { key: 'email', label: t('employees.email', 'E-poçt'), icon: 'lucide:mail', type: 'email', inTable: true, sortable: true },
+  { key: 'phone', label: t('employees.phone', 'Telefon'), icon: 'lucide:phone', type: 'tel', inTable: true, sortable: true },
+  { key: 'voen', label: t('suppliers.voen', 'VÖEN'), icon: 'lucide:file-text', type: 'tags', inTable: true, sortable: true, historyKey: 'voen_numbers' },
+  { key: 'address', label: t('customers.address', 'Ünvan'), icon: 'lucide:map-pin', type: 'text', colSpan: 2, inTable: false },
+  { key: 'city', label: t('customers.city', 'Şəhər/rayon'), type: 'tags', inTable: false, sortable: true, historyKey: 'cities' },
+  { key: 'country', label: t('customers.country', 'Ölkə'), icon: 'lucide:globe', type: 'select', inTable: false, isCountry: true },
+  { key: 'notes', label: t('employees.notes', 'Xüsusi qeyd'), type: 'textarea', colSpan: 2, inTable: false },
+  { key: 'createdAt', label: t('customers.createdAt', 'Tarix'), type: 'text', inTable: false, sortable: true },
+  { key: 'createdBy', label: t('customers.createdBy', 'Əməkdaş'), type: 'text', inTable: false, sortable: true },
 ]
 
 // Modal'da gösterilecek form alanları (Tarix, Əməkdaş və Sıra sayı Hariç)
@@ -315,13 +315,13 @@ const saveForm = async () => {
   <div class="space-y-6 font-sans">
     <div class="flex items-center justify-between">
       <h1 class="text-2xl font-bold text-[var(--text-app)]">
-        Tədarükçülər
+        {{ t('suppliers.title', 'Tədarükçülər') }}
       </h1>
     </div>
 
     <!-- Smart Data Table -->
     <DataTable 
-      title="Tedarukcu_Listesi"
+      :title="t('suppliers.title', 'Tədarükçülər')"
       :data="mockData" 
       :columns="columns"
       :loading="loading"
@@ -386,7 +386,7 @@ const saveForm = async () => {
     </DataTable>
 
     <!-- Modal: Add -->
-    <Modal v-model="showAddModal" title="Yeni Tədarükçü Əlavə Et" max-width="3xl">
+    <Modal v-model="showAddModal" :title="t('suppliers.addNew', 'Yeni Tədarükçü Əlavə Et')" max-width="3xl">
       <DynamicForm 
         :fields="formFields"
         v-model="formData"
@@ -401,7 +401,7 @@ const saveForm = async () => {
     <!-- Modal: Edit -->
     <Modal 
       v-model="showEditModal" 
-      :title="bulkSelectedIds.length > 0 ? t('common.bulkEdit', 'Toplu Redaktə') : 'Tədarükçünü Redaktə Et'" 
+      :title="bulkSelectedIds.length > 0 ? t('common.bulkEdit', 'Toplu Redaktə') : t('suppliers.edit', 'Tədarükçünü Redaktə Et')" 
       max-width="3xl"
       @update:model-value="(val) => { if (!val) bulkSelectedIds = [] }"
     >

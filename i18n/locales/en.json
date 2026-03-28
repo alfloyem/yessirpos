@@ -286,7 +286,13 @@
     "added": "Added",
     "deleted": "Deleted",
     "error": "An error occurred!",
-    "debtAdded": "Debt has been added to the customer's account!"
+    "debtAdded": "Debt has been added to the customer's account!",
+    "supplierAdded": "Supplier successfully added",
+    "supplierUpdated": "Supplier successfully updated",
+    "suppliersUpdated": "{count} suppliers updated",
+    "supplierDeleted": "Supplier successfully deleted",
+    "suppliersDeleted": "{count} suppliers successfully deleted",
+    "supplierDuplicated": "Supplier duplicated"
   },
   "giftCards": {
     "title": "Gift Cards",
@@ -546,6 +552,15 @@
       "showFooterMessage": "Thank You Message",
       "showReturnPolicy": "Return Policy"
     }
+  },
+  "suppliers": {
+    "title": "Suppliers",
+    "brandName": "Brand Name",
+    "companyName": "Company Name",
+    "voen": "Tax ID",
+    "addNew": "Add New Supplier",
+    "edit": "Edit Supplier",
+    "bulkDeleteCount": "Selected {count} suppliers will be deleted"
   },
   "reports": {
     "overview": "Overview",
