@@ -24,3 +24,6 @@
 npx prisma db push
 npx prisma generate
 - [] vercelde .env elave edilmelidir.
+- [] saytda tr dili qalmamalıdır. her şey i18n bağlı olmalıdır.
+- [] sayt tam responsive olmalıdır
+- [] QA test edilmelidir.
