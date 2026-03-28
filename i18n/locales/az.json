@@ -490,7 +490,10 @@
     "noSupplier": "Tədarükçü seçilməyib",
     "noItems": "Heç bir məhsul əlavə edilməyib",
     "success": "Məhsul qəbulu uğurla tamamlandı!",
-    "receiptNo": "Qəbul No"
+    "receiptNo": "Qəbul No",
+    "wholesaleShort": "Tdn.",
+    "retailLabel": "satış",
+    "selectPaymentMethod": "Ödəniş Üsulunu Seçin"
   },
   "refund": {
     "title": "Geri Ödəniş",

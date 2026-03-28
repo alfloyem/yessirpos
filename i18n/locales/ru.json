@@ -487,7 +487,10 @@
     "noSupplier": "Поставщик не выбран",
     "noItems": "Товары не добавлены",
     "success": "Приемка товара успешно завершена!",
-    "receiptNo": "Номер приемки"
+    "receiptNo": "Номер приемки",
+    "wholesaleShort": "Опт.",
+    "retailLabel": "розница",
+    "selectPaymentMethod": "Выберите способ оплаты"
   },
   "refund": {
     "title": "Возврат",

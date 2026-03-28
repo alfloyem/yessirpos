@@ -367,7 +367,7 @@ const submitIntake = async () => {
           
           <div v-else-if="filteredProductGroups.length === 0" class="flex flex-col items-center justify-center h-full text-[var(--text-app)] opacity-50">
             <UiIcon name="lucide:package-open" class="w-16 h-16 mb-4" />
-            <p class="font-bold text-lg">Məhsul tapılmadı.</p>
+            <p class="font-bold text-lg">{{ t('sales.noProductsFound', 'Məhsul tapılmadı.') }}</p>
           </div>
 
           <div v-else class="pt-2 grid gap-3 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]">
@@ -409,7 +409,7 @@ const submitIntake = async () => {
                       value: s.id,
                       extra: s.companyName || s.phone
                     }))"
-                    :placeholder="t('intake.supplierSearchHint', 'Tədarükçü axtar...')" 
+                    :placeholder="t('intake.selectSupplier', 'Tədarükçü Seçin')" 
                     icon="lucide:truck" 
                     class="!rounded-xl"
                     size="sm"
@@ -481,7 +481,7 @@ const submitIntake = async () => {
                       </span>
                       <span class="text-[9px] font-bold tracking-widest bg-[var(--border-app)] px-1.5 py-0.5 rounded-md opacity-60">X {{ item.qty }}</span>
                       <span v-if="item.retailPrice && item.retailPrice !== item.costPrice" class="text-[9px] font-bold text-green-500/70 italic">
-                        satış: {{ Number(item.retailPrice).toFixed(2) }}
+                        {{ t('intake.retailLabel', 'satış') }}: {{ Number(item.retailPrice).toFixed(2) }}
                       </span>
                     </div>
                   </div>
@@ -516,7 +516,7 @@ const submitIntake = async () => {
 
                     <!-- Cost Price Input (Subtle integration) -->
                     <div class="relative flex items-center bg-[var(--input-bg)] rounded-lg h-8 px-1.5 transition-all group-hover/item:bg-[var(--bg-app)]">
-                      <span class="text-[8px] font-black text-green-500/40 mr-1 opacity-60">Tdn.</span>
+                      <span class="text-[8px] font-black text-green-500/40 mr-1 opacity-60">{{ t('intake.wholesaleShort', 'Tdn.') }}</span>
                       <input 
                         type="number"
                         v-model="item.costPrice"

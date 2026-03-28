@@ -487,7 +487,10 @@
     "noSupplier": "No supplier selected",
     "noItems": "No items added",
     "success": "Goods receipt completed successfully!",
-    "receiptNo": "Receipt No"
+    "receiptNo": "Receipt No",
+    "wholesaleShort": "Whl.",
+    "retailLabel": "retail",
+    "selectPaymentMethod": "Select Payment Method"
   },
   "refund": {
     "title": "Refund",
