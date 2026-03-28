@@ -20,6 +20,6 @@
 - ![x] hesabatlar reportsda atributlar göstermir ve tek mehsulun ümumi satışını göstermir.
 - ![x] satış sehifesinde satış zamanı stock sayı anlıq yenilensin
 - ![x] product sehifesinde mehsulun üzerinde klik edilen zaman auto redakte dialogu açılsın
-- ![] reports mehsullar hissesine pagination elave edilmelidir.
+- ![x] reports mehsullar hissesine pagination elave edilmelidir.
 npx prisma db push
 npx prisma generate
