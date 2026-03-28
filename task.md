@@ -7,7 +7,7 @@
 - [x] çek custom design
 - [x] product səhifəsi yenilənməlidir, grid sisteminə keçid olmalıdır.
 - [x] product kopyalanan zaman atributlarda kopyalanmalıdır.
-- [] bildiriş sistemi
+- [x] bildiriş sistemi
 - [x] settings
 - [x] user access sistemi
 - [x] borc satış imkanı
