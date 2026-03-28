@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from '#i18n'
 import { useHead, useToast, useAuth } from '#imports'
 import DataTable from '~/components/ui/DataTable.vue'
@@ -13,6 +13,23 @@ const toast = useToast()
 
 useHead({
   title: t('attributes.title', 'Atributlar')
+})
+
+// --- Responsive State ---
+const isMobile = ref(false)
+const updateMobile = () => {
+  if (import.meta.client) {
+    isMobile.value = window.innerWidth < 768
+  }
+}
+
+onMounted(() => {
+  updateMobile()
+  window.addEventListener('resize', updateMobile)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateMobile)
 })
 
 // --- Centralized Schema ---
@@ -47,11 +64,16 @@ const formFields = computed(() => {
 })
 
 // Extract table columns dynamically
-const columns = computed(() => 
-  attributeSchema.value
-    .filter(f => f.inTable)
-    .map(f => ({ key: f.key, label: f.label, sortable: f.sortable }))
-)
+const columns = computed(() => {
+  const allCols = attributeSchema.value.filter(f => f.inTable)
+  if (isMobile.value) {
+    // On mobile, only show name and values
+    return allCols
+      .filter(f => ['name', 'values'].includes(f.key))
+      .map(f => ({ key: f.key, label: f.label, sortable: f.sortable }))
+  }
+  return allCols.map(f => ({ key: f.key, label: f.label, sortable: f.sortable }))
+})
 
 // --- Data ---
 const mockData = ref<any[]>([])
@@ -189,7 +211,7 @@ const saveForm = async () => {
   
   for (const field of formFields.value) {
     if (field.required && (!formData.value[field.key] || (Array.isArray(formData.value[field.key]) && formData.value[field.key].length === 0))) {
-      formErrors.value[field.key] = t('common.fieldRequired', 'Bu xəna mütləq doldurulmalıdır')
+      formErrors.value[field.key] = t('common.fieldRequired', 'Bu xana mütləq doldurulmalıdır')
       hasError = true
     }
   }
@@ -238,11 +260,14 @@ const saveForm = async () => {
 </script>
 
 <template>
-  <div class="space-y-6 font-sans">
-    <div class="flex items-center justify-between">
-      <h1 class="text-2xl font-bold text-[var(--text-app)]">
+  <div class="h-full flex flex-col space-y-4 sm:space-y-6 font-sans">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 px-1 sm:px-0">
+      <h1 class="text-xl sm:text-2xl font-black text-[var(--text-app)] tracking-tight">
         {{ t('attributes.title', 'Atributlar') }}
       </h1>
+      <p class="text-[11px] sm:text-xs opacity-40 font-medium">
+        {{ t('attributes.subtitle', 'Məhsul atributlarının idarə olunması') }}
+      </p>
     </div>
 
     <!-- Smart Data Table -->
@@ -260,18 +285,17 @@ const saveForm = async () => {
       @bulk-delete="handleBulkDelete"
       @bulk-edit="handleBulkEdit"
     >
-      <!-- Values List Custom Format -->
       <template #cell-values="{ value, highlight }">
-        <div class="flex gap-1 flex-wrap">
+        <div class="flex gap-1.5 flex-wrap py-1">
           <template v-if="Array.isArray(value) && value.length > 0">
             <span 
               v-for="(tag, idx) in value" 
               :key="idx"
-              class="px-2 py-0.5 bg-[var(--text-primary)]/10 text-[var(--text-primary)] rounded-[6px] text-[12px] font-medium"
+              class="px-2 py-0.5 bg-[var(--text-primary)]/5 hover:bg-[var(--text-primary)]/10 text-[var(--text-primary)] rounded-[6px] text-[11px] font-bold border border-[var(--text-primary)]/10 transition-colors"
               v-html="highlight(tag)"
             ></span>
           </template>
-          <span v-else class="opacity-30">-</span>
+          <span v-else class="opacity-30 italic text-[12px]">{{ t('common.none', 'Yoxdur') }}</span>
         </div>
       </template>
     </DataTable>

@@ -200,7 +200,8 @@
     "pleaseWait": "Gözləyin...",
     "add": "əlavə et",
     "typeAndPressEnter": "Yazın və Enter basın...",
-    "noResultsFound": "Nəticə tapılmadı"
+    "noResultsFound": "Nəticə tapılmadı",
+    "qty": "Say"
   },
   "orders": {
     "title": "Çek Arxivi",
