@@ -433,15 +433,16 @@ const handleInputKeydown = (e: KeyboardEvent) => {
 input[type="date"]::-webkit-calendar-picker-indicator,
 input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: auto;
-  height: auto;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
   color: transparent;
   background: transparent;
   cursor: pointer;
+  opacity: 0;
+  z-index: 1;
 }
 
 /* For Firefox */
@@ -449,5 +450,14 @@ input[type="date"],
 input[type="datetime-local"] {
   appearance: textfield;
   -moz-appearance: textfield;
+}
+
+/* Mobile: force full width, prevent overflow */
+input[type="datetime-local"],
+input[type="date"] {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box;
 }
 </style>

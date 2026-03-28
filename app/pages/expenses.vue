@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useHead, useToast, useAuth, useNuxtApp } from '#imports'
 import { useI18n } from '#i18n'
 import DataTable from '~/components/ui/DataTable.vue'
@@ -61,12 +61,37 @@ const formFields = computed(() => {
   return expenseSchema.value.filter(f => !['createdAt', 'createdBy'].includes(f.key))
 })
 
-// Extract table columns dynamically
-const columns = computed(() => 
-  expenseSchema.value
+// --- Responsive State ---
+const isMobile = ref(false)
+const updateMobile = () => {
+  if (import.meta.client) {
+    isMobile.value = window.innerWidth < 768
+  }
+}
+
+onMounted(() => {
+  updateMobile()
+  window.addEventListener('resize', updateMobile)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateMobile)
+})
+
+// Extract table columns dynamically — hide secondary columns on mobile
+const MOBILE_COLUMNS = ['date', 'amount', 'category']
+const columns = computed(() => {
+  const all = expenseSchema.value
     .filter(f => f.inTable)
     .map(f => ({ key: f.key, label: f.label, sortable: f.sortable }))
-)
+  if (isMobile.value) {
+    return all.filter(c => MOBILE_COLUMNS.includes(c.key))
+  }
+  return all
+})
+
+// Responsive form grid
+const formGridCols = computed(() => isMobile.value ? 1 : 2)
 
 const loadData = async () => {
   loading.value = true
@@ -271,11 +296,16 @@ const saveForm = async () => {
 </script>
 
 <template>
-  <div class="space-y-6">
-    <div class="flex items-center justify-between">
-      <h1 class="text-2xl font-bold text-[var(--text-app)]">
-        {{ t('menu.expenses', 'Xərclər') }}
-      </h1>
+  <div class="space-y-4 sm:space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div>
+        <h1 class="text-xl sm:text-2xl font-black text-[var(--text-app)] tracking-tight">
+          {{ t('menu.expenses', 'Xərclər') }}
+        </h1>
+        <p class="text-[11px] opacity-40 font-medium mt-0.5">
+          {{ t('expenses.subtitle', 'Xərclərin icmalı və idarə edilməsi') }}
+        </p>
+      </div>
     </div>
 
     <!-- Smart Data Table -->
@@ -296,22 +326,22 @@ const saveForm = async () => {
     >
       <!-- Custom Category Cell with Highlighting -->
       <template #cell-category="{ value, highlight }">
-        <div class="flex gap-1 flex-wrap">
+        <div class="flex gap-1.5 flex-wrap py-0.5">
           <template v-if="Array.isArray(value) && value.length > 0">
             <span 
               v-for="(tag, idx) in value" 
               :key="idx"
-              class="px-2 py-0.5 bg-[var(--text-primary)]/10 text-[var(--text-primary)] rounded-[6px] text-[11px] font-bold tracking-wider"
+              class="px-2 py-0.5 bg-[var(--text-primary)]/5 border border-[var(--text-primary)]/10 text-[var(--text-primary)] rounded-md text-[11px] font-bold"
               v-html="highlight(tag)"
             ></span>
           </template>
-          <span v-else class="opacity-30">-</span>
+          <span v-else class="opacity-30 text-xs italic">{{ t('common.none', 'Yoxdur') }}</span>
         </div>
       </template>
 
-      <!-- Amount Cell with Highlighting -->
+      <!-- Amount Cell -->
       <template #cell-amount="{ value, highlight }">
-        <span class="font-bold text-[var(--text-primary)]" v-html="highlight(value) + ' ₼'"></span>
+        <span class="font-black text-rose-600 tabular-nums" v-html="'- ' + highlight(value) + ' ₼'"></span>
       </template>
 
       <!-- Audit Cells -->
@@ -329,7 +359,7 @@ const saveForm = async () => {
         v-model="formData"
         :fields="formFields"
         :errors="formErrors"
-        :grid-cols="2"
+        :grid-cols="formGridCols"
       />
       <template #footer>
         <UiButton variant="ghost" @click="showAddModal = false" class="!px-6">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
@@ -342,7 +372,7 @@ const saveForm = async () => {
         v-model="formData"
         :fields="formFields"
         :errors="formErrors"
-        :grid-cols="2"
+        :grid-cols="formGridCols"
       />
       <template #footer>
         <UiButton variant="ghost" @click="showEditModal = false" class="!px-6">{{ t('common.cancel', 'Ləğv et') }}</UiButton>
