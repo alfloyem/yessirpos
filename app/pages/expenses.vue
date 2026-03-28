@@ -17,6 +17,10 @@ useHead({
 // --- Data ---
 const expenses = ref<any[]>([])
 const employeesOptions = ref<{label: string, value: string}[]>([])
+const paymentMethodsOptions = ref<{label: string, value: string}[]>([
+  { label: t('expenses.payCash', 'Nağd'), value: 'Cash' },
+  { label: t('expenses.payCard', 'Bank kartı'), value: 'Card' }
+])
 const loading = ref(false)
 const error = ref<string | null>(null)
 
@@ -45,11 +49,7 @@ const expenseSchema = computed< (FormField & { inTable?: boolean, sortable?: boo
     required: true, 
     colSpan: 1 
   },
-  { key: 'paymentMethod', label: t('expenses.paymentMethod', 'Ödəniş üsulu'), icon: 'lucide:credit-card', type: 'select', inTable: true, sortable: true, options: [
-    { label: t('expenses.payCash', 'Nağd'), value: 'cash' },
-    { label: t('expenses.payCard', 'Bank kartı'), value: 'card' },
-    { label: t('expenses.payTransfer', 'Bank köçürməsi'), value: 'transfer' }
-  ], colSpan: 1 },
+  { key: 'paymentMethod', label: t('expenses.paymentMethod', 'Ödəniş üsulu'), icon: 'lucide:credit-card', type: 'select', inTable: true, sortable: true, options: paymentMethodsOptions.value, colSpan: 1 },
   { key: 'notes', label: t('expenses.notes', 'Qeydlər'), type: 'textarea', colSpan: 2, inTable: false },
   { key: 'createdAt', label: t('common.createdAt', 'Yaradılma'), type: 'text', inTable: true, sortable: true },
   { key: 'createdBy', label: t('common.createdBy', 'Yaradan'), type: 'text', inTable: true, sortable: true },
@@ -72,9 +72,10 @@ const loadData = async () => {
   error.value = null
   
   try {
-    const [expensesRes, employeesRes] = await Promise.all([
+    const [expensesRes, employeesRes, paymentMethodsRes] = await Promise.all([
       $fetch('/api/expenses'),
-      $fetch('/api/employees')
+      $fetch('/api/employees'),
+      $fetch('/api/payment-methods')
     ])
 
     expenses.value = (expensesRes as any[]).map(e => ({
@@ -93,6 +94,21 @@ const loadData = async () => {
       label: `${emp.firstName} ${emp.lastName}`,
       value: `${emp.firstName} ${emp.lastName}`
     }))
+
+    paymentMethodsOptions.value = [
+      { label: t('expenses.payCash', 'Nağd'), value: 'Cash' },
+      { label: t('expenses.payCard', 'Bank kartı'), value: 'Card' }
+    ]
+
+    const dbPayments = (paymentMethodsRes as any[]).filter(pm => {
+      const name = pm.name.toLowerCase()
+      return !['cash', 'card', 'nağd', 'kart', 'nəğd'].includes(name)
+    }).map(pm => ({
+      label: pm.name,
+      value: pm.name
+    }))
+    
+    paymentMethodsOptions.value.push(...dbPayments)
 
   } catch (err: any) {
     const errorMsg = err.message || t('toast.loadingError', 'Məlumatlar yüklənərkən xəta baş verdi')
@@ -127,7 +143,7 @@ const handleAdd = () => {
     date: getLocalISOString(),
     amount: '0.00',
     category: [],
-    paymentMethod: 'cash'
+    paymentMethod: 'Cash'
   }
   formErrors.value = {}
   showAddModal.value = true
