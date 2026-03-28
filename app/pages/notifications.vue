@@ -38,7 +38,7 @@ const loadNotifications = async (page = 1) => {
     if (page === 1) unreadCount.value = data.unreadCount
   } catch (error) {
     console.error('Error loading notifications:', error)
-    toast.error('Bildirişlər yüklənərkən xəta baş verdi')
+    toast.error(t('notifications.loadError'))
   } finally {
     loading.value = false
   }
@@ -83,23 +83,23 @@ const renderMessage = (notif: any) => {
   
   switch (notif.type) {
     case 'SALE_COMPLETED':
-      return { main: `${Number(data.amount || 0).toFixed(2)} ₼ satış edildi.`, sub: `${data.receiptNo || ''} nömrəli çek` }
+      return { main: t('notifications.saleCompleted', { amount: Number(data.amount || 0).toFixed(2) }), sub: t('notifications.receiptNo', { no: data.receiptNo || '' }) }
     case 'REFUND_PROCESSED':
-      return { main: `${Number(data.amount || 0).toFixed(2)} ₼ geri qaytarıldı.`, sub: `${data.originalReceiptNo || ''} nömrəli çek üzrə` }
+      return { main: t('notifications.refundProcessed', { amount: Number(data.amount || 0).toFixed(2) }), sub: t('notifications.receiptNoFor', { no: data.originalReceiptNo || '' }) }
     case 'DEBT_PAYMENT':
-      return { main: `${Number(data.amount || 0).toFixed(2)} ₼ borc ödənildi.`, sub: `${data.receiptNo || ''} nömrəli çek` }
+      return { main: t('notifications.debtPaid', { amount: Number(data.amount || 0).toFixed(2) }), sub: t('notifications.receiptNo', { no: data.receiptNo || '' }) }
     case 'INTAKE_CREATED':
-      return { main: `Yeni mal qəbul edildi.`, sub: `${data.receiptNo || ''} nömrəli qaimə` }
+      return { main: t('notifications.intakeCreated'), sub: t('notifications.invoiceNo', { no: data.receiptNo || '' }) }
     case 'LOW_STOCK':
-      return { main: `${notif.message.split(' (')[0]}`, sub: `Barkod: ${data.barcode || 'Yoxdur'}` }
+      return { main: `${notif.message.split(' (')[0]}`, sub: t('notifications.barcode', { barcode: data.barcode || t('notifications.none') }) }
     case 'CUSTOMER_ADDED':
-      return { main: `${data.name || ''} sistemə əlavə edildi.`, sub: `Yeni müştəri profili` }
+      return { main: t('notifications.customerAdded', { name: data.name || '' }), sub: t('notifications.newCustomerProfile') }
     case 'PRODUCT_ADDED':
-      return { main: `${data.name || ''} siyahıya əlavə edildi.`, sub: `Yeni məhsul` }
+      return { main: t('notifications.productAdded', { name: data.name || '' }), sub: t('notifications.newProduct') }
     case 'EXPENSE_ADDED':
-      return { main: `${Number(data.amount || 0).toFixed(2)} ₼ xərc yazıldı.`, sub: `Məxaric qeydi` }
+      return { main: t('notifications.expenseAdded', { amount: Number(data.amount || 0).toFixed(2) }), sub: t('notifications.expenseRecord') }
     case 'SUPPLIER_ADDED':
-      return { main: `${data.brandName || ''} təchizatçısı əlavə edildi.`, sub: `Yeni təchizatçı` }
+      return { main: t('notifications.supplierAdded', { name: data.brandName || '' }), sub: t('notifications.newSupplier') }
     default:
       return { main: notif.message, sub: null }
   }
@@ -180,7 +180,7 @@ const getColorForType = (type: string) => {
           <UiIcon name="lucide:bell" class="w-8 h-8 opacity-80" />
           {{ t('notifications.title', 'Bildirişlər') }}
         </h1>
-        <p class="text-[var(--text-app)] opacity-60 mt-1 text-sm md:text-base">Müştəri fəaliyyətləri, anbar və satış bildirişləri</p>
+        <p class="text-[var(--text-app)] opacity-60 mt-1 text-sm md:text-base">{{ t('notifications.subtitle') }}</p>
       </div>
 
       <div class="flex gap-2">
@@ -192,7 +192,7 @@ const getColorForType = (type: string) => {
           icon="lucide:bell-ring"
           class="border-blue-500/30 text-blue-500 hover:bg-blue-500/10"
         >
-          Bildirişlərə İcazə Ver
+          {{ t('notifications.allowNotifications') }}
         </UiButton>
         <UiButton 
           v-if="unreadCount > 0"
@@ -201,7 +201,7 @@ const getColorForType = (type: string) => {
           @click="handleMarkAllAsRead"
           icon="lucide:check-check"
         >
-          {{ t('notifications.markAllRead', 'Hamısını oxunmuş et') }}
+          {{ t('notifications.markAllRead') }}
         </UiButton>
         <UiButton 
           type="button" 
@@ -209,7 +209,7 @@ const getColorForType = (type: string) => {
           @click="loadNotifications(1)"
           icon="lucide:refresh-cw"
         >
-          {{ t('common.update', 'Yenilə') }}
+          {{ t('common.update') }}
         </UiButton>
       </div>
     </div>
@@ -221,14 +221,14 @@ const getColorForType = (type: string) => {
       <div v-if="loading && localNotifications.length === 0" class="flex-1 flex items-center justify-center min-h-[400px]">
         <div class="text-[var(--text-app)] opacity-50 flex flex-col items-center">
           <UiIcon name="lucide:loader-2" class="w-8 h-8 animate-spin mb-4" />
-          Məlumatlar yüklənir...
+          {{ t('common.loading') }}
         </div>
       </div>
 
       <div v-else-if="localNotifications.length === 0" class="flex-1 flex flex-col items-center justify-center text-[var(--text-app)] opacity-50 min-h-[400px]">
         <UiIcon name="lucide:bell-off" class="w-16 h-16 mb-4 opacity-30" />
-        <p class="text-xl font-medium">{{ t('notifications.empty', 'Hazırda heç bir bildiriş yoxdur') }}</p>
-        <p class="text-sm mt-2 opacity-75">Sistem üzərində əməliyyatlar edildikcə burada görünəcək.</p>
+        <p class="text-xl font-medium">{{ t('notifications.empty') }}</p>
+        <p class="text-sm mt-2 opacity-75">{{ t('notifications.emptyDescription') }}</p>
       </div>
 
       <div v-else class="flex-1 overflow-y-auto">
@@ -284,7 +284,7 @@ const getColorForType = (type: string) => {
             :loading="loading"
             class="opacity-70 hover:opacity-100"
           >
-            {{ t('common.showMore', 'Daha çox yüklə') }}
+            {{ t('customers.showMore') }}
           </UiButton>
         </div>
       </div>
