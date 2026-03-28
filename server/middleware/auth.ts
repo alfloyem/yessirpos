@@ -1,7 +1,17 @@
-import { defineEventHandler, createError, getCookie, getHeader } from 'h3'
+import { defineEventHandler, createError, getCookie, getHeader, setResponseHeaders } from 'h3'
 import { verifyToken } from '../utils/jwt'
 
-export default defineEventHandler((event) => {
+export default defineEventHandler(async (event) => {
+  // 1. OPTIONS (Preflight) isteklerini direkt geçirmeliyiz
+  if (event.method === 'OPTIONS') {
+    setResponseHeaders(event, {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET,HEAD,PUT,PATCH,POST,DELETE',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    })
+    return
+  }
+
   const url = event.node.req.url || ''
 
   const publicEndpoints = [
