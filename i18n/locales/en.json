@@ -198,7 +198,8 @@
     "pleaseWait": "Please wait...",
     "add": "add",
     "typeAndPressEnter": "Type and press Enter...",
-    "noResultsFound": "No results found"
+    "noResultsFound": "No results found",
+    "qty": "Qty"
   },
   "orders": {
     "title": "Receipt Archive",

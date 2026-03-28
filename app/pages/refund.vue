@@ -202,10 +202,10 @@ const focusInput = () => {
 <template>
   <div class="h-full flex flex-col bg-[var(--bg-app)] overflow-hidden">
     <!-- Header: Simplified -->
-    <header class="h-16 shrink-0 bg-[var(--bg-app)] border-b border-[var(--border-app)] flex items-center justify-between px-6 z-20">
+    <header class="h-16 shrink-0 bg-[var(--bg-app)] border-b border-[var(--border-app)] flex items-center justify-between px-4 sm:px-6 z-20">
       <div class="flex items-center gap-3">
         <UiIcon name="lucide:rotate-ccw" class="w-5 h-5 text-[var(--text-primary)]" />
-        <h1 class="text-lg font-black text-[var(--text-app)] tracking-tight">
+        <h1 class="text-base sm:text-lg font-black text-[var(--text-app)] tracking-tight">
           {{ t('menu.refund', 'Geri Ödəniş') }}
         </h1>
       </div>
@@ -214,15 +214,15 @@ const focusInput = () => {
       <div v-if="originalSale" class="flex items-center gap-2">
         <button 
           @click="clearSearch"
-          class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-red-500 bg-red-500/10 px-4 py-2 rounded-xl hover:bg-red-500/20 transition-all"
+          class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-red-500 bg-red-500/10 px-3 sm:px-4 py-2 rounded-xl hover:bg-red-500/20 transition-all"
         >
           <UiIcon name="lucide:trash-2" class="w-3.5 h-3.5" />
-          {{ t('refund.newSearch') }}
+          <span class="hidden sm:inline">{{ t('refund.newSearch') }}</span>
         </button>
       </div>
     </header>
 
-    <main class="flex-1 flex overflow-hidden">
+    <main class="flex-1 flex flex-col lg:flex-row overflow-hidden">
       <!-- Left Content: Cleaner & More Minimal -->
       <div class="flex-1 flex flex-col min-w-0 relative">
         <div v-if="!originalSale" class="h-full flex flex-col items-center justify-center p-6 text-center">
@@ -255,24 +255,24 @@ const focusInput = () => {
         <div v-else class="flex-1 overflow-y-auto custom-scrollbar p-6">
           <div class="max-w-4xl mx-auto space-y-6">
             <!-- Summary Info Bar -->
-            <div class="flex items-center justify-between p-4 bg-[var(--input-bg)]/40 rounded-2xl border border-[var(--border-app)]">
-              <div class="flex items-center gap-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-[var(--input-bg)]/40 rounded-2xl border border-[var(--border-app)] gap-4">
+              <div class="flex flex-wrap items-center gap-4 sm:gap-6">
                 <div>
                   <div class="text-[9px] font-black uppercase tracking-widest opacity-40 mb-1">{{ t('refund.receipt') }}</div>
                   <div class="text-sm font-black font-mono text-[var(--text-primary)]">{{ originalSale.receiptNo }}</div>
                 </div>
-                <div class="w-px h-8 bg-[var(--border-app)]"></div>
+                <div class="hidden sm:block w-px h-8 bg-[var(--border-app)]"></div>
                 <div>
                   <div class="text-[9px] font-black uppercase tracking-widest opacity-40 mb-1">{{ t('common.counterparty') }}</div>
                   <div class="text-sm font-bold">{{ originalSale.customerName || t('orders.anonymousCustomer') }}</div>
                 </div>
-                <div class="w-px h-8 bg-[var(--border-app)]"></div>
+                <div class="hidden sm:block w-px h-8 bg-[var(--border-app)]"></div>
                 <div>
                   <div class="text-[9px] font-black uppercase tracking-widest opacity-40 mb-1">{{ t('sales.saleDate') }}</div>
                   <div class="text-sm font-bold opacity-60">{{ new Date(originalSale.createdAt).toLocaleDateString('az-AZ') }}</div>
                 </div>
               </div>
-              <div class="text-right">
+              <div class="sm:text-right pt-2 sm:pt-0 border-t sm:border-0 border-[var(--border-app)] border-dashed">
                 <div class="text-[9px] font-black uppercase tracking-widest opacity-40 mb-1">{{ t('sales.originalTotal') }}</div>
                 <div class="text-sm font-black">{{ originalSale.finalTotal.toFixed(2) }} ₼</div>
               </div>
@@ -283,7 +283,7 @@ const focusInput = () => {
               <div 
                 v-for="item in refundItems" 
                 :key="item.id"
-                class="bg-[var(--bg-app)] border rounded-2xl p-4 flex items-center gap-4 transition-all"
+                class="bg-[var(--bg-app)] border rounded-2xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4 transition-all"
                 :class="item.selected ? 'border-[var(--text-primary)] shadow-sm bg-[var(--text-primary)]/[0.02]' : 'border-[var(--border-app)] hover:border-[var(--text-primary)]/20'"
               >
                 <!-- Toggle -->
@@ -294,35 +294,37 @@ const focusInput = () => {
                 >
                   <UiIcon :name="item.selected ? 'lucide:check' : 'lucide:plus'" :class="item.selected ? 'w-5 h-5' : 'w-4 h-4 opacity-20'" />
                 </div>
-
-                <!-- Product Info -->
-                <div class="flex-1 min-w-0">
-                  <h4 class="font-black text-[14px] text-[var(--text-app)] truncate leading-tight">{{ item.productName }}</h4>
-                  <div class="flex items-center gap-2 mt-1 opacity-40 font-bold text-[10px]">
-                    <span class="font-mono">{{ item.barcode }}</span>
-                    <span v-if="item.attribute" class="px-1.5 py-0.5 bg-[var(--input-bg)] rounded">{{ item.attribute }}</span>
-                  </div>
-                </div>
-
-                <!-- Controls -->
-                <div class="flex items-center gap-6">
-                  <div class="text-right">
-                    <div class="text-[9px] font-black opacity-30 uppercase tracking-tighter mb-0.5">{{ t('common.qty') }}</div>
-                    <div class="flex items-center bg-[var(--input-bg)] rounded-lg h-9 px-1">
-                      <button @click="updateRefundQty(item, -1)" class="w-7 h-7 flex items-center justify-center rounded-md hover:bg-white transition-all" :disabled="item.refundQty === 0">
-                        <UiIcon name="lucide:minus" class="w-3 h-3" />
-                      </button>
-                      <span class="w-8 text-center font-black text-xs tabular-nums">{{ item.refundQty }}</span>
-                      <button @click="updateRefundQty(item, 1)" class="w-7 h-7 flex items-center justify-center rounded-md hover:bg-white transition-all" :disabled="item.refundQty >= item.qty">
-                        <UiIcon name="lucide:plus" class="w-3 h-3" />
-                      </button>
+                
+                <div class="flex-1 flex flex-col sm:flex-row sm:items-center gap-3 min-w-0">
+                  <!-- Product Info -->
+                  <div class="flex-1 min-w-0">
+                    <h4 class="font-black text-[14px] text-[var(--text-app)] truncate leading-tight">{{ item.productName }}</h4>
+                    <div class="flex items-center gap-2 mt-1 opacity-40 font-bold text-[10px]">
+                      <span class="font-mono">{{ item.barcode }}</span>
+                      <span v-if="item.attribute" class="px-1.5 py-0.5 bg-[var(--input-bg)] rounded">{{ item.attribute }}</span>
                     </div>
                   </div>
 
-                  <div class="text-right min-w-[80px]">
-                    <div class="text-[9px] font-black opacity-30 uppercase tracking-tighter mb-0.5">{{ t('sales.amount') }}</div>
-                    <div class="text-sm font-black tabular-nums font-mono">
-                      {{ ((item.total / item.qty) * item.refundQty).toFixed(2) }} ₼
+                  <!-- Controls -->
+                  <div class="flex items-center justify-between sm:justify-end gap-6 border-t sm:border-0 border-[var(--border-app)] border-dashed pt-2 sm:pt-0">
+                    <div class="text-left sm:text-right">
+                      <div class="text-[9px] font-black opacity-30 uppercase tracking-tighter mb-0.5">{{ t('common.qty') }}</div>
+                      <div class="flex items-center bg-[var(--input-bg)] rounded-lg h-9 px-1">
+                        <button @click="updateRefundQty(item, -1)" class="w-7 h-7 flex items-center justify-center rounded-md hover:bg-white transition-all disabled:opacity-30" :disabled="item.refundQty === 0">
+                          <UiIcon name="lucide:minus" class="w-3 h-3" />
+                        </button>
+                        <span class="w-8 text-center font-black text-xs tabular-nums">{{ item.refundQty }}</span>
+                        <button @click="updateRefundQty(item, 1)" class="w-7 h-7 flex items-center justify-center rounded-md hover:bg-white transition-all disabled:opacity-30" :disabled="item.refundQty >= item.qty">
+                          <UiIcon name="lucide:plus" class="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="text-right min-w-[80px]">
+                      <div class="text-[9px] font-black opacity-30 uppercase tracking-tighter mb-0.5">{{ t('sales.amount') }}</div>
+                      <div class="text-sm font-black tabular-nums font-mono">
+                        {{ ((item.total / item.qty) * item.refundQty).toFixed(2) }} ₼
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -333,8 +335,8 @@ const focusInput = () => {
       </div>
 
       <!-- Right Sidebar: Minimal & Integrated -->
-      <aside v-if="originalSale" class="w-[340px] shrink-0 bg-[var(--bg-app)] border-l border-[var(--border-app)] flex flex-col shadow-[-10px_0_30px_rgba(0,0,0,0.01)]">
-        <div class="p-6 flex-1 space-y-8 overflow-y-auto custom-scrollbar">
+      <aside v-if="originalSale" class="w-full lg:w-[340px] shrink-0 bg-[var(--bg-app)] border-t lg:border-t-0 lg:border-l border-[var(--border-app)] flex flex-col shadow-[-10px_0_30px_rgba(0,0,0,0.01)] h-auto lg:h-full">
+        <div class="p-4 sm:p-6 flex-1 space-y-6 sm:space-y-8 overflow-y-auto custom-scrollbar">
           <div>
             <h3 class="text-[10px] font-black uppercase tracking-widest opacity-40 mb-4">{{ t('refund.summary') }}</h3>
             <div class="space-y-3">
@@ -361,18 +363,20 @@ const focusInput = () => {
           </div>
         </div>
 
-        <div class="p-6 border-t border-[var(--border-app)] space-y-4 bg-[var(--bg-app)]/50 backdrop-blur-sm">
-          <div>
-            <div class="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">{{ t('refund.refundAmount') }}</div>
-            <div class="text-4xl font-black text-[var(--text-primary)] font-mono tracking-tighter">
-              {{ refundTotals.finalTotal }} <span class="text-lg">₼</span>
+        <div class="p-4 sm:p-6 border-t border-[var(--border-app)] space-y-4 bg-[var(--bg-app)]/50 backdrop-blur-sm">
+          <div class="flex lg:block justify-between items-end lg:items-start">
+            <div>
+              <div class="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">{{ t('refund.refundAmount') }}</div>
+              <div class="text-3xl sm:text-4xl font-black text-[var(--text-primary)] font-mono tracking-tighter">
+                {{ refundTotals.finalTotal }} <span class="text-base sm:text-lg">₼</span>
+              </div>
             </div>
           </div>
 
           <UiButton 
             @click="processRefund"
             variant="primary"
-            class="w-full !h-16 !text-lg !rounded-2xl shadow-xl shadow-[var(--text-primary)]/10"
+            class="w-full !h-14 sm:!h-16 !text-base sm:!text-lg !rounded-2xl shadow-xl shadow-[var(--text-primary)]/10"
             :disabled="Number(refundTotals.finalTotal) <= 0 || processing"
             :loading="processing"
           >

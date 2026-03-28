@@ -318,25 +318,25 @@ const submitIntake = async () => {
 </script>
 
 <template>
-  <div>
-    <div class="flex flex-col lg:flex-row gap-6 font-sans h-[calc(100vh-120px)] pb-4">
+  <div class="flex flex-col lg:flex-row gap-4 sm:gap-6 font-sans lg:h-[calc(100vh-120px)] pb-4">
 
       <!-- Left Section: Search & Products (same as sales.vue) -->
       <div class="flex-1 flex flex-col min-w-0 bg-[var(--bg-app)]">
 
         <!-- Top Action Bar -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5 shrink-0">
-          <h1 class="text-xl md:text-2xl font-black text-[var(--text-app)] tracking-tight leading-none mb-1">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 shrink-0">
+          <h1 class="text-xl md:text-2xl font-black text-[var(--text-app)] tracking-tight leading-none">
             {{ t('intake.title', 'Mal Qəbulu') }}
           </h1>
 
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 w-full sm:w-auto">
             <UiInput 
               ref="searchInput"
               v-model="searchQuery" 
               :placeholder="t('sales.searchHint')" 
               icon="lucide:search" 
               clearable
+              class="w-full"
               @keyup.enter="focusSearch"
             />
           </div>
@@ -370,7 +370,7 @@ const submitIntake = async () => {
             <p class="font-bold text-lg">{{ t('sales.noProductsFound', 'Məhsul tapılmadı.') }}</p>
           </div>
 
-          <div v-else class="pt-2 grid gap-3 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]">
+          <div v-else class="pt-2 grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3">
             <SalesProductSaleCard 
               v-for="root in filteredProductGroups" 
               :key="root.id"
@@ -382,8 +382,8 @@ const submitIntake = async () => {
       </div>
 
       <!-- Right Section: Sidebar (CartSidebar structure) -->
-      <div class="w-full lg:w-[400px] shrink-0 h-full">
-        <div class="flex flex-col bg-[var(--input-bg)] rounded-[28px] border border-[var(--border-app)] h-full overflow-hidden">
+      <div class="w-full lg:w-[400px] shrink-0 h-auto lg:h-full">
+        <div class="flex flex-col bg-[var(--input-bg)] rounded-[28px] border border-[var(--border-app)] h-full min-h-[500px] lg:min-h-0 overflow-hidden shadow-2xl lg:shadow-none">
           
           <!-- Top: Supplier & Payment Method -->
           <div class="p-4 border-b border-[var(--border-app)] bg-[var(--bg-app)]/40 backdrop-blur-xl shrink-0 space-y-4">
@@ -449,7 +449,7 @@ const submitIntake = async () => {
           </div>
 
           <!-- Middle: Cart Items (like CartSidebar items list) -->
-          <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
+          <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2 min-h-[300px] lg:min-h-0">
             <div v-if="cart.length === 0" class="h-full flex flex-col items-center justify-center text-[var(--text-app)] opacity-30 text-center p-6">
               <div class="w-16 h-16 rounded-full bg-[var(--border-app)]/20 flex items-center justify-center mb-4">
                 <UiIcon name="lucide:shopping-cart" class="w-8 h-8 stroke-[1.5]" />
@@ -462,7 +462,7 @@ const submitIntake = async () => {
               <div 
                 v-for="(item, index) in cart" 
                 :key="index"
-                class="relative bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl p-3 flex flex-col gap-3 transition-all duration-300 hover:border-[var(--text-primary)]/30 hover:shadow-lg group/item"
+                class="relative bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl p-3 flex flex-col gap-2.5 transition-all duration-300 hover:border-[var(--text-primary)]/30 hover:shadow-lg group/item"
               >
                 <!-- Top Row: Img, Name, Delete -->
                 <div class="flex items-center gap-2.5">
@@ -471,64 +471,71 @@ const submitIntake = async () => {
                     <UiIcon v-else name="lucide:package" class="w-5 h-5 text-[var(--text-app)] opacity-10" />
                   </div>
 
-                  <div class="flex-1 min-w-0 pr-6">
-                    <h4 class="font-black text-[12px] text-[var(--text-app)] truncate tracking-tight leading-tight group-hover:text-[var(--text-primary)] transition-colors">
+                  <div class="flex-1 min-w-0">
+                    <h4 class="font-black text-[13px] text-[var(--text-app)] truncate tracking-tight leading-tight">
                       {{ getItemDisplayName(item) }}
                     </h4>
-                    <div class="flex items-center gap-2 mt-0.5">
-                      <span class="text-[12px] font-black text-[var(--text-app)]/60 tabular-nums">
+                    <div class="flex items-center gap-2 mt-0.5 flex-wrap">
+                      <span class="text-[11px] font-black text-[var(--text-app)]/60 tabular-nums">
                         {{ Number(item.costPrice).toFixed(2) }} ₼
                       </span>
-                      <span class="text-[9px] font-bold tracking-widest bg-[var(--border-app)] px-1.5 py-0.5 rounded-md opacity-60">X {{ item.qty }}</span>
-                      <span v-if="item.retailPrice && item.retailPrice !== item.costPrice" class="text-[9px] font-bold text-green-500/70 italic">
+                      <span class="text-[9px] font-bold tracking-widest bg-[var(--border-app)] px-1.5 py-0.5 rounded-md opacity-60">× {{ item.qty }}</span>
+                      <span v-if="item.retailPrice && Number(item.retailPrice) !== Number(item.costPrice)" class="text-[9px] font-bold text-green-500/70 italic">
                         {{ t('intake.retailLabel', 'satış') }}: {{ Number(item.retailPrice).toFixed(2) }}
                       </span>
                     </div>
                   </div>
 
-                  <!-- Delete Button -->
+                  <!-- Delete Button: Always visible on touch, subtle on desktop -->
                   <button 
                     @click="removeItem(index)" 
-                    class="w-7 h-7 flex items-center justify-center rounded-lg transition-all duration-300 text-red-500 hover:text-white hover:bg-red-500 opacity-20 group-hover/item:opacity-100"
+                    class="w-8 h-8 flex items-center justify-center rounded-xl transition-all duration-200 text-red-500 bg-red-500/5 hover:bg-red-500 hover:text-white shrink-0 lg:opacity-30 lg:group-hover/item:opacity-100"
                   >
-                    <UiIcon name="lucide:trash-2" class="w-3.5 h-3.5" />
+                    <UiIcon name="lucide:trash-2" class="w-4 h-4" />
                   </button>
                 </div>
-                
-                <!-- Bottom Row: Controls & Total -->
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-1.5">
-                    <!-- Qty Input -->
-                    <div class="flex items-center bg-[var(--bg-app)] rounded-lg border border-[var(--border-app)] h-8 px-0.5 transition-all focus-within:border-[var(--text-primary)]/40">
-                      <button @click="item.qty = Math.max(1, item.qty - 1)" class="w-6 h-6 flex items-center justify-center text-[var(--text-app)]/40 hover:text-red-500 hover:bg-red-500/5 rounded transition-all">
-                        <UiIcon name="lucide:minus" class="w-3 h-3" />
+
+                <!-- Controls Row: Qty + Price + Discount + Total -->
+                <div class="flex items-center justify-between gap-2 flex-wrap">
+                  <!-- Left: Controls -->
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <!-- Qty Stepper -->
+                    <div class="flex items-center bg-[var(--bg-app)] rounded-xl border border-[var(--border-app)] h-9 px-0.5">
+                      <button 
+                        @click="item.qty = Math.max(1, item.qty - 1)" 
+                        class="w-7 h-7 flex items-center justify-center text-[var(--text-app)]/40 hover:text-red-500 hover:bg-red-500/5 rounded-lg transition-all active:scale-90"
+                      >
+                        <UiIcon name="lucide:minus" class="w-3.5 h-3.5" />
                       </button>
                       <input 
                         type="number"
                         v-model="item.qty"
-                        class="w-7 text-center text-[12px] font-black bg-transparent border-none p-0 focus:ring-0 tabular-nums no-spinners"
+                        class="w-8 text-center text-[13px] font-black bg-transparent border-none p-0 focus:ring-0 tabular-nums no-spinners"
                         min="1"
                       />
-                      <button @click="item.qty++" class="w-6 h-6 flex items-center justify-center text-[var(--text-app)]/40 hover:text-[var(--text-primary)] hover:bg-[var(--text-primary)]/5 rounded transition-all">
-                        <UiIcon name="lucide:plus" class="w-3 h-3" />
+                      <button 
+                        @click="item.qty++" 
+                        class="w-7 h-7 flex items-center justify-center text-[var(--text-app)]/40 hover:text-[var(--text-primary)] hover:bg-[var(--text-primary)]/5 rounded-lg transition-all active:scale-90"
+                      >
+                        <UiIcon name="lucide:plus" class="w-3.5 h-3.5" />
                       </button>
                     </div>
 
-                    <!-- Cost Price Input (Subtle integration) -->
-                    <div class="relative flex items-center bg-[var(--input-bg)] rounded-lg h-8 px-1.5 transition-all group-hover/item:bg-[var(--bg-app)]">
-                      <span class="text-[8px] font-black text-green-500/40 mr-1 opacity-60">{{ t('intake.wholesaleShort', 'Tdn.') }}</span>
+                    <!-- Cost Price -->
+                    <div class="flex items-center bg-[var(--input-bg)] rounded-xl h-9 px-2 border border-transparent focus-within:border-green-500/30">
+                      <span class="text-[9px] font-black text-green-600/50 mr-1">{{ t('intake.wholesaleShort', 'Tdn.') }}</span>
                       <input 
                         type="number"
                         v-model="item.costPrice"
-                        class="w-14 text-center text-[12px] font-black bg-transparent border-none p-0 focus:ring-0 no-spinners text-green-600/90"
+                        class="w-14 text-center text-[12px] font-black bg-transparent border-none p-0 focus:ring-0 no-spinners text-green-600"
                       />
                     </div>
 
-                    <!-- Discount Toggle & Input (Subtle integration) -->
-                    <div class="relative flex items-center bg-[var(--input-bg)] rounded-lg h-8 px-1.5 transition-all group-hover/item:bg-[var(--bg-app)]">
+                    <!-- Discount -->
+                    <div class="flex items-center bg-[var(--input-bg)] rounded-xl h-9 px-2 border border-transparent focus-within:border-red-500/20">
                       <button 
                         @click="item.discountType = item.discountType === 'amount' ? 'percent' : 'amount'"
-                        class="text-[9px] font-black mr-1 opacity-60 hover:opacity-100 transition-all"
+                        class="text-[10px] font-black mr-1 w-5 h-5 rounded flex items-center justify-center bg-white shadow-sm border border-[var(--border-app)] transition-colors"
                         :class="item.discountType === 'percent' ? 'text-red-500' : 'text-[var(--text-app)]/40'"
                       >
                         {{ item.discountType === 'percent' ? '%' : '₼' }}
@@ -536,14 +543,14 @@ const submitIntake = async () => {
                       <input 
                         type="number"
                         v-model="item.discount"
-                        class="bg-transparent border-none text-[12px] w-8 font-black text-center p-0 focus:ring-0 no-spinners text-red-500/80"
+                        class="w-10 bg-transparent border-none text-[12px] font-black text-center p-0 focus:ring-0 no-spinners text-red-500/80"
                         placeholder="0"
                       />
                     </div>
                   </div>
 
-                  <!-- Total -->
-                  <span class="text-[16px] font-black text-[var(--text-app)] tabular-nums tracking-tighter">
+                  <!-- Right: Line Total -->
+                  <span class="text-[15px] font-black text-[var(--text-app)] tabular-nums tracking-tight ml-auto">
                     {{ calculateItemTotal(item).toFixed(2) }} ₼
                   </span>
                 </div>
@@ -596,13 +603,12 @@ const submitIntake = async () => {
             </div>
 
             <UiButton 
-              size="sm" 
               block 
               variant="primary"
               @click="submitIntake" 
               :disabled="cart.length === 0 || !selectedSupplier"
               :loading="saving"
-              class="!h-10.5 !rounded-xl !text-[12px] font-black shadow-lg shadow-[var(--text-primary)]/10 transition-all active:scale-[0.98]"
+              class="!h-12 sm:!h-14 !rounded-2xl !text-sm sm:!text-base font-black shadow-xl shadow-[var(--text-primary)]/15 transition-all active:scale-[0.98]"
               icon-right="lucide:arrow-right"
             >
               {{ t('intake.complete', 'Qəbulu Tamamla') }}
@@ -636,7 +642,6 @@ const submitIntake = async () => {
         </button>
       </div>
     </UiModal>
-  </div>
 </template>
 
 <style scoped>
