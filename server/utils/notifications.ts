@@ -1,4 +1,5 @@
 import prisma from './prisma'
+import { messaging } from './firebase'
 
 export interface CreateNotificationDTO {
   type: string
@@ -19,7 +20,7 @@ export const createNotification = async (payload: CreateNotificationDTO) => {
     })
     
     // In the future, this is where we'll hook into Web Push, Telegram, Discord integrations
-    await emitRealtimeNotification(notification)
+    await emitRealtimeNotification(notification, payload)
     
     return notification
   } catch (error) {
@@ -29,7 +30,35 @@ export const createNotification = async (payload: CreateNotificationDTO) => {
 }
 
 // Stub for realtime emissions (WebSocket / SSE / Polling hooks)
-const emitRealtimeNotification = async (notification: any) => {
-  // Placeholder for future realtime integrations like FCM, Socket.io, or sending to a webhook
-  // Currently, the client will just poll or fetch on load, but we can setup something later.
+const emitRealtimeNotification = async (notification: any, payload: CreateNotificationDTO) => {
+  // TODO: Trigger actual web push or websocket broadcast here
+  if (messaging) {
+    try {
+      const users = await prisma.employee.findMany()
+      const allTokens = users.map((u: any) => {
+        try {
+          return u.fcmTokens ? JSON.parse(u.fcmTokens) : []
+        } catch(e) { return [] }
+      }).flat()
+
+      const uniqueTokens = [...new Set(allTokens)]
+
+      if (uniqueTokens.length > 0) {
+        await messaging.sendEachForMulticast({
+          tokens: uniqueTokens as string[],
+          notification: {
+            title: payload.title,
+            body: payload.message
+          },
+          data: {
+            type: payload.type,
+            notificationId: String(notification.id)
+          }
+        })
+        console.log(`Push notification sent to ${uniqueTokens.length} devices`)
+      }
+    } catch (error) {
+      console.error('FCM Broadcast Error:', error)
+    }
+  }
 }

@@ -5,11 +5,14 @@ import { useI18n } from '#i18n'
 import UiButton from '~/components/ui/Button.vue'
 import UiIcon from '~/components/ui/Icon.vue'
 import { useNotifications } from '~/composables/useNotifications'
+import { useFCM } from '~/composables/useFCM'
 import { useRouter } from 'vue-router'
 
 const { t } = useI18n()
 const toast = useToast()
 const router = useRouter()
+
+const { permissionStatus, requestPermission, isSupported } = useFCM()
 
 useHead({ title: t('notifications.title', 'Bildirişlər') + ' | YESSIR POS' })
 
@@ -181,6 +184,16 @@ const getColorForType = (type: string) => {
       </div>
 
       <div class="flex gap-2">
+        <UiButton 
+          v-if="isSupported && permissionStatus === 'default'"
+          type="button" 
+          variant="outline" 
+          @click="requestPermission"
+          icon="lucide:bell-ring"
+          class="border-blue-500/30 text-blue-500 hover:bg-blue-500/10"
+        >
+          Bildirişlərə İcazə Ver
+        </UiButton>
         <UiButton 
           v-if="unreadCount > 0"
           type="button" 

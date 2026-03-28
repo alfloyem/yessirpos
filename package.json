@@ -20,6 +20,8 @@
     "bcryptjs": "^3.0.3",
     "browser-image-compression": "^2.0.2",
     "chart.js": "^4.5.1",
+    "firebase": "^12.11.0",
+    "firebase-admin": "^13.7.0",
     "jsbarcode": "^3.12.3",
     "jsonwebtoken": "^9.0.3",
     "nuxt": "^4.3.1",

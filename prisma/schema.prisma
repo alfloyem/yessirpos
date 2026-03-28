@@ -23,6 +23,7 @@ model Employee {
   updatedAt DateTime @updatedAt
   role      String?
   notAllowed String?  // Store as JSON array of restricted paths
+  fcmTokens  String?  // Store as JSON array of tokens
 }
 
 model Product {
