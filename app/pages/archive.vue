@@ -12,6 +12,7 @@ import { printReceipt as printReceiptGlobal, printIntakeReceipt, printDebtPaymen
 const { t } = useI18n()
 const toast = useToast()
 const { token } = useAuth()
+const { $api } = useNuxtApp()
 
 useHead({ title: t('menu.orders') })
 
@@ -45,7 +46,7 @@ const filteredOrders = computed(() => {
 const loadOrders = async () => {
   loading.value = true
   try {
-    const data = await $fetch('/api/receipts', { headers: { Authorization: `Bearer ${token.value}` } })
+    const data = await $api('/api/receipts')
     orders.value = (data as any[]).map(o => ({
       ...o,
       _date: new Date(o.createdAt),
@@ -193,9 +194,8 @@ const submitPayDebt = async () => {
   if (!selectedOrder.value || payDebtAmount.value <= 0) return
   payingDebt.value = true
   try {
-    const result = await $fetch(`/api/intake/${selectedOrder.value.dbId}/pay`, {
+    const result = await $api(`/api/intake/${selectedOrder.value.dbId}/pay`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token.value}` },
       body: { amount: payDebtAmount.value, paymentMethod: payDebtMethod.value }
     }) as any
 

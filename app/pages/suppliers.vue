@@ -9,6 +9,7 @@ import DynamicForm, { type FormField } from '~/components/ui/DynamicForm.vue'
 
 const { t } = useI18n()
 const toast = useToast()
+const { $api } = useNuxtApp()
 
 useHead({
   title: t('suppliers.title', 'Tədarükçülər')
@@ -54,7 +55,7 @@ const loadSuppliers = async () => {
   error.value = null
   
   try {
-    const data = await $fetch('/api/suppliers')
+    const data = await $api('/api/suppliers')
     mockData.value = (data as any[]).map((d, index) => ({
       ...d,
       rowNumber: index + 1,
@@ -119,11 +120,11 @@ const performDelete = async () => {
   
   try {
     if (deleteTarget.value.type === 'single') {
-      await $fetch(`/api/suppliers/${deleteTarget.value.id}`, { method: 'DELETE' })
+      await $api(`/api/suppliers/${deleteTarget.value.id}`, { method: 'DELETE' })
       toast.success(t('toast.supplierDeleted', 'Tədarükçü uğurla silindi'))
     } else if (deleteTarget.value.type === 'bulk') {
       const count = deleteTarget.value.ids?.length || 0
-      await $fetch('/api/suppliers/bulk-delete', {
+      await $api('/api/suppliers/bulk-delete', {
         method: 'POST',
         body: { ids: deleteTarget.value.ids }
       })
@@ -163,9 +164,7 @@ const handleDuplicate = async (row: any) => {
       newDate = new Date(row._date.getTime() + 1000)
     }
     
-    const headers = { Authorization: `Bearer ${token.value}` }
-    
-    await $fetch('/api/suppliers', {
+    await $api('/api/suppliers', {
       method: 'POST',
       body: {
         ...row,
@@ -173,8 +172,7 @@ const handleDuplicate = async (row: any) => {
         brandName: `${baseBrandName} (${nextNumber})`,
         voen: [], // VÖEN must be unique
         createdAt: newDate.toISOString()
-      },
-      headers
+      }
     })
     
     toast.success(t('toast.supplierDuplicated', 'Tədarükçü kopyalandı'))
@@ -264,10 +262,9 @@ const saveForm = async () => {
     
     if (showAddModal.value) {
       // Create new supplier
-      await $fetch('/api/suppliers', {
+      await $api('/api/suppliers', {
         method: 'POST',
-        body: formData.value,
-        headers
+        body: formData.value
       })
       toast.success(t('toast.supplierAdded', 'Tədarükçü uğurla əlavə edildi'))
       showAddModal.value = false
@@ -277,19 +274,17 @@ const saveForm = async () => {
         const updates = Object.fromEntries(
           Object.entries(formData.value).filter(([_, v]) => v !== undefined && v !== '')
         )
-        await $fetch('/api/suppliers/bulk-update', {
+        await $api('/api/suppliers/bulk-update', {
           method: 'POST',
-          body: { ids: bulkSelectedIds.value, updates },
-          headers
+          body: { ids: bulkSelectedIds.value, updates }
         })
         toast.success(t('toast.suppliersUpdated', { count: bulkSelectedIds.value.length, default: `${bulkSelectedIds.value.length} tədarükçü yeniləndi` }))
         bulkSelectedIds.value = []
       } else {
         // Single update
-        await $fetch(`/api/suppliers/${formData.value.id}`, {
+        await $api(`/api/suppliers/${formData.value.id}`, {
           method: 'PUT',
-          body: formData.value,
-          headers
+          body: formData.value
         })
         toast.success(t('toast.supplierUpdated', 'Tədarükçü uğurla yeniləndi'))
       }

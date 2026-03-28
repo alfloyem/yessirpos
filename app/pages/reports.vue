@@ -21,6 +21,7 @@ ChartJS.register(
 
 const { t } = useI18n()
 const toast = useToast()
+const { $api } = useNuxtApp()
 useHead({ title: t('menu.reports') })
 
 // ── Tabs ──
@@ -84,11 +85,11 @@ const productTimelineData = ref<any>(null)
 
 const params = () => `?startDate=${new Date(startDate.value).toISOString()}&endDate=${new Date(endDate.value).toISOString()}`
 
-const fetchDashboard  = async () => { try { dashboardData.value  = await $fetch(`/api/analytics/dashboard${params()}`) } catch {} }
-const fetchProducts   = async () => { try { productsData.value   = await $fetch(`/api/analytics/products${params()}`); if (selectedProductId.value) await loadTimeline(selectedProductId.value) } catch {} }
-const fetchSales      = async () => { try { salesData.value      = await $fetch(`/api/analytics/sales${params()}`) } catch {} }
-const fetchExpenses   = async () => { try { expensesData.value   = await $fetch(`/api/analytics/expenses${params()}`) } catch {} }
-const fetchEmployees  = async () => { try { employeesData.value  = await $fetch(`/api/analytics/employees${params()}`) } catch {} }
+const fetchDashboard  = async () => { try { dashboardData.value  = await $api(`/api/analytics/dashboard${params()}`) } catch {} }
+const fetchProducts   = async () => { try { productsData.value   = await $api(`/api/analytics/products${params()}`); if (selectedProductId.value) await loadTimeline(selectedProductId.value) } catch {} }
+const fetchSales      = async () => { try { salesData.value      = await $api(`/api/analytics/sales${params()}`) } catch {} }
+const fetchExpenses   = async () => { try { expensesData.value   = await $api(`/api/analytics/expenses${params()}`) } catch {} }
+const fetchEmployees  = async () => { try { employeesData.value  = await $api(`/api/analytics/employees${params()}`) } catch {} }
 
 const refreshAll = async () => {
   loading.value = true
@@ -210,7 +211,7 @@ const handleProductSearch = () => {
   if (searchTimer) clearTimeout(searchTimer)
   if (!searchProductQuery.value) { searchProductResults.value = []; return }
   searchTimer = setTimeout(async () => {
-    try { const r = await $fetch<any[]>(`/api/products/search?q=${searchProductQuery.value}`); searchProductResults.value = r.slice(0, 6) } catch {}
+    try { const r = await $api<any[]>(`/api/products/search?q=${searchProductQuery.value}`); searchProductResults.value = r.slice(0, 6) } catch {}
   }, 250)
 }
 const selectProduct = async (p: any) => {
@@ -221,7 +222,7 @@ const selectProduct = async (p: any) => {
 }
 const loadTimeline = async (id: string|number) => {
   loading.value = true
-  try { productTimelineData.value = await $fetch(`/api/analytics/product-timeline${params()}&productId=${id}`) } catch {}
+  try { productTimelineData.value = await $api(`/api/analytics/product-timeline${params()}&productId=${id}`) } catch {}
   loading.value = false
 }
 

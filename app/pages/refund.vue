@@ -10,6 +10,7 @@ import { printReceipt as printReceiptGlobal, type ReceiptData } from '~/utils/re
 const { t } = useI18n()
 const { token } = useAuth()
 const toast = useToast()
+const { $api } = useNuxtApp()
 
 useHead({
   title: t('menu.refund', 'Geri Ödəniş')
@@ -37,7 +38,7 @@ const searchReceipt = async () => {
   refundItems.value = []
   
   try {
-    const data = await $fetch<any>(`/api/sales/search?receiptNo=${receiptQuery.value}`)
+    const data = await $api<any>(`/api/sales/search?receiptNo=${receiptQuery.value}`)
     originalSale.value = data
     
     refundItems.value = data.items.map((item: any) => ({
@@ -133,10 +134,9 @@ const processRefund = async () => {
       }
     }
 
-    const savedRefund = await $fetch<any>('/api/sales/refund', {
+    const savedRefund = await $api<any>('/api/sales/refund', {
       method: 'POST',
-      body: refundData,
-      headers: { Authorization: `Bearer ${token.value}` }
+      body: refundData
     })
 
     toast.success(t('refund.refundSuccess', 'Geri ödəniş uğurla tamamlandı!'))

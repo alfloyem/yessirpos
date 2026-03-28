@@ -72,8 +72,7 @@ const fetchDashboardData = async () => {
       query: {
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString()
-      },
-      headers: { Authorization: `Bearer ${token.value}` }
+      }
     })
     dashboardData.value = data
   } catch (err) {
