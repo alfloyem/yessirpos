@@ -40,10 +40,11 @@ export const useNotifications = () => {
       })
       
       const note = notifications.value.find(n => n.id === id)
-      if (note && !note.isRead) {
+      if (note) {
         note.isRead = true
-        unreadCount.value = Math.max(0, unreadCount.value - 1)
       }
+      
+      unreadCount.value = Math.max(0, unreadCount.value - 1)
     } catch (e) {
       console.error('Bildiriş oxunmuş edilərkən xəta:', e)
     }

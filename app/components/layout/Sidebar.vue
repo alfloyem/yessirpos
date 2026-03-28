@@ -45,7 +45,7 @@ onMounted(() => {
 
     // Notifications polling
     fetchNotifications();
-    setInterval(fetchNotifications, 60000);
+    setInterval(fetchNotifications, 5000);
 });
 
 const isCategoryActive = (category: MenuItem) => {

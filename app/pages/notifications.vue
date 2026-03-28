@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useHead, useToast } from '#imports'
 import { useI18n } from '#i18n'
 import UiButton from '~/components/ui/Button.vue'
@@ -43,6 +43,12 @@ const loadNotifications = async (page = 1) => {
 
 onMounted(() => {
   loadNotifications(1)
+})
+
+watch(() => unreadCount.value, (newVal, oldVal) => {
+  if (newVal > oldVal) {
+    loadNotifications(1)
+  }
 })
 
 const handleLoadMore = () => {

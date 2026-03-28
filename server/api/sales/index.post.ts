@@ -102,7 +102,7 @@ export default defineEventHandler(async (event: any) => {
               data: {
                 type: 'LOW_STOCK',
                 title: 'Stok Xəbərdarlığı',
-                message: `${updatedProduct.name} məhsulunun stoku bitmək üzrədir (${updatedProduct.stock} ədəd qalıb).`,
+                message: `${updatedProduct.productName} məhsulunun stoku bitmək üzrədir (${updatedProduct.stock} ədəd qalıb).`,
                 data: JSON.stringify({ productId: updatedProduct.id, barcode: updatedProduct.barcode }),
               }
             })
