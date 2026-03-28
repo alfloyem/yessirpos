@@ -43,7 +43,8 @@ export const useAuth = () => {
     if (!token.value) return false
 
     try {
-      const response = await $fetch<any>('/api/auth/verify', {
+      const config = useRuntimeConfig()
+      const response = await $fetch<any>((config.public.apiBaseUrl || '') + '/api/auth/verify', {
         headers: {
           Authorization: `Bearer ${token.value}`
         }

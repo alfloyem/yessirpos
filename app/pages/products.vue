@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from '#i18n'
-import { useHead, useToast, useAuth } from '#imports'
+import { useHead, useToast, useAuth, useNuxtApp } from '#imports'
 import Modal from '~/components/ui/Modal.vue'
 import UiButton from '~/components/ui/Button.vue'
 import UiInput from '~/components/ui/Input.vue'
@@ -18,6 +18,7 @@ import { exportToCSV, exportToJSON, exportToXML, exportToPDF } from '~/utils/dat
 const { t } = useI18n()
 const { token } = useAuth()
 const toast = useToast()
+const { $api } = useNuxtApp()
 
 useHead({
   title: t('products.title', 'Məhsullar')
@@ -152,7 +153,7 @@ const groupedProducts = computed(() => {
 const loadGoods = async () => {
   loading.value = true
   try {
-    const data = await $fetch('/api/products', { headers: { Authorization: `Bearer ${token.value}` } })
+    const data = await $api('/api/products', { headers: { Authorization: `Bearer ${token.value}` } })
     mockData.value = data as any[]
   } catch (err: any) {
     toast.error(t('toast.loadingError', 'Məlumatlar yüklənərkən xəta baş verdi'))
@@ -163,14 +164,14 @@ const loadGoods = async () => {
 
 const loadAttributes = async () => {
   try {
-    const data = await $fetch('/api/attributes', { headers: { Authorization: `Bearer ${token.value}` } })
+    const data = await $api('/api/attributes', { headers: { Authorization: `Bearer ${token.value}` } })
     availableAttributes.value = data as any[]
   } catch (err) {}
 }
 
 const loadSuppliers = async () => {
   try {
-    const data = await $fetch('/api/suppliers', { headers: { Authorization: `Bearer ${token.value}` } })
+    const data = await $api('/api/suppliers', { headers: { Authorization: `Bearer ${token.value}` } })
     const brands = (data as any[]).map(s => s.brandName).filter((b, i, arr) => b && arr.indexOf(b) === i)
     suppliersOptions.value = brands.map(b => ({ label: b, value: b }))
   } catch (err) {}
@@ -421,7 +422,7 @@ const performDelete = async () => {
   if (!confirmTarget.value) return
   isSaving.value = true
   try {
-    await $fetch(`/api/products/${confirmTarget.value.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token.value}` } })
+    await $api(`/api/products/${confirmTarget.value.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token.value}` } })
     mockData.value = mockData.value.filter(p => p.id !== confirmTarget.value.id && p.parentProductId !== confirmTarget.value.id)
     toast.success(t('products.deleted', 'Silindi'))
     showDeleteConfirmModal.value = false

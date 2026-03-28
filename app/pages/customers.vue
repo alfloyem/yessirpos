@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
-import { useHead, useToast, useAuth } from '#imports'
+import { useHead, useToast, useAuth, useNuxtApp } from '#imports'
 import { useI18n } from '#i18n'
 import DataTable from '~/components/ui/DataTable.vue'
 import Modal from '~/components/ui/Modal.vue'
@@ -13,6 +13,7 @@ import { printDebtPaymentReceipt } from '~/utils/receiptPrinter'
 
 const { t } = useI18n()
 const toast = useToast()
+const { $api } = useNuxtApp()
 
 useHead({
   title: t('customers.title', 'Müştərilər')
@@ -86,7 +87,7 @@ const loadCustomers = async () => {
   error.value = null
   
   try {
-    const data = await $fetch('/api/customers')
+    const data = await $api('/api/customers')
     mockData.value = (data as any[]).map(d => ({
       ...d,
       _date: new Date(d.createdAt),
@@ -110,7 +111,7 @@ const availablePaymentMethods = ref<{ label: string, value: string }[]>([
 ])
 const loadPaymentMethods = async () => {
   try {
-    const data = await $fetch('/api/payment-methods')
+    const data = await $api('/api/payment-methods')
     const methods = (data as any[]).map(m => ({
       label: m.name,
       value: m.name
@@ -184,11 +185,11 @@ const performDelete = async () => {
   
   try {
     if (deleteTarget.value.type === 'single') {
-      await $fetch(`/api/customers/${deleteTarget.value.id}`, { method: 'DELETE' })
+      await $api(`/api/customers/${deleteTarget.value.id}`, { method: 'DELETE' })
       toast.success(t('toast.customerDeleted', 'Müştəri uğurla silindi'))
     } else if (deleteTarget.value.type === 'bulk') {
       const count = deleteTarget.value.ids?.length || 0
-      await $fetch('/api/customers/bulk-delete', {
+      await $api('/api/customers/bulk-delete', {
         method: 'POST',
         body: { ids: deleteTarget.value.ids }
       })
@@ -229,7 +230,7 @@ const handleDuplicate = async (row: any) => {
     
     const headers = { Authorization: `Bearer ${token.value}` }
     
-    await $fetch('/api/customers', {
+    await $api('/api/customers', {
       method: 'POST',
       body: {
         ...row,
@@ -322,7 +323,7 @@ const saveForm = async () => {
     
     if (showAddModal.value) {
       // Create new customer
-      await $fetch('/api/customers', {
+      await $api('/api/customers', {
         method: 'POST',
         body: formData.value,
         headers
@@ -335,7 +336,7 @@ const saveForm = async () => {
         const updates = Object.fromEntries(
           Object.entries(formData.value).filter(([_, v]) => v !== undefined && v !== '')
         )
-        await $fetch('/api/customers/bulk-update', {
+        await $api('/api/customers/bulk-update', {
           method: 'POST',
           body: { ids: bulkSelectedIds.value, updates },
           headers
@@ -344,7 +345,7 @@ const saveForm = async () => {
         bulkSelectedIds.value = []
       } else {
         // Single update
-        await $fetch(`/api/customers/${formData.value.id}`, {
+        await $api(`/api/customers/${formData.value.id}`, {
           method: 'PUT',
           body: formData.value,
           headers
@@ -407,7 +408,7 @@ const handlePayDebt = async (customer: any) => {
   loadingHistory.value = true
   try {
     const url = `/api/customers/${customer.id}/debt-history`
-    const apiFetch = $fetch as any
+    const apiFetch = $api as any
     const history = await apiFetch(url, {
       params: { page: currentHistoryPage.value, limit: historyLimit }
     })
@@ -430,7 +431,7 @@ const loadMoreHistory = async () => {
   
   try {
     const url = `/api/customers/${selectedCustomerForDebt.value.id}/debt-history`
-    const apiFetch = $fetch as any
+    const apiFetch = $api as any
     const nextBatch = await apiFetch(url, {
       params: { page: currentHistoryPage.value, limit: historyLimit }
     }) as any[]
@@ -459,7 +460,7 @@ const submitPayDebt = async () => {
   
   try {
     const url = `/api/customers/${selectedCustomerForDebt.value.id}/pay-debt`
-    const apiFetch = $fetch as any
+    const apiFetch = $api as any
     const result = await apiFetch(url, {
       method: 'POST',
       body: {

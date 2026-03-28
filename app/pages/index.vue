@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from '#i18n'
-import { useColorMode, useAuth, useToast, useHead } from '#imports'
+import { useColorMode, useAuth, useToast, useHead, useNuxtApp } from '#imports'
 import { generateDailyReport } from '~/utils/generateDailyReport'
 import {
   Chart as ChartJS,
@@ -23,6 +23,7 @@ const { t, locale } = useI18n()
 const colorMode = useColorMode()
 const { token } = useAuth()
 const toast = useToast()
+const { $api } = useNuxtApp()
 
 const selectedFilter = ref('today')
 const dashboardData = ref(null)
@@ -67,7 +68,7 @@ const fetchDashboardData = async () => {
       endDate = new Date()
     }
 
-    const data = await $fetch('/api/analytics/dashboard', {
+    const data = await $api('/api/analytics/dashboard', {
       query: {
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString()

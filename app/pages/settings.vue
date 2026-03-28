@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 
-import { useColorMode, useAuth } from '#imports'
+import { useColorMode, useAuth, useNuxtApp } from '#imports'
 import { useI18n } from '#i18n'
 import azFlag from '~/assets/images/flags/az.png'
 import enFlag from '~/assets/images/flags/gb.png'
@@ -16,6 +16,7 @@ definePageMeta({
 
 const colorMode = useColorMode()
 const { locales, locale, setLocale, t } = useI18n()
+const { $api } = useNuxtApp()
 
 const clientData = ref(getClientData())
 
@@ -49,7 +50,7 @@ const loadAttributes = async () => {
   if (import.meta.client) {
     try {
       const { token } = useAuth()
-      const data = await $fetch('/api/attributes', {
+      const data = await $api('/api/attributes', {
         headers: { Authorization: `Bearer ${token.value}` }
       })
       attributes.value = data as any[]
