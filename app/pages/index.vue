@@ -147,42 +147,47 @@ const themeColors = computed(() => ({
 }))
 
 // --- 1. DYNAMIC DATA BOARDS ---
-const stats = computed(() => [
-  { 
-    label: t('dashboard.orders'), 
-    value: dashboardData.value?.kpis?.totalTransactions?.toLocaleString() || '0', 
-    subtitle: `+0% ${t('dashboard.fromLastMonth')}`, 
-    icon: 'lucide:shopping-bag', 
-    color: themeColors.value.primary, 
-    bg: themeColors.value.primaryLight 
-  },
-  { 
-    label: t('dashboard.revenue'), 
-    value: dashboardData.value?.kpis?.grossRevenue?.toLocaleString() || '0', 
-    suffix: '₼', 
-    subtitle: `+0% ${t('dashboard.fromLastMonth')}`, 
-    icon: 'lucide:dollar-sign', 
-    color: themeColors.value.success, 
-    bg: themeColors.value.successLight 
-  },
-  { 
-    label: t('dashboard.expenses'), 
-    value: dashboardData.value?.kpis?.totalExpenses?.toLocaleString() || '0', 
-    suffix: '₼', 
-    subtitle: `-0% ${t('dashboard.fromLastMonth')}`, 
-    icon: 'lucide:trending-down', 
-    color: themeColors.value.danger, 
-    bg: themeColors.value.dangerLight 
-  },
-  { 
-    label: t('dashboard.stock'), 
-    value: dashboardData.value?.kpis?.totalStock?.toLocaleString() || '0', 
-    subtitle: t('dashboard.stableStatus'), 
-    icon: 'lucide:package', 
-    color: themeColors.value.info, 
-    bg: themeColors.value.infoLight 
-  }
-])
+const stats = computed(() => {
+  const kpis = dashboardData.value?.kpis
+  const growth = kpis?.growth || {}
+  
+  return [
+    { 
+      label: t('dashboard.orders'), 
+      value: kpis?.totalTransactions?.toLocaleString() || '0', 
+      subtitle: `${(growth.orders || 0) >= 0 ? '+' : ''}${growth.orders || 0}% ${t('dashboard.fromLastMonth')}`, 
+      icon: 'lucide:shopping-bag', 
+      color: themeColors.value.primary, 
+      bg: themeColors.value.primaryLight 
+    },
+    { 
+      label: t('dashboard.revenue'), 
+      value: kpis?.grossRevenue?.toLocaleString() || '0', 
+      suffix: '₼', 
+      subtitle: `${(growth.revenue || 0) >= 0 ? '+' : ''}${growth.revenue || 0}% ${t('dashboard.fromLastMonth')}`, 
+      icon: 'lucide:dollar-sign', 
+      color: themeColors.value.success, 
+      bg: themeColors.value.successLight 
+    },
+    { 
+      label: t('dashboard.expenses'), 
+      value: kpis?.totalExpenses?.toLocaleString() || '0', 
+      suffix: '₼', 
+      subtitle: `${(growth.expenses || 0) >= 0 ? '+' : ''}${growth.expenses || 0}% ${t('dashboard.fromLastMonth')}`, 
+      icon: 'lucide:trending-down', 
+      color: themeColors.value.danger, 
+      bg: themeColors.value.dangerLight 
+    },
+    { 
+      label: t('dashboard.stock'), 
+      value: kpis?.totalStock?.toLocaleString() || '0', 
+      subtitle: t('dashboard.stableStatus'), 
+      icon: 'lucide:package', 
+      color: themeColors.value.info, 
+      bg: themeColors.value.infoLight 
+    }
+  ]
+})
 
 const topProducts = computed(() => {
   if (!dashboardData.value?.topProducts) return []

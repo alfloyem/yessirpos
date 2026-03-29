@@ -522,13 +522,15 @@
       "appearance": "Appearance",
       "notifications": "Notifications",
       "barcode": "Barcode",
-      "receipt": "Receipt"
+      "receipt": "Receipt",
+      "system": "System"
     },
     "sections": {
       "appearance": "Interface",
       "notifications": "Sales & Orders",
       "inventory": "Inventory & Stock",
       "system": "System & Management",
+      "systemStatus": "System Status",
       "visual": "Visual Settings"
     },
     "items": {
@@ -555,7 +557,17 @@
       "showCustomerName": "Customer Name",
       "showTaxRates": "VAT / Tax",
       "showFooterMessage": "Thank You Message",
-      "showReturnPolicy": "Return Policy"
+      "showReturnPolicy": "Return Policy",
+      "checkNow": "Check Now",
+      "installUpdate": "Install Update",
+      "check_updates": "Check for Updates",
+      "app_version": "App Version"
+    },
+    "status": {
+      "checking": "Checking...",
+      "uptodate": "Up to date",
+      "error": "Error checking updates",
+      "available": "New version available"
     }
   },
   "suppliers": {

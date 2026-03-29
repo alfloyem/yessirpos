@@ -42,7 +42,7 @@
 - [x] VÖEN hissəsində hərf yazmaq olur ancaq rəqəm olmalıdır
 - [x] Mal qəbulu səhifəsində tədarükçü məlumatları json kimi görünür
 - [x] Hesabatla səhifəsinə hər girəndə işləmir öz kefinə görə işləyir
-- [ ] Statistika panelindəki cardlarda "ötən aydan" məlumatları verilmir
+- [x] Statistika panelindəki cardlarda "ötən aydan" məlumatları verilmir
 
 npx prisma db push
 npx prisma generate

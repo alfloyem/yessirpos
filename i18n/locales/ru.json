@@ -522,13 +522,15 @@
       "appearance": "Внешний вид",
       "notifications": "Уведомления",
       "barcode": "Штрихкод",
-      "receipt": "Чек"
+      "receipt": "Чек",
+      "system": "Система"
     },
     "sections": {
       "appearance": "Интерфейс",
       "notifications": "Продажи и Заказы",
       "inventory": "Склад и Инвентарь",
       "system": "Система и Управление",
+      "systemStatus": "Статус системы",
       "visual": "Настройки отображения"
     },
     "items": {
@@ -555,7 +557,17 @@
       "showCustomerName": "Имя клиента",
       "showTaxRates": "НДС / Налог",
       "showFooterMessage": "Благодарственное сообщение",
-      "showReturnPolicy": "Политика возврата"
+      "showReturnPolicy": "Политика возврата",
+      "checkNow": "Проверить сейчас",
+      "installUpdate": "Загрузить и установить",
+      "check_updates": "Проверить обновления",
+      "app_version": "Версия приложения"
+    },
+    "status": {
+      "checking": "Проверка...",
+      "uptodate": "У вас последняя версия",
+      "error": "Ошибка при проверке",
+      "available": "Доступна новая версия"
     }
   },
   "suppliers": {
