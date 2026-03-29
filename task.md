@@ -24,7 +24,7 @@
 - ![] QA test edilmelidir.
 - [] Whatsappdan/mailden mesaj gönderme
 - [] AI söhbeti
-- [] tauri və ya electron ilə program yazılmalıdır.
+- [x] tauri və ya electron ilə program yazılmalıdır.
 - [] barkod scan və print slient olmalıdır.
 - [] multi barkod scan olmalıdır.
 - [] Ana səhifədə Hesabat yüklə düyməsi işləmir
