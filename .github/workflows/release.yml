@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [windows-2022] # More stable for Tauri v2 at the moment
+        platform: [windows-2022]
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -41,6 +41,7 @@ jobs:
           releaseDraft: false
           prerelease: false
           tauriScript: pnpm tauri
+          projectPath: .
 
       - name: Update update.json
         if: success()
