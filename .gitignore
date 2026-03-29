@@ -25,4 +25,3 @@ logs
 
 /app/generated/prisma
 desktop.ini
-src-tauri
