@@ -43,6 +43,14 @@
 - [x] Mal qəbulu səhifəsində tədarükçü məlumatları json kimi görünür
 - [x] Hesabatla səhifəsinə hər girəndə işləmir öz kefinə görə işləyir
 - [x] Statistika panelindəki cardlarda "ötən aydan" məlumatları verilmir
+- [] Əməkdaşlar səhifəsində export almaq olmur.
+- [] Satış terminalında məhsula faizlə endirim edən zaman çekdə çıxılan qiyməti səhv göstərir (bkz: ÇEK 0000000000096)
+- [] Çek arxivində faizlə edilən endirimin rəqəmləri səhv görünür
+- [] BaRkOd çap ləğv edilib fuck it
+- [] Yeni atribut əlavə edilmir.
+- [] Hesabatlar səhifəsi ilk girişdə açılmır başqa səhifəyə girəndən sonra açılır
+
+**STRESS TEST BY MUSARTILLERIYA MMC**
 
 npx prisma db push
 npx prisma generate
