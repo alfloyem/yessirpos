@@ -34,5 +34,14 @@
 - [] Satış terminalında multi ödəniş zamanı nisyə vermək olmur
 - [] Çek arxivində atributlar json kimi görünür
 - [] Çek arxivi səhifəsində çap etmə funksiyası işləmir (Həm normal həm də view modal daxilində)
+- [] mail yazılan yerlərdə @ zərurəti əlavə olunsun
+- [] inputlarda silmək ikonu olsun
+- [] satış terminalında hədiyyə kartı barkodu daxil etmək olmur
+- [] Məhsul əlavə edilmir
+- [] Yeni məhsul əlavə edən zaman atributlar sinxron işləmir
+- [] VÖEN hissəsində hərf yazmaq olur ancaq rəqəm olmalıdır
+- [] Mal qəbulu səhifəsində tədarükçü məlumatları json kimi görünür
+- [] Hesabatla səhifəsinə hər girəndə işləmir öz kefinə görə işləyir
+
 npx prisma db push
 npx prisma generate
