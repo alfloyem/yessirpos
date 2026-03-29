@@ -396,7 +396,7 @@ const handleInputKeydown = (e: KeyboardEvent) => {
           @click="clear"
           class="text-[var(--text-app)] opacity-40 hover:opacity-100 hover:text-[var(--text-primary)] transition-all flex items-center justify-center w-6 h-6 rounded-full"
         >
-          <UiIcon name="lucide:x-circle" class="w-4 h-4" />
+          <UiIcon name="material-symbols:close-rounded" class="w-4 h-4" />
         </button>
 
         <!-- Toggle Password -->

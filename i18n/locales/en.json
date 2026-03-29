@@ -177,6 +177,7 @@
     "delete": "Delete",
     "duplicate": "Duplicate",
     "edit": "Edit",
+    "invalidEmail": "Please enter a valid email address",
     "fieldRequired": "This field is required",
     "passwordsMismatch": "Passwords do not match!",
     "passwordsMinLength": "Password must be at least {count} characters",

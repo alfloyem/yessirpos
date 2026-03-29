@@ -178,6 +178,7 @@
     "delete": "Sil",
     "duplicate": "Kopyala",
     "edit": "Düzəliş et",
+    "invalidEmail": "Düzgün e-poçt ünvanı daxil edin",
     "fieldRequired": "Bu xana mütləq doldurulmalıdır",
     "pleaseFillField": "Zəhmət olmasa {field} xanasını doldurun",
     "passwordsMismatch": "Şifrələr uyğun deyil!",
