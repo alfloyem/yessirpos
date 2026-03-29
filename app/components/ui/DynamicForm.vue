@@ -20,6 +20,8 @@ export interface FormField {
   barcodePrefix?: string // For barcode type
   placeholder?: string // Optional placeholder
   disabled?: boolean // For disabled state
+  clearable?: boolean // Add clear button
+  mode?: 'numeric' | 'text' // For tags input restriction
 }
 
 const props = defineProps<{
@@ -37,6 +39,21 @@ const passwordVisibility = ref<Record<string, boolean>>({})
 
 const updateField = (key: string, value: any) => {
   emit('update:modelValue', { ...props.modelValue, [key]: value })
+  
+  // Basic validation for email if it's not empty
+  const field = props.fields.find(f => f.key === key)
+  if (field?.type === 'email' && value) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(value)) {
+      if (props.errors) {
+        props.errors[key] = t('common.invalidEmail', 'Düzgün e-poçt ünvanı daxil edin')
+      }
+    } else {
+      if (props.errors) {
+        delete props.errors[key]
+      }
+    }
+  }
 }
 
 const formatDateTimeForDisplay = (value: string) => {
@@ -133,6 +150,7 @@ const isPasswordMismatch = (field: any) => {
           :historyKey="field.historyKey || field.key"
           :icon="field.icon"
           :placeholder="`${field.label} ${t('common.typeHere', 'yazın...')}`"
+          :mode="field.mode"
         />
       </div>
 
@@ -185,6 +203,7 @@ const isPasswordMismatch = (field: any) => {
           :icon="field.icon"
           :barcodePrefix="field.barcodePrefix"
           :placeholder="field.placeholder"
+          :clearable="field.clearable !== false && ['text', 'email', 'tel', 'number', 'integer'].includes(field.type)"
           :showPassword="passwordVisibility[field.originalKey || field.key] || false"
           @update:showPassword="val => passwordVisibility[field.originalKey || field.key] = val"
           :class="errors?.[field.key] || isPasswordMismatch(field) ? '!border-[var(--color-brand-danger)] !ring-[var(--color-brand-danger)]/20' : ''"

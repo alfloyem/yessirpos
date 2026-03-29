@@ -171,7 +171,7 @@ const loadAttributes = async () => {
 
 const loadSuppliers = async () => {
   try {
-    const data = await $api('/api/suppliers', { headers: { Authorization: `Bearer ${token.value}` } })
+    const data = await $api('/api/suppliers')
     const brands = (data as any[]).map(s => s.brandName).filter((b, i, arr) => b && arr.indexOf(b) === i)
     suppliersOptions.value = brands.map(b => ({ label: b, value: b }))
   } catch (err) {}
@@ -182,6 +182,7 @@ onMounted(() => {
   loadAttributes()
   loadSuppliers()
 })
+
 
 // --- Modal State ---
 const showProductModal = ref(false)
@@ -260,11 +261,9 @@ const confirmDeleteVariant = () => {
 const handleSaveProduct = async () => {
   isSaving.value = true
   try {
-    const headers = { Authorization: `Bearer ${token.value}` }
     let finalPayload = { ...formData.value, images: productImages.value }
-
     if (!isEditMode.value) {
-      const newParent = await $fetch<any>('/api/products', { method: 'POST', body: finalPayload, headers })
+      const newParent = await $api<any>('/api/products', { method: 'POST', body: finalPayload })
       mockData.value.push(newParent)
 
       if (addVariantsEnabled.value && newVariantsList.value.length > 0) {
@@ -281,13 +280,13 @@ const handleSaveProduct = async () => {
             reorderLevel: v.reorderLevel || 0,
             attribute: v.attribute.map((a: any) => `${a.name}: ${a.value}`)
           }
-          const savedVariant = await $fetch<any>('/api/products', { method: 'POST', body: vPayload, headers })
+          const savedVariant = await $api<any>('/api/products', { method: 'POST', body: vPayload })
           mockData.value.push(savedVariant)
         }
       }
       toast.success(t('products.added', 'Məhsul əlavə edildi'))
     } else {
-      const updatedParent = await $fetch<any>(`/api/products/${formData.value.id}`, { method: 'PUT', body: finalPayload, headers })
+      const updatedParent = await $api<any>(`/api/products/${formData.value.id}`, { method: 'PUT', body: finalPayload })
       const idx = mockData.value.findIndex(p => p.id === formData.value.id)
       if (idx !== -1) mockData.value[idx] = updatedParent
 
@@ -308,10 +307,10 @@ const handleSaveProduct = async () => {
           }
           // If it's local timestamp based ID, it's newly added during edit
           if (v.id.toString().length > 10 && v.id.toString().startsWith('17')) { 
-            const savedVariant = await $fetch<any>('/api/products', { method: 'POST', body: vPayload, headers })
+            const savedVariant = await $api<any>('/api/products', { method: 'POST', body: vPayload })
             mockData.value.push(savedVariant)
           } else {
-            const upVar = await $fetch<any>(`/api/products/${v.id}`, { method: 'PUT', body: vPayload, headers })
+            const upVar = await $api<any>(`/api/products/${v.id}`, { method: 'PUT', body: vPayload })
             const upIdx = mockData.value.findIndex(p => p.id === v.id)
             if (upIdx !== -1) mockData.value[upIdx] = upVar
           }
@@ -422,7 +421,7 @@ const performDelete = async () => {
   if (!confirmTarget.value) return
   isSaving.value = true
   try {
-    await $api(`/api/products/${confirmTarget.value.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token.value}` } })
+    await $api(`/api/products/${confirmTarget.value.id}`, { method: 'DELETE' })
     mockData.value = mockData.value.filter(p => p.id !== confirmTarget.value.id && p.parentProductId !== confirmTarget.value.id)
     toast.success(t('products.deleted', 'Silindi'))
     showDeleteConfirmModal.value = false

@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useHead, useToast, useAuth, useNuxtApp } from '#imports'
 import { useI18n } from '#i18n'
 import { formatWhatsAppLink } from '~/utils/format'
+import { openExternalUrl } from '~/utils/tauri'
 import DataTable from '~/components/ui/DataTable.vue'
 import Modal from '~/components/ui/Modal.vue'
 import UiButton from '~/components/ui/Button.vue'
@@ -542,10 +543,9 @@ const submitPayDebt = async () => {
       <template #cell-phone="{ value, highlight }">
         <a 
           v-if="value" 
-          :href="formatWhatsAppLink(value)" 
-          target="_blank"
+          href="javascript:void(0)"
           class="text-[var(--text-app)] hover:text-green-500 hover:underline transition-colors" 
-          @click.stop
+          @click.stop="openExternalUrl(formatWhatsAppLink(value))"
           v-html="highlight(value)"
         ></a>
         <span v-else>-</span>

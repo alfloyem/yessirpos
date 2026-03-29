@@ -27,21 +27,21 @@
 - [x] tauri və ya electron ilə program yazılmalıdır.
 - [] barkod scan və print slient olmalıdır.
 - [] multi barkod scan olmalıdır.
-- [x] Ana səhifədə Hesabat yüklə düyməsi işləmir
-- [] Əməkdaş və ya ümumiyyətlə nömrə olan hissələrdə nömrə üzərinə basanda whatsapp-a yönləndirmir
+- [x] Ана səhifədə Hesabat yüklə düyməsi işləmir
+- [x] Əməkdaş və ya ümumiyyətlə nömrə olan hissələrdə nömrə üzərinə basanda whatsapp-a yönləndirmir
 - [x] Satış terminalında print söhbəti
 - [x] Satış terminalında ödəniş üsulu əlavə etmək olmur
-- [] Satış terminalında multi ödəniş zamanı nisyə vermək olmur
+- [x] Satış terminalında multi ödəniş zamanı nisyə vermək olmur
 - [x] Çek arxivində atributlar json kimi görünür
 - [x] Çek arxivi səhifəsində çap etmə funksiyası işləmir (Həm normal həm də view modal daxilində)
-- [] mail yazılan yerlərdə @ zərurəti əlavə olunsun
-- [] inputlarda silmək ikonu olsun
-- [] satış terminalında hədiyyə kartı barkodu daxil etmək olmur
-- [] Məhsul əlavə edilmir
-- [] Yeni məhsul əlavə edən zaman atributlar sinxron işləmir
-- [] VÖEN hissəsində hərf yazmaq olur ancaq rəqəm olmalıdır
-- [] Mal qəbulu səhifəsində tədarükçü məlumatları json kimi görünür
-- [] Hesabatla səhifəsinə hər girəndə işləmir öz kefinə görə işləyir
+- [x] mail yazılan yerlərdə @ zərurəti əlavə olunsun
+- [x] inputlarda silmək ikonu olsun
+- [x] satış terminalında hədiyyə kartı barkodu daxil etmək olmur
+- [x] Məhsul əlavə edilmir
+- [x] Yeni məhsul əlavə edən zaman atributlar sinxron işləmir
+- [x] VÖEN hissəsində hərf yazmaq olur ancaq rəqəm olmalıdır
+- [x] Mal qəbulu səhifəsində tədarükçü məlumatları json kimi görünür
+- [x] Hesabatla səhifəsinə hər girəndə işləmir öz kefinə görə işləyir
 
 npx prisma db push
 npx prisma generate

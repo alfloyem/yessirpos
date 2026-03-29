@@ -9,6 +9,7 @@ const props = defineProps<{
   historyKey: string
   placeholder?: string
   icon?: string
+  mode?: 'numeric' | 'text'
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -83,6 +84,16 @@ const removeTag = (index: number) => {
 const handleKeydown = (e: KeyboardEvent) => {
   const hasDropdown = isFocused.value && dropdownItems.value.length > 0
   
+  if (props.mode === 'numeric') {
+    // Only allow digits and control keys
+    if (!/^[0-9]$/.test(e.key) && ![
+      'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter', 'Home', 'End'
+    ].includes(e.key)) {
+      e.preventDefault()
+      return
+    }
+  }
+
   if (e.key === 'ArrowDown' && hasDropdown) {
     e.preventDefault()
     selectedIndex.value = Math.min(selectedIndex.value + 1, dropdownItems.value.length - 1)

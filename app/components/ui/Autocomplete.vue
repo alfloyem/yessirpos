@@ -109,16 +109,17 @@ const handleInput = (e: Event) => {
     const isBarcode = /^C\d+$/i.test(val) || val.startsWith('C') || val.startsWith('c')
     
     const exactMatch = (props.options || []).find(opt => {
-      if (!opt.extra) return false
-      const extStr = String(opt.extra)
+      const labelStr = String(opt.label || '')
+      const extraStr = String(opt.extra || '')
       
-      // Direct match
-      if (normalizeText(extStr) === normalizeText(val)) return true
+      // Direct match on label or extra
+      if (normalizeText(labelStr) === normalizeText(val)) return true
+      if (normalizeText(extraStr) === normalizeText(val)) return true
       
-      // Numeric barcode match if numeric search
+      // Numeric match for barcodes
       if (isBarcode && numericVal.length >= 4) {
-        const numericExt = extStr.replace(/\D/g, '')
-        if (numericExt.endsWith(numericVal)) return true
+        if (labelStr.replace(/\D/g, '').endsWith(numericVal)) return true
+        if (extraStr.replace(/\D/g, '').endsWith(numericVal)) return true
       }
       return false
     })

@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from '#i18n'
 import { formatWhatsAppLink } from '~/utils/format'
+import { openExternalUrl } from '~/utils/tauri'
 import DataTable from '~/components/ui/DataTable.vue'
 import Modal from '~/components/ui/Modal.vue'
 import UiButton from '~/components/ui/Button.vue'
@@ -25,7 +26,7 @@ const supplierSchema: (FormField & { inTable?: boolean, sortable?: boolean })[] 
   { key: 'lastName', label: t('employees.lastName', 'Soyad'), type: 'text', inTable: true, sortable: true },
   { key: 'email', label: t('employees.email', 'E-poçt'), icon: 'lucide:mail', type: 'email', inTable: true, sortable: true },
   { key: 'phone', label: t('employees.phone', 'Telefon'), icon: 'lucide:phone', type: 'tel', inTable: true, sortable: true },
-  { key: 'voen', label: t('suppliers.voen', 'VÖEN'), icon: 'lucide:file-text', type: 'tags', inTable: true, sortable: true, historyKey: 'voen_numbers' },
+  { key: 'voen', label: t('suppliers.voen', 'VÖEN'), icon: 'lucide:file-text', type: 'tags', inTable: true, sortable: true, historyKey: 'voen_numbers', mode: 'numeric' },
   { key: 'address', label: t('customers.address', 'Ünvan'), icon: 'lucide:map-pin', type: 'text', colSpan: 2, inTable: false },
   { key: 'city', label: t('customers.city', 'Şəhər/rayon'), type: 'tags', inTable: false, sortable: true, historyKey: 'cities' },
   { key: 'country', label: t('customers.country', 'Ölkə'), icon: 'lucide:globe', type: 'select', inTable: false, isCountry: true },
@@ -360,9 +361,9 @@ const saveForm = async () => {
       <template #cell-email="{ value, highlight }">
         <a 
           v-if="value" 
-          :href="`mailto:${value}`" 
+          href="javascript:void(0)"
           class="text-[var(--text-app)] hover:text-blue-500 hover:underline transition-colors" 
-          @click.stop
+          @click.stop="openExternalUrl(`mailto:${value}`)"
           v-html="highlight(value)"
         ></a>
         <span v-else>-</span>
@@ -371,10 +372,9 @@ const saveForm = async () => {
       <template #cell-phone="{ value, highlight }">
         <a 
           v-if="value" 
-          :href="formatWhatsAppLink(value)" 
-          target="_blank"
+          href="javascript:void(0)"
           class="text-[var(--text-app)] hover:text-green-500 hover:underline transition-colors" 
-          @click.stop
+          @click.stop="openExternalUrl(formatWhatsAppLink(value))"
           v-html="highlight(value)"
         ></a>
         <span v-else>-</span>

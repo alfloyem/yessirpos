@@ -108,6 +108,10 @@ onMounted(() => {
   refreshAll()
 })
 
+watch(activeTab, () => {
+  refreshAll()
+})
+
 onUnmounted(() => {
   window.removeEventListener('resize', updateWidth)
 })

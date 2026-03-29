@@ -67,7 +67,13 @@ onMounted(async () => {
 
 const fetchSuppliers = async () => {
   try {
-    suppliers.value = await $api<any[]>('/api/suppliers')
+    const data = await $api<any[]>('/api/suppliers')
+    suppliers.value = data.map((s: any) => ({
+      ...s,
+      companyName: s.companyName ? (String(s.companyName).startsWith('[') ? JSON.parse(s.companyName) : [s.companyName]) : [],
+      voen: s.voen ? (String(s.voen).startsWith('[') ? JSON.parse(s.voen) : [s.voen]) : [],
+      city: s.city ? (String(s.city).startsWith('[') ? JSON.parse(s.city) : [s.city]) : []
+    }))
   } catch (err) {
     console.error('Fetch suppliers error:', err)
   }
@@ -408,7 +414,7 @@ const submitIntake = async () => {
                     :options="suppliers.map(s => ({
                       label: s.brandName,
                       value: s.id,
-                      extra: s.companyName || s.phone
+                      extra: (Array.isArray(s.companyName) ? s.companyName.join(', ') : s.companyName) || s.phone
                     }))"
                     :placeholder="t('intake.selectSupplier', 'Tədarükçü Seçin')" 
                     icon="lucide:truck" 
