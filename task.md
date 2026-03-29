@@ -21,7 +21,7 @@
 - [x] vercelde .env elave edilmelidir.
 - [x] saytda tr dili qalmamalıdır. her şey i18n bağlı olmalıdır.
 - [x] sayt tam responsive olmalıdır
-- ![] QA test edilmelidir.
+- ![x] QA test edilmelidir.
 - [] Whatsappdan/mailden mesaj gönderme
 - [] AI söhbeti
 - [x] tauri və ya electron ilə program yazılmalıdır.
@@ -42,6 +42,7 @@
 - [x] VÖEN hissəsində hərf yazmaq olur ancaq rəqəm olmalıdır
 - [x] Mal qəbulu səhifəsində tədarükçü məlumatları json kimi görünür
 - [x] Hesabatla səhifəsinə hər girəndə işləmir öz kefinə görə işləyir
+- [ ] Statistika panelindəki cardlarda "ötən aydan" məlumatları verilmir
 
 npx prisma db push
 npx prisma generate
