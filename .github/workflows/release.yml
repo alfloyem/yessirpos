@@ -40,6 +40,7 @@ jobs:
           releaseBody: 'See the assets to download the latest version.'
           releaseDraft: false
           prerelease: false
+          tauriScript: pnpm tauri
 
       - name: Update update.json
         if: success()
