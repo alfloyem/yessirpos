@@ -27,5 +27,12 @@
 - [] tauri və ya electron ilə program yazılmalıdır.
 - [] barkod scan və print slient olmalıdır.
 - [] multi barkod scan olmalıdır.
+- [] Ana səhifədə Hesabat yüklə düyməsi işləmir
+- [] Əməkdaş və ya ümumiyyətlə nömrə olan hissələrdə nömrə üzərinə basanda whatsapp-a yönləndirmir
+- [] Satış terminalında print söhbəti
+- [] Satış terminalında ödəniş üsulu əlavə etmək olmur
+- [] Satış terminalında multi ödəniş zamanı nisyə vermək olmur
+- [] Çek arxivində atributlar json kimi görünür
+- [] Çek arxivi səhifəsində çap etmə funksiyası işləmir (Həm normal həm də view modal daxilində)
 npx prisma db push
 npx prisma generate
