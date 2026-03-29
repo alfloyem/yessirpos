@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { check } from '@tauri-apps/plugin-updater'
+import { relaunch } from '@tauri-apps/plugin-process'
 
 import { useColorMode, useAuth, useNuxtApp } from '#imports'
 import { useI18n } from '#i18n'
@@ -8,6 +10,10 @@ import enFlag from '~/assets/images/flags/gb.png'
 import ruFlag from '~/assets/images/flags/ru.png'
 import { getClientData } from '~/utils/clientData'
 import { buildReceiptHtml, buildBarcodeHtml } from '~/utils/print/templates'
+import UiButton from '~/components/ui/Button.vue'
+import UiIcon from '~/components/ui/Icon.vue'
+import UiSwitch from '~/components/ui/Switch.vue'
+import UiSelect from '~/components/ui/Select.vue'
 import { generateBarcodeDataUrl } from '~/utils/print/helpers'
 
 definePageMeta({
@@ -71,9 +77,9 @@ const previewAttribute = computed(() => {
   return 'Ölçü: L'
 })
 
-type SettingsTab = 'notifications' | 'barcode' | 'receipt' | 'appearance'
+type SettingsTab = 'notifications' | 'barcode' | 'receipt' | 'appearance' | 'system'
 
-type SettingsItem = { key: string; label: string; type?: 'switch' | 'theme' | 'language' }
+type SettingsItem = { key: string; label: string; type?: 'switch' | 'theme' | 'language' | 'button' | 'text_only' }
 type SettingsSection = { title: string; items: SettingsItem[] }
 
 const settingsConfig: Record<SettingsTab, SettingsSection[]> = {
@@ -138,14 +144,53 @@ const settingsConfig: Record<SettingsTab, SettingsSection[]> = {
         { key: 'language_select', label: 'settings.items.language_select', type: 'language' }
       ]
     }
+  ],
+  system: [
+    {
+      title: 'settings.sections.systemStatus',
+      items: [
+        { key: 'check_updates', label: 'settings.items.check_updates', type: 'button' },
+        { key: 'app_version', label: 'settings.items.app_version', type: 'text_only' }
+      ]
+    }
   ]
+}
+const checkUpdateStatus = ref<'idle' | 'checking' | 'available' | 'uptodate' | 'error'>('idle')
+const updateInfo = ref<any>(null)
+
+const checkForUpdates = async () => {
+  if (!import.meta.env.TAURI_ENV_PLATFORM) return
+  checkUpdateStatus.value = 'checking'
+  try {
+    const update = await check()
+    if (update) {
+      updateInfo.value = update
+      checkUpdateStatus.value = 'available'
+    } else {
+      checkUpdateStatus.value = 'uptodate'
+    }
+  } catch (err) {
+    console.error(err)
+    checkUpdateStatus.value = 'error'
+  }
+}
+
+const installUpdate = async () => {
+  if (!updateInfo.value) return
+  try {
+    await updateInfo.value.downloadAndInstall()
+    await relaunch()
+  } catch (err) {
+    console.error(err)
+  }
 }
 
 const tabs: { id: SettingsTab; label: string; icon: string }[] = [
   { id: 'appearance', label: 'settings.tabs.appearance', icon: 'lucide:palette' },
   { id: 'notifications', label: 'settings.tabs.notifications', icon: 'lucide:bell' },
   { id: 'barcode', label: 'settings.tabs.barcode', icon: 'lucide:barcode' },
-  { id: 'receipt', label: 'settings.tabs.receipt', icon: 'lucide:receipt' }
+  { id: 'receipt', label: 'settings.tabs.receipt', icon: 'lucide:receipt' },
+  { id: 'system', label: 'settings.tabs.system', icon: 'lucide:settings' }
 ]
 
 const activeTab = ref<SettingsTab>(tabs[0]?.id ?? 'notifications')
@@ -364,6 +409,36 @@ const barcodePreviewHtml = computed(() => {
                           :options="languageOptions"
                           class="w-full"
                         />
+                      </div>
+
+                      <!-- Update Button -->
+                      <div v-else-if="item.type === 'button'" class="flex items-center gap-3">
+                        <span v-if="checkUpdateStatus === 'checking'" class="text-xs opacity-50">{{ t('settings.status.checking', 'Yoxlanılır...') }}</span>
+                        <span v-else-if="checkUpdateStatus === 'uptodate'" class="text-xs text-green-500">{{ t('settings.status.uptodate', 'Ən son versiyadasınız') }}</span>
+                        <span v-else-if="checkUpdateStatus === 'error'" class="text-xs text-red-500">{{ t('settings.status.error', 'Xəta baş verdi') }}</span>
+                        
+                        <UiButton 
+                          v-if="checkUpdateStatus === 'available'" 
+                          size="sm" 
+                          variant="primary" 
+                          @click="installUpdate"
+                        >
+                          {{ t('settings.installUpdate', 'Yüklə və Qur') }}
+                        </UiButton>
+                        <UiButton 
+                          v-else 
+                          size="sm" 
+                          variant="ghost" 
+                          :loading="checkUpdateStatus === 'checking'"
+                          @click="checkForUpdates"
+                        >
+                          {{ t('settings.checkNow', 'İndi yoxla') }}
+                        </UiButton>
+                      </div>
+
+                      <!-- Text Only (Version) -->
+                      <div v-else-if="item.type === 'text_only'" class="text-sm font-bold opacity-60">
+                        v0.1.0
                       </div>
                     </div>
                   </div>

@@ -525,19 +525,24 @@
       "appearance": "Görünüş",
       "notifications": "Bildirişlər",
       "barcode": "Barkod",
-      "receipt": "Qəbz"
+      "receipt": "Çek",
+      "system": "Sistem"
     },
     "sections": {
-      "appearance": "İnterfeys",
-      "notifications": "Satış və Sifarişlər",
-      "inventory": "İnventar və Anbar",
-      "system": "Sistem və İdarəetmə",
+      "notifications": "Bildirişlər",
+      "inventory": "Anbar",
+      "system": "Sistem",
+      "systemStatus": "Sistem Vəziyyəti",
       "visual": "Görünüş Parametrləri"
     },
     "items": {
+      "check_updates": "Yenilənmələri yoxla",
+      "app_version": "Tətbiq versiyası",
+      "checkNow": "İndi yoxla",
+      "installUpdate": "Yüklə və Qur",
       "theme_toggle": "Qaranlıq Rejim",
       "language_select": "Sistem Dili",
-      "sale_completed": "Yeni Satış",
+      "sale_completed": "Satış tamamlandıqda",
       "order_created": "Yeni Sifariş (Nisyə)",
       "refund_processed": "Geri Ödəniş (Qaytarma)",
       "stock_arrival": "Anbara Mal Qəbulu",
@@ -559,6 +564,12 @@
       "showTaxRates": "ƏDV / Vergi",
       "showFooterMessage": "Təşəkkür Mesajı",
       "showReturnPolicy": "Geri Qaytarma"
+    },
+    "status": {
+      "checking": "Yoxlanılır...",
+      "uptodate": "Ən son versiyadasınız",
+      "error": "Xəta baş verdi",
+      "available": "Yeni versiya mövcuddur"
     }
   },
   "suppliers": {

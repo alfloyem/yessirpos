@@ -1,0 +1,51 @@
+name: Release
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [windows-latest] # Add macos-latest if needed
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: install pnpm
+        run: npm install -g pnpm
+
+      - name: install dependencies
+        run: pnpm install
+
+      - name: build app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: v__VERSION__
+          releaseName: 'v__VERSION__'
+          releaseBody: 'See the assets to download the latest version.'
+          releaseDraft: false
+          prerelease: false
+
+      - name: Update update.json
+        if: success()
+        shell: bash
+        run: |
+          # This is a simplified version. For a robust solution, you'd use a script to fetch signatures.
+          # Here we assume the artifacts are available in the previous step.
+          echo "Updates are manually handled or via a custom script for now."
+          # In a real scenario, you would upload update.json to a public place.
