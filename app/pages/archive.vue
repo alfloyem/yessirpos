@@ -252,6 +252,24 @@ const submitPayDebt = async () => {
     payingDebt.value = false
   }
 }
+const formatAttribute = (attr: any) => {
+  if (!attr) return ''
+  try {
+    // Əgər JSON stringidirsə
+    if (typeof attr === 'string' && (attr.startsWith('{') || attr.startsWith('['))) {
+      const parsed = JSON.parse(attr)
+      if (Array.isArray(parsed)) return parsed.join(', ')
+      if (typeof parsed === 'object') {
+        return Object.entries(parsed)
+          .map(([key, value]) => `${key}: ${value}`)
+          .join(', ')
+      }
+    }
+  } catch (e) {
+    // Parse xətası olarsa olduğu kimi saxla
+  }
+  return String(attr)
+}
 </script>
 
 <template>
@@ -415,7 +433,7 @@ const submitPayDebt = async () => {
                   <div class="font-black text-sm">{{ item.productName }}</div>
                   <div class="text-[10px] opacity-40 font-mono">{{ item.barcode }}</div>
                   <div v-if="item.attribute" class="mt-1">
-                    <span class="text-[9px] px-1.5 py-0.5 bg-[var(--input-bg)] rounded font-black opacity-60">{{ item.attribute }}</span>
+                    <span class="text-[9px] px-1.5 py-0.5 bg-[var(--input-bg)] rounded font-black opacity-60">{{ formatAttribute(item.attribute) }}</span>
                   </div>
                 </td>
                 <td class="px-4 py-3">

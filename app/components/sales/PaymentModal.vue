@@ -148,10 +148,11 @@ const showGiftCardModal = ref(false)
 const giftCards = ref<any[]>([])
 const selectedGiftCard = ref<any>(null)
 const tempSelectedGiftCard = ref<any>(null)
+const { $api } = useNuxtApp()
 
 const fetchGiftCards = async () => {
   try {
-    const data = await $fetch<any[]>('/api/gift-cards')
+    const data = await $api<any[]>('/api/gift-cards')
     giftCards.value = data || []
   } catch (err) {
     console.error(err)
@@ -170,7 +171,7 @@ const tempSelectedCustomer = ref<any>(null)
 
 const fetchCustomers = async () => {
   try {
-    const data = await $fetch<any[]>('/api/customers')
+    const data = await $api<any[]>('/api/customers')
     customersList.value = data || []
   } catch (err) {
     console.error(err)
@@ -192,7 +193,7 @@ const addMethod = async () => {
   if (!newMethodName.value.trim()) return
   isAddingMethod.value = true
   try {
-    await $fetch('/api/payment-methods', {
+    await $api('/api/payment-methods', {
       method: 'POST',
       body: {
         name: newMethodName.value.trim(),
@@ -212,7 +213,7 @@ const addMethod = async () => {
 
 const deleteMethod = async (id: string) => {
   try {
-    await $fetch(`/api/payment-methods/${id}`, { method: 'DELETE' })
+    await $api(`/api/payment-methods/${id}`, { method: 'DELETE' })
     emit('refresh-methods')
   } catch (err) {
     console.error(err)
@@ -233,7 +234,7 @@ const toggleIconPicker = (id: string, currentIcon: string) => {
 
 const updateMethod = async (method: any) => {
   try {
-    await $fetch(`/api/payment-methods/${method.id}`, {
+    await $api(`/api/payment-methods/${method.id}`, {
       method: 'PUT',
       body: method
     })
@@ -281,8 +282,13 @@ const selectMethod = (methodId: string) => {
   }
 
   if (isMultiPayment.value) {
-    // In multi-mode, clicking a button sets it to current remaining or toggles it?
-    // Let's just focus the input for that method or something
+    // In multi-mode, clicking a button fills it with the remaining amount
+    const remaining = remainingMultiTotal.value
+    if (remaining > 0) {
+      const current = multiPayments.value[methodId] || 0
+      multiPayments.value[methodId] = Number((current + remaining).toFixed(2))
+      handleBlur(methodId)
+    }
   }
 }
 
@@ -441,16 +447,31 @@ const handleFocus = (event: Event) => {
       <!-- Balance Info for Multi -->
       <div v-if="isMultiPayment" class="p-4 rounded-2xl bg-[var(--text-primary)]/5 border border-[var(--text-primary)]/10 flex justify-between items-center mt-2 animate-in fade-in zoom-in duration-300">
         <div class="flex flex-col">
-          <span class="text-[10px] font-bold opacity-40 tracking-widest">
-            {{ remainingMultiTotal < -0.01 ? t('sales.returnBalance') : t('sales.remainingBalance') }}
+          <span class="text-[10px] font-bold opacity-40 tracking-widest flex items-center gap-1.5">
+            <template v-if="remainingMultiTotal > 0.01 && customer">
+              <UiIcon name="lucide:user-minus" class="w-3 h-3 text-red-500" />
+              <span class="text-red-500 font-black uppercase">{{ t('sales.debt') }}</span>
+            </template>
+            <template v-else>
+              {{ remainingMultiTotal < -0.01 ? t('sales.returnBalance') : t('sales.remainingBalance') }}
+            </template>
           </span>
-          <span class="text-lg font-black" :class="remainingMultiTotal < -0.01 ? 'text-green-500' : (Math.abs(remainingMultiTotal) < 0.01 ? 'text-green-500' : 'text-[var(--text-primary)]')">
+          <span class="text-lg font-black" :class="remainingMultiTotal < -0.01 ? 'text-green-500' : (remainingMultiTotal > 0.01 ? (customer ? 'text-red-500' : 'text-[var(--text-primary)]') : 'text-green-500')">
             {{ Math.abs(remainingMultiTotal).toFixed(2) }} ₼
           </span>
         </div>
-        <div class="text-right">
+        <div class="text-right flex flex-col items-end">
           <span class="text-[10px] font-bold opacity-40 tracking-widest">{{ t('sales.receivedAmountLabel') }}</span>
-          <span class="block text-sm font-black opacity-80">{{ multiTotal.toFixed(2) }} ₼</span>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-black opacity-80">{{ multiTotal.toFixed(2) }} ₼</span>
+            <button 
+              v-if="remainingMultiTotal > 0.01 && !customer" 
+              @click="showCustomerModal = true"
+              class="text-[9px] px-2 py-0.5 bg-red-500/10 text-red-500 rounded-md font-black hover:bg-red-500/20 transition-all border border-red-500/20 animate-pulse"
+            >
+              {{ t('sales.debtCustomerRequired') }}
+            </button>
+          </div>
         </div>
       </div>
 

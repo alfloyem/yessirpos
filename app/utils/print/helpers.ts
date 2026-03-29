@@ -31,24 +31,42 @@ export const executePrintWindow = (
   htmlContent: string, 
   windowOptions: { width: number; height: number; dynamicHeight?: boolean }
 ) => {
-  const { width, height, dynamicHeight } = windowOptions
-  const printWin = window.open('', '', `width=${width},height=${height}`)
-  if (printWin) {
-    printWin.document.write(htmlContent)
-    printWin.document.close()
-    printWin.focus()
+  const { dynamicHeight } = windowOptions
+  
+  // Create a hidden iframe for printing
+  const iframe = document.createElement('iframe')
+  iframe.style.position = 'fixed'
+  iframe.style.right = '0'
+  iframe.style.bottom = '0'
+  iframe.style.width = '0'
+  iframe.style.height = '0'
+  iframe.style.border = '0'
+  document.body.appendChild(iframe)
+
+  if (iframe.contentWindow) {
+    const doc = iframe.contentWindow.document
+    doc.open()
+    doc.write(htmlContent)
+    doc.close()
 
     setTimeout(() => {
       if (dynamicHeight) {
-        // dynamically adjust `@page` size based on body height for thermal printers to cut precisely
-        const body = printWin.document.body
-        const heightMm = Math.ceil(body.scrollHeight * 0.2646) + 10 // px to mm + buffer
-        const style = printWin.document.createElement('style')
+        // Calculate dynamic height for thermal printers
+        const body = doc.body
+        const scrollHeight = body.scrollHeight
+        const heightMm = Math.ceil(scrollHeight * 0.2646) + 15 // px approach
+        const style = doc.createElement('style')
         style.textContent = `@page { margin: 0; size: 80mm ${heightMm}mm; }`
-        printWin.document.head.appendChild(style)
+        doc.head.appendChild(style)
       }
-      printWin.print()
-      printWin.close()
-    }, 400)
+      
+      iframe.contentWindow?.focus()
+      iframe.contentWindow?.print()
+      
+      // Cleanup after a delay
+      setTimeout(() => {
+        document.body.removeChild(iframe)
+      }, 1000)
+    }, 500)
   }
 }
