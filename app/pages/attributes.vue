@@ -10,6 +10,7 @@ import DynamicForm, { type FormField } from '~/components/ui/DynamicForm.vue'
 const { t } = useI18n()
 const { token, logout } = useAuth()
 const toast = useToast()
+const { $api } = useNuxtApp()
 
 useHead({
   title: t('attributes.title', 'Atributlar')
@@ -82,9 +83,7 @@ const loading = ref(false)
 const loadAttributes = async () => {
   loading.value = true
   try {
-    const data = await $fetch('/api/attributes', {
-      headers: { Authorization: `Bearer ${token.value}` }
-    })
+    const data = await $api('/api/attributes')
     mockData.value = (data as any[]).map(d => ({
       ...d,
       createdAt: new Date(d.createdAt).toLocaleString('tr-TR', {
@@ -142,13 +141,12 @@ const handleDuplicate = async (row: any) => {
   }
 
   try {
-    await $fetch('/api/attributes', {
+    await $api('/api/attributes', {
       method: 'POST',
       body: {
         name: newName,
         values: row.values
-      },
-      headers: { Authorization: `Bearer ${token.value}` }
+      }
     })
     toast.success(t('toast.attributeDuplicated', 'Atribut kopyalandı'))
     await loadAttributes()
@@ -175,16 +173,14 @@ const performDelete = async () => {
 
   try {
     if (deleteTarget.value.type === 'single') {
-      await $fetch(`/api/attributes/${deleteTarget.value.id}`, { 
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token.value}` }
+      await $api(`/api/attributes/${deleteTarget.value.id}`, { 
+        method: 'DELETE'
       })
       toast.success(t('toast.attributeDeleted', 'Atribut silindi'))
     } else if (deleteTarget.value.type === 'bulk') {
-      await $fetch('/api/attributes/bulk-delete', {
+      await $api('/api/attributes/bulk-delete', {
         method: 'POST',
-        body: { ids: deleteTarget.value.ids },
-        headers: { Authorization: `Bearer ${token.value}` }
+        body: { ids: deleteTarget.value.ids }
       })
       toast.success(t('toast.attributesDeleted', { count: deleteTarget.value.ids?.length, default: `${deleteTarget.value.ids?.length} atribut silindi` }))
     }
@@ -233,18 +229,16 @@ const saveForm = async () => {
     } else if (showEditModal.value) {
       if (bulkSelectedIds.value.length > 0) {
         const updates = Object.fromEntries(Object.entries(formData.value).filter(([_, v]) => v !== undefined && v !== ''))
-        await $fetch('/api/attributes/bulk-update', {
+        await $api('/api/attributes/bulk-update', {
           method: 'POST',
-          body: { ids: bulkSelectedIds.value, updates },
-          headers
+          body: { ids: bulkSelectedIds.value, updates }
         })
         toast.success(t('toast.attributesUpdated', { count: bulkSelectedIds.value.length, default: `${bulkSelectedIds.value.length} atribut yeniləndi` }))
         bulkSelectedIds.value = []
       } else {
-        await $fetch(`/api/attributes/${formData.value.id}`, {
+        await $api(`/api/attributes/${formData.value.id}`, {
           method: 'PUT',
-          body: formData.value,
-          headers
+          body: formData.value
         })
         toast.success(t('toast.attributeUpdated', 'Atribut yeniləndi'))
       }

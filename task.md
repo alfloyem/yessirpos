@@ -18,9 +18,9 @@
 - [x] satış sehifesinde satış zamanı stock sayı anlıq yenilensin
 - [x] product sehifesinde mehsulun üzerinde klik edilen zaman auto redakte dialogu açılsın
 - [x] reports mehsullar hissesine pagination elave edilmelidir.
-- [] vercelde .env elave edilmelidir.
-- ![x] saytda tr dili qalmamalıdır. her şey i18n bağlı olmalıdır.
-- ![x] sayt tam responsive olmalıdır
+- [x] vercelde .env elave edilmelidir.
+- [x] saytda tr dili qalmamalıdır. her şey i18n bağlı olmalıdır.
+- [x] sayt tam responsive olmalıdır
 - ![] QA test edilmelidir.
 - [] Whatsappdan/mailden mesaj gönderme
 - [] AI söhbeti

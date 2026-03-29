@@ -165,9 +165,7 @@ const focusSearch = () => {
 const loadProducts = async () => {
   loading.value = true
   try {
-    const data = await $fetch<any[]>('/api/products', {
-      headers: { Authorization: `Bearer ${token.value}` }
-    })
+    const data = await $api<any[]>('/api/products')
     products.value = data || []
   } catch (err: any) {
     toast.error(t('toast.loadingError', 'Mallar yüklənərkən xəta baş verdi'))
@@ -178,7 +176,7 @@ const loadProducts = async () => {
 
 const loadPaymentMethods = async () => {
   try {
-    const data = await $fetch<any[]>('/api/payment-methods')
+    const data = await $api<any[]>('/api/payment-methods')
     paymentMethods.value = data || []
   } catch (err) {
     console.error('Failed to load payment methods:', err)
@@ -187,9 +185,7 @@ const loadPaymentMethods = async () => {
 
 const loadCustomers = async () => {
   try {
-    const data = await $fetch<any[]>('/api/customers', {
-      headers: { Authorization: `Bearer ${token.value}` }
-    })
+    const data = await $api<any[]>('/api/customers')
     customers.value = data || []
   } catch (err) {
     console.error('Failed to load customers')
@@ -198,9 +194,7 @@ const loadCustomers = async () => {
 
 const loadEmployees = async () => {
   try {
-    const data = await $fetch<any[]>('/api/employees', {
-      headers: { Authorization: `Bearer ${token.value}` }
-    })
+    const data = await $api<any[]>('/api/employees')
     employees.value = data || []
     
     // Restore last selected cashier
@@ -500,7 +494,7 @@ const completeOrder = async (details?: any) => {
         return
       }
       try {
-        const cards = await $fetch<any[]>('/api/gift-cards')
+        const cards = await $api<any[]>('/api/gift-cards')
         const card = (cards || []).find(c => c.barcode === barcodeToUse)
         if (!card) {
           toast.error(t('toast.giftCardNotFound'))
@@ -515,7 +509,7 @@ const completeOrder = async (details?: any) => {
         paymentDetails.value.giftCard = { ...card }
 
         // Deduct from gift card
-        await $fetch<any>(`/api/gift-cards/${card.id}`, {
+        await $api<any>(`/api/gift-cards/${card.id}`, {
           method: 'PUT',
           body: { value: Number((card.value - amt).toFixed(2)) }
         })
@@ -541,13 +535,12 @@ const completeOrder = async (details?: any) => {
       const debtToAdd = Number(details?.debtAmount) || 0
       const newDebt = (Number(customer.debt) || 0) + debtToAdd
 
-      await $fetch<any>(`/api/customers/${customer.id}`, {
+      await $api<any>(`/api/customers/${customer.id}`, {
         method: 'PUT',
         body: { 
           bonus: Number(finalBonusUpdate.toFixed(2)),
           debt: Number(newDebt.toFixed(2))
-        },
-        headers: { Authorization: `Bearer ${token.value}` }
+        }
       })
     }
 
@@ -594,7 +587,7 @@ const completeOrder = async (details?: any) => {
       })
     }
 
-    const savedSale = await $fetch<any>('/api/sales', {
+    const savedSale = await $api<any>('/api/sales', {
       method: 'POST',
       body: saleData
     })

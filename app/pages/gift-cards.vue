@@ -8,6 +8,7 @@ import DynamicForm, { type FormField } from '~/components/ui/DynamicForm.vue'
 import { useAuth, useHead, useToast } from '#imports'
 
 const { t, locale } = useI18n()
+const { $api } = useNuxtApp()
 
 useHead({
   title: t('giftCards.title')
@@ -26,8 +27,8 @@ const loadData = async () => {
   
   try {
     const [giftCards, customersRes] = await Promise.all([
-      $fetch('/api/gift-cards'),
-      $fetch('/api/customers')
+      $api('/api/gift-cards'),
+      $api('/api/customers')
     ])
     
     mockData.value = (giftCards as any[]).map(d => ({
@@ -189,17 +190,14 @@ const handleDuplicate = async (row: any) => {
       newDate = new Date(row._date.getTime() + 1000)
     }
     
-    const headers = { Authorization: `Bearer ${token.value}` }
-    
-    await $fetch('/api/gift-cards', {
+    await $api('/api/gift-cards', {
       method: 'POST',
       body: {
         barcode: newBarcode,
         value: row.value,
         customer: row.customerId,
         createdAt: newDate.toISOString()
-      },
-      headers
+      }
     })
     
     toast.success(t('giftCards.duplicated'))
@@ -240,7 +238,7 @@ const saveForm = async () => {
       const updates = Object.fromEntries(
         Object.entries(formData.value).filter(([_, v]) => v !== undefined && v !== '' && v !== null)
       )
-      await $fetch('/api/gift-cards/bulk-update', {
+      await $api('/api/gift-cards/bulk-update', {
         method: 'POST',
         body: { ids: bulkSelectedIds.value, updates }
       })
@@ -248,7 +246,7 @@ const saveForm = async () => {
       bulkSelectedIds.value = []
       showEditModal.value = false
     } else if (isEdit) {
-      await $fetch(`/api/gift-cards/${formData.value.id}`, {
+      await $api(`/api/gift-cards/${formData.value.id}`, {
         method: 'PUT',
         body: {
           barcode: formData.value.barcode,
@@ -259,7 +257,7 @@ const saveForm = async () => {
       toast.success(t('giftCards.updated'))
       showEditModal.value = false
     } else {
-      await $fetch('/api/gift-cards', {
+      await $api('/api/gift-cards', {
         method: 'POST',
         body: {
           barcode: formData.value.barcode,
@@ -289,13 +287,13 @@ const confirmDelete = async () => {
   
   try {
     if (deleteTarget.value.type === 'bulk') {
-      await $fetch('/api/gift-cards/bulk-delete', {
+      await $api('/api/gift-cards/bulk-delete', {
         method: 'POST',
         body: { ids: deleteTarget.value.ids }
       })
       toast.success(t('giftCards.deleted'))
     } else {
-      await $fetch(`/api/gift-cards/${deleteTarget.value.id}`, {
+      await $api(`/api/gift-cards/${deleteTarget.value.id}`, {
         method: 'DELETE'
       })
       toast.success(t('giftCards.deleted'))

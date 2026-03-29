@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
-import { useHead, useToast, useAuth } from '#imports'
+import { useHead, useToast, useAuth, useNuxtApp } from '#imports'
 import { useI18n } from '#i18n'
 import DataTable from '~/components/ui/DataTable.vue'
 import Modal from '~/components/ui/Modal.vue'
@@ -10,6 +10,7 @@ import { menuItems } from '~/utils/menu'
 
 const { t } = useI18n()
 const toast = useToast()
+const { $api } = useNuxtApp()
 
 useHead({
   title: t('menu.employees')
@@ -111,7 +112,7 @@ const loadEmployees = async () => {
   error.value = null
   
   try {
-    const data = await $fetch('/api/employees')
+    const data = await $api('/api/employees')
     mockData.value = data as any[]
   } catch (err: any) {
     const errorMsg = err.message || t('toast.loadingError')
@@ -212,11 +213,11 @@ const performDelete = async () => {
   
   try {
     if (deleteTarget.value.type === 'single') {
-      await $fetch(`/api/employees/${deleteTarget.value.id}`, { method: 'DELETE' })
+      await $api(`/api/employees/${deleteTarget.value.id}`, { method: 'DELETE' })
       toast.success(t('toast.employeeDeleted'))
     } else if (deleteTarget.value.type === 'bulk') {
       const count = deleteTarget.value.ids?.length || 0
-      await $fetch('/api/employees/bulk-delete', {
+      await $api('/api/employees/bulk-delete', {
         method: 'POST',
         body: { ids: deleteTarget.value.ids }
       })
@@ -281,7 +282,7 @@ const handleDuplicate = async (row: any) => {
     const newUsername = duplicateUsername(row.username)
     
     // Yeni çalışan oluştur (şifre varsayılan olarak "12345678" olsun)
-    await $fetch('/api/employees', {
+    await $api('/api/employees', {
       method: 'POST',
       body: {
         ...row,
@@ -355,7 +356,7 @@ const saveForm = async () => {
     
     if (showAddModal.value) {
       // Yeni çalışan ekle
-      await $fetch('/api/employees', {
+      await $api('/api/employees', {
         method: 'POST',
         body: formData.value,
         headers
@@ -368,7 +369,7 @@ const saveForm = async () => {
         const updates = Object.fromEntries(
           Object.entries(formData.value).filter(([_, v]) => v !== undefined && v !== '')
         )
-        await $fetch('/api/employees/bulk-update', {
+        await $api('/api/employees/bulk-update', {
           method: 'POST',
           body: { ids: bulkSelectedIds.value, updates },
           headers
@@ -377,7 +378,7 @@ const saveForm = async () => {
         bulkSelectedIds.value = []
       } else {
         // Tekli güncelleme
-        await $fetch(`/api/employees/${formData.value.id}`, {
+        await $api(`/api/employees/${formData.value.id}`, {
           method: 'PUT',
           body: formData.value,
           headers

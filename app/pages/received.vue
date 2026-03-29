@@ -11,6 +11,7 @@ import { printIntakeReceipt } from '~/utils/receiptPrinter'
 const { t } = useI18n()
 const { user } = useAuth()
 const toast = useToast()
+const { $api } = useNuxtApp()
 
 useHead({
   title: t('intake.title', 'Mal Qəbulu')
@@ -66,7 +67,7 @@ onMounted(async () => {
 
 const fetchSuppliers = async () => {
   try {
-    suppliers.value = await $fetch<any[]>('/api/suppliers')
+    suppliers.value = await $api<any[]>('/api/suppliers')
   } catch (err) {
     console.error('Fetch suppliers error:', err)
   }
@@ -75,7 +76,7 @@ const fetchSuppliers = async () => {
 const fetchProducts = async () => {
   loading.value = true
   try {
-    products.value = await $fetch<any[]>('/api/products')
+    products.value = await $api<any[]>('/api/products')
   } catch (err) {
     console.error('Fetch products error:', err)
   } finally {
@@ -85,7 +86,7 @@ const fetchProducts = async () => {
 
 const loadPaymentMethods = async () => {
   try {
-    const data = await $fetch<any[]>('/api/payment-methods')
+    const data = await $api<any[]>('/api/payment-methods')
     if (data && data.length > 0) {
       // Keep static ones, add DB ones if they are different names
       const dbMethods = data.filter(dm => !['Nəğd', 'Kart'].includes(dm.name))
@@ -282,7 +283,7 @@ const submitIntake = async () => {
       }))
     }
 
-    const res: any = await $fetch('/api/intake', {
+    const res: any = await $api('/api/intake', {
       method: 'POST',
       body: payload
     })

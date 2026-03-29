@@ -11,6 +11,7 @@ import { useRouter } from 'vue-router'
 const { t } = useI18n()
 const toast = useToast()
 const router = useRouter()
+const { $api } = useNuxtApp()
 
 const { permissionStatus, requestPermission, isSupported } = useFCM()
 
@@ -26,7 +27,7 @@ const hasMore = ref(true)
 const loadNotifications = async (page = 1) => {
   loading.value = true
   try {
-    const data = await $fetch('/api/notifications', { params: { page, limit: 20 } }) as any
+    const data = await $api('/api/notifications', { params: { page, limit: 20 } }) as any
     if (page === 1) {
       localNotifications.value = data.notifications
     } else {

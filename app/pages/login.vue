@@ -35,7 +35,8 @@ const handleLogin = async () => {
   const toast = useToast()
   
   try {
-    const response = await $fetch<any>('/api/auth/login', {
+    const config = useRuntimeConfig()
+    const response = await $fetch<any>((config.public.apiBaseUrl || '') + '/api/auth/login', {
       method: 'POST',
       body: { 
         username: email.value, 
