@@ -644,6 +644,8 @@
     "noOperationsForAttribute": "No operations found for this attribute",
     "selectDate": "Select Date",
     "profit": "Profit",
+    "pAndL": "P&L",
+    "vipClient": "VIP Client",
     "exportDataNotFound": "No data to export",
     "excelSuccess": "Excel file created successfully"
   }

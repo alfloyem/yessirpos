@@ -102,8 +102,15 @@ const refreshAll = async () => {
   } finally { loading.value = false }
 }
 
-watch(activeTab, () => refreshAll())
-onMounted(() => refreshAll())
+onMounted(() => {
+  windowWidth.value = window.innerWidth
+  window.addEventListener('resize', updateWidth)
+  refreshAll()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateWidth)
+})
 
 // ── Chart config (Beautiful, Clean, Interactive) ──
 const chartOpts = (showLegend = false): any => ({
@@ -123,9 +130,9 @@ const chartOpts = (showLegend = false): any => ({
       } 
     },
     tooltip: {
-      backgroundColor: 'var(--input-bg)',
+      backgroundColor: 'var(--bg-sidebar)',
       titleColor: 'var(--text-app)',
-      bodyColor: 'var(--text-muted)',
+      bodyColor: 'var(--text-app)',
       borderColor: 'var(--border-app)',
       borderWidth: 1,
       padding: 12,
@@ -139,7 +146,12 @@ const chartOpts = (showLegend = false): any => ({
   },
   scales: {
     x: { 
-      ticks: { color: 'var(--text-muted)', font: { size: 10, family: 'SF Pro Display' } }, 
+      ticks: { 
+        color: 'var(--text-muted)', 
+        font: { size: 10, family: 'SF Pro Display' },
+        maxRotation: 45,
+        minRotation: 0
+      }, 
       grid: { display: false }, 
       border: { display: false } 
     },
@@ -147,9 +159,14 @@ const chartOpts = (showLegend = false): any => ({
       ticks: { 
         color: 'var(--text-muted)', 
         font: { size: 10, family: 'SF Pro Display' }, 
-        callback: (v: string | number) => Number(v) >= 1000 ? (Number(v)/1000).toFixed(0) + 'k' : v 
+        callback: (v: string | number) => {
+          const numV = Number(v)
+          if (numV >= 1000000) return (numV/1000000).toFixed(1) + 'M'
+          if (numV >= 1000) return (numV/1000).toFixed(0) + 'k'
+          return v
+        }
       }, 
-      grid: { color: 'rgba(128,128,128,0.06)', drawBorder: false }, 
+      grid: { color: 'rgba(var(--border-app-rgb), 0.1)', drawBorder: false }, 
       border: { display: false } 
     }
   },
@@ -166,9 +183,9 @@ const doughnutOpts: any = {
   plugins: {
     legend: { display: false },
     tooltip: { 
-      backgroundColor: 'var(--input-bg)', 
+      backgroundColor: 'var(--bg-sidebar)', 
       titleColor: 'var(--text-app)', 
-      bodyColor: 'var(--text-muted)', 
+      bodyColor: 'var(--text-app)', 
       borderColor: 'var(--border-app)', 
       borderWidth: 1, 
       padding: 12, 
@@ -321,13 +338,7 @@ watch(productTimelineData, () => {
 
 const windowWidth = ref(0)
 const updateWidth = () => { windowWidth.value = window.innerWidth }
-onMounted(() => {
-  windowWidth.value = window.innerWidth
-  window.addEventListener('resize', updateWidth)
-})
-onUnmounted(() => {
-  window.removeEventListener('resize', updateWidth)
-})
+// Width tracking moved to merged onMounted/onUnmounted below
 </script>
 
 <template>
@@ -741,10 +752,10 @@ onUnmounted(() => {
               <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center"><UiIcon name="lucide:search" class="w-4 h-4" /></div>
               <h3 class="card-title-premium">{{ t('reports.productAnalysis') }}</h3>
             </div>
-            <div v-if="productTimelineData" class="flex flex-wrap gap-2">
-              <div class="px-3 py-1 bg-green-500/5 border border-green-500/20 rounded-lg text-green-600 text-[11px] font-black tabular-nums">P&L: {{ fmt(productTimelineData.netRevenue) }} ₼</div>
-              <div class="px-3 py-1 bg-blue-500/5 border border-blue-500/20 rounded-lg text-blue-600 text-[11px] font-black tabular-nums">STOK: {{ productTimelineData.product.stock }}</div>
-              <button @click="clearTimeline" class="hover:text-red-500 transition-colors"><UiIcon name="lucide:x-circle" class="w-5 h-5" /></button>
+            <div v-if="productTimelineData" class="flex flex-wrap gap-2 text-xs">
+              <div class="px-3 py-1 bg-green-500/5 border border-green-500/20 rounded-lg text-green-600 font-black tabular-nums">{{ t('reports.pAndL') }}: {{ fmt(productTimelineData.netRevenue) }} ₼</div>
+              <div class="px-3 py-1 bg-blue-500/5 border border-blue-500/20 rounded-lg text-blue-600 font-black tabular-nums">{{ t('dashboard.stock').toUpperCase() }}: {{ productTimelineData.product.stock }}</div>
+              <button @click="clearTimeline" class="hover:text-red-500 transition-colors ml-1"><UiIcon name="lucide:x-circle" class="w-5 h-5" /></button>
             </div>
           </div>
 
@@ -1118,7 +1129,7 @@ onUnmounted(() => {
                     </div>
                     <div class="flex-1 min-w-0">
                       <p class="text-xs md:text-sm font-black group-hover:text-white truncate">{{ c.name }}</p>
-                      <p class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest group-hover:text-white/60">VIP Client</p>
+                      <p class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest group-hover:text-white/60">{{ t('reports.vipClient') }}</p>
                     </div>
                     <div class="text-right shrink-0">
                       <p class="text-sm md:text-lg font-black tabular-nums group-hover:text-white">{{ fmt(c.totalSpent) }} <span class="text-[10px] md:text-xs opacity-30">₼</span></p>

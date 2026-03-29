@@ -23,6 +23,7 @@
   --text-primary: hsl(255, 75%, 50%);
   --text-secondary: hsl(255, 80%, 40%);
   --border-app: hsl(255, 15%, 90%);
+  --border-app-rgb: 230, 230, 240;
   --input-bg: hsl(255, 12%, 99%);
 
   --btn-primary-bg: hsl(255, 75%, 50%);
@@ -37,6 +38,7 @@
   --text-primary: hsl(255, 85%, 75%);
   --text-secondary: hsl(255, 85%, 65%);
   --border-app: hsl(255, 20%, 15%);
+  --border-app-rgb: 38, 38, 55;
   --input-bg: hsl(255, 15%, 8%);
 
   --btn-primary-bg: hsl(255, 75%, 50%);

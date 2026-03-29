@@ -644,6 +644,8 @@
     "noOperationsForAttribute": "Нет операций по этому атрибуту",
     "selectDate": "Выберите дату",
     "profit": "Прибыль",
+    "pAndL": "Прибыли и убытки",
+    "vipClient": "VIP клиент",
     "exportDataNotFound": "Нет данных для экспорта",
     "excelSuccess": "Файл Excel успешно создан"
   }

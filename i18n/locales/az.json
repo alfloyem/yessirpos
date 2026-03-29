@@ -647,6 +647,8 @@
     "noOperationsForAttribute": "Bu atribut üzrə heç bir əməliyyat tapılmadı",
     "selectDate": "Tarix Seç",
     "profit": "Mənfəət",
+    "pAndL": "Mənfəət və Zərər",
+    "vipClient": "VIP Müştəri",
     "exportDataNotFound": "İxrac ediləcək məlumat yoxdur",
     "excelSuccess": "Excel faylı uğurla yaradıldı"
   }
