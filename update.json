@@ -1,11 +1,11 @@
 {
     "platforms":  {
                       "windows-x86_64":  {
-                                             "signature":  "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTUWdJamRvenJXa1I4VWpFM29XY1RQb0R6RldKZ29zSHdNWEp1S2phSUVtQkx6VHBiWDNuZjNJanR4bUN0b1RsUFRLNEh0ZEhneWlQVzRIQVhra0VIUjllUXJJMnMwNEFjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc0ODM0NzcyCWZpbGU6eWVzc2lycG9zXzAuMS45MTFfeDY0X2VuLVVTLm1zaQozOEtFckduMTRXbmpGZVU1Mm1NYStIa0xLcUlDRnJJV3hlU1ZnbjdsYVNEWVVBZm1haURaWVBwUno2R2pWSUllZmpNU1BudGRvbEpWK3BKdmNQZTJBUT09Cg==",
-                                             "url":  "https://github.com/alfloyem/yessirpos-vue/releases/download/v0.1.911/yessirpos_0.1.911_x64_en-US.msi"
+                                             "signature":  "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTUWdJamRvenJXa2NyR0VHTkpCTWt0M1RIbk1TaXpRclJWbGVWN085ZFYvT3Y5clhJeDVoQWd0YzJHTDZHUVlGU1lzM0Q0MW9EeG5vTGI2MzZDajlEd3ZMR1haanpONFFFPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc0ODM1MjAxCWZpbGU6eWVzc2lycG9zXzAuMS45Ml94NjRfZW4tVVMubXNpCncvTktvUW5KaXRKNSsvN05RaExEb3J0SDdyblB3QktxWW5lR0Y5VHJscjRDNDZEektvaXdiMk5DU3hEbGhEek9PNXpMaXI5MmtNNUVFb3c0ckhJOUFnPT0K",
+                                             "url":  "https://github.com/alfloyem/yessirpos-vue/releases/download/v0.1.92/yessirpos_0.1.92_x64_en-US.msi"
                                          }
                   },
-    "pub_date":  "2026-03-30T01:39:32Z",
-    "version":  "0.1.911",
-    "notes":  "try 6"
+    "pub_date":  "2026-03-30T01:46:42Z",
+    "version":  "0.1.92",
+    "notes":  "try "
 }
