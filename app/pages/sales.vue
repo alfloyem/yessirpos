@@ -23,19 +23,19 @@ useHead({
 })
 
 // --- Data ---
-const products = ref<any[]>([])
+const products = useState<any[]>('sales_products', () => [])
 const loading = ref(false)
 const searchQuery = ref('')
 const selectedCategory = ref('ALL')
-const customers = ref<any[]>([])
+const customers = useState<any[]>('sales_customers', () => [])
 const selectedCustomer = ref<any>(null)
-const employees = ref<any[]>([])
+const employees = useState<any[]>('sales_employees', () => [])
 const selectedEmployee = ref<any>(null)
 
 // Cart state
-const cart = ref<any[]>([])
-const discount = ref<number | string>(0)
-const discountType = ref<'amount' | 'percent'>('amount')
+const cart = useState<any[]>('sales_cart', () => [])
+const discount = useState<number | string>('sales_discount', () => 0)
+const discountType = useState<'amount' | 'percent'>('sales_discount_type', () => 'amount')
 
 // DOM refs
 const searchInput = ref<any>(null)
@@ -48,7 +48,7 @@ const paymentDetails = ref<any>(null)
 const isSaving = ref(false)
 
 // Manage Payment Methods State (Only storage, management moved to component)
-const paymentMethods = ref<any[]>([])
+const paymentMethods = useState<any[]>('sales_payment_methods', () => [])
 
 // --- Draft Logic ---
 const drafts = ref<any[]>([])
@@ -163,7 +163,7 @@ const focusSearch = () => {
 
 // --- Load Products ---
 const loadProducts = async () => {
-  loading.value = true
+  if (products.value.length === 0) loading.value = true
   try {
     const data = await $api<any[]>('/api/products')
     products.value = data || []

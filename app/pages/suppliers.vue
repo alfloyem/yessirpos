@@ -48,12 +48,12 @@ const columns = computed(() =>
 )
 
 // --- Data ---
-const mockData = ref<any[]>([])
+const mockData = useState<any[]>('suppliers_data', () => [])
 const loading = ref(false)
 const error = ref<string | null>(null)
 
 const loadSuppliers = async () => {
-  loading.value = true
+  if (mockData.value.length === 0) loading.value = true
   error.value = null
   
   try {

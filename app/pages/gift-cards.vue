@@ -15,13 +15,13 @@ useHead({
 })
 
 // --- API Calls ---
-const mockData = ref<any[]>([])
-const customersOptions = ref<{label: string, value: number}[]>([])
+const mockData = useState<any[]>('giftcards_data', () => [])
+const customersOptions = useState<{label: string, value: number}[]>('giftcards_customers', () => [])
 const loading = ref(false)
 const error = ref<string | null>(null)
 
 const loadData = async () => {
-  loading.value = true
+  if (mockData.value.length === 0) loading.value = true
   error.value = null
   const toast = useToast()
   

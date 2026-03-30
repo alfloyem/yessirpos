@@ -30,7 +30,7 @@ const columns = computed(() =>
   orderSchema.value.filter((f: any) => f.inTable).map((f: any) => ({ key: f.key, label: f.label, sortable: f.sortable }))
 )
 
-const orders = ref<any[]>([])
+const orders = useState<any[]>('archive_orders', () => [])
 const loading = ref(false)
 const showDetailsModal = ref(false)
 const selectedOrder = ref<any>(null)
@@ -44,8 +44,8 @@ const filteredOrders = computed(() => {
   return orders.value
 })
 
-const loadOrders = async () => {
-  loading.value = true
+const loadOrders = async (silent = false) => {
+  if (orders.value.length === 0 && !silent) loading.value = true
   try {
     const data = await $api(`/api/receipts?limit=${loadLimit.value}`)
     orders.value = (data as any[]).map(o => ({
@@ -67,7 +67,7 @@ onMounted(() => { loadOrders() })
 
 const loadMore = () => {
   loadLimit.value += 200
-  loadOrders()
+  loadOrders(true) // silent load so table doesn't disappear
 }
 
 const handleViewDetails = (row: any) => {

@@ -16,9 +16,9 @@ useHead({
 })
 
 // --- Data ---
-const expenses = ref<any[]>([])
-const employeesOptions = ref<{label: string, value: string}[]>([])
-const paymentMethodsOptions = ref<{label: string, value: string}[]>([
+const expenses = useState<any[]>('expenses_data', () => [])
+const employeesOptions = useState<{label: string, value: string}[]>('expenses_employees', () => [])
+const paymentMethodsOptions = useState<{label: string, value: string}[]>('expenses_payment_methods', () => [
   { label: t('expenses.payCash', 'Nağd'), value: 'Cash' },
   { label: t('expenses.payCard', 'Bank kartı'), value: 'Card' }
 ])
@@ -94,7 +94,7 @@ const columns = computed(() => {
 const formGridCols = computed(() => isMobile.value ? 1 : 2)
 
 const loadData = async () => {
-  loading.value = true
+  if (expenses.value.length === 0) loading.value = true
   error.value = null
   
   try {

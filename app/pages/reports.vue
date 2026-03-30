@@ -71,17 +71,17 @@ const setQuickFilter = (type: string) => {
 
 // ── Data ──
 const loading = ref(false)
-const dashboardData = ref<any>(null)
-const productsData  = ref<any>(null)
-const salesData     = ref<any>(null)
-const expensesData  = ref<any>(null)
-const employeesData = ref<any>(null)
+const dashboardData = useState<any>('reports_dashboard', () => null)
+const productsData  = useState<any>('reports_products', () => null)
+const salesData     = useState<any>('reports_sales', () => null)
+const expensesData  = useState<any>('reports_expenses', () => null)
+const employeesData = useState<any>('reports_employees', () => null)
 
 const selectedProductId = ref<string|null>(null)
 const selectedAttribute = ref<string|null>(null)
 const searchProductQuery = ref('')
 const searchProductResults = ref<any[]>([])
-const productTimelineData = ref<any>(null)
+const productTimelineData = useState<any>('reports_timeline', () => null)
 
 const params = () => `?startDate=${new Date(startDate.value).toISOString()}&endDate=${new Date(endDate.value).toISOString()}`
 

@@ -60,11 +60,11 @@ const generateBarcode = (prefix = '', exclude: string[] = []) => {
 }
 
 // --- Data ---
-const mockData = ref<any[]>([])
+const mockData = useState<any[]>('products_mockdata', () => [])
 const loading = ref(false)
 const searchQuery = ref('')
-const suppliersOptions = ref<{ label: string, value: string }[]>([])
-const availableAttributes = ref<any[]>([])
+const suppliersOptions = useState<{ label: string, value: string }[]>('products_suppliers', () => [])
+const availableAttributes = useState<any[]>('products_attributes', () => [])
 
 // Columns for Export (Detailed as requested)
 const productColumns = [
@@ -151,7 +151,7 @@ const groupedProducts = computed(() => {
 })
 
 const loadGoods = async () => {
-  loading.value = true
+  if (mockData.value.length === 0) loading.value = true
   try {
     const data = await $api('/api/products', { headers: { Authorization: `Bearer ${token.value}` } })
     mockData.value = data as any[]

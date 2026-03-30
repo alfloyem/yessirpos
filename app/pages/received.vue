@@ -18,13 +18,13 @@ useHead({
 })
 
 // --- Data ---
-const suppliers = ref<any[]>([])
-const products = ref<any[]>([])
+const suppliers = useState<any[]>('received_suppliers', () => [])
+const products = useState<any[]>('received_products', () => [])
 const staticPaymentMethods = computed(() => [
   { id: 'static-cash', name: t('sales.cash'), icon: 'lucide:banknote' },
   { id: 'static-card', name: t('sales.card'), icon: 'lucide:credit-card' }
 ])
-const dbPaymentMethods = ref<any[]>([])
+const dbPaymentMethods = useState<any[]>('received_db_payment_methods', () => [])
 const paymentMethods = computed(() => [...staticPaymentMethods.value, ...dbPaymentMethods.value])
 const loading = ref(false)
 const saving = ref(false)
@@ -33,7 +33,7 @@ const saving = ref(false)
 const selectedSupplier = ref<any>(null)
 const searchQuery = ref('')
 const selectedCategory = ref('ALL')
-const cart = ref<any[]>([])
+const cart = useState<any[]>('received_cart', () => [])
 const notes = ref('')
 const selectedPaymentMethod = ref<any>(null)
 
@@ -80,7 +80,7 @@ const fetchSuppliers = async () => {
 }
 
 const fetchProducts = async () => {
-  loading.value = true
+  if (products.value.length === 0) loading.value = true
   try {
     products.value = await $api<any[]>('/api/products')
   } catch (err) {

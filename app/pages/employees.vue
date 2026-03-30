@@ -104,13 +104,13 @@ const formFields = computed(() => {
 })
 
 // --- Data ---
-const mockData = ref<any[]>([])
+const mockData = useState<any[]>('employees_mockdata', () => [])
 const loading = ref(false)
 const error = ref<string | null>(null)
 
 // Verileri yükle
 const loadEmployees = async () => {
-  loading.value = true
+  if (mockData.value.length === 0) loading.value = true
   error.value = null
   
   try {

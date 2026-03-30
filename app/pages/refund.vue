@@ -17,7 +17,7 @@ useHead({
 })
 
 const receiptInput = ref<any>(null)
-const receiptQuery = ref('')
+const receiptQuery = useState('refund_receiptQuery', () => '')
 
 onMounted(() => {
   setTimeout(() => {
@@ -27,8 +27,8 @@ onMounted(() => {
 
 const loading = ref(false)
 const processing = ref(false)
-const originalSale = ref<any>(null)
-const refundItems = ref<any[]>([])
+const originalSale = useState<any>('refund_originalSale', () => null)
+const refundItems = useState<any[]>('refund_items', () => [])
 
 const searchReceipt = async () => {
   if (!receiptQuery.value) return

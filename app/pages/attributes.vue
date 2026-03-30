@@ -77,11 +77,11 @@ const columns = computed(() => {
 })
 
 // --- Data ---
-const mockData = ref<any[]>([])
+const mockData = useState<any[]>('attributes_mockdata', () => [])
 const loading = ref(false)
 
 const loadAttributes = async () => {
-  loading.value = true
+  if (mockData.value.length === 0) loading.value = true
   try {
     const data = await $api('/api/attributes')
     mockData.value = (data as any[]).map(d => ({

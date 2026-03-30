@@ -25,8 +25,8 @@ const { token } = useAuth()
 const toast = useToast()
 const { $api } = useNuxtApp()
 
-const selectedFilter = ref('today')
-const dashboardData = ref(null)
+const selectedFilter = useState('dashboard_filter', () => 'today')
+const dashboardData = useState('dashboard_data', () => null)
 const loading = ref(false)
 
 const dateFilters = computed(() => [
@@ -39,7 +39,7 @@ const dateFilters = computed(() => [
 
 
 const fetchDashboardData = async () => {
-  loading.value = true
+  if (!dashboardData.value) loading.value = true
   try {
     let startDate, endDate
     const now = new Date()
