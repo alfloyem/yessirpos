@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { check } from '@tauri-apps/plugin-updater'
 import { relaunch } from '@tauri-apps/plugin-process'
+import { getVersion } from '@tauri-apps/api/app'
 
 import { useColorMode, useAuth, useNuxtApp } from '#imports'
 import { useI18n } from '#i18n'
@@ -34,12 +35,18 @@ const languageFlags: Record<string, string> = {
   ru: ruFlag
 }
 
-onMounted(() => {
+const currentVersion = ref('0.0.0')
+
+onMounted(async () => {
   if (import.meta.client) {
     clientData.value = getClientData()
     dummyBarcodeUrl.value = generateBarcodeDataUrl('123456789012', { height: 50, margin: 10, displayValue: false })
     loadSettings()
     loadAttributes()
+    
+    if (import.meta.env.TAURI_ENV_PLATFORM) {
+      currentVersion.value = await getVersion()
+    }
   }
 })
 
@@ -438,7 +445,7 @@ const barcodePreviewHtml = computed(() => {
 
                       <!-- Text Only (Version) -->
                       <div v-else-if="item.type === 'text_only'" class="text-sm font-bold opacity-60">
-                        v0.1.0
+                        v{{ currentVersion }}
                       </div>
                     </div>
                   </div>
