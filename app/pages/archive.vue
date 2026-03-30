@@ -119,19 +119,27 @@ const printOrder = (order: any) => {
     subtotal: Number(order.subtotal) || 0,
     finalTotal: Number(order.total) || 0,
     discountTotal: Number(order.discountTotal) || 0,
+    discountVal: order.paymentDetails?.discountVal || 0,
+    discountType: order.paymentDetails?.discountType || 'amount',
     isArchive: true,
-    items: order.items.map((item: any) => ({
-      productName: isRefund && !item.productName.includes(t('orders.refundLabel')) ? `${t('orders.refundLabel')} ${item.productName}` : item.productName,
-      barcode: item.barcode,
-      qty: Math.abs(Number(item.qty)),
-      price: Number(item.price),
-      finalPrice: Math.abs(Number(item.total / item.qty)),
-      discount: Math.abs(Number(item.discount)) || 0,
-      discountType: 'amount',
-      discountValue: Math.abs(Number(item.discount / item.qty)) || 0,
-      total: Math.abs(Number(item.total)),
-      attribute: item.attribute
-    })),
+    items: order.items.map((item: any) => {
+      const originalPrice = Number(item.price) || 0;
+      const finalPrice = Math.abs(Number(item.total / item.qty)) || 0;
+      const discountPerUnit = originalPrice - finalPrice;
+
+      return {
+        productName: isRefund && !item.productName.includes(t('orders.refundLabel')) ? `${t('orders.refundLabel')} ${item.productName}` : item.productName,
+        barcode: item.barcode,
+        qty: Math.abs(Number(item.qty)),
+        price: originalPrice,
+        finalPrice: finalPrice,
+        discount: discountPerUnit > 0 ? discountPerUnit : 0,
+        discountType: 'amount', // Historics are calculated in amounts
+        discountValue: discountPerUnit > 0 ? discountPerUnit : 0,
+        total: Math.abs(Number(item.total)),
+        attribute: item.attribute
+      }
+    }),
     customer: order.counterparty !== t('orders.anonymousCustomer') ? { name: order.counterparty, barcode: order.paymentDetails?.customerBarcode } : undefined,
     paymentDetails: {
       isMulti: order.paymentDetails?.isMulti || false,

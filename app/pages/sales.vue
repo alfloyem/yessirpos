@@ -557,8 +557,10 @@ const completeOrder = async (details?: any) => {
         received: paymentDetails.value?.received,
         change: paymentDetails.value?.change,
         giftCardBarcode: details?.giftCardBarcode || giftCardBarcode.value,
-        bonusBarcode: customer?.barcode,
-        debtAmount: details?.debtAmount || 0
+        discountBarcode: customer?.barcode,
+        debtAmount: details?.debtAmount || 0,
+        discountVal: Number(discount.value) || 0,
+        discountType: discountType.value
       },
       cashierId: selectedEmployee.value?.id,
       cashierName: selectedEmployee.value ? `${selectedEmployee.value.firstName} ${selectedEmployee.value.lastName}` : null,

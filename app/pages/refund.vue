@@ -154,21 +154,30 @@ const printRefundReceipt = (refundSale: any) => {
     receiptNo: refundSale.receiptNo,
     cashierName: refundSale.cashierName || '---',
     currentDate: new Date(refundSale.createdAt).toLocaleString('az-AZ'),
-    subtotal: -refundSale.subtotal, 
-    finalTotal: -refundSale.finalTotal,
-    discountTotal: -refundSale.discountTotal,
+    subtotal: -Number(refundSale.subtotal), 
+    finalTotal: -Number(refundSale.finalTotal),
+    discountTotal: -Number(refundSale.discountTotal),
+    discountVal: 0, // In refunds, we show total amount of discount
+    discountType: 'amount',
     isArchive: false,
-    items: refundSale.items.map((i: any) => ({
-      productName: `${t('orders.refundLabel')} ${i.productName}`,
-      qty: Math.abs(i.qty),
-      price: i.price,
-      finalPrice: Math.abs(i.total / i.qty),
-      discount: Math.abs(i.discount),
-      discountType: 'amount',
-      discountValue: Math.abs(i.discount / i.qty),
-      total: Math.abs(i.total),
-      attribute: i.attribute
-    })),
+    items: refundSale.items.map((i: any) => {
+      const originalPrice = Number(i.price) || 0;
+      const finalPrice = Math.abs(Number(i.total / i.qty)) || 0;
+      const discountPerUnit = originalPrice - finalPrice;
+
+      return {
+        productName: `${t('orders.refundLabel')} ${i.productName}`,
+        barcode: i.barcode,
+        qty: Math.abs(Number(i.qty)),
+        price: originalPrice,
+        finalPrice: finalPrice,
+        discount: discountPerUnit > 0 ? discountPerUnit : 0,
+        discountType: 'amount',
+        discountValue: discountPerUnit > 0 ? discountPerUnit : 0,
+        total: Math.abs(Number(i.total)),
+        attribute: i.attribute
+      }
+    }),
     customer: refundSale.customerName ? {
       name: refundSale.customerName,
       barcode: originalSale.value.customerBarcode

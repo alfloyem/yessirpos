@@ -13,20 +13,27 @@ export const buildReceiptHtml = (data: ReceiptData, clientData: ClientData, barc
       }
     }
     const hasDiscount = item.discount > 0
+    const originalLineTotal = item.price * item.qty
+    const finalLineTotal = item.total
 
     return `
-      <div style="margin-bottom: 5px; font-size: 12px;">
-        <div style="display: flex; justify-content: space-between;">
-          <span style="font-weight: bold;">${item.productName}</span>
-          <span>${(item.price * item.qty).toFixed(2)}</span>
+      <div style="margin-bottom: 8px; font-size: 13px;">
+        <div style="display: flex; justify-content: space-between; font-weight: bold;">
+          <span>${item.productName}</span>
+          ${hasDiscount ? `
+            <div style="text-align: right;">
+              <span style="text-decoration: line-through; font-size: 11px; opacity: 0.5; margin-right: 5px;">${originalLineTotal.toFixed(2)}</span>
+              <span>${finalLineTotal.toFixed(2)}</span>
+            </div>
+          ` : `<span>${finalLineTotal.toFixed(2)}</span>`}
         </div>
-        <div style="font-size: 10px; opacity: 0.8;">
+        <div style="font-size: 11px; opacity: 0.7; margin-top: 2px;">
           ${item.qty} x ${item.price.toFixed(2)}${attrStr ? ' | ' + attrStr : ''}
         </div>
         ${hasDiscount ? `
-          <div style="display: flex; justify-content: space-between; font-size: 10px; font-style: italic;">
-            <span>Endirim (${item.discountType === 'percent' ? item.discountValue + '%' : item.discountValue.toFixed(2) + ' ₼'}):</span>
-            <span>-${(item.discount * item.qty).toFixed(2)}</span>
+          <div style="display: flex; justify-content: space-between; font-size: 10px; color: #333; font-weight: 500; margin-top: 1px;">
+            <span>└ Endirim (${item.discountType === 'percent' ? item.discountValue + '%' : item.discountValue.toFixed(2) + ' ₼'}):</span>
+            <span>-${(originalLineTotal - finalLineTotal).toFixed(2)} ₼</span>
           </div>
         ` : ''}
       </div>`
@@ -37,16 +44,35 @@ export const buildReceiptHtml = (data: ReceiptData, clientData: ClientData, barc
       MÜŞTƏRİ: ${data.customer.name}
     </div>` : ''
 
+  const grossTotal = data.items.reduce((sum, item) => sum + (item.price * item.qty), 0)
+  const totalItemDiscounts = data.items.reduce((sum, item) => sum + ((item.price - item.finalPrice) * item.qty), 0)
+  const finalDiscount = data.discountTotal || 0
+
   const summaryHtml = `
     <div style="font-size: 12px; margin-top: 5px; border-top: 1px solid #000; padding-top: 5px;">
       <div style="display: flex; justify-content: space-between;">
-        <span>ARA CƏMİ:</span>
-        <span>${data.subtotal.toFixed(2)} ₼</span>
+        <span>CƏMİ:</span>
+        <span>${grossTotal.toFixed(2)} ₼</span>
       </div>
+
+      ${totalItemDiscounts > 0.005 ? `
+        <div style="display: flex; justify-content: space-between; color: #333;">
+          <span>MƏHSUL ENDİRİMİ:</span>
+          <span>-${totalItemDiscounts.toFixed(2)} ₼</span>
+        </div>
+      ` : ''}
+
       ${(data.discountVal || 0) > 0 ? `
-        <div style="display: flex; justify-content: space-between;">
-          <span>ÜMUMİ ENDİRİM:</span>
-          <span>-${data.discountTotal.toFixed(2)} ₼</span>
+        <div style="display: flex; justify-content: space-between; margin-top: 2px;">
+          <span>ƏLAVƏ ENDİRİM ${data.discountType === 'percent' ? `(${data.discountVal}%)` : `(${(data.discountVal || 0).toFixed(2)} ₼)`}:</span>
+          <span>-${finalDiscount.toFixed(2)} ₼</span>
+        </div>
+      ` : ''}
+      
+      ${(totalItemDiscounts > 0.005 && finalDiscount > 0.005) ? `
+        <div style="display: flex; justify-content: space-between; font-weight: bold; border-top: 1px dotted #ccc; margin-top: 2px; padding-top: 2px;">
+          <span>CƏM ENDİRİM:</span>
+          <span>-${(totalItemDiscounts + finalDiscount).toFixed(2)} ₼</span>
         </div>
       ` : ''}
     </div>`
