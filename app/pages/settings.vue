@@ -162,7 +162,7 @@ const settingsConfig: Record<SettingsTab, SettingsSection[]> = {
     }
   ]
 }
-const checkUpdateStatus = ref<'idle' | 'checking' | 'available' | 'uptodate' | 'error'>('idle')
+const checkUpdateStatus = ref<'idle' | 'checking' | 'available' | 'uptodate' | 'error' | 'downloading'>('idle')
 const updateInfo = ref<any>(null)
 
 const isTauri = () => typeof window !== 'undefined' && !!(window as any).__TAURI_INTERNALS__
@@ -186,11 +186,13 @@ const checkForUpdates = async () => {
 
 const installUpdate = async () => {
   if (!updateInfo.value) return
+  checkUpdateStatus.value = 'downloading'
   try {
     await updateInfo.value.downloadAndInstall()
     await relaunch()
   } catch (err) {
-    console.error(err)
+    console.error('Install failed:', err)
+    checkUpdateStatus.value = 'error'
   }
 }
 
@@ -425,6 +427,7 @@ const barcodePreviewHtml = computed(() => {
                         <span v-if="checkUpdateStatus === 'checking'" class="text-xs opacity-50">{{ t('settings.status.checking', 'Yoxlanılır...') }}</span>
                         <span v-else-if="checkUpdateStatus === 'uptodate'" class="text-xs text-green-500">{{ t('settings.status.uptodate', 'Ən son versiyadasınız') }}</span>
                         <span v-else-if="checkUpdateStatus === 'error'" class="text-xs text-red-500">{{ t('settings.status.error', 'Xəta baş verdi') }}</span>
+                        <span v-else-if="checkUpdateStatus === 'downloading'" class="text-xs opacity-50">{{ t('settings.status.downloading', 'Yüklənir...') }}</span>
                         
                         <UiButton 
                           v-if="checkUpdateStatus === 'available'" 
@@ -435,7 +438,7 @@ const barcodePreviewHtml = computed(() => {
                           {{ t('settings.installUpdate', 'Yüklə və Qur') }}
                         </UiButton>
                         <UiButton 
-                          v-else 
+                          v-else-if="checkUpdateStatus !== 'downloading'"
                           size="sm" 
                           variant="ghost" 
                           :loading="checkUpdateStatus === 'checking'"
