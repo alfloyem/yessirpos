@@ -7,7 +7,8 @@ export default defineEventHandler(async (event: any) => {
       orderBy: { createdAt: 'desc' },
       include: {
         items: true
-      }
+      },
+      take: 500
     })
 
     return sales.map((sale: any) => ({

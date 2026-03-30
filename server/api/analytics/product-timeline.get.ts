@@ -106,26 +106,35 @@ export default defineEventHandler(async (event: any) => {
   timeline.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
   // Calculate sales by attribute
-
-  // Calculate sales by attribute
   const attributeStats: Record<string, { soldQty: number, totalRevenue: number, refundQty: number }> = {}
   
-  for (const variant of allVariants) {
-    const variantSales = await (prisma as any).saleItem.findMany({
-      where: {
-        productId: variant.id,
-        sale: {
-          createdAt: { gte: startDate, lte: endDate }
-        }
-      },
-      include: {
-        sale: {
-          select: {
-            paymentDetails: true
-          }
+  // OPTIMIZATION: Fetch all variant sales at once to avoid N+1 query problem
+  const allVariantSales = await (prisma as any).saleItem.findMany({
+    where: {
+      productId: { in: variantIds },
+      sale: {
+        createdAt: { gte: startDate, lte: endDate }
+      }
+    },
+    include: {
+      sale: {
+        select: {
+          paymentDetails: true
         }
       }
-    })
+    }
+  })
+
+  // Group variant sales by productId in memory
+  const salesByVariantMap = new Map()
+  for (const item of allVariantSales) {
+    const list = salesByVariantMap.get(item.productId) || []
+    list.push(item)
+    salesByVariantMap.set(item.productId, list)
+  }
+
+  for (const variant of allVariants) {
+    const variantSales = salesByVariantMap.get(variant.id) || []
 
     // Parse attribute - it can be JSON string or plain string
     let attrKey = 'Standart'

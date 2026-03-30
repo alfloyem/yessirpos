@@ -15,7 +15,8 @@ export default defineEventHandler(async (event: any) => {
           { barcode: { contains: q, mode: 'insensitive' } }
         ]
       },
-      orderBy: { id: 'asc' }
+      orderBy: { id: 'asc' },
+      take: 50 // Optimization: prevents loading entire catalog
     })
 
     // Group by productName and return only first occurrence

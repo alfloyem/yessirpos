@@ -35,6 +35,7 @@ const loading = ref(false)
 const showDetailsModal = ref(false)
 const selectedOrder = ref<any>(null)
 const activeFilter = ref<'ALL' | 'DEBT'>('ALL')
+const loadLimit = ref(200)
 
 const filteredOrders = computed(() => {
   if (activeFilter.value === 'DEBT') {
@@ -46,7 +47,7 @@ const filteredOrders = computed(() => {
 const loadOrders = async () => {
   loading.value = true
   try {
-    const data = await $api('/api/receipts')
+    const data = await $api(`/api/receipts?limit=${loadLimit.value}`)
     orders.value = (data as any[]).map(o => ({
       ...o,
       _date: new Date(o.createdAt),
@@ -63,6 +64,11 @@ const loadOrders = async () => {
 }
 
 onMounted(() => { loadOrders() })
+
+const loadMore = () => {
+  loadLimit.value += 200
+  loadOrders()
+}
 
 const handleViewDetails = (row: any) => {
   selectedOrder.value = row
@@ -395,6 +401,18 @@ const formatAttribute = (attr: any) => {
         </template>
       </template>
     </DataTable>
+
+    <div class="flex justify-center my-4 pb-8" v-if="orders.length >= loadLimit">
+      <UiButton 
+        variant="outline" 
+        icon="lucide:chevron-down" 
+        :loading="loading" 
+        @click="loadMore"
+        class="bg-[var(--bg-app)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border-[var(--border-app)] px-8 font-black rounded-full"
+      >
+        {{ t('reports.loadMore', 'Daha Çox Yüklə') }}
+      </UiButton>
+    </div>
 
     <!-- Details Modal -->
     <Modal v-model="showDetailsModal" :title="`${getTypeText(selectedOrder?.type)} — ${selectedOrder?.receiptNo}`" max-width="3xl">

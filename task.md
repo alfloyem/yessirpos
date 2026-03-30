@@ -47,7 +47,7 @@
 - [x] Satış terminalında məhsula faizlə endirim edən zaman çekdə çıxılan qiyməti səhv göstərir (bkz: ÇEK 0000000000096)
 - [x] Çek arxivində faizlə edilən endirimin rəqəmləri səhv görünür
 - [x] Barkod çap ləğv edilib
-- [] Yeni atribut əlavə edilmir.
+- [x] Yeni atribut əlavə edilmir.
 - [] Hesabatlar səhifəsi ilk girişdə açılmır başqa səhifəyə girəndən sonra açılır
 
 **STRESS TEST BY MUSARTILLERIYA MMC**

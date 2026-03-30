@@ -1,35 +1,42 @@
-import { defineEventHandler, createError } from 'h3'
+import { defineEventHandler, createError, getQuery } from 'h3'
 import prisma from '../../utils/prisma'
 
 export default defineEventHandler(async (event: any) => {
   try {
+    const query = getQuery(event)
+    const limit = query.limit ? parseInt(query.limit as string, 10) : 500
+
     // Test database connection first
     await (prisma as any).$connect()
     
     const [sales, intakes, debtPayments, customerDebtPayments] = await Promise.all([
       (prisma as any).sale.findMany({
         orderBy: { createdAt: 'desc' },
-        include: { items: true }
+        include: { items: true },
+        take: limit
       }).catch((err: any) => {
         console.error('Sales query error:', err)
         return []
       }),
       (prisma as any).intake.findMany({
         orderBy: { createdAt: 'desc' },
-        include: { items: true }
+        include: { items: true },
+        take: limit
       }).catch((err: any) => {
         console.error('Intakes query error:', err)
         return []
       }),
       (prisma as any).intakePayment.findMany({
         orderBy: { createdAt: 'desc' },
-        include: { intake: { include: { items: true } } }
+        include: { intake: { include: { items: true } } },
+        take: limit
       }).catch((err: any) => {
         console.error('Debt payments query error:', err)
         return []
       }),
       (prisma as any).customerDebtPayment.findMany({
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
+        take: limit
       }).catch((err: any) => {
         console.error('Customer debt payments query error:', err)
         return []
