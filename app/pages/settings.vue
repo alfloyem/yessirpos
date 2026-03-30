@@ -172,14 +172,16 @@ const checkForUpdates = async () => {
   checkUpdateStatus.value = 'checking'
   try {
     const update = await check()
+    console.log('[updater] check result:', update)
     if (update) {
+      console.log('[updater] available:', update.version, update.available)
       updateInfo.value = update
-      checkUpdateStatus.value = 'available'
+      checkUpdateStatus.value = update.available ? 'available' : 'uptodate'
     } else {
       checkUpdateStatus.value = 'uptodate'
     }
-  } catch (err) {
-    console.error(err)
+  } catch (err: any) {
+    console.error('[updater] error:', err?.message ?? err)
     checkUpdateStatus.value = 'error'
   }
 }
