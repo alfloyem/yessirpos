@@ -1,3 +1,5 @@
+import { useServerConfig } from '~/composables/useServerConfig'
+
 export interface ClientData {
   name: string
   address: string
@@ -20,7 +22,7 @@ const clients: Record<string, ClientData> = Object.fromEntries(
 )
 
 export const getClientData = (): ClientData => {
-  const config = useRuntimeConfig()
-  const id = config.public.clientId || 'bakustreet'
+  const { activeClientId } = useServerConfig()
+  const id = activeClientId.value || 'bakustreet'
   return clients[id] ?? clients['bakustreet'] as ClientData
 }

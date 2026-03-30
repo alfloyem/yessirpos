@@ -1,38 +1,17 @@
-import { initializeApp } from 'firebase/app'
+import { initializeApp, type FirebaseApp } from 'firebase/app'
 import { getMessaging, getToken, onMessage, type Messaging } from 'firebase/messaging'
-import { useRuntimeConfig } from '#imports'
 import { ref } from 'vue'
+import { useServerConfig } from '~/composables/useServerConfig'
 
 export const useFCM = () => {
-  const config = useRuntimeConfig().public.firebase
-  if (!config.apiKey) return { token: ref(null), permissionStatus: ref(null), requestPermission: async () => null, isSupported: false }
-
-  const firebaseConfig = {
-    apiKey: config.apiKey as string,
-    authDomain: config.authDomain as string,
-    projectId: config.projectId as string,
-    storageBucket: config.storageBucket as string,
-    messagingSenderId: config.messagingSenderId as string,
-    appId: config.appId as string,
-  }
-
-  const vapidKey = config.vapidKey as string
-
-  // Initialize state
-  let messaging: Messaging | null = null;
   const isSupported = process.client && 'Notification' in window && 'serviceWorker' in navigator
-
-  if (isSupported) {
-    try {
-      const app = initializeApp(firebaseConfig)
-      messaging = getMessaging(app)
-    } catch (error) {
-      console.error('Firebase initialization error', error)
-    }
-  }
-
+  
   const token = ref<string | null>(null)
   const permissionStatus = ref<NotificationPermission | null>(null)
+  const isInitialized = ref(false)
+  let messaging: Messaging | null = null
+  let firebaseApp: FirebaseApp | null = null
+  let vapidKey = ''
 
   const checkPermission = () => {
     if (process.client && 'Notification' in window) {
@@ -40,8 +19,34 @@ export const useFCM = () => {
     }
   }
 
+  const initFirebase = async () => {
+    if (!isSupported || isInitialized.value) return
+    
+    try {
+      // Fetch public config from the API
+      // Since we are using our custom $api plugin or just native fetch
+      const { activeUrl } = useServerConfig()
+      const config = await $fetch<any>(activeUrl.value + '/api/config/public')
+      
+      if (!config.firebase?.apiKey) return
+
+      firebaseApp = initializeApp(config.firebase)
+      messaging = getMessaging(firebaseApp)
+      vapidKey = config.firebase.vapidKey
+      isInitialized.value = true
+      
+      console.log('Firebase Dynamic Config Loaded Successfully')
+    } catch (error) {
+      console.error('Failed to load Firebase dynamic config:', error)
+    }
+  }
+
   const requestPermission = async () => {
-    if (!isSupported || !messaging) return null
+    if (!isSupported) return null
+    
+    // Ensure initialized
+    if (!isInitialized.value) await initFirebase()
+    if (!messaging) return null
 
     try {
       const permission = await Notification.requestPermission()
@@ -59,13 +64,13 @@ export const useFCM = () => {
         console.log('FCM Token grabbed:', fcmToken)
         
         // Sync to backend automatically
-        await $fetch('/api/auth/fcm-token', {
+        const { $api } = useNuxtApp()
+        await $api('/api/auth/fcm-token', {
           method: 'POST',
           body: { token: fcmToken }
         }).catch(e => console.error('Failed to sync token', e))
         
         setupOnMessage()
-        
         return fcmToken
       }
     } catch (error) {
@@ -91,7 +96,8 @@ export const useFCM = () => {
   if (process.client) {
     checkPermission()
     if (permissionStatus.value === 'granted') {
-      requestPermission() // Silently refresh token
+      // Auto init and refresh
+      initFirebase().then(() => requestPermission())
     }
   }
 
@@ -99,6 +105,7 @@ export const useFCM = () => {
     token,
     permissionStatus,
     requestPermission,
-    isSupported
+    isSupported,
+    initFirebase
   }
 }

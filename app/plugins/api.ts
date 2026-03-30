@@ -1,20 +1,25 @@
+import { useServerConfig } from '~/composables/useServerConfig'
+
 export default defineNuxtPlugin(() => {
-  const config = useRuntimeConfig()
+  const { activeUrl, initConfig } = useServerConfig()
   const { token, logout } = useAuth()
 
+  // Initialize once on startup
+  if (process.client) initConfig()
+
   const apiFetch = $fetch.create({
-    baseURL: config.public.apiBaseUrl || '',
     onRequest({ options }) {
-      // Her istekte token'ı ekle
+      // Use dynamic URL on every request
+      options.baseURL = activeUrl.value
+
       if (token.value) {
         options.headers = {
-          ...options.headers,
+          ...(options.headers as any),
           Authorization: `Bearer ${token.value}`
         }
       }
     },
     onResponseError({ response }) {
-      // 401 hatası alırsak otomatik logout yap
       if (response.status === 401) {
         logout()
       }

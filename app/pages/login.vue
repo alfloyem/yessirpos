@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import { useI18n, useLocalePath } from '#i18n'
-import { useAuth, navigateTo, definePageMeta, useColorMode, useToast } from '#imports'
-import { ref, onMounted, Transition } from 'vue'
+import { useAuth, navigateTo, definePageMeta, useColorMode, useToast, useRuntimeConfig } from '#imports'
+import { ref, onMounted, onUnmounted, Transition } from 'vue'
+import { useServerConfig } from '~/composables/useServerConfig'
+import UiIcon from '~/components/ui/Icon.vue'
+import UiButton from '~/components/ui/Button.vue'
 
 const { t } = useI18n()
 const localePath = useLocalePath()
 const { login } = useAuth()
+const { activeUrl, activeClientId, setConfig, isCustomConfig } = useServerConfig()
+const toast = useToast()
 
 definePageMeta({
   layout: false
@@ -18,25 +23,49 @@ const loading = ref(false)
 const isPageLoaded = ref(false)
 const currentYear = ref(new Date().getFullYear())
 
-// Force light mode for login page
+// Terminal Setup Modal State
+const showTerminalSetup = ref(false)
+const setupUrl = ref(activeUrl.value)
+const setupClientId = ref(activeClientId.value)
+
+// Keyboard Listener for Secret Combo (Ctrl+Shift+Alt+P)
+const handleKeydown = (e: KeyboardEvent) => {
+  if (e.ctrlKey && e.shiftKey && e.altKey && e.key.toLowerCase() === 'p') {
+    e.preventDefault()
+    showTerminalSetup.value = !showTerminalSetup.value
+  }
+}
+
 const colorMode = useColorMode()
 onMounted(() => {
   colorMode.preference = 'light'
+  window.addEventListener('keydown', handleKeydown)
+  
   setTimeout(() => {
     isPageLoaded.value = true
   }, 100)
 })
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
+})
+
+const applyTerminalSetup = () => {
+  if (!setupUrl.value) return
+  setConfig(setupUrl.value, setupClientId.value)
+  showTerminalSetup.value = false
+  toast.success('Terminal ayarları yadda saxlanıldı')
+}
 
 const handleLogin = async () => {
   if (loading.value) return
   
   loading.value = true
   error.value = ''
-  const toast = useToast()
   
   try {
-    const config = useRuntimeConfig()
-    const response = await $fetch<any>((config.public.apiBaseUrl || '') + '/api/auth/login', {
+    // Dynamic login call
+    const response = await $fetch<any>(activeUrl.value + '/api/auth/login', {
       method: 'POST',
       body: { 
         username: email.value, 
@@ -61,11 +90,66 @@ const handleLogin = async () => {
 
 <template>
   <div class="min-h-screen flex items-center justify-center p-4 md:p-8 bg-gradient-to-br from-[var(--bg-app)] via-[var(--bg-app)] to-[var(--input-bg)] relative overflow-hidden font-sans">
-    <!-- Animated Background Elements -->
+    
+    <!-- Animated Decoration Background -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
       <div class="absolute top-20 left-10 w-72 h-72 bg-[var(--text-primary)] opacity-5 rounded-full blur-3xl animate-pulse"></div>
       <div class="absolute bottom-20 right-10 w-96 h-96 bg-[var(--text-primary)] opacity-5 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
+      
+      <!-- Terminal Indicator (Bottom Left) -->
+      <div v-if="isCustomConfig()" class="absolute bottom-6 left-6 flex items-center gap-2 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-lg text-[10px] font-bold text-green-600 uppercase tracking-widest opacity-60">
+        <div class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+        Xüsusi Terminal Aktivdir
+      </div>
     </div>
+
+    <!-- Terminal Setup Modal (Secret) -->
+    <Transition
+      enter-active-class="transition-all duration-300 ease-out"
+      enter-from-class="opacity-0 scale-95"
+      leave-active-class="transition-all duration-200 ease-in"
+      leave-to-class="opacity-0 scale-95"
+    >
+      <div v-if="showTerminalSetup" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4">
+        <div class="bg-[var(--bg-sidebar)] border border-[var(--border-app)] rounded-3xl shadow-2xl p-8 w-full max-w-sm space-y-7 transform transition-transform">
+          <div class="text-center space-y-2">
+            <div class="w-14 h-14 bg-[var(--text-primary)]/10 rounded-2xl flex items-center justify-center mx-auto mb-2 text-[var(--text-primary)]">
+               <UiIcon name="lucide:monitor-dot" size="lg" />
+            </div>
+            <h2 class="text-xl font-bold text-[var(--text-app)]">Terminal Qurulumu</h2>
+            <p class="text-xs text-[var(--text-app)] opacity-50 px-4">Xüsusi server və müştəri ID-sini buradan təyin edin.</p>
+          </div>
+
+          <div class="space-y-4">
+            <div class="space-y-2">
+              <label class="text-[11px] font-bold text-[var(--text-app)] opacity-40 uppercase tracking-widest ml-1">Server URL</label>
+              <div class="relative">
+                <div class="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-app)] opacity-30">
+                  <UiIcon name="lucide:globe" size="sm" />
+                </div>
+                <input v-model="setupUrl" type="url" placeholder="https://api.yoursite.com"
+                  class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] rounded-xl pl-12 pr-4 py-3.5 text-sm outline-none focus:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/10 transition-all font-mono" />
+              </div>
+            </div>
+            <div class="space-y-2">
+              <label class="text-[11px] font-bold text-[var(--text-app)] opacity-40 uppercase tracking-widest ml-1">Müştəri (Client) ID</label>
+              <div class="relative">
+                <div class="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-app)] opacity-30">
+                  <UiIcon name="lucide:hash" size="sm" />
+                </div>
+                <input v-model="setupClientId" type="text" placeholder="bakustreet"
+                  class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] rounded-xl pl-12 pr-4 py-3.5 text-sm outline-none focus:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/10 transition-all uppercase font-mono" />
+              </div>
+            </div>
+          </div>
+
+          <div class="flex gap-2.5">
+             <UiButton variant="outline" class="flex-1" @click="showTerminalSetup = false">Ləğv Et</UiButton>
+             <UiButton variant="primary" class="flex-1" @click="applyTerminalSetup" :disabled="!setupUrl">Saxla</UiButton>
+          </div>
+        </div>
+      </div>
+    </Transition>
 
     <!-- Login Card -->
     <Transition
@@ -106,10 +190,10 @@ const handleLogin = async () => {
           >
             <div 
               v-if="error" 
-              class="bg-[var(--color-brand-danger)]/10 border border-[var(--color-brand-danger)]/30 rounded-xl p-4 flex items-center gap-3"
+              class="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex items-center gap-3"
             >
-              <UiIcon name="lucide:alert-circle" size="lg" class="text-[var(--color-brand-danger)] flex-shrink-0" />
-              <p class="text-sm text-[var(--color-brand-danger)] font-medium">
+              <UiIcon name="lucide:alert-circle" size="lg" class="text-red-500 flex-shrink-0" />
+              <p class="text-sm text-red-500 font-medium">
                 {{ error }}
               </p>
             </div>
@@ -174,14 +258,13 @@ const handleLogin = async () => {
                   v-if="loading"
                   key="loading"
                   name="lucide:refresh-cw" 
-                  size="md" 
-                  class="animate-spin"
+                  class="animate-spin w-5 h-5"
                 />
                 <UiIcon 
                   v-else
                   key="login"
                   name="lucide:log-in" 
-                  size="md"
+                  class="w-5 h-5"
                 />
               </Transition>
               <span>{{ loading ? t('loginPage.loading') : t('loginPage.submit') }}</span>
