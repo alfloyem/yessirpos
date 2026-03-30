@@ -5,6 +5,6 @@
   "permissions": [
     "updater:default",
     "process:default",
-    "app:default"
+    "core:app:default"
   ]
 }
