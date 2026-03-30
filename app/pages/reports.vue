@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { useHead, useToast } from '#imports'
+import { useHead, useToast, useColorMode } from '#imports'
 import { useI18n } from '#i18n'
 import UiIcon from '~/components/ui/Icon.vue'
 import UiButton from '~/components/ui/Button.vue'
@@ -32,7 +32,7 @@ const tabs = computed(() => [
   { id: 'expenses', label: t('menu.expenses'), icon: 'lucide:wallet' },
   { id: 'team', label: t('reports.team'), icon: 'lucide:users' },
 ])
-const activeTab = ref('overview')
+const activeTab = useState('reports_activeTab', () => 'overview')
 
 // ── Date helpers ──
 const toLocal = (d: Date) => {
@@ -42,9 +42,9 @@ const toLocal = (d: Date) => {
 const todayStart = () => { const d = new Date(); d.setHours(0,0,0,0); return d }
 const todayEnd   = () => { const d = new Date(); d.setHours(23,59,59,999); return d }
 
-const startDate = ref(toLocal(todayStart()))
-const endDate   = ref(toLocal(todayEnd()))
-const activeQuickFilter = ref('today')
+const startDate = useState('reports_startDate', () => toLocal(todayStart()))
+const endDate   = useState('reports_endDate', () => toLocal(todayEnd()))
+const activeQuickFilter = useState('reports_quickFilter', () => 'today')
 
 const quickFilters = computed(() => [
   { id: '1h',        label: t('reports.last1h') },
@@ -91,7 +91,15 @@ const fetchSales      = async () => { try { salesData.value      = await $api(`/
 const fetchExpenses   = async () => { try { expensesData.value   = await $api(`/api/analytics/expenses${params()}`) } catch {} }
 const fetchEmployees  = async () => { try { employeesData.value  = await $api(`/api/analytics/employees${params()}`) } catch {} }
 
-const refreshAll = async () => {
+const refreshAll = async (force = true) => {
+  if (!force) {
+    if (activeTab.value === 'overview' && dashboardData.value) return
+    if (activeTab.value === 'products' && productsData.value) return
+    if (activeTab.value === 'sales' && salesData.value) return
+    if (activeTab.value === 'expenses' && expensesData.value) return
+    if (activeTab.value === 'team' && employeesData.value) return
+  }
+
   loading.value = true
   try {
     if (activeTab.value === 'overview')  await fetchDashboard()
@@ -105,19 +113,34 @@ const refreshAll = async () => {
 onMounted(() => {
   windowWidth.value = window.innerWidth
   window.addEventListener('resize', updateWidth)
-  refreshAll()
+  refreshAll(false)
 })
 
 watch(activeTab, () => {
-  refreshAll()
+  refreshAll(false)
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', updateWidth)
 })
 
+// --- THEME COLOR SYNC HELPER ---
+const colorMode = useColorMode()
+const isDark = computed(() => colorMode.value === 'dark')
+
+const themeColors = computed(() => ({
+  primary: '#7367F0',
+  primaryLight: 'rgba(115, 103, 240, 0.15)',
+  textApp: isDark.value ? '#E6E6EB' : '#4b4b52',   
+  textMuted: isDark.value ? '#8B8B9A' : '#A0A0B0',
+  gridBorder: isDark.value ? '#2B2B36' : '#EBEBEF',
+  cardBg: isDark.value ? '#1E1E2D' : '#FFFFFF',
+  refundBar: isDark.value ? '#3B3B45' : '#EBEBEF',
+  discountBar: isDark.value ? 'rgba(115, 103, 240, 0.2)' : 'rgba(115, 103, 240, 0.15)'
+}))
+
 // ── Chart config (Beautiful, Clean, Interactive) ──
-const chartOpts = (showLegend = false): any => ({
+const chartOpts = computed(() => (showLegend = false): any => ({
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
@@ -125,7 +148,7 @@ const chartOpts = (showLegend = false): any => ({
       display: showLegend, 
       position: 'bottom',
       labels: { 
-        color: 'var(--text-muted)', 
+        color: themeColors.value.textMuted, 
         boxWidth: 8, 
         usePointStyle: true,
         pointStyle: 'circle',
@@ -134,10 +157,10 @@ const chartOpts = (showLegend = false): any => ({
       } 
     },
     tooltip: {
-      backgroundColor: 'var(--bg-sidebar)',
-      titleColor: 'var(--text-app)',
-      bodyColor: 'var(--text-app)',
-      borderColor: 'var(--border-app)',
+      backgroundColor: themeColors.value.cardBg,
+      titleColor: themeColors.value.textApp,
+      bodyColor: themeColors.value.textMuted,
+      borderColor: themeColors.value.gridBorder,
       borderWidth: 1,
       padding: 12,
       cornerRadius: 12,
@@ -151,7 +174,7 @@ const chartOpts = (showLegend = false): any => ({
   scales: {
     x: { 
       ticks: { 
-        color: 'var(--text-muted)', 
+        color: themeColors.value.textMuted, 
         font: { size: 10, family: 'SF Pro Display' },
         maxRotation: 45,
         minRotation: 0
@@ -161,7 +184,7 @@ const chartOpts = (showLegend = false): any => ({
     },
     y: { 
       ticks: { 
-        color: 'var(--text-muted)', 
+        color: themeColors.value.textMuted, 
         font: { size: 10, family: 'SF Pro Display' }, 
         callback: (v: string | number) => {
           const numV = Number(v)
@@ -170,7 +193,7 @@ const chartOpts = (showLegend = false): any => ({
           return v
         }
       }, 
-      grid: { color: 'rgba(var(--border-app-rgb), 0.1)', drawBorder: false }, 
+      grid: { color: themeColors.value.gridBorder, drawBorder: false }, 
       border: { display: false } 
     }
   },
@@ -178,23 +201,23 @@ const chartOpts = (showLegend = false): any => ({
     intersect: false,
     mode: 'index',
   }
-})
+}))
 
-const doughnutOpts: any = {
+const doughnutOpts = computed(() => ({
   responsive: true, 
   maintainAspectRatio: false, 
   cutout: '80%',
   plugins: {
     legend: { display: false },
     tooltip: { 
-      backgroundColor: 'var(--bg-sidebar)', 
-      titleColor: 'var(--text-app)', 
-      bodyColor: 'var(--text-app)', 
-      borderColor: 'var(--border-app)', 
+      backgroundColor: themeColors.value.cardBg, 
+      titleColor: themeColors.value.textApp, 
+      bodyColor: themeColors.value.textMuted, 
+      borderColor: themeColors.value.gridBorder, 
       borderWidth: 1, 
       padding: 12, 
       cornerRadius: 12,
-      titleFont: { family: 'SF Pro Display', weight: 'bold' },
+      titleFont: { family: 'SF Pro Display', weight: 'bold' as const },
       bodyFont: { family: 'SF Pro Display' }
     }
   },
@@ -202,7 +225,7 @@ const doughnutOpts: any = {
     animateRotate: true,
     animateScale: true
   }
-}
+}))
 
 // Premium Monochromatic Palette (Purple based)
 const CHART_COLORS = [
@@ -331,6 +354,26 @@ const paginatedTimeline = computed(() => {
 })
 const totalPagesTimeline = computed(() => Math.ceil((productTimelineData.value?.timeline?.length || 0) / itemsPerPage))
 
+// Sales Pagination
+const currentPageSales = ref(1)
+const itemsPerPageSales = 12
+const paginatedSales = computed(() => {
+  if (!salesData.value?.sales) return []
+  const start = (currentPageSales.value - 1) * itemsPerPageSales
+  return salesData.value.sales.slice(start, start + itemsPerPageSales)
+})
+const totalPagesSales = computed(() => Math.ceil((salesData.value?.sales?.length || 0) / itemsPerPageSales))
+
+// Expenses Pagination
+const currentPageExpenses = ref(1)
+const itemsPerPageExpenses = 15
+const paginatedExpenses = computed(() => {
+  if (!expensesData.value?.expenses) return []
+  const start = (currentPageExpenses.value - 1) * itemsPerPageExpenses
+  return expensesData.value.expenses.slice(start, start + itemsPerPageExpenses)
+})
+const totalPagesExpenses = computed(() => Math.ceil((expensesData.value?.expenses?.length || 0) / itemsPerPageExpenses))
+
 watch(productsData, () => {
   currentPageTopSellers.value = 1
   currentPageMostRefunded.value = 1
@@ -338,6 +381,14 @@ watch(productsData, () => {
 
 watch(productTimelineData, () => {
   currentPageTimeline.value = 1
+})
+
+watch(salesData, () => {
+  currentPageSales.value = 1
+})
+
+watch(expensesData, () => {
+  currentPageExpenses.value = 1
 })
 
 const windowWidth = ref(0)
@@ -591,8 +642,8 @@ const updateWidth = () => { windowWidth.value = window.innerWidth }
                     :data="{
                       labels: dashboardData.hourlyChart.labels,
                       datasets: [
-                        { label: t('orders.sale'), data: dashboardData.hourlyChart.revenue, backgroundColor: '#7367F0', borderRadius: 4, barThickness: windowWidth < 640 ? 8 : 12 },
-                        { label: t('orders.refund'), data: dashboardData.hourlyChart.refunds, backgroundColor: 'rgba(var(--border-app-rgb, 200, 200, 200), 0.5)', borderRadius: 4, barThickness: windowWidth < 640 ? 8 : 12 }
+                        { label: t('orders.sale'), data: dashboardData.hourlyChart.revenue, backgroundColor: themeColors.primary, borderRadius: 4, barThickness: windowWidth < 640 ? 8 : 12 },
+                        { label: t('orders.refund'), data: dashboardData.hourlyChart.refunds, backgroundColor: themeColors.refundBar, borderRadius: 4, barThickness: windowWidth < 640 ? 8 : 12 }
                       ]
                     }"
                     :options="chartOpts(false)"
@@ -623,11 +674,11 @@ const updateWidth = () => { windowWidth.value = window.innerWidth }
                         if (!chartArea) return null;
                         const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
                         gradient.addColorStop(0, 'rgba(115, 103, 240, 0)');
-                        gradient.addColorStop(1, 'rgba(115, 103, 240, 0.1)');
+                        gradient.addColorStop(1, isDark ? 'rgba(115, 103, 240, 0.3)' : 'rgba(115, 103, 240, 0.15)');
                         return gradient;
                       },
                       tension: 0.4, fill: true, pointRadius: 0, pointHoverRadius: 6, pointHitRadius: 10,
-                      pointBackgroundColor: '#7367F0', pointBorderWidth: 2, pointBorderColor: '#fff'
+                      pointBackgroundColor: themeColors.primary, pointBorderWidth: 2, pointBorderColor: themeColors.cardBg
                     }]
                   }"
                   :options="chartOpts(false)"
@@ -936,7 +987,7 @@ const updateWidth = () => { windowWidth.value = window.innerWidth }
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-[var(--border-app)]/50">
-                  <tr v-for="sale in salesData?.sales" :key="sale.id" class="tr-premium group">
+                  <tr v-for="sale in paginatedSales" :key="sale.id" class="tr-premium group">
                     <td class="td-premium first:pl-6">
                       <div class="flex flex-col">
                         <span class="font-bold text-[var(--text-app)]">{{ new Date(sale.createdAt).toLocaleDateString('az-AZ') }}</span>
@@ -956,11 +1007,31 @@ const updateWidth = () => { windowWidth.value = window.innerWidth }
                   </tr>
                 </tbody>
               </table>
+
             </div>
+
+              <!-- Pagination Controls Desktop Sales -->
+              <div v-if="totalPagesSales > 1" class="hidden md:flex p-4 border-t border-[var(--border-app)]/30 items-center justify-between bg-[var(--bg-app)]/30">
+                <button 
+                  @click="currentPageSales--" 
+                  :disabled="currentPageSales === 1"
+                  class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--input-bg)] border border-[var(--border-app)] text-xs font-bold hover:bg-[var(--text-primary)] hover:text-white disabled:opacity-20 transition-all"
+                >
+                  <UiIcon name="lucide:chevron-left" class="w-3.5 h-3.5" /> {{ t('common.previous') }}
+                </button>
+                <span class="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">{{ currentPageSales }} / {{ totalPagesSales }}</span>
+                <button 
+                  @click="currentPageSales++" 
+                  :disabled="currentPageSales === totalPagesSales"
+                  class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--input-bg)] border border-[var(--border-app)] text-xs font-bold hover:bg-[var(--text-primary)] hover:text-white disabled:opacity-20 transition-all"
+                >
+                  {{ t('common.next') }} <UiIcon name="lucide:chevron-right" class="w-3.5 h-3.5" />
+                </button>
+              </div>
 
             <!-- Mobile Card View -->
             <div class="md:hidden divide-y divide-[var(--border-app)]/50">
-              <div v-for="sale in salesData?.sales" :key="sale.id" class="p-4 flex flex-col gap-3">
+              <div v-for="sale in paginatedSales" :key="sale.id" class="p-4 flex flex-col gap-3">
                 <div class="flex items-center justify-between">
                   <span class="text-[11px] font-black text-[var(--text-primary)] tabular-nums">{{ sale.receiptNo }}</span>
                   <span class="text-[11px] font-bold text-[var(--text-muted)] opacity-50">{{ new Date(sale.createdAt).toLocaleString('az-AZ', { dateStyle: 'short', timeStyle: 'short' }) }}</span>
@@ -980,6 +1051,13 @@ const updateWidth = () => { windowWidth.value = window.innerWidth }
                    <span>{{ sale.cashierName || t('reports.system') }}</span>
                 </div>
               </div>
+            </div>
+
+            <!-- Pagination Controls Mobile Sales -->
+            <div v-if="totalPagesSales > 1" class="md:hidden p-4 border-t border-[var(--border-app)]/30 flex items-center justify-between bg-[var(--bg-app)]/30">
+              <button @click="currentPageSales--" :disabled="currentPageSales === 1" class="p-2 rounded-lg bg-[var(--input-bg)] border border-[var(--border-app)] disabled:opacity-20"><UiIcon name="lucide:chevron-left" class="w-4 h-4" /></button>
+              <span class="text-[11px] font-black opacity-50">{{ currentPageSales }} / {{ totalPagesSales }}</span>
+              <button @click="currentPageSales++" :disabled="currentPageSales === totalPagesSales" class="p-2 rounded-lg bg-[var(--input-bg)] border border-[var(--border-app)] disabled:opacity-20"><UiIcon name="lucide:chevron-right" class="w-4 h-4" /></button>
             </div>
 
             <div v-if="!salesData?.sales?.length" class="flex flex-col items-center justify-center py-20 text-[var(--text-muted)] opacity-20">
@@ -1037,7 +1115,7 @@ const updateWidth = () => { windowWidth.value = window.innerWidth }
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-[var(--border-app)]/50">
-                  <tr v-for="exp in expensesData?.expenses" :key="exp.id" class="tr-premium group">
+                  <tr v-for="exp in paginatedExpenses" :key="exp.id" class="tr-premium group">
                     <td class="td-premium first:pl-8 font-bold opacity-70">{{ new Date(exp.createdAt).toLocaleDateString('az-AZ') }}</td>
                     <td class="td-premium">
                       <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-[var(--border-app)]/30 text-[10px] font-black uppercase tracking-widest text-[var(--text-app)] border border-[var(--border-app)]">{{ exp.category || t('reports.internal') }}</span>
@@ -1049,10 +1127,29 @@ const updateWidth = () => { windowWidth.value = window.innerWidth }
                 </tbody>
               </table>
             </div>
+            
+            <!-- Pagination Controls Desktop Expenses -->
+            <div v-if="totalPagesExpenses > 1" class="hidden md:flex p-4 border-t border-[var(--border-app)]/30 items-center justify-between bg-[var(--bg-app)]/30">
+              <button 
+                @click="currentPageExpenses--" 
+                :disabled="currentPageExpenses === 1"
+                class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--input-bg)] border border-[var(--border-app)] text-xs font-bold hover:bg-[var(--text-primary)] hover:text-white disabled:opacity-20 transition-all"
+              >
+                <UiIcon name="lucide:chevron-left" class="w-3.5 h-3.5" /> {{ t('common.previous') }}
+              </button>
+              <span class="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">{{ currentPageExpenses }} / {{ totalPagesExpenses }}</span>
+              <button 
+                @click="currentPageExpenses++" 
+                :disabled="currentPageExpenses === totalPagesExpenses"
+                class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--input-bg)] border border-[var(--border-app)] text-xs font-bold hover:bg-[var(--text-primary)] hover:text-white disabled:opacity-20 transition-all"
+              >
+                {{ t('common.next') }} <UiIcon name="lucide:chevron-right" class="w-3.5 h-3.5" />
+              </button>
+            </div>
 
             <!-- Mobile Card View -->
             <div class="md:hidden divide-y divide-[var(--border-app)]/50">
-              <div v-for="exp in expensesData?.expenses" :key="exp.id" class="p-4 flex flex-col gap-2">
+              <div v-for="exp in paginatedExpenses" :key="exp.id" class="p-4 flex flex-col gap-2">
                 <div class="flex items-center justify-between">
                   <span class="px-2 py-0.5 rounded-lg bg-[var(--border-app)]/30 text-[9px] font-black uppercase tracking-widest text-[var(--text-app)] border border-[var(--border-app)]">{{ exp.category || t('reports.internal') }}</span>
                   <span class="text-[10px] font-bold text-[var(--text-muted)] opacity-50">{{ new Date(exp.createdAt).toLocaleDateString('az-AZ') }}</span>
@@ -1066,6 +1163,13 @@ const updateWidth = () => { windowWidth.value = window.innerWidth }
                    <span>{{ exp.employeeName || t('reports.system') }}</span>
                 </div>
               </div>
+            </div>
+
+            <!-- Pagination Controls Mobile Expenses -->
+            <div v-if="totalPagesExpenses > 1" class="md:hidden p-4 border-t border-[var(--border-app)]/30 flex items-center justify-between bg-[var(--bg-app)]/30">
+              <button @click="currentPageExpenses--" :disabled="currentPageExpenses === 1" class="p-2 rounded-lg bg-[var(--input-bg)] border border-[var(--border-app)] disabled:opacity-20"><UiIcon name="lucide:chevron-left" class="w-4 h-4" /></button>
+              <span class="text-[11px] font-black opacity-50">{{ currentPageExpenses }} / {{ totalPagesExpenses }}</span>
+              <button @click="currentPageExpenses++" :disabled="currentPageExpenses === totalPagesExpenses" class="p-2 rounded-lg bg-[var(--input-bg)] border border-[var(--border-app)] disabled:opacity-20"><UiIcon name="lucide:chevron-right" class="w-4 h-4" /></button>
             </div>
           </div>
         </div>
@@ -1092,8 +1196,8 @@ const updateWidth = () => { windowWidth.value = window.innerWidth }
                   :data="{
                     labels: employeesData.cashiers.map((c: any) => c.name),
                     datasets: [
-                      { label: t('orders.sale') + ' (₼)', data: employeesData.cashiers.map((c: any) => c.totalRevenue), backgroundColor: '#7367F0', borderRadius: 6, barThickness: windowWidth < 640 ? 12 : 30 },
-                      { label: t('orders.totalDiscount') + ' (₼)', data: employeesData.cashiers.map((c: any) => c.totalDiscount), backgroundColor: 'rgba(115,103,240,0.15)', borderRadius: 6, barThickness: windowWidth < 640 ? 12 : 30 }
+                      { label: t('orders.sale') + ' (₼)', data: employeesData.cashiers.map((c: any) => c.totalRevenue), backgroundColor: themeColors.primary, borderRadius: 6, barThickness: windowWidth < 640 ? 12 : 30 },
+                      { label: t('orders.totalDiscount') + ' (₼)', data: employeesData.cashiers.map((c: any) => c.totalDiscount), backgroundColor: themeColors.discountBar, borderRadius: 6, barThickness: windowWidth < 640 ? 12 : 30 }
                     ]
                   }"
                   :options="chartOpts(true)"
