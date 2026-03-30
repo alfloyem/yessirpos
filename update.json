@@ -1,11 +1,11 @@
 {
-  "version": "0.1.6",
-  "notes": "Initial Release with Auto-Updater",
-  "pub_date": "2026-03-29T01:30:00Z",
+  "version": "0.1.7",
+  "notes": "YesSir POS v0.1.7 Güncellemesi",
+  "pub_date": "2026-03-30T01:30:00Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "...",
-      "url": "https://github.com/alfloyem/yessirpos-vue/releases/download/v0.1.0/yessirpos_0.1.0_x64_en-US.msi.zip"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVScHBCS3BzcHFHTGw3cFZyWUtZODZiTWdnQWp4UXBlak5KREE0aTg1ejIwWDJzY3BZNW1rdVhYR3hFNGp3OFNKcWJ6clJySXc4MkowZzEzZGRlQkZkMFBHU0ZHaFZXbmdRPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc0ODMwOTM3CWZpbGU6eWVzc2lycG9zXzAuMS42X3g2NF9lbi1VUy5tc2kKNWJwcXhrMlBodFNFbzJVV0hBTzczNXJ4VXY1c0tNUDQ5Uk1vR0VXUlhFbjdIR3JSNmppUVlITTBnTi9ZNVVjdm5PdDZzZndzSXUzUXQ1WlZUaUV2Qnc9PQo=",
+      "url": "https://github.com/alfloyem/yessirpos-vue/releases/download/v0.1.7/yessirpos_0.1.7_x64_en-US.msi"
     }
   }
 }

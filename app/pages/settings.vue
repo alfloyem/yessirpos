@@ -44,7 +44,7 @@ onMounted(async () => {
     loadSettings()
     loadAttributes()
     
-    if (import.meta.env.TAURI_ENV_PLATFORM) {
+    if (isTauri()) {
       currentVersion.value = await getVersion()
     }
   }
@@ -165,8 +165,10 @@ const settingsConfig: Record<SettingsTab, SettingsSection[]> = {
 const checkUpdateStatus = ref<'idle' | 'checking' | 'available' | 'uptodate' | 'error'>('idle')
 const updateInfo = ref<any>(null)
 
+const isTauri = () => typeof window !== 'undefined' && !!(window as any).__TAURI_INTERNALS__
+
 const checkForUpdates = async () => {
-  if (!import.meta.env.TAURI_ENV_PLATFORM) return
+  if (!isTauri()) return
   checkUpdateStatus.value = 'checking'
   try {
     const update = await check()
