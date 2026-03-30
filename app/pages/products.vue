@@ -443,6 +443,17 @@ const handleBarcodeClick = (product: any) => {
   }
 }
 
+const handlePrintVariant = (variant: any) => {
+  if (variant.barcode) {
+    printBarcode({
+      barcode: variant.barcode,
+      productName: formData.value.productName,
+      attribute: variant.attribute.map((a: any) => `${a.name}: ${a.value}`),
+      price: variant.retailPrice
+    })
+  }
+}
+
 const formatVariantAttr = (attr: any) => {
   if (!attr) return ''
   if (Array.isArray(attr)) return attr.join(', ')
@@ -578,6 +589,13 @@ const formatVariantAttr = (attr: any) => {
 
             <div v-for="(v, index) in newVariantsList" :key="index" class="p-5 bg-[var(--text-primary)]/[0.01] border border-[var(--border-app)] rounded-[14px] relative group hover:border-[var(--text-primary)]/20 transition-colors">
               <div class="absolute top-4 right-4 flex items-center gap-1">
+                <button 
+                  @click="handlePrintVariant(v)"
+                  class="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-app)] opacity-40 hover:bg-[var(--text-primary)]/10 hover:opacity-100 transition-all"
+                  :title="t('common.print', 'Çap et')"
+                >
+                  <UiIcon name="lucide:printer" class="w-4 h-4" />
+                </button>
                 <button 
                   @click="duplicateVariantRow(v)"
                   class="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-app)] opacity-40 hover:bg-[var(--text-primary)]/10 hover:opacity-100 transition-all"
