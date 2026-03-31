@@ -433,10 +433,47 @@ const performDelete = async () => {
 }
 
 const handleBarcodeClick = (product: any) => {
-  if (product.barcode) {
+  // Əgər bu bir variantdırsa (parentProductId varsa), sadəcə onu çap et
+  if (product.parentProductId) {
+    if (product.barcode) {
+      printBarcode({
+        barcode: product.barcode,
+        productName: product.productName,
+        attribute: product.attribute,
+        price: product.retailPrice
+      })
+    }
+    return
+  }
+
+  // Əgər məhsulun variantları varsa və "Hamısını Çap Et" seçilibsə
+  if (product.variants && product.variants.length > 0) {
+    // Əvvəlcə əsas məhsulun barkodunu çap et (əgər varsa)
+    if (product.barcode) {
+      printBarcode({
+        barcode: product.barcode,
+        productName: product.productName,
+        attribute: product.attribute,
+        price: product.retailPrice
+      })
+    }
+    
+    // Sonra bütün variantları çap et
+    product.variants.forEach((variant: any) => {
+      if (variant.barcode) {
+        printBarcode({
+          barcode: variant.barcode,
+          productName: product.productName,
+          attribute: variant.attribute,
+          price: variant.retailPrice
+        })
+      }
+    })
+  } else if (product.barcode) {
+    // Variant yoxdursa, sadəcə məhsulun öz barkodunu çap et
     printBarcode({
       barcode: product.barcode,
-      productName: product.parentProductName || product.productName,
+      productName: product.productName,
       attribute: product.attribute,
       price: product.retailPrice
     })
@@ -534,6 +571,7 @@ const formatVariantAttr = (attr: any) => {
         :product="product"
         @edit="handleEdit"
         @duplicate="handleDuplicateProduct"
+        @print-barcode="handleBarcodeClick"
         @delete="handleDeleteClick"
       />
     </div>

@@ -55,11 +55,11 @@ const formatVariantAttr = (attr: any) => {
 
 <template>
   <div 
-    class="group relative flex flex-col h-full bg-[var(--bg-app)] border border-[var(--border-app)] rounded-xl overflow-hidden transition-colors duration-300 hover:border-[var(--text-primary)] hover:bg-[var(--text-primary)]/[0.02] cursor-pointer"
+    class="group relative flex flex-col h-full bg-[var(--bg-app)] border border-[var(--border-app)] rounded-xl transition-colors duration-300 hover:border-[var(--text-primary)] hover:bg-[var(--text-primary)]/[0.02] cursor-pointer"
     @click="emit('edit', product)"
   >
     <!-- ── Image ── -->
-    <div class="relative w-full aspect-[4/3] bg-[var(--input-bg)] overflow-hidden">
+    <div class="relative w-full aspect-[4/3] bg-[var(--input-bg)] overflow-hidden rounded-t-xl">
       <img 
         v-if="product.images?.length" 
         :src="product.images[0]" 
@@ -72,7 +72,63 @@ const formatVariantAttr = (attr: any) => {
 
 
       <!-- Actions (top-right) -->
-      <div class="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200" @click.stop>
+      <div class="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center gap-2" @click.stop>
+        <!-- Barcode Print Button -->
+        <UiDropdown v-if="hasVariants" :teleport="true" menuClass="w-56 overflow-hidden">
+          <template #trigger>
+            <button class="w-8 h-8 rounded-md bg-[var(--bg-app)]/90 backdrop-blur-sm border border-[var(--border-app)] flex items-center justify-center text-[var(--text-app)] hover:bg-[var(--text-primary)] hover:text-[var(--bg-app)] hover:border-[var(--text-primary)] transition-colors">
+              <UiIcon name="lucide:printer" class="w-4 h-4" />
+            </button>
+          </template>
+          <template #menu="{ close }">
+            <div class="flex flex-col">
+              <div class="px-3 py-2 text-xs font-bold opacity-40 tracking-wider border-b border-[var(--border-app)] bg-[var(--bg-app)] md:bg-[var(--bg-sidebar)]">{{ t('products.selectVariant', 'Variant Seçin') }}</div>
+              
+              <!-- Scrollable content -->
+              <div class="overflow-y-auto custom-scrollbar" style="max-height: 300px;">
+                <!-- Əsas məhsulun barkodu (əgər varsa) -->
+                <button 
+                  v-if="product.barcode"
+                  @click="emit('print-barcode', { ...product, variants: undefined }); close()" 
+                  class="w-full px-4 py-2 text-sm font-semibold text-left hover:bg-[var(--text-primary)]/5 text-[var(--text-app)] transition-colors border-b border-[var(--border-app)]"
+                >
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-xs opacity-50">{{ t('products.mainProduct', 'Əsas Məhsul') }}</span>
+                    <span class="font-mono text-xs opacity-70">{{ product.barcode }}</span>
+                  </div>
+                </button>
+                <!-- Variantlar -->
+                <button 
+                  v-for="variant in product.variants" 
+                  :key="variant.id"
+                  @click="emit('print-barcode', variant); close()" 
+                  class="w-full px-4 py-2 text-sm font-semibold text-left hover:bg-[var(--text-primary)]/5 text-[var(--text-app)] transition-colors"
+                >
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-xs opacity-50">{{ formatVariantAttr(variant.attribute) }}</span>
+                    <span class="font-mono text-xs opacity-70">{{ variant.barcode }}</span>
+                  </div>
+                </button>
+              </div>
+              
+              <!-- Fixed footer -->
+              <div class="border-t border-[var(--border-app)] bg-[var(--bg-app)] md:bg-[var(--bg-sidebar)]">
+                <button @click="emit('print-barcode', product); close()" class="w-full px-4 py-2.5 text-sm font-semibold text-left flex items-center gap-3 hover:bg-[var(--text-primary)]/5 text-[var(--text-app)] transition-colors">
+                  <UiIcon name="lucide:printer" class="w-4 h-4 opacity-50" /> {{ t('common.printAll', 'Hamısını Çap Et') }}
+                </button>
+              </div>
+            </div>
+          </template>
+        </UiDropdown>
+        <button 
+          v-else
+          @click="emit('print-barcode', product)"
+          class="w-8 h-8 rounded-md bg-[var(--bg-app)]/90 backdrop-blur-sm border border-[var(--border-app)] flex items-center justify-center text-[var(--text-app)] hover:bg-[var(--text-primary)] hover:text-[var(--bg-app)] hover:border-[var(--text-primary)] transition-colors"
+        >
+          <UiIcon name="lucide:printer" class="w-4 h-4" />
+        </button>
+
+        <!-- More Actions Menu -->
         <UiDropdown menuClass="absolute top-full right-0 mt-2 w-48 z-[60]">
           <template #trigger>
             <button class="w-8 h-8 rounded-md bg-[var(--bg-app)]/90 backdrop-blur-sm border border-[var(--border-app)] flex items-center justify-center text-[var(--text-app)] hover:bg-[var(--text-primary)] hover:text-[var(--bg-app)] hover:border-[var(--text-primary)] transition-colors">
