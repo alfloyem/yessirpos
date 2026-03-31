@@ -1,4 +1,4 @@
-- [x] brend adı seçimi optional olmalıdır.
+8- [x] brend adı seçimi optional olmalıdır.
 - [x] satış zamanı kassir seçimi optional olmalıdır.
 - [x] mal qebulunda sağda atribut adı görsənmir.
 - [x] sidebar düzəlməlidir
