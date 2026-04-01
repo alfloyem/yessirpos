@@ -162,6 +162,7 @@ export const buildReceiptHtml = (data: ReceiptData, clientData: ClientData, barc
           .title { font-size: 14px; font-weight: bold; margin: 10px 0; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 3px 0; }
           .info { font-size: 11px; margin-bottom: 10px; }
           .yekun { display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; margin-top: 5px; }
+          img { image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; }
         </style>
       </head>
       <body>
@@ -252,6 +253,7 @@ export const buildIntakeReceiptHtml = (data: IntakeReceiptData, clientData: Clie
           .title { font-size: 14px; font-weight: bold; margin: 10px 0; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 3px 0; }
           .info { font-size: 11px; margin-bottom: 10px; }
           .yekun { display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; margin-top: 5px; border-top: 1px solid #000; padding-top: 5px; }
+          img { image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; }
         </style>
       </head>
       <body>
@@ -397,6 +399,7 @@ export const buildBarcodeHtml = (data: BarcodeData, clientData: ClientData, barc
             font-weight: 700;
             line-height: 1.1;
           }
+          img { image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; }
         </style>
       </head>
       <body>
@@ -434,6 +437,7 @@ export const buildDebtPaymentHtml = (data: DebtPaymentReceiptData, clientData: C
           .info { font-size: 11px; margin-bottom: 10px; }
           .yekun { display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; margin-top: 5px; border-top: 1px solid #000; padding-top: 5px; }
           .divider { border-top: 1px dashed #000; margin: 10px 0; }
+          img { image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; }
         </style>
       </head>
       <body>

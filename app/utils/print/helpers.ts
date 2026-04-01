@@ -9,15 +9,18 @@ export const generateBarcodeDataUrl = (
 ): string => {
   try {
     const canvas = document.createElement('canvas')
+    const scale = 3 // High resolution scale for clear printing
     JsBarcode(canvas, text, {
       format: 'CODE128',
-      width: options.width ?? 2,
-      height: options.height ?? 40,
+      width: (options.width ?? 1.5) * scale, // Slightly thinner base width since we scale x3
+      height: (options.height ?? 40) * scale,
       displayValue: options.displayValue ?? true,
-      fontSize: options.fontSize ?? 12,
-      margin: options.margin ?? 5,
+      fontSize: (options.fontSize ?? 12) * scale,
+      margin: (options.margin ?? 5) * scale,
+      background: '#ffffff',
+      lineColor: '#000000'
     })
-    return canvas.toDataURL('image/png')
+    return canvas.toDataURL('image/webp', 1.0)
   } catch (err) {
     console.error('Barcode generation error:', err)
     return ''
