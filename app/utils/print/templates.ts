@@ -22,16 +22,16 @@ export const buildReceiptHtml = (data: ReceiptData, clientData: ClientData, barc
           <span>${item.productName}</span>
           ${hasDiscount ? `
             <div style="text-align: right;">
-              <span style="text-decoration: line-through; font-size: 11px; opacity: 0.5; margin-right: 5px;">${originalLineTotal.toFixed(2)}</span>
+              <span style="text-decoration: line-through; font-size: 11px; margin-right: 5px;">${originalLineTotal.toFixed(2)}</span>
               <span>${finalLineTotal.toFixed(2)}</span>
             </div>
           ` : `<span>${finalLineTotal.toFixed(2)}</span>`}
         </div>
-        <div style="font-size: 11px; opacity: 0.7; margin-top: 2px;">
+        <div style="font-size: 11px; margin-top: 2px;">
           ${item.qty} x ${item.price.toFixed(2)}${attrStr ? ' | ' + attrStr : ''}
         </div>
         ${hasDiscount ? `
-          <div style="display: flex; justify-content: space-between; font-size: 10px; color: #333; font-weight: 500; margin-top: 1px;">
+          <div style="display: flex; justify-content: space-between; font-size: 10px; font-weight: 500; margin-top: 1px;">
             <span>└ Endirim (${item.discountType === 'percent' ? item.discountValue + '%' : item.discountValue.toFixed(2) + ' ₼'}):</span>
             <span>-${(originalLineTotal - finalLineTotal).toFixed(2)} ₼</span>
           </div>
@@ -40,7 +40,7 @@ export const buildReceiptHtml = (data: ReceiptData, clientData: ClientData, barc
   }).join('')
 
   const customerInfoHtml = data.customer ? `
-    <div style="font-size: 11px; margin-bottom: 8px; border-top: 1px dashed #000; padding-top: 4px;">
+    <div style="font-size: 11px; margin-bottom: 8px; border-top: 1px solid #000; padding-top: 4px;">
       MÜŞTƏRİ: ${data.customer.name}
     </div>` : ''
 
@@ -56,7 +56,7 @@ export const buildReceiptHtml = (data: ReceiptData, clientData: ClientData, barc
       </div>
 
       ${totalItemDiscounts > 0.005 ? `
-        <div style="display: flex; justify-content: space-between; color: #333;">
+        <div style="display: flex; justify-content: space-between;">
           <span>MƏHSUL ENDİRİMİ:</span>
           <span>-${totalItemDiscounts.toFixed(2)} ₼</span>
         </div>
@@ -70,7 +70,7 @@ export const buildReceiptHtml = (data: ReceiptData, clientData: ClientData, barc
       ` : ''}
       
       ${(totalItemDiscounts > 0.005 && finalDiscount > 0.005) ? `
-        <div style="display: flex; justify-content: space-between; font-weight: bold; border-top: 1px dotted #ccc; margin-top: 2px; padding-top: 2px;">
+        <div style="display: flex; justify-content: space-between; font-weight: bold; border-top: 1px solid #000; margin-top: 2px; padding-top: 2px;">
           <span>CƏM ENDİRİM:</span>
           <span>-${(totalItemDiscounts + finalDiscount).toFixed(2)} ₼</span>
         </div>
@@ -113,7 +113,7 @@ export const buildReceiptHtml = (data: ReceiptData, clientData: ClientData, barc
     
     if (diff < -0.01) {
       paymentsHtml += `
-        <div style="display: flex; justify-content: space-between; color: #c00; font-weight: bold; margin-top: 2px; border-top: 1px dashed #c00; padding-top: 2px;">
+        <div style="display: flex; justify-content: space-between; color: #000; font-weight: bold; margin-top: 2px; border-top: 1px solid #000; padding-top: 2px;">
           <span>QALIQ BORC:</span>
           <span>${Math.abs(diff).toFixed(2)} ₼</span>
         </div>
@@ -122,7 +122,7 @@ export const buildReceiptHtml = (data: ReceiptData, clientData: ClientData, barc
   }
 
   const receivedHtml = (data.paymentDetails.received !== undefined && Number(data.paymentDetails.received) >= 0) ? `
-    <div style="display: flex; justify-content: space-between; margin-top: 2px; border-top: 1px dotted #ccc; padding-top: 2px;">
+    <div style="display: flex; justify-content: space-between; margin-top: 2px; border-top: 1px solid #000; padding-top: 2px;">
     </div>` : ''
 
   const changeHtml = (data.paymentDetails.change && data.paymentDetails.change > 0.01) ? `
@@ -132,7 +132,7 @@ export const buildReceiptHtml = (data: ReceiptData, clientData: ClientData, barc
     </div>` : ''
 
   const loyaltyHtml = (data.customer && !data.isArchive) ? `
-    <div style="margin-top: 10px; padding: 5px; border: 1px dashed #000; font-size: 11px;">
+    <div style="margin-top: 10px; padding: 5px; border: 1px solid #000; font-size: 11px;">
       <div style="display: flex; justify-content: space-between;">
         <span>QAZANILAN BONUS:</span>
         <span>+${(data.customer.earned || 0).toFixed(2)}</span>
@@ -158,7 +158,7 @@ export const buildReceiptHtml = (data: ReceiptData, clientData: ClientData, barc
           .center { text-align: center; }
           .logo { margin-bottom: 10px; }
           .logo svg { max-width: 40mm; height: auto; }
-          .divider { border-top: 1px dashed #000; margin: 10px 0; }
+          .divider { border-top: 1px solid #000; margin: 10px 0; }
           .title { font-size: 14px; font-weight: bold; margin: 10px 0; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 3px 0; }
           .info { font-size: 11px; margin-bottom: 10px; }
           .yekun { display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; margin-top: 5px; }
@@ -230,7 +230,7 @@ export const buildIntakeReceiptHtml = (data: IntakeReceiptData, clientData: Clie
           <span style="font-weight: bold;">${item.productName}</span>
           <span>${item.total.toFixed(2)}</span>
         </div>
-        <div style="font-size: 10px; opacity: 0.8;">
+        <div style="font-size: 10px;">
           ${item.qty} x ${item.costPrice.toFixed(2)}${attrStr ? ' | ' + attrStr : ''}
         </div>
       </div>`
@@ -249,7 +249,7 @@ export const buildIntakeReceiptHtml = (data: IntakeReceiptData, clientData: Clie
             line-height: 1.2;
           }
           .center { text-align: center; }
-          .divider { border-top: 1px dashed #000; margin: 10px 0; }
+          .divider { border-top: 1px solid #000; margin: 10px 0; }
           .title { font-size: 14px; font-weight: bold; margin: 10px 0; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 3px 0; }
           .info { font-size: 11px; margin-bottom: 10px; }
           .yekun { display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; margin-top: 5px; border-top: 1px solid #000; padding-top: 5px; }
@@ -298,7 +298,7 @@ export const buildIntakeReceiptHtml = (data: IntakeReceiptData, clientData: Clie
         </div>
 
         ${data.notes ? `
-          <div style="margin-top: 10px; font-size: 10px; font-style: italic; border: 1px solid #eee; padding: 4px;">
+          <div style="margin-top: 10px; font-size: 10px; font-style: italic; border: 1px solid #000; padding: 4px;">
             Qeyd: ${data.notes}
           </div>
         ` : ''}
@@ -307,7 +307,7 @@ export const buildIntakeReceiptHtml = (data: IntakeReceiptData, clientData: Clie
           <div style="margin-top: 5px;">
             ${barcodeDataUrl ? `<img src="${barcodeDataUrl}" style="max-width: 60%; height: auto;" />` : ''}
           </div>
-          <div style="margin-top: 10px; font-size: 10px; opacity: 0.6;">Daxili qaimə sənədi</div>
+          <div style="margin-top: 10px; font-size: 10px;">Daxili qaimə sənədi</div>
         </div>
       </body>
     </html>
@@ -338,18 +338,8 @@ export const buildBarcodeHtml = (data: BarcodeData, clientData: ClientData, barc
         <style>
           @page { margin: 0; size: 50mm 30mm; }
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { 
-            margin: 0; 
-            padding: 1.5mm; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: space-evenly; 
-            width: 50mm; 
-            height: 30mm; 
-            font-family: Arial, sans-serif; 
-            text-align: center;
             overflow: hidden;
+            color: #000;
           }
           .store-name { 
             font-size: 6.5px; 
@@ -369,7 +359,6 @@ export const buildBarcodeHtml = (data: BarcodeData, clientData: ClientData, barc
           }
           .attribute { 
             font-size: 7px; 
-            opacity: 0.75;
             line-height: 1.1;
           }
           .barcode-container {
@@ -436,7 +425,7 @@ export const buildDebtPaymentHtml = (data: DebtPaymentReceiptData, clientData: C
           .title { font-size: 14px; font-weight: bold; margin: 10px 0; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 3px 0; }
           .info { font-size: 11px; margin-bottom: 10px; }
           .yekun { display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; margin-top: 5px; border-top: 1px solid #000; padding-top: 5px; }
-          .divider { border-top: 1px dashed #000; margin: 10px 0; }
+          .divider { border-top: 1px solid #000; margin: 10px 0; }
           img { image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; }
         </style>
       </head>
@@ -466,14 +455,14 @@ export const buildDebtPaymentHtml = (data: DebtPaymentReceiptData, clientData: C
             <span>ÖDƏNİŞ ÜSULU:</span>
             <span>${data.paymentMethod.toUpperCase()}</span>
           </div>
-          <div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 5px; border-top: 1px dashed #000; padding-top: 5px;">
+          <div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 5px; border-top: 1px solid #000; padding-top: 5px;">
             <span>QALIQ BORC:</span>
             <span>${data.remainingBalance.toFixed(2)} ₼</span>
           </div>
         </div>
 
         ${data.notes ? `
-          <div style="margin-top: 10px; font-size: 10px; font-style: italic; border: 1px solid #eee; padding: 4px;">
+          <div style="margin-top: 10px; font-size: 10px; font-style: italic; border: 1px solid #000; padding: 4px;">
             Qeyd: ${data.notes}
           </div>
         ` : ''}
