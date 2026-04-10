@@ -52,5 +52,5 @@
 
 **STRESS TEST BY MUSARTILLERIYA MMC**
 
-npx prisma db push
+npx prisma db push 
 npx prisma generate
