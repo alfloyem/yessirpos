@@ -29,3 +29,5 @@ desktop.ini
 # Tauri signing keys
 src-tauri/signing.key.fixed
 src-tauri/signing.key.fixed.pub
+public/uploads
+public/uploads
