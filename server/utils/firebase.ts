@@ -2,22 +2,32 @@ import admin from 'firebase-admin'
 import fs from 'fs'
 import path from 'path'
 
-// Initialize Firebase Admin globally only once
 if (!admin.apps.length) {
   try {
-    // Adjust path based on project root.
-    const relativePath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || 'firebase/yessirpos-firebase-adminsdk-fbsvc-c14f75346f.json'
-    const serviceAccountPath = path.resolve(process.cwd(), relativePath)
-    const fileContent = fs.readFileSync(serviceAccountPath, 'utf-8')
-    const serviceAccount = JSON.parse(fileContent)
+    let serviceAccount;
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+    } else {
+      const relativePath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || 'firebase/yessirpos-firebase-adminsdk-fbsvc-c14f75346f.json'
+      const serviceAccountPath = path.resolve(process.cwd(), relativePath)
+      if (fs.existsSync(serviceAccountPath)) {
+        const fileContent = fs.readFileSync(serviceAccountPath, 'utf-8')
+        serviceAccount = JSON.parse(fileContent)
+      }
+    }
 
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
-    })
-    console.log('Firebase Admin Initialized Successfully')
+    if (serviceAccount) {
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        storageBucket: process.env.FIREBASE_STORAGE_BUCKET
+      })
+      console.log('Firebase Admin Initialized Successfully')
+    }
   } catch (error) {
     console.error('Failed to initialize Firebase Admin:', error)
   }
 }
 
 export const messaging = admin.apps.length ? admin.messaging() : null
+export const storage = admin.apps.length ? admin.storage() : null
+export const bucket = admin.apps.length ? admin.storage().bucket() : null
