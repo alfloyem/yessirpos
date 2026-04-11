@@ -24,6 +24,9 @@ export default defineEventHandler(async (event) => {
 
   if (publicEndpoints.some(endpoint => url.startsWith(endpoint))) return
 
+  // Allow public access to GET products
+  if (url.startsWith('/api/products') && event.method === 'GET') return
+
   if (!url.startsWith('/api/')) return
 
   const authHeader = getHeader(event, 'authorization')
