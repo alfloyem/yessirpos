@@ -290,7 +290,20 @@ const handleSaveProduct = async () => {
       const idx = mockData.value.findIndex(p => p.id === formData.value.id)
       if (idx !== -1) mockData.value[idx] = updatedParent
 
-      // Upsert variants
+      // Handle Deleted Variants
+      const originalVariants = formData.value.variants || []
+      const currentVariantIds = newVariantsList.value.map(v => v.id)
+      const variantsToDelete = originalVariants.filter((ov: any) => !currentVariantIds.includes(ov.id))
+      
+      for (const dv of variantsToDelete) {
+        try {
+          await $api(`/api/products/${dv.id}`, { method: 'DELETE' })
+          const vIdx = mockData.value.findIndex(pm => pm.id === dv.id)
+          if (vIdx !== -1) mockData.value.splice(vIdx, 1)
+        } catch (err) {}
+      }
+
+      // Upsert current variants
       if (addVariantsEnabled.value && newVariantsList.value.length > 0) {
         for (const v of newVariantsList.value) {
           const vPayload = {
@@ -305,8 +318,10 @@ const handleSaveProduct = async () => {
             reorderLevel: v.reorderLevel || 0,
             attribute: v.attribute.map((a: any) => `${a.name}: ${a.value}`)
           }
-          // If it's local timestamp based ID, it's newly added during edit
-          if (v.id.toString().length > 10 && v.id.toString().startsWith('17')) { 
+          // If it's local timestamp based ID (or just not in original), it's newly added during edit
+          const isNew = v.id.toString().length > 10 || !originalVariants.find((ov: any) => ov.id === v.id)
+          
+          if (isNew) { 
             const savedVariant = await $api<any>('/api/products', { method: 'POST', body: vPayload })
             mockData.value.push(savedVariant)
           } else {
@@ -314,6 +329,15 @@ const handleSaveProduct = async () => {
             const upIdx = mockData.value.findIndex(p => p.id === v.id)
             if (upIdx !== -1) mockData.value[upIdx] = upVar
           }
+        }
+      } else if (!addVariantsEnabled.value && originalVariants.length > 0) {
+        // If variants were disabled, delete all original variants
+        for (const dv of originalVariants) {
+          try {
+            await $api(`/api/products/${dv.id}`, { method: 'DELETE' })
+            const vIdx = mockData.value.findIndex(pm => pm.id === dv.id)
+            if (vIdx !== -1) mockData.value.splice(vIdx, 1)
+          } catch (err) {}
         }
       }
       toast.success(t('products.updated', 'Yeniləndi'))
