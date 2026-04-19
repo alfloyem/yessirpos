@@ -31,3 +31,6 @@ src-tauri/signing.key.fixed
 src-tauri/signing.key.fixed.pub
 public/uploads
 public/product-images
+
+# Firebase service account (contains private key - never commit)
+firebase/
