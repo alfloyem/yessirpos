@@ -8,7 +8,7 @@ if (!admin.apps.length) {
     if (process.env.FIREBASE_SERVICE_ACCOUNT) {
       serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
     } else {
-      const relativePath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || 'firebase/yessirpos-firebase-adminsdk-fbsvc-c14f75346f.json'
+      const relativePath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || 'firebase/yessirpos-firebase-adminsdk-fbsvc-345b44c4a5.json'
       const serviceAccountPath = path.resolve(process.cwd(), relativePath)
       if (fs.existsSync(serviceAccountPath)) {
         const fileContent = fs.readFileSync(serviceAccountPath, 'utf-8')

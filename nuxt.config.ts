@@ -8,7 +8,6 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     jwtSecret: process.env.JWT_SECRET,
-    firebaseServiceAccountPath: process.env.FIREBASE_SERVICE_ACCOUNT_PATH,
     public: {
       clientId: process.env.CLIENT_ID ?? 'bakustreet',
       apiBaseUrl: process.env.NUXT_PUBLIC_API_URL ?? '',
