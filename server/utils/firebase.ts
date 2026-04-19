@@ -19,7 +19,6 @@ if (!admin.apps.length) {
     if (serviceAccount) {
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
-        storageBucket: process.env.FIREBASE_STORAGE_BUCKET
       })
       console.log('Firebase Admin Initialized Successfully')
     }
@@ -29,5 +28,3 @@ if (!admin.apps.length) {
 }
 
 export const messaging = admin.apps.length ? admin.messaging() : null
-export const storage = admin.apps.length ? admin.storage() : null
-export const bucket = admin.apps.length ? admin.storage().bucket() : null
