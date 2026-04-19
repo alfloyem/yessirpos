@@ -82,13 +82,24 @@ export const useFCM = () => {
   const setupOnMessage = () => {
     if (!isSupported || !messaging) return
 
-    onMessage(messaging, (payload) => {
+    onMessage(messaging, async (payload) => {
       console.log('Foreground notification received:', payload)
-      if (Notification.permission === 'granted') {
-        new Notification(payload.notification?.title || 'Yeni Bildiriş', {
-           body: payload.notification?.body,
-           icon: '/icon.png'
-        })
+      if (Notification.permission !== 'granted') return
+
+      const title = payload.notification?.title || 'Yeni Bildiriş'
+      const options: NotificationOptions = {
+        body: payload.notification?.body,
+        icon: '/icons/android-chrome-192x192.png',
+        badge: '/icons/android-chrome-96x96.png',
+        data: payload.data,
+      }
+
+      // Use service worker showNotification so PWA icon is used instead of browser
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.ready
+        registration.showNotification(title, options)
+      } else {
+        new Notification(title, options)
       }
     })
   }

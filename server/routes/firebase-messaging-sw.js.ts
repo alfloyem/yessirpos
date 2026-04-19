@@ -29,8 +29,8 @@ messaging.onBackgroundMessage((payload) => {
   const notificationTitle = payload.notification.title || 'Yeni Bildiriş';
   const notificationOptions = {
     body: payload.notification.body,
-    icon: '/icon.svg',
-    badge: '/icon.svg',
+    icon: '/icons/android-chrome-192x192.png',
+    badge: '/icons/android-chrome-96x96.png',
     data: payload.data,
   };
 
