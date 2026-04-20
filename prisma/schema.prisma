@@ -50,9 +50,37 @@ model Product {
 }
 
 model Order {
-  id         Int      @id @default(autoincrement())
-  totalPrice Float
-  createdAt  DateTime @default(now())
+  id            Int         @id @default(autoincrement())
+  orderNo       String      @unique
+  customerId    Int?
+  customerName  String?
+  customerEmail String?
+  customerPhone String?
+  address       String?
+  city          String?
+  country       String?     @default("Azərbaycan")
+  notes         String?
+  subtotal      Float       @default(0)
+  deliveryFee   Float       @default(0)
+  totalPrice    Float
+  paymentMethod String?     @default("cash")
+  status        String      @default("pending")
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  items         OrderItem[]
+}
+
+model OrderItem {
+  id          Int    @id @default(autoincrement())
+  orderId     Int
+  productId   Int?
+  productName String
+  image       String?
+  price       Float  @default(0)
+  qty         Int    @default(1)
+  total       Float  @default(0)
+  attributes  String?
+  Order       Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 model Customer {
