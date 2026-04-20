@@ -62,6 +62,17 @@ export default defineEventHandler(async (event: any) => {
 
     if (!id) throw createError({ statusCode: 400, statusMessage: 'Yalnış ID' })
 
+    // Validate required fields if they are being updated
+    if (productName !== undefined && !productName?.trim()) {
+      throw createError({ statusCode: 400, statusMessage: 'Məhsul adı mütləqdir' })
+    }
+    if (barcode !== undefined && !parentProductId && !barcode?.trim()) {
+      throw createError({ statusCode: 400, statusMessage: 'Barkod mütləqdir' })
+    }
+    if (retailPrice !== undefined && (retailPrice === null || retailPrice === '')) {
+      throw createError({ statusCode: 400, statusMessage: 'Satış qiyməti mütləqdir' })
+    }
+
     if (barcode) {
       const existing = await (prisma as any).product.findFirst({
         where: { barcode, id: { not: id } }

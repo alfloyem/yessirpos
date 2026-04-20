@@ -259,6 +259,17 @@ const confirmDeleteVariant = () => {
 }
 
 const handleSaveProduct = async () => {
+  // Validate required fields
+  const errors: string[] = []
+  if (!formData.value.productName?.trim()) errors.push(t('products.validation.nameRequired', 'Məhsul adı mütləqdir'))
+  if (!formData.value.barcode?.trim()) errors.push(t('products.validation.barcodeRequired', 'Barkod mütləqdir'))
+  if (formData.value.retailPrice === undefined || formData.value.retailPrice === null || formData.value.retailPrice === '') errors.push(t('products.validation.retailPriceRequired', 'Satış qiyməti mütləqdir'))
+
+  if (errors.length > 0) {
+    errors.forEach(e => toast.error(e))
+    return
+  }
+
   isSaving.value = true
   try {
     let finalPayload = { ...formData.value, images: productImages.value }

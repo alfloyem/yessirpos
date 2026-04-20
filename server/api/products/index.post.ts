@@ -78,10 +78,17 @@ export default defineEventHandler(async (event: any) => {
 
     // Validation
     if (!finalProductName) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Məhsul adı mütləqdir'
-      })
+      throw createError({ statusCode: 400, statusMessage: 'Məhsul adı mütləqdir' })
+    }
+
+    // Barcode required for non-variants (variants inherit parent barcode logic)
+    if (!parentProductId && !barcode?.trim()) {
+      throw createError({ statusCode: 400, statusMessage: 'Barkod mütləqdir' })
+    }
+
+    // Retail price required
+    if (retailPrice === undefined || retailPrice === null || retailPrice === '') {
+      throw createError({ statusCode: 400, statusMessage: 'Satış qiyməti mütləqdir' })
     }
 
     if (barcode) {
