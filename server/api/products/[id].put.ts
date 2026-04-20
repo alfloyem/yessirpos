@@ -1,6 +1,6 @@
 import { defineEventHandler, createError, readBody, getRouterParam } from 'h3'
 import prisma from '../../utils/prisma'
-import { saveBase64Image } from '../../utils/image'
+import { saveBase64Image, deleteImage } from '../../utils/image'
 
 const processImages = async (images: any[], baseName: string, attributes?: any) => {
   if (!Array.isArray(images)) return []
@@ -72,6 +72,18 @@ export default defineEventHandler(async (event: any) => {
     }
 
     const processedImages = images !== undefined ? await processImages(images, productName || '', attribute) : undefined
+
+    // Delete images that were removed (exist in DB but not in the new list)
+    if (processedImages !== undefined) {
+      const existing = await (prisma as any).product.findUnique({ where: { id }, select: { images: true } })
+      if (existing?.images) {
+        try {
+          const oldPaths: string[] = JSON.parse(existing.images)
+          const removedPaths = oldPaths.filter(p => !processedImages.includes(p))
+          await Promise.all(removedPaths.map(deleteImage))
+        } catch (e) {}
+      }
+    }
 
     const dataToUpdate: any = {}
     if (productName !== undefined) dataToUpdate.productName = productName
