@@ -22,6 +22,7 @@ export const menuItems: MenuItem[] = [
         children: [
             { titleKey: "menu.sales", to: "/sales" },
             { titleKey: "menu.orders", to: "/archive" },
+            { titleKey: "menu.webOrders", to: "/web-orders" },
             { titleKey: "menu.refund", to: "/refund" },
         ],
     },

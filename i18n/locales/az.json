@@ -129,7 +129,8 @@
     "finance_category": "Maliyyə və Hesabat",
     "system_category": "Sistem İdarəetmə",
     "refund": "Geri Ödəniş",
-    "intake": "Mal Qəbulu"
+    "intake": "Mal Qəbulu",
+    "webOrders": "Veb Sifarişlər"
   },
   "employees": {
     "firstName": "Ad",
