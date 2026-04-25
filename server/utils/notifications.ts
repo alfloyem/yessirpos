@@ -50,9 +50,24 @@ const emitRealtimeNotification = async (notification: any, payload: CreateNotifi
             title: payload.title,
             body: payload.message
           },
+          android: {
+            priority: 'high',
+          },
+          webpush: {
+            headers: {
+              Urgency: 'high'
+            },
+            notification: {
+              icon: '/icons/android-chrome-192x192.png',
+              badge: '/icons/android-chrome-96x96.png',
+              tag: payload.type,
+              renotify: true
+            }
+          },
           data: {
             type: payload.type,
-            notificationId: String(notification.id)
+            notificationId: String(notification.id),
+            click_action: '/notifications'
           }
         })
         console.log(`Push notification sent to ${uniqueTokens.length} devices`)
