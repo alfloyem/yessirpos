@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
 import { useI18n } from '#i18n'
 import { useHead, useToast, useAuth, useNuxtApp } from '#imports'
 import Modal from '~/components/ui/Modal.vue'
@@ -29,12 +28,12 @@ const generateBarcode = (prefix = '', exclude: string[] = []) => {
   // Combine all current possible barcodes in UI
   const currentInUI = [
     formData.value?.barcode,
-    ...(newVariantsList.value || []).map(v => v.barcode),
+    ...(newVariantsList.value || []).map((v: any) => v.barcode),
     ...exclude
   ].filter(Boolean)
 
   const cBarcodes = [
-    ...mockData.value.map(m => m.barcode),
+    ...mockData.value.map((m: any) => m.barcode),
     ...currentInUI
   ]
     .filter(b => typeof b === 'string' && new RegExp(`^${prefix || 'P'}\\d{7}$`).test(b))
@@ -46,7 +45,7 @@ const generateBarcode = (prefix = '', exclude: string[] = []) => {
   }
   
   const existingSet = new Set([
-     ...mockData.value.map(m => m.barcode),
+     ...mockData.value.map((m: any) => m.barcode),
      ...currentInUI
   ])
 
@@ -83,7 +82,7 @@ const handleExport = (format: 'csv' | 'pdf' | 'json' | 'xml') => {
   const title = t('products.title', 'Məhsullar')
   
   // Pre-process data to flatten arrays (categories, attributes, etc.) for better readability in Excel/PDF
-  const dataToExport = filteredProducts.value.map(p => {
+  const dataToExport = filteredProducts.value.map((p: any) => {
     let attrStr = ''
     if (Array.isArray(p.attribute)) {
       attrStr = p.attribute.join(', ')
@@ -110,7 +109,7 @@ const handleExport = (format: 'csv' | 'pdf' | 'json' | 'xml') => {
 const filteredProducts = computed(() => {
   if (!searchQuery.value) return mockData.value
   const q = searchQuery.value.toLowerCase()
-  return mockData.value.filter(p => 
+  return mockData.value.filter((p: any) => 
     (p.productName || '').toLowerCase().includes(q) || 
     (p.barcode || '').toLowerCase().includes(q)
   )
@@ -120,7 +119,7 @@ const filteredProducts = computed(() => {
 const groupedProducts = computed(() => {
   const variantMap: Record<number | string, any[]> = {}
   
-  mockData.value.forEach(item => {
+  mockData.value.forEach((item: any) => {
     const pid = item.parentProductId
     if (pid) {
       if (!variantMap[pid]) variantMap[pid] = []
@@ -129,8 +128,8 @@ const groupedProducts = computed(() => {
   })
   
   let result = mockData.value
-    .filter(item => !item.parentProductId)
-    .map(item => {
+    .filter((item: any) => !item.parentProductId)
+    .map((item: any) => {
       // If it has variants, get stock and price from variants if it does not have it itself
       const variants = variantMap[item.id] || []
       return { ...item, variants }
@@ -138,7 +137,7 @@ const groupedProducts = computed(() => {
 
   if (searchQuery.value) {
     const q = searchQuery.value.toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g, "")
-    result = result.filter(group => {
+    result = result.filter((group: any) => {
       const match = (item: any) => {
         const fields = [item.productName, item.barcode, Array.isArray(item.category) ? item.category.join(' ') : item.category]
         return fields.some(f => f && String(f).toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g, "").includes(q))
@@ -153,7 +152,7 @@ const groupedProducts = computed(() => {
 const loadGoods = async () => {
   if (mockData.value.length === 0) loading.value = true
   try {
-    const data = await $api('/api/products', { headers: { Authorization: `Bearer ${token.value}` } })
+    const data = await $api('/api/products', { headers: { Authorization: `Bearer ${(token as any).value}` } })
     mockData.value = data as any[]
   } catch (err: any) {
     toast.error(t('toast.loadingError', 'Məlumatlar yüklənərkən xəta baş verdi'))
@@ -164,7 +163,7 @@ const loadGoods = async () => {
 
 const loadAttributes = async () => {
   try {
-    const data = await $api('/api/attributes', { headers: { Authorization: `Bearer ${token.value}` } })
+    const data = await $api('/api/attributes', { headers: { Authorization: `Bearer ${(token as any).value}` } })
     availableAttributes.value = data as any[]
   } catch (err) {}
 }
@@ -208,7 +207,8 @@ const baseFormFields = computed<FormField[]>(() => [
   { key: 'wholesalePrice', label: t('products.wholesalePrice', 'Topdan qiymət (₼)'), type: 'number' },
   { key: 'retailPrice', label: t('products.retailPrice', 'Pərakəndə qiymət (₼)'), type: 'number', required: true },
   { key: 'stock', label: t('products.stock', 'Stok'), type: 'integer' },
-  { key: 'reorderLevel', label: t('products.reorderLevel', 'Yenidən sifariş limiti'), type: 'integer' }
+  { key: 'reorderLevel', label: t('products.reorderLevel', 'Yenidən sifariş limiti'), type: 'integer' },
+  { key: 'description', label: t('products.description', 'Təsviri'), type: 'textarea', colSpan: 2 }
 ])
 
 const handleAdd = () => {
@@ -298,18 +298,18 @@ const handleSaveProduct = async () => {
       toast.success(t('products.added', 'Məhsul əlavə edildi'))
     } else {
       const updatedParent = await $api<any>(`/api/products/${formData.value.id}`, { method: 'PUT', body: finalPayload })
-      const idx = mockData.value.findIndex(p => p.id === formData.value.id)
+      const idx = mockData.value.findIndex((p: any) => p.id === formData.value.id)
       if (idx !== -1) mockData.value[idx] = updatedParent
 
       // Handle Deleted Variants
       const originalVariants = formData.value.variants || []
-      const currentVariantIds = newVariantsList.value.map(v => v.id)
+      const currentVariantIds = newVariantsList.value.map((v: any) => v.id)
       const variantsToDelete = originalVariants.filter((ov: any) => !currentVariantIds.includes(ov.id))
       
       for (const dv of variantsToDelete) {
         try {
           await $api(`/api/products/${dv.id}`, { method: 'DELETE' })
-          const vIdx = mockData.value.findIndex(pm => pm.id === dv.id)
+          const vIdx = mockData.value.findIndex((pm: any) => pm.id === dv.id)
           if (vIdx !== -1) mockData.value.splice(vIdx, 1)
         } catch (err) {}
       }
@@ -337,7 +337,7 @@ const handleSaveProduct = async () => {
             mockData.value.push(savedVariant)
           } else {
             const upVar = await $api<any>(`/api/products/${v.id}`, { method: 'PUT', body: vPayload })
-            const upIdx = mockData.value.findIndex(p => p.id === v.id)
+            const upIdx = mockData.value.findIndex((p: any) => p.id === v.id)
             if (upIdx !== -1) mockData.value[upIdx] = upVar
           }
         }
@@ -346,7 +346,7 @@ const handleSaveProduct = async () => {
         for (const dv of originalVariants) {
           try {
             await $api(`/api/products/${dv.id}`, { method: 'DELETE' })
-            const vIdx = mockData.value.findIndex(pm => pm.id === dv.id)
+            const vIdx = mockData.value.findIndex((pm: any) => pm.id === dv.id)
             if (vIdx !== -1) mockData.value.splice(vIdx, 1)
           } catch (err) {}
         }
@@ -377,7 +377,7 @@ const handleEdit = (product: any) => {
           const parts = a.split(':')
           const name = parts[0]?.trim() || ''
           const value = parts[1]?.trim() || ''
-          const attrDef = availableAttributes.value.find(ax => ax.name === name)
+          const attrDef = availableAttributes.value.find((ax: any) => ax.name === name)
           return { id: attrDef?.id || Math.random().toString(), name, value }
         }) : [],
         barcode: v.barcode,
@@ -424,7 +424,7 @@ const handleDuplicateProduct = (product: any) => {
         const parts = str.split(':')
         const name = parts[0]?.trim() || ''
         const value = parts[1]?.trim() || ''
-        const attrDef = availableAttributes.value.find(ax => ax.name === name)
+        const attrDef = availableAttributes.value.find((ax: any) => ax.name === name)
         return { id: attrDef?.id || Math.random().toString(), name, value }
       }) : []
 
@@ -457,7 +457,7 @@ const performDelete = async () => {
   isSaving.value = true
   try {
     await $api(`/api/products/${confirmTarget.value.id}`, { method: 'DELETE' })
-    mockData.value = mockData.value.filter(p => p.id !== confirmTarget.value.id && p.parentProductId !== confirmTarget.value.id)
+    mockData.value = mockData.value.filter((p: any) => p.id !== confirmTarget.value.id && p.parentProductId !== confirmTarget.value.id)
     toast.success(t('products.deleted', 'Silindi'))
     showDeleteConfirmModal.value = false
   } catch {
@@ -627,7 +627,7 @@ const formatVariantAttr = (attr: any) => {
             <ImageCarousel 
               :images="productImages"
               :product-name="formData.productName"
-              @update:images="val => productImages = val"
+              @update:images="(val: string[]) => productImages = val"
             />
           </div>
         </div>
@@ -706,7 +706,7 @@ const formatVariantAttr = (attr: any) => {
                       <template #menu="{ close }">
                         <div class="max-h-48 overflow-y-auto custom-scrollbar">
                           <button 
-                            v-for="val in availableAttributes.find(xa => xa.name === sel.name)?.values || []" 
+                            v-for="val in availableAttributes.find((xa: any) => xa.name === sel.name)?.values || []" 
                             :key="val"
                             @click="sel.value = val; close()" 
                             class="w-full px-4 py-2 text-sm font-bold text-left hover:bg-[var(--text-primary)]/10 transition-colors"
