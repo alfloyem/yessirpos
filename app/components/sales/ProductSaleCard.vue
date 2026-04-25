@@ -64,6 +64,17 @@ const getVariantName = (variant: ProductVariant) => {
 const formatPrice = (price: number | string) => {
   return Number(price || 0).toFixed(2)
 }
+
+const getDiscountedPrice = (p: any) => {
+  const price = Number(p.retailPrice || 0)
+  if (!p.isSaleActive) return price
+  
+  const d = Number(p.discountValue || 0)
+  if (p.discountType === 'percent') {
+    return price * (1 - d / 100)
+  }
+  return price - d
+}
 </script>
 
 <template>
@@ -87,6 +98,11 @@ const formatPrice = (price: number | string) => {
           alt="Product" 
         />
         <UiIcon v-else name="lucide:package" class="w-6 h-6 text-[var(--text-app)] opacity-20 group-hover:scale-110 transition-transform duration-500" />
+        
+        <!-- Sale Badge -->
+        <div v-if="product.isSaleActive" class="absolute top-0.5 right-0.5 bg-red-500 text-white text-[8px] font-black px-1 py-0.5 rounded-md shadow-sm z-10 animate-pulse">
+          %
+        </div>
       </div>
 
       <!-- Info Area -->
@@ -96,9 +112,14 @@ const formatPrice = (price: number | string) => {
         </h3>
         
         <div class="flex items-center gap-2">
-          <span v-if="!product.variants || product.variants.length === 0" class="text-sm font-black text-[var(--text-primary)] tabular-nums">
-            {{ formatPrice(product.retailPrice || 0) }} ₼
-          </span>
+          <div v-if="!product.variants || product.variants.length === 0" class="flex items-center gap-1.5">
+            <span v-if="product.isSaleActive" class="text-[10px] line-through opacity-40 font-bold tabular-nums">
+              {{ formatPrice(product.retailPrice || 0) }} ₼
+            </span>
+            <span class="text-sm font-black text-[var(--text-primary)] tabular-nums">
+              {{ formatPrice(getDiscountedPrice(product)) }} ₼
+            </span>
+          </div>
           <span v-else class="text-[9px] font-black tracking-widest bg-[var(--text-primary)]/10 text-[var(--text-primary)] px-2 py-0.5 rounded-lg">
             {{ t('sales.variantCount', { count: product.variants.length }) }}
           </span>
@@ -142,9 +163,14 @@ const formatPrice = (price: number | string) => {
                 <UiIcon name="lucide:package" class="w-3 h-3" />
                 <span>{{ variant.stock || 0 }}</span>
               </div>
-              <span class="text-[14px] font-black text-[var(--text-primary)] tabular-nums">
-                {{ formatPrice(variant.retailPrice || 0) }} ₼
-              </span>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <span v-if="variant.isSaleActive" class="text-[10px] line-through opacity-30 font-bold tabular-nums">
+                  {{ formatPrice(variant.retailPrice || 0) }} ₼
+                </span>
+                <span class="text-[14px] font-black text-[var(--text-primary)] tabular-nums">
+                  {{ formatPrice(getDiscountedPrice(variant)) }} ₼
+                </span>
+              </div>
             </div>
           </div>
         </div>

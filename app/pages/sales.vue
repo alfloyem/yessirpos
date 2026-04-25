@@ -340,11 +340,13 @@ const addToCart = (product: any) => {
   if (existing) {
     existing.qty++
   } else {
+    // Check for active sale
+    const isSale = !!product.isSaleActive
     cart.value.push({ 
       ...product, 
       qty: 1,
-      itemDiscount: 0,
-      itemDiscountType: 'amount'
+      itemDiscount: isSale ? (product.discountValue || 0) : 0,
+      itemDiscountType: isSale ? (product.discountType || 'percent') : 'amount'
     })
   }
 }
