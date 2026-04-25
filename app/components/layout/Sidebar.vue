@@ -134,8 +134,10 @@ watch(isSidebarCollapsed, (collapsed) => {
                 <button
                     @click="toggleCategory(category.titleKey)"
                     :class="[
-                        'w-full flex items-center gap-3 px-5 p-3 transition-all duration-300 rounded-xl group',
-                        isCategoryActive(category) ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)]' : 'text-[var(--text-app)] hover:bg-[var(--input-bg)]',
+                        'w-full flex items-center gap-3 px-5 p-3 transition-all duration-200 rounded-xl group',
+                        isCategoryActive(category) 
+                            ? 'bg-[var(--text-primary)]/10 text-[var(--text-primary)] hover:bg-[var(--text-primary)]/15' 
+                            : 'text-[var(--text-app)] hover:bg-[var(--text-primary)]/5 hover:text-[var(--text-primary)]',
                     ]">
                     <Icon :name="category.icon" :class="['!w-4 !h-4 flex-shrink-0 transition-opacity duration-300', isCategoryActive(category) ? 'opacity-100' : 'opacity-60 group-hover/category:opacity-100']" />
                     <span
@@ -177,10 +179,10 @@ watch(isSidebarCollapsed, (collapsed) => {
                         :to="child.to"
                         @click="isMobileMenuOpen = false"
                         :class="[
-                            'flex items-center gap-3 px-4 py-2 text-sm transition-all duration-300 rounded-xl group/child relative',
+                            'flex items-center gap-3 px-4 py-2.5 text-sm transition-all duration-200 rounded-xl group/child relative',
                             isChildActive(child.to)
-                                ? 'bg-[var(--text-primary)] text-white font-medium'
-                                : 'text-[var(--text-muted)] hover:bg-[var(--text-primary)]/10 hover:text-[var(--text-primary)] shadow-none',
+                                ? 'bg-[var(--text-primary)] text-white font-medium hover:bg-[var(--text-secondary)] shadow-lg shadow-[var(--text-primary)]/20'
+                                : 'text-[var(--text-muted)] hover:bg-[var(--text-primary)]/10 hover:text-[var(--text-primary)]',
                             !isSidebarCollapsed ? 'mx-2 pl-12' : 'mx-1 my-0.5',
                         ]">
                         <span :class="['text-nowrap transition-all duration-300', isSidebarCollapsed ? 'opacity-90' : isChildActive(child.to) ? 'opacity-100' : 'opacity-80 group-hover/child:opacity-100']">
@@ -196,7 +198,7 @@ watch(isSidebarCollapsed, (collapsed) => {
                 v-if="!notAllowedPaths.includes('/notifications')" 
                 to="/notifications" 
                 @click="isMobileMenuOpen = false"
-                class="relative flex items-center gap-3 px-5 p-3 text-[var(--text-muted)] hover:text-[var(--text-app)] hover:bg-[var(--input-bg)] transition-all rounded-xl group/notifications"
+                class="relative flex items-center gap-3 px-5 p-3 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--text-primary)]/10 transition-all duration-200 rounded-xl group/notifications"
             >
                 <div class="relative flex-shrink-0">
                     <Icon name="lucide:bell" class="w-5 h-5 opacity-60 group-hover/notifications:opacity-100 transition-opacity" />
@@ -216,7 +218,7 @@ watch(isSidebarCollapsed, (collapsed) => {
                 v-if="!notAllowedPaths.includes('/settings')" 
                 to="/settings" 
                 @click="isMobileMenuOpen = false"
-                class="flex items-center gap-3 px-5 p-3 text-[var(--text-muted)] hover:text-[var(--text-app)] hover:bg-[var(--input-bg)] transition-all rounded-xl group/settings"
+                class="flex items-center gap-3 px-5 p-3 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--text-primary)]/10 transition-all duration-200 rounded-xl group/settings"
             >
                 <Icon name="lucide:settings" class="w-5 h-5 flex-shrink-0 opacity-60 group-hover/settings:opacity-100 transition-opacity" />
                 <span :class="['text-sm font-medium transition-all duration-300 whitespace-nowrap', isSidebarCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100']">
@@ -224,7 +226,7 @@ watch(isSidebarCollapsed, (collapsed) => {
                 </span>
             </NuxtLink>
             <!-- Logout Button -->
-            <button @click="logout" class="flex items-center gap-3 px-5 p-3 text-red-500 hover:bg-red-500/10 transition-all rounded-xl group/logout">
+            <button @click="logout" class="flex items-center gap-3 px-5 p-3 text-red-500 hover:bg-red-500/10 transition-all duration-200 rounded-xl group/logout">
                 <Icon name="lucide:log-out" class="w-5 h-5 flex-shrink-0 opacity-60 group-hover/logout:opacity-100 transition-opacity" />
                 <span :class="['text-sm font-medium transition-all duration-300 whitespace-nowrap', isSidebarCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-auto opacity-100']">
                     {{ t("logout") }}
