@@ -51,6 +51,7 @@ const formatVariantAttr = (attr: any) => {
     return String(attr)
   }
 }
+const hasError = ref(false)
 </script>
 
 <template>
@@ -61,12 +62,13 @@ const formatVariantAttr = (attr: any) => {
     <!-- ── Image ── -->
     <div class="relative w-full aspect-[4/3] bg-[var(--input-bg)] overflow-hidden rounded-t-xl">
       <img 
-        v-if="product.images?.length" 
+        v-if="product.images?.length && !hasError" 
         :src="product.images[0]" 
         class="w-full h-full object-cover transition-opacity duration-500 group-hover:opacity-90" 
+        @error="hasError = true"
       />
       <div v-else class="w-full h-full flex items-center justify-center bg-[var(--text-primary)]/[0.02]">
-        <UiIcon name="lucide:image" class="w-12 h-12 text-[var(--text-app)] opacity-10" stroke-width="1" />
+        <UiIcon :name="hasError ? 'lucide:image-off' : 'lucide:image'" class="w-12 h-12 text-[var(--text-app)] opacity-10" stroke-width="1" />
       </div>
 
 
