@@ -234,6 +234,12 @@ const currentImageMeta = computed(() => {
   if (!url) return null
   return imageMetadata.value[url] || null
 })
+
+// --- Error Handling ---
+const imageErrors = ref(new Set<string>())
+const handleImageError = (url: string) => {
+  imageErrors.value.add(url)
+}
 </script>
 
 <template>
@@ -254,9 +260,15 @@ const currentImageMeta = computed(() => {
       <template v-if="currentImageUrl">
         <div class="relative w-full h-full bg-black/5 flex items-center justify-center">
           <img 
+            v-if="!imageErrors.has(currentImageUrl)"
             :src="currentImageUrl" 
-            class="w-full h-full object-contain p-4"
+            class="w-full h-full object-contain p-4 transition-opacity duration-300"
+            @error="handleImageError(currentImageUrl)"
           />
+          <div v-else class="flex flex-col items-center opacity-20">
+            <UiIcon name="lucide:image-off" class="w-12 h-12 mb-2" />
+            <span class="text-[10px] font-bold uppercase tracking-widest">{{ t('common.error', 'Xəta') }}</span>
+          </div>
           
           <!-- Metadata Overlay (Removed technical clutter) -->
           <div class="absolute bottom-3 left-3 flex gap-2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
@@ -266,10 +278,10 @@ const currentImageMeta = computed(() => {
           </div>
 
           <div class="absolute inset-x-0 top-0 p-4 flex justify-between items-start opacity-0 group-hover:opacity-100 transition-opacity z-10">
-             <button @click.stop="removeImage(currentIndex)" class="p-2 bg-red-500 hover:bg-red-600 text-white rounded-xl shadow-lg transition-all cursor-pointer">
+             <button @click.stop="removeImage(currentIndex)" class="p-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-all cursor-pointer">
                <UiIcon name="lucide:trash-2" class="w-5 h-5" />
              </button>
-             <button @click.stop="fileInput?.click()" class="p-2 bg-[var(--text-primary)] text-white rounded-xl shadow-lg transition-all cursor-pointer">
+             <button @click.stop="fileInput?.click()" class="p-2 bg-[var(--text-primary)] text-white rounded-xl transition-all cursor-pointer">
                <UiIcon name="lucide:plus" class="w-5 h-5" />
              </button>
           </div>
@@ -321,7 +333,10 @@ const currentImageMeta = computed(() => {
           :class="currentIndex === index ? 'border-[var(--text-primary)] scale-[0.98]' : 'border-[var(--border-app)] opacity-70 hover:opacity-100'"
           @click="currentIndex = index"
         >
-          <img :src="element" class="w-full h-full object-cover" />
+          <img v-if="!imageErrors.has(element)" :src="element" class="w-full h-full object-cover" @error="handleImageError(element)" />
+          <div v-else class="w-full h-full flex items-center justify-center bg-black/5 opacity-40">
+            <UiIcon name="lucide:image-off" class="w-6 h-6" />
+          </div>
           <div class="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center gap-1">
              <div class="drag-handle p-1.5 cursor-grab active:cursor-grabbing text-white hover:text-[var(--text-primary)]">
                <UiIcon name="lucide:grip-vertical" class="w-4 h-4" />
