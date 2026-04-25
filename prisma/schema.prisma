@@ -1,52 +1,56 @@
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
+  binaryTargets   = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
   provider = "postgresql"
 }
 
-
 model Employee {
-  id        Int      @id @default(autoincrement())
-  firstName String
-  lastName  String
-  username  String   @unique
-  email     String?
-  phone     String?
-  gender    String?
-  status    String   @default("Aktif")
-  password  String
-  notes     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  role      String?
+  id         Int      @id @default(autoincrement())
+  firstName  String
+  lastName   String
+  username   String   @unique
+  email      String?
+  phone      String?
+  gender     String?
+  status     String   @default("Aktif")
+  password   String
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  role       String?
   notAllowed String?  // Store as JSON array of restricted paths
   fcmTokens  String?  // Store as JSON array of tokens
 }
 
 model Product {
-  id                Int       @id @default(autoincrement())
-  productName       String
-  brandName         String?   // Store array as JSON
-  category          String?   // Store array as JSON
-  barcode           String?   @unique
-  description       String?
-  images            String?   // Store array/JSON URLs
-  wholesalePrice    Float?    @default(0)
-  retailPrice       Float?    @default(0)
-  stock             Int?      @default(0)
-  reorderLevel      Int?      @default(0)
-  attribute         String?   // Store as JSON for variants (e.g. ["Size: M"])
+  id              Int       @id @default(autoincrement())
+  productName     String
+  brandName       String?   // Store array as JSON
+  category        String?   // Store array as JSON
+  barcode         String?   @unique
+  description     String?
+  images          String?   // Store array/JSON URLs
+  wholesalePrice  Float?    @default(0)
+  retailPrice     Float?    @default(0)
+  stock           Int?      @default(0)
+  reorderLevel    Int?      @default(0)
+  attribute       String?   // Store as JSON for variants (e.g. ["Size: M"])
   
-  parentProductId   Int?
-  parentProduct     Product?  @relation("ProductVariants", fields: [parentProductId], references: [id], onDelete: Cascade)
-  variants          Product[] @relation("ProductVariants")
+  discountValue   Float?    @default(0)
+  discountType    String?   @default("percent") // "percent" or "amount"
+  isSaleActive    Boolean?  @default(false)
   
-  createdBy         String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  parentProductId Int?
+  parentProduct   Product?  @relation("ProductVariants", fields: [parentProductId], references: [id], onDelete: Cascade)
+  variants        Product[] @relation("ProductVariants")
+  
+  createdBy       String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 model Order {
@@ -84,24 +88,41 @@ model OrderItem {
 }
 
 model Customer {
-  id        Int        @id @default(autoincrement())
-  firstName String
-  lastName  String
-  barcode   String     @unique
-  bonus     Float      @default(0)
-  debt      Float      @default(0)
-  gender    String?
-  email     String?
-  phone     String?
-  address   String?
-  city      String?    @default("Bakı")
-  country   String?    @default("Azərbaycan")
-  notes     String?
-  createdBy String?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  giftCards GiftCard[]
-  debtPayments CustomerDebtPayment[]
+  id                  Int                   @id @default(autoincrement())
+  firstName           String?
+  lastName            String?
+  barcode             String                @unique
+  bonus               Float                 @default(0)
+  gender              String?
+  email               String?               @unique
+  phone               String?
+  address             String?
+  city                String?               @default("Bakı")
+  country             String?               @default("Azərbaycan")
+  notes               String?
+  createdBy           String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  password            String?
+  isVerified          Boolean               @default(false)
+  verificationToken   String?
+  resetToken          String?
+  debt                Float                 @default(0)
+  CustomerDebtPayment CustomerDebtPayment[]
+  giftCards           GiftCard[]
+  googleId            String?               @unique
+  reviews             Review[]
+}
+
+model Review {
+  id         Int      @id @default(autoincrement())
+  productId  Int
+  customerId Int
+  rating     Float    // 0.5 - 5.0 in 0.5 steps
+  comment    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
 
 model GiftCard {
@@ -114,6 +135,7 @@ model GiftCard {
   updatedAt  DateTime  @updatedAt
   customer   Customer? @relation(fields: [customerId], references: [id])
 }
+
 model Attribute {
   id        Int      @id @default(autoincrement())
   name      String
@@ -153,6 +175,7 @@ model Supplier {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
 model PaymentMethod {
   id        Int      @id @default(autoincrement())
   name      String   @unique
@@ -238,7 +261,7 @@ model IntakeItem {
 
 model IntakePayment {
   id            Int      @id @default(autoincrement())
-  receiptNo     String   @unique // DP0000001 format
+  receiptNo       String   @unique // DP0000001 format
   intakeId      Int
   intake        Intake   @relation(fields: [intakeId], references: [id], onDelete: Cascade)
   amount        Float    @default(0)
@@ -274,4 +297,3 @@ model Notification {
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
 }
-

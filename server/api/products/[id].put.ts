@@ -57,7 +57,10 @@ export default defineEventHandler(async (event: any) => {
       stock, 
       reorderLevel, 
       attribute,
-      parentProductId
+      parentProductId,
+      discountValue,
+      discountType,
+      isSaleActive
     } = body
 
     if (!id) throw createError({ statusCode: 400, statusMessage: 'Yalnış ID' })
@@ -109,6 +112,9 @@ export default defineEventHandler(async (event: any) => {
     if (reorderLevel !== undefined) dataToUpdate.reorderLevel = Number(reorderLevel)
     if (attribute !== undefined) dataToUpdate.attribute = typeof attribute === 'object' && attribute !== null ? JSON.stringify(attribute) : (attribute || null)
     if (parentProductId !== undefined) dataToUpdate.parentProductId = parentProductId || null
+    if (discountValue !== undefined) dataToUpdate.discountValue = Number(discountValue) || 0
+    if (discountType !== undefined) dataToUpdate.discountType = discountType || 'percent'
+    if (isSaleActive !== undefined) dataToUpdate.isSaleActive = Boolean(isSaleActive)
 
     const updated = await (prisma as any).product.update({
       where: { id },

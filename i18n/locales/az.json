@@ -203,7 +203,8 @@
     "add": "əlavə et",
     "typeAndPressEnter": "Yazın və Enter basın...",
     "noResultsFound": "Nəticə tapılmadı",
-    "qty": "Say"
+    "qty": "Say",
+    "printAll": "Hamısını Çap Et"
   },
   "orders": {
     "title": "Çek Arxivi",
@@ -413,11 +414,19 @@
     "variantUpdated": "Variant yeniləndi",
     "title": "Məhsullar",
     "attribute": "Atribut",
-    "wholesalePriceShort": "Topdan (₼)",
     "retailPriceShort": "Pərakəndə (₼)",
     "deleteConfirmMessage": "Məhsulu və bağlı olan bütün variantları silmək istədiyinizə əminsiniz?",
     "deleteVariant": "Variantı Sil",
-    "deleteVariantConfirm": "Bu variantı silmək istədiyinizə əminsiniz?"
+    "deleteVariantConfirm": "Bu variantı silmək istədiyinizə əminsiniz?",
+    "manageSale": "Endirimi İdarə Et",
+    "mainProductDiscount": "Əsas Məhsul Endirimi",
+    "discountValue": "Endirim Məbləği",
+    "discountType": "Endirim Növü",
+    "percent": "Faiz (%)",
+    "amount": "Məbləğ (₼)",
+    "variantDiscounts": "Variant Endirimləri",
+    "saleUpdated": "Endirim məlumatları yeniləndi",
+    "mainProduct": "Əsas Məhsul"
   },
   "sales": {
     "receiptNo": "Çek No",
@@ -527,14 +536,16 @@
       "notifications": "Bildirişlər",
       "barcode": "Barkod",
       "receipt": "Çek",
-      "system": "Sistem"
+      "system": "Sistem",
+      "terminal": "Terminal"
     },
     "sections": {
       "notifications": "Bildirişlər",
       "inventory": "Anbar",
       "system": "Sistem",
       "systemStatus": "Sistem Vəziyyəti",
-      "visual": "Görünüş Parametrləri"
+      "visual": "Görünüş Parametrləri",
+      "serverConnection": "Server Bağlantısı"
     },
     "items": {
       "check_updates": "Yenilənmələri yoxla",
@@ -543,6 +554,10 @@
       "installUpdate": "Yüklə və Qur",
       "theme_toggle": "Qaranlıq Rejim",
       "language_select": "Sistem Dili",
+      "server_url": "Server URL",
+      "client_id": "Mağaza (Client) ID",
+      "save_connection": "Bağlantını Yadda Saxla",
+      "resetDefault": "Sıfırla",
       "sale_completed": "Satış tamamlandıqda",
       "order_created": "Yeni Sifariş (Nisyə)",
       "refund_processed": "Geri Ödəniş (Qaytarma)",

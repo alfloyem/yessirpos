@@ -61,7 +61,10 @@ export default defineEventHandler(async (event: any) => {
       reorderLevel, 
       attribute,
       parentProductId,
-      createdAt
+      createdAt,
+      discountValue,
+      discountType,
+      isSaleActive
     } = body
 
     let finalProductName = productName
@@ -117,6 +120,9 @@ export default defineEventHandler(async (event: any) => {
         reorderLevel: Number(reorderLevel) || 0,
         attribute: typeof attribute === 'object' && attribute !== null ? JSON.stringify(attribute) : (attribute || null),
         parentProductId: parentProductId || null,
+        discountValue: Number(discountValue) || 0,
+        discountType: discountType || 'percent',
+        isSaleActive: Boolean(isSaleActive) || false,
         createdBy: user?.name || user?.username || 'Admin',
         createdAt: createdAt ? new Date(createdAt) : undefined
       }

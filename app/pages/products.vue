@@ -189,6 +189,14 @@ const showDeleteConfirmModal = ref(false)
 const isSaving = ref(false)
 const isEditMode = ref(false)
 const confirmTarget = ref<any>(null)
+const showSaleModal = ref(false)
+const saleProduct = ref<any>(null)
+const saleFormData = ref({
+  discountValue: 0,
+  discountType: 'percent', // 'percent' or 'amount'
+  isSaleActive: false,
+  variants: [] as any[]
+})
 
 // Forms
 const formData = ref<Record<string, any>>({})
@@ -467,6 +475,59 @@ const performDelete = async () => {
   }
 }
 
+const handleSale = (product: any) => {
+  saleProduct.value = JSON.parse(JSON.stringify(product))
+  saleFormData.value = {
+    discountValue: product.discountValue || 0,
+    discountType: product.discountType || 'percent',
+    isSaleActive: product.isSaleActive || false,
+    variants: (product.variants || []).map((v: any) => ({
+      id: v.id,
+      attribute: v.attribute,
+      discountValue: v.discountValue || 0,
+      discountType: v.discountType || 'percent',
+      isSaleActive: v.isSaleActive || false,
+      retailPrice: v.retailPrice
+    }))
+  }
+  showSaleModal.value = true
+}
+
+const handleSaveSale = async () => {
+  isSaving.value = true
+  try {
+    // Save main product discount
+    await $api(`/api/products/${saleProduct.value.id}`, {
+      method: 'PUT',
+      body: {
+        discountValue: Number(saleFormData.value.discountValue) || 0,
+        discountType: saleFormData.value.discountType,
+        isSaleActive: saleFormData.value.isSaleActive
+      }
+    })
+
+    // Save variant discounts
+    for (const v of saleFormData.value.variants) {
+      await $api(`/api/products/${v.id}`, {
+        method: 'PUT',
+        body: {
+          discountValue: Number(v.discountValue) || 0,
+          discountType: v.discountType,
+          isSaleActive: v.isSaleActive
+        }
+      })
+    }
+
+    toast.success(t('products.saleUpdated', 'Endirim yeniləndi'))
+    showSaleModal.value = false
+    await loadGoods()
+  } catch (err) {
+    toast.error(t('toast.operationFailed', 'Xəta oldu'))
+  } finally {
+    isSaving.value = false
+  }
+}
+
 const handleBarcodeClick = (product: any) => {
   // Əgər bu bir variantdırsa (parentProductId varsa), sadəcə onu çap et
   if (product.parentProductId) {
@@ -608,6 +669,7 @@ const formatVariantAttr = (attr: any) => {
         @duplicate="handleDuplicateProduct"
         @print-barcode="handleBarcodeClick"
         @delete="handleDeleteClick"
+        @sale="handleSale"
       />
     </div>
 
@@ -826,6 +888,98 @@ const formatVariantAttr = (attr: any) => {
           <UiButton variant="danger" class="flex-1 !h-12" @click="confirmDeleteVariant">{{ t('common.yesDelete', 'Bəli, Sil') }}</UiButton>
         </div>
       </div>
+    </Modal>
+
+    <!-- Sale / Discount Modal -->
+    <Modal 
+      v-model="showSaleModal" 
+      :title="t('products.manageSale', 'Endirim İdarəetməsi')" 
+      max-width="2xl" 
+      is-top
+    >
+      <div v-if="saleProduct" class="space-y-6">
+        <!-- Main Product Discount -->
+        <div class="p-4 bg-[var(--text-primary)]/[0.03] border border-[var(--border-app)] rounded-2xl">
+          <div class="flex items-center gap-4 mb-4">
+            <div class="w-12 h-12 rounded-xl bg-[var(--text-primary)]/10 flex items-center justify-center text-[var(--text-primary)]">
+              <UiIcon name="lucide:tag" class="w-6 h-6" />
+            </div>
+            <div>
+              <h3 class="font-bold text-[var(--text-app)]">{{ saleProduct.productName }}</h3>
+              <p class="text-sm opacity-50">{{ t('products.mainProductDiscount', 'Əsas məhsul indirimi') }}</p>
+            </div>
+            <div class="ml-auto">
+              <UiSwitch v-model="saleFormData.isSaleActive" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" :class="{ 'opacity-50 pointer-events-none': !saleFormData.isSaleActive }">
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold opacity-40 uppercase tracking-wider pl-1">{{ t('products.discountValue', 'Endirim Miqdarı') }}</label>
+              <UiInput v-model="saleFormData.discountValue" type="number" step="0.01" />
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold opacity-40 uppercase tracking-wider pl-1">{{ t('products.discountType', 'Endirim Növü') }}</label>
+              <UiSelect 
+                v-model="saleFormData.discountType" 
+                :options="[
+                  { label: t('products.percent', 'Faiz (%)'), value: 'percent' },
+                  { label: t('products.amount', 'Məbləğ (₼)'), value: 'amount' }
+                ]" 
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Variants Discounts -->
+        <div v-if="saleFormData.variants.length > 0" class="space-y-3">
+          <h4 class="text-sm font-bold text-[var(--text-app)] opacity-60 flex items-center gap-2 px-1">
+            <UiIcon name="lucide:layers" class="w-4 h-4" />
+            {{ t('products.variantDiscounts', 'Variant Endirimləri') }}
+          </h4>
+          
+          <div class="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar space-y-3">
+            <div 
+              v-for="v in saleFormData.variants" 
+              :key="v.id" 
+              class="p-4 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-xl group hover:border-[var(--text-primary)]/20 transition-colors"
+            >
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex flex-wrap gap-1.5">
+                  <span v-for="attr in (typeof v.attribute === 'string' ? JSON.parse(v.attribute) : v.attribute)" :key="attr" class="px-2 py-0.5 bg-[var(--text-primary)]/5 text-[var(--text-primary)] text-xs font-bold rounded-md">
+                    {{ attr }}
+                  </span>
+                </div>
+                <div class="text-xs font-bold opacity-40">
+                  {{ t('products.retailPrice', 'Qiymət') }}: {{ v.retailPrice }} ₼
+                </div>
+                <div class="ml-auto">
+                   <UiSwitch v-model="v.isSaleActive" size="sm" />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3" :class="{ 'opacity-50 pointer-events-none': !v.isSaleActive }">
+                <UiInput v-model="v.discountValue" type="number" step="0.01" size="sm" :placeholder="t('products.discountValue', 'Miqdar')" />
+                <UiSelect 
+                  v-model="v.discountType" 
+                  size="sm"
+                  :options="[
+                    { label: '%', value: 'percent' },
+                    { label: '₼', value: 'amount' }
+                  ]" 
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <UiButton variant="ghost" @click="showSaleModal = false">{{ t('common.cancel') }}</UiButton>
+        <UiButton variant="primary" icon="lucide:check" @click="handleSaveSale" :disabled="isSaving">
+          {{ isSaving ? t('common.pleaseWait', 'Gözləyin...') : t('common.save', 'Yadda Saxla') }}
+        </UiButton>
+      </template>
     </Modal>
   </div>
 </template>

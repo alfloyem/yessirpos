@@ -201,7 +201,8 @@
     "add": "добавить",
     "typeAndPressEnter": "Введите и нажмите Enter...",
     "noResultsFound": "Результаты не найдены",
-    "qty": "Кол-во"
+    "qty": "Кол-во",
+    "printAll": "Печатать все"
   },
   "orders": {
     "title": "Архив чеков",
@@ -414,7 +415,16 @@
     "retailPriceShort": "Розница (₼)",
     "deleteConfirmMessage": "Вы уверены, что хотите удалить этот товар и все его варианты?",
     "deleteVariant": "Удалить вариант",
-    "deleteVariantConfirm": "Вы уверены, что хотите удалить этот вариант?"
+    "deleteVariantConfirm": "Вы уверены, что хотите удалить этот вариант?",
+    "manageSale": "Управление скидкой",
+    "mainProductDiscount": "Скидка на основной товар",
+    "discountValue": "Сумма скидки",
+    "discountType": "Тип скидки",
+    "percent": "Процент (%)",
+    "amount": "Сумма (₼)",
+    "variantDiscounts": "Скидки на варианты",
+    "saleUpdated": "Информация о скидке обновлена",
+    "mainProduct": "Основной продукт"
   },
   "sales": {
     "receiptNo": "Номер чека",
@@ -524,6 +534,7 @@
       "notifications": "Уведомления",
       "barcode": "Штрихкод",
       "receipt": "Чек",
+      "terminal": "Терминал",
       "system": "Система"
     },
     "sections": {
@@ -532,11 +543,16 @@
       "inventory": "Склад и Инвентарь",
       "system": "Система и Управление",
       "systemStatus": "Статус системы",
-      "visual": "Настройки отображения"
+      "visual": "Настройки отображения",
+      "serverConnection": "Подключение к серверу"
     },
     "items": {
       "theme_toggle": "Темный режим",
       "language_select": "Язык системы",
+      "server_url": "URL сервера",
+      "client_id": "ID магазина (Client)",
+      "save_connection": "Сохранить подключение",
+      "resetDefault": "Сбросить",
       "sale_completed": "Новая продажа",
       "order_created": "Новый заказ (Долг)",
       "refund_processed": "Оформлен возврат",

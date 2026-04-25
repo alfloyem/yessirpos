@@ -24,6 +24,10 @@ definePageMeta({
 const colorMode = useColorMode()
 const { locales, locale, setLocale, t } = useI18n()
 const { $api } = useNuxtApp()
+const { activeUrl, activeClientId, setConfig, resetConfig } = useServerConfig()
+
+const localServerUrl = ref(activeUrl.value)
+const localClientId = ref(activeClientId.value)
 
 const clientData = ref(getClientData())
 
@@ -84,7 +88,7 @@ const previewAttribute = computed(() => {
   return 'Ölçü: L'
 })
 
-type SettingsTab = 'notifications' | 'barcode' | 'receipt' | 'appearance' | 'system'
+type SettingsTab = 'notifications' | 'barcode' | 'receipt' | 'appearance' | 'system' | 'terminal'
 
 type SettingsItem = { key: string; label: string; type?: 'switch' | 'theme' | 'language' | 'button' | 'text_only' }
 type SettingsSection = { title: string; items: SettingsItem[] }
@@ -160,6 +164,17 @@ const settingsConfig: Record<SettingsTab, SettingsSection[]> = {
         { key: 'app_version', label: 'settings.items.app_version', type: 'text_only' }
       ]
     }
+  ],
+  terminal: [
+    {
+      title: 'settings.sections.serverConnection',
+      items: [
+        { key: 'server_url', label: 'settings.items.server_url', type: 'text_input' },
+        { key: 'client_id', label: 'settings.items.client_id', type: 'text_input' },
+        { key: 'save_connection', label: 'settings.items.save_connection', type: 'save_button' },
+        { key: 'reset_connection', label: 'settings.items.reset_connection', type: 'reset_button' }
+      ]
+    }
   ]
 }
 const checkUpdateStatus = ref<'idle' | 'checking' | 'available' | 'uptodate' | 'error' | 'downloading'>('idle')
@@ -203,6 +218,7 @@ const tabs: { id: SettingsTab; label: string; icon: string }[] = [
   { id: 'notifications', label: 'settings.tabs.notifications', icon: 'lucide:bell' },
   { id: 'barcode', label: 'settings.tabs.barcode', icon: 'lucide:barcode' },
   { id: 'receipt', label: 'settings.tabs.receipt', icon: 'lucide:receipt' },
+  { id: 'terminal', label: 'settings.tabs.terminal', icon: 'lucide:monitor' },
   { id: 'system', label: 'settings.tabs.system', icon: 'lucide:settings' }
 ]
 
@@ -453,6 +469,44 @@ const barcodePreviewHtml = computed(() => {
                       <!-- Text Only (Version) -->
                       <div v-else-if="item.type === 'text_only'" class="text-sm font-bold opacity-60">
                         v{{ currentVersion }}
+                      </div>
+
+                      <!-- Text Inputs for Terminal -->
+                      <div v-else-if="item.type === 'text_input'" class="w-72">
+                        <UiInput 
+                          v-if="item.key === 'server_url'" 
+                          v-model="localServerUrl" 
+                          placeholder="https://api.example.com"
+                          size="sm"
+                        />
+                        <UiInput 
+                          v-else-if="item.key === 'client_id'" 
+                          v-model="localClientId" 
+                          placeholder="bakustreet"
+                          size="sm"
+                        />
+                      </div>
+
+                      <!-- Connection Action Buttons -->
+                      <div v-else-if="item.type === 'save_button' || item.type === 'reset_button'" class="flex gap-2">
+                         <UiButton 
+                           v-if="item.type === 'save_button'"
+                           size="sm" 
+                           variant="primary" 
+                           icon="lucide:save"
+                           @click="setConfig(localServerUrl, localClientId)"
+                         >
+                           {{ t('common.save', 'Yadda Saxla') }}
+                         </UiButton>
+                         <UiButton 
+                           v-if="item.type === 'reset_button'"
+                           size="sm" 
+                           variant="ghost" 
+                           icon="lucide:rotate-ccw"
+                           @click="resetConfig"
+                         >
+                           {{ t('settings.resetDefault', 'Sıfırla') }}
+                         </UiButton>
                       </div>
                     </div>
                   </div>

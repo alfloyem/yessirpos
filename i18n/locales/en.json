@@ -201,7 +201,8 @@
     "add": "add",
     "typeAndPressEnter": "Type and press Enter...",
     "noResultsFound": "No results found",
-    "qty": "Qty"
+    "qty": "Qty",
+    "printAll": "Print All"
   },
   "orders": {
     "title": "Receipt Archive",
@@ -414,7 +415,16 @@
     "retailPriceShort": "Retail (₼)",
     "deleteConfirmMessage": "Are you sure you want to delete this product and all its variants?",
     "deleteVariant": "Delete Variant",
-    "deleteVariantConfirm": "Are you sure you want to delete this variant?"
+    "deleteVariantConfirm": "Are you sure you want to delete this variant?",
+    "manageSale": "Manage Sale",
+    "mainProductDiscount": "Main Product Discount",
+    "discountValue": "Discount Value",
+    "discountType": "Discount Type",
+    "percent": "Percent (%)",
+    "amount": "Amount (₼)",
+    "variantDiscounts": "Variant Discounts",
+    "saleUpdated": "Sale information updated",
+    "mainProduct": "Main Product"
   },
   "sales": {
     "receiptNo": "Receipt No",
@@ -524,6 +534,7 @@
       "notifications": "Notifications",
       "barcode": "Barcode",
       "receipt": "Receipt",
+      "terminal": "Terminal",
       "system": "System"
     },
     "sections": {
@@ -532,11 +543,16 @@
       "inventory": "Inventory & Stock",
       "system": "System & Management",
       "systemStatus": "System Status",
-      "visual": "Visual Settings"
+      "visual": "Visual Settings",
+      "serverConnection": "Server Connection"
     },
     "items": {
       "theme_toggle": "Dark Mode",
       "language_select": "System Language",
+      "server_url": "Server URL",
+      "client_id": "Store (Client) ID",
+      "save_connection": "Save Connection",
+      "resetDefault": "Reset",
       "sale_completed": "New Sale",
       "order_created": "New Order (Debt)",
       "refund_processed": "Refund Processed",

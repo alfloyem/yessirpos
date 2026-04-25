@@ -21,6 +21,7 @@ const emit = defineEmits<{
   (e: 'print-barcode', product: any): void
   (e: 'delete', product: any): void
   (e: 'quick-view', product: any): void
+  (e: 'sale', product: any): void
 }>()
 
 const formatPrice = (val: any) => Number(val || 0).toFixed(2)
@@ -142,6 +143,9 @@ const hasError = ref(false)
               </button>
               <button @click="emit('duplicate', product); close()" class="w-full px-4 py-2 text-sm font-semibold text-left flex items-center gap-3 hover:bg-[var(--text-primary)]/5 text-[var(--text-app)] transition-colors">
                 <UiIcon name="lucide:copy" class="w-4 h-4 opacity-50" /> {{ t('common.duplicate') }}
+              </button>
+              <button @click="emit('sale', product); close()" class="w-full px-4 py-2 text-sm font-semibold text-left flex items-center gap-3 hover:bg-[var(--text-primary)]/5 text-[var(--text-primary)] transition-colors">
+                <UiIcon name="lucide:tag" class="w-4 h-4 opacity-50" /> {{ t('products.sale', 'Endirim') }}
               </button>
               <div class="h-px bg-[var(--border-app)] my-1.5 opacity-50"></div>
               <button @click="emit('delete', product); close()" class="w-full px-4 py-2 text-sm font-semibold text-left flex items-center gap-3 text-[var(--color-brand-danger)] hover:bg-[var(--color-brand-danger)]/5 transition-colors">
