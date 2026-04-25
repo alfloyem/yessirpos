@@ -47,7 +47,11 @@ onMounted(() => {
 
     // Notifications polling
     fetchNotifications();
-    setInterval(fetchNotifications, 5000);
+    const notificationInterval = setInterval(fetchNotifications, 60000); // 30 seconds is more reasonable
+
+    onUnmounted(() => {
+        clearInterval(notificationInterval);
+    });
 });
 
 const isCategoryActive = (category: MenuItem) => {

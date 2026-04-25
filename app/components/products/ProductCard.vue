@@ -84,8 +84,6 @@ const hasError = ref(false)
           </template>
           <template #menu="{ close }">
             <div class="flex flex-col">
-              <div class="px-3 py-2 text-xs font-bold opacity-40 tracking-wider border-b border-[var(--border-app)] bg-[var(--bg-app)] md:bg-[var(--bg-sidebar)]">{{ t('products.selectVariant', 'Variant Seçin') }}</div>
-              
               <!-- Scrollable content -->
               <div class="overflow-y-auto custom-scrollbar" style="max-height: 300px;">
                 <!-- Əsas məhsulun barkodu (əgər varsa) -->
