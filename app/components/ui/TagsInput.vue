@@ -106,7 +106,8 @@ const handleKeydown = (e: KeyboardEvent) => {
     e.preventDefault()
     if (hasDropdown && selectedIndex.value >= 0) {
       // Select from dropdown
-      addTag(dropdownItems.value[selectedIndex.value].value)
+      const item = dropdownItems.value[selectedIndex.value]
+      if (item) addTag(item.value)
     } else {
       // Add current input
       addTag(inputValue.value)
@@ -143,7 +144,7 @@ const handleBlur = () => {
   <div class="relative w-full">
     <div 
       class="min-h-[48px] w-full bg-[var(--input-bg)] border rounded-[14px] transition-all flex flex-wrap gap-2 p-2 items-center"
-      :class="isFocused ? 'border-[var(--text-primary)] ring-4 ring-[var(--text-primary)]/10' : 'border-[var(--border-app)] hover:border-[var(--text-primary)]'"
+      :class="isFocused ? 'border-[var(--text-primary)]' : 'border-[var(--border-app)] hover:border-[var(--text-primary)]'"
     >
       <UiIcon v-if="icon" :name="icon" class="w-4 h-4 text-[var(--text-app)] opacity-50 ml-2 mr-1" />
       

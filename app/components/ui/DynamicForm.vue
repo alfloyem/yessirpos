@@ -137,7 +137,7 @@ const isPasswordMismatch = (field: any) => {
           :value="modelValue[field.key]"
           @input="e => updateField(field.key, (e.target as HTMLTextAreaElement).value)"
           :disabled="isLoading || field.disabled"
-          class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] px-5 py-3 text-[15px] font-medium rounded-[14px] outline-none focus:border-[var(--text-primary)] transition-all min-h-[120px] resize-y disabled:opacity-50 disabled:cursor-not-allowed leading-relaxed hover:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/10 placeholder:font-normal"
+          class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] px-5 py-3 text-[15px] font-medium rounded-[14px] outline-none focus:border-[var(--text-primary)] transition-all min-h-[120px] resize-y disabled:opacity-50 disabled:cursor-not-allowed leading-relaxed hover:border-[var(--text-primary)] placeholder:font-normal"
           :class="{ '!border-[var(--color-brand-danger)]': errors?.[field.key] }"
         />
       </div>
@@ -206,7 +206,7 @@ const isPasswordMismatch = (field: any) => {
           :clearable="field.clearable !== false && ['text', 'email', 'tel', 'number', 'integer'].includes(field.type)"
           :showPassword="passwordVisibility[field.originalKey || field.key] || false"
           @update:showPassword="val => passwordVisibility[field.originalKey || field.key] = val"
-          :class="errors?.[field.key] || isPasswordMismatch(field) ? '!border-[var(--color-brand-danger)] !ring-[var(--color-brand-danger)]/20' : ''"
+          :class="errors?.[field.key] || isPasswordMismatch(field) ? '!border-[var(--color-brand-danger)]' : ''"
         />
       </div>
 

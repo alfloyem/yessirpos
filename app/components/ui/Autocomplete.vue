@@ -221,7 +221,7 @@ const highlightMatch = (text: string | undefined | null) => {
       @focus="handleFocus"
       :disabled="disabled"
       :placeholder="placeholder || t('common.search', 'Axtar...')"
-      class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] py-2 text-[15px] font-medium rounded-[14px] outline-none focus:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/10 hover:border-[var(--text-primary)]/50 transition-all duration-300 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed placeholder:font-normal"
+      class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] py-2 text-[15px] font-medium rounded-[14px] outline-none focus:border-[var(--text-primary)] hover:border-[var(--text-primary)]/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed placeholder:font-normal"
       :class="icon ? 'pl-11 pr-11' : 'px-5 pr-11'"
     />
     

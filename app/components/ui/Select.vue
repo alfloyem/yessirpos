@@ -108,7 +108,7 @@ const handleKeydown = (e: KeyboardEvent) => {
       @click="isOpen = !isOpen"
       @keydown.down.prevent="isOpen = true"
       :disabled="disabled"
-      class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] py-2 text-[15px] font-medium rounded-[14px] outline-none focus:border-[var(--text-primary)] focus:ring-4 focus:ring-[var(--text-primary)]/10 hover:border-[var(--text-primary)]/50 transition-all duration-300 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-left flex items-center justify-between"
+      class="w-full bg-[var(--input-bg)] border border-[var(--border-app)] py-2 text-[15px] font-medium rounded-[14px] outline-none focus:border-[var(--text-primary)] hover:border-[var(--text-primary)]/50 transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-left flex items-center justify-between"
       :class="[(icon || isCountry || selectedImage) ? 'pl-11' : 'pl-5', 'pr-11']"
     >
       <!-- Left Icon (Optional) -->
