@@ -684,18 +684,16 @@ const formatVariantAttr = (attr: any) => {
     >
       <div class="flex flex-col lg:flex-row gap-8 items-start h-full">
         <!-- Left: Image Section -->
-        <div class="w-full lg:w-[35%] shrink-0 space-y-4 lg:sticky lg:top-0">
-          <div class="w-full">
-            <ImageCarousel 
-              :images="productImages"
-              :product-name="formData.productName"
-              @update:images="(val: string[]) => productImages = val"
-            />
-          </div>
+        <div class="w-full lg:w-[33%] shrink-0 space-y-4 lg:sticky lg:top-0">
+          <ImageCarousel 
+            :images="productImages"
+            :product-name="formData.productName"
+            @update:images="(val: string[]) => productImages = val"
+          />
         </div>
 
         <!-- Right: Fields -->
-        <div class="flex-1 w-full lg:pl-10 space-y-6">
+        <div class="flex-1 w-full space-y-6">
           <DynamicForm 
             :fields="baseFormFields"
             v-model="formData" 
