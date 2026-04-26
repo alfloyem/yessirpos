@@ -1,4 +1,4 @@
-8- [x] brend adı seçimi optional olmalıdır.
+- [x] brend adı seçimi optional olmalıdır.
 - [x] satış zamanı kassir seçimi optional olmalıdır.
 - [x] mal qebulunda sağda atribut adı görsənmir.
 - [x] sidebar düzəlməlidir
@@ -25,7 +25,7 @@
 - [] Whatsappdan/mailden mesaj gönderme
 - [] AI söhbeti
 - [x] tauri və ya electron ilə program yazılmalıdır.
-- [] barkod scan və print slient olmalıdır.
+- [x] barkod scan və print slient olmalıdır.
 - [] multi barkod scan olmalıdır.
 - [x] Ана səhifədə Hesabat yüklə düyməsi işləmir
 - [x] Əməkdaş və ya ümumiyyətlə nömrə olan hissələrdə nömrə üzərinə basanda whatsapp-a yönləndirmir
