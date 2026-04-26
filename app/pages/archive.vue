@@ -284,6 +284,15 @@ const formatAttribute = (attr: any) => {
   }
   return String(attr)
 }
+
+const printAllBarcodes = () => {
+  if (!selectedOrder.value || !selectedOrder.value.items) return
+  selectedOrder.value.items.forEach((item: any, idx: number) => {
+    setTimeout(() => {
+      printBarcode(item)
+    }, idx * 500)
+  })
+}
 </script>
 
 <template>
@@ -486,15 +495,27 @@ const formatAttribute = (attr: any) => {
 
         <!-- Totals -->
         <div class="flex flex-col lg:flex-row justify-between items-start gap-6">
-          <div class="text-[11px] font-bold opacity-40 w-full lg:max-w-md bg-[var(--input-bg)]/50 p-2 rounded-xl border border-[var(--border-app)] order-2 lg:order-1">
-            <div class="flex items-center gap-2">
-              <UiIcon name="lucide:info" class="w-4 h-4 shrink-0 mt-0.5 opacity-50" />
-              <span>{{ t('orders.archiveNotice', { method: getPaymentMethodLabel(selectedOrder) }) }}</span>
+          <div class="w-full lg:max-w-md flex flex-col gap-3 order-2 lg:order-1">
+            <div class="text-[11px] font-bold opacity-40 bg-[var(--input-bg)]/50 p-2 rounded-xl border border-[var(--border-app)]">
+              <div class="flex items-center gap-2">
+                <UiIcon name="lucide:info" class="w-4 h-4 shrink-0 mt-0.5 opacity-50" />
+                <span>{{ t('orders.archiveNotice', { method: getPaymentMethodLabel(selectedOrder) }) }}</span>
+              </div>
+              <div v-if="selectedOrder.paymentDetails?.notes" class="mt-3 pt-3 border-t border-[var(--border-app)] border-dashed">
+                <span class="text-[9px] uppercase tracking-widest opacity-60 block mb-1">{{ t('orders.note') }}</span>
+                <p class="text-amber-600 italic font-medium">{{ selectedOrder.paymentDetails.notes }}</p>
+              </div>
             </div>
-            <div v-if="selectedOrder.paymentDetails?.notes" class="mt-3 pt-3 border-t border-[var(--border-app)] border-dashed">
-              <span class="text-[9px] uppercase tracking-widest opacity-60 block mb-1">{{ t('orders.note') }}</span>
-              <p class="text-amber-600 italic font-medium">{{ selectedOrder.paymentDetails.notes }}</p>
-            </div>
+            
+            <UiButton 
+              variant="outline" 
+              size="sm" 
+              icon="lucide:printer"
+              class="w-full rounded-xl opacity-60 hover:opacity-100 transition-opacity"
+              @click="printAllBarcodes"
+            >
+              {{ t('common.printAll', 'Hamısını Çap Et') }} (Barkodlar)
+            </UiButton>
           </div>
           
           <div class="space-y-2 w-full lg:min-w-[280px] lg:w-auto order-1 lg:order-2">
