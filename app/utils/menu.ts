@@ -12,7 +12,7 @@ export const menuItems: MenuItem[] = [
         titleKey: "menu.main_category",
         icon: "heroicons:chart-bar",
         children: [
-            { titleKey: "menu.home", to: "/" },
+            { titleKey: "menu.home", to: "/dashboard" },
             { titleKey: "menu.employees", to: "/employees" },
         ],
     },
