@@ -153,16 +153,17 @@ const getDiscountedPrice = (p: any) => {
               <span class="text-[12px] font-black text-[var(--text-app)] group-hover/v:text-[var(--text-primary)] transition-colors line-clamp-2">
                 {{ getVariantName(variant) }}
               </span>
+              
+              <div class="flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-black bg-[var(--bg-app)]/10 border border-[var(--border-app)]/5" :class="Number(variant.stock || 0) > 0 ? 'text-[var(--text-primary)]' : 'text-red-500'">
+                <UiIcon name="lucide:package" class="w-3 h-3" />
+                <span>{{ variant.stock || 0 }}</span>
+              </div>
             </div>
             
             <div class="flex items-center gap-2 shrink-0 flex-wrap">
               <span class="text-[11px] font-mono text-[var(--text-app)] opacity-60">
                 {{ variant.barcode || 'N/A' }}
               </span>
-              <div class="flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-black bg-[var(--bg-app)]/10 border border-[var(--border-app)]/5" :class="Number(variant.stock || 0) > 0 ? 'text-[var(--text-primary)]' : 'text-red-500'">
-                <UiIcon name="lucide:package" class="w-3 h-3" />
-                <span>{{ variant.stock || 0 }}</span>
-              </div>
               <div class="flex items-center gap-1.5 shrink-0">
                 <span v-if="variant.isSaleActive" class="text-[10px] line-through opacity-30 font-bold tabular-nums">
                   {{ formatPrice(variant.retailPrice || 0) }} ₼

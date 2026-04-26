@@ -598,6 +598,15 @@ const formatVariantAttr = (attr: any) => {
     return String(attr)
   }
 }
+
+const calculateDiscountedPrice = (originalPrice: number | string, discountValue: number | string, discountType: string) => {
+  const price = Number(originalPrice) || 0
+  const val = Number(discountValue) || 0
+  if (discountType === 'percent') {
+    return Math.max(0, price * (1 - val / 100)).toFixed(2)
+  }
+  return Math.max(0, price - val).toFixed(2)
+}
 </script>
 
 <template>
@@ -895,77 +904,133 @@ const formatVariantAttr = (attr: any) => {
       max-width="2xl" 
       is-top
     >
-      <div v-if="saleProduct" class="space-y-6">
-        <!-- Main Product Discount -->
-        <div class="p-4 bg-[var(--text-primary)]/[0.03] border border-[var(--border-app)] rounded-2xl">
-          <div class="flex items-center gap-4 mb-4">
-            <div class="w-12 h-12 rounded-xl bg-[var(--text-primary)]/10 flex items-center justify-center text-[var(--text-primary)]">
-              <UiIcon name="lucide:tag" class="w-6 h-6" />
+      <div v-if="saleProduct" class="space-y-5">
+        <!-- Main Product Section -->
+        <div class="bg-[var(--text-primary)]/[0.02] border border-[var(--border-app)] rounded-2xl p-5">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-[var(--text-primary)]/10 flex items-center justify-center text-[var(--text-primary)] shrink-0">
+              <UiIcon name="lucide:tag" class="w-5 h-5" />
             </div>
-            <div>
-              <h3 class="font-bold text-[var(--text-app)]">{{ saleProduct.productName }}</h3>
-              <p class="text-sm opacity-50">{{ t('products.mainProductDiscount', 'Əsas məhsul indirimi') }}</p>
+            <div class="min-w-0 flex-1">
+              <h3 class="font-bold text-[var(--text-app)] truncate">{{ saleProduct.productName }}</h3>
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] font-bold opacity-40 uppercase tracking-wider">{{ t('products.mainProduct', 'Əsas Məhsul') }}</span>
+                <div v-if="saleFormData.isSaleActive" class="flex items-center gap-1.5 animate-in fade-in zoom-in-95">
+                  <span class="text-[10px] line-through opacity-30 font-bold">{{ saleProduct.retailPrice }} ₼</span>
+                  <span class="text-[11px] font-black text-green-500">
+                    {{ calculateDiscountedPrice(saleProduct.retailPrice, saleFormData.discountValue, saleFormData.discountType) }} ₼
+                  </span>
+                </div>
+              </div>
             </div>
-            <div class="ml-auto">
+            <div class="flex items-center gap-6">
+              <!-- Unified Input Group -->
+              <div v-if="saleFormData.isSaleActive" class="flex items-center bg-[var(--input-bg)] border border-[var(--border-app)] rounded-xl overflow-hidden focus-within:border-[var(--text-primary)]/50 focus-within:ring-4 focus-within:ring-[var(--text-primary)]/5 transition-all animate-in fade-in slide-in-from-right-2">
+                <input 
+                  v-model="saleFormData.discountValue" 
+                  type="number" 
+                  step="0.01" 
+                  class="w-24 h-10 bg-transparent border-none px-4 text-[15px] font-black text-[var(--text-app)] outline-none placeholder:opacity-20 no-spinner"
+                  placeholder="0.00"
+                />
+                
+                <!-- Toggle Group -->
+                <div class="flex items-center gap-1 p-1 bg-[var(--border-app)]/20 mr-1 rounded-lg">
+                  <button 
+                    @click="saleFormData.discountType = 'percent'"
+                    class="w-8 h-8 flex items-center justify-center rounded-md text-xs font-black transition-all"
+                    :class="saleFormData.discountType === 'percent' 
+                      ? 'bg-[var(--text-primary)] text-white shadow-sm' 
+                      : 'text-[var(--text-app)] opacity-40 hover:opacity-100'"
+                  >
+                    %
+                  </button>
+                  <button 
+                    @click="saleFormData.discountType = 'amount'"
+                    class="w-8 h-8 flex items-center justify-center rounded-md text-xs font-black transition-all"
+                    :class="saleFormData.discountType === 'amount' 
+                      ? 'bg-[var(--text-primary)] text-white shadow-sm' 
+                      : 'text-[var(--text-app)] opacity-40 hover:opacity-100'"
+                  >
+                    ₼
+                  </button>
+                </div>
+              </div>
               <UiSwitch v-model="saleFormData.isSaleActive" />
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" :class="{ 'opacity-50 pointer-events-none': !saleFormData.isSaleActive }">
-            <div class="space-y-1.5">
-              <label class="text-xs font-bold opacity-40 uppercase tracking-wider pl-1">{{ t('products.discountValue', 'Endirim Miqdarı') }}</label>
-              <UiInput v-model="saleFormData.discountValue" type="number" step="0.01" />
-            </div>
-            <div class="space-y-1.5">
-              <label class="text-xs font-bold opacity-40 uppercase tracking-wider pl-1">{{ t('products.discountType', 'Endirim Növü') }}</label>
-              <UiSelect 
-                v-model="saleFormData.discountType" 
-                :options="[
-                  { label: t('products.percent', 'Faiz (%)'), value: 'percent' },
-                  { label: t('products.amount', 'Məbləğ (₼)'), value: 'amount' }
-                ]" 
-              />
             </div>
           </div>
         </div>
 
-        <!-- Variants Discounts -->
+        <!-- Variants Section -->
         <div v-if="saleFormData.variants.length > 0" class="space-y-3">
-          <h4 class="text-sm font-bold text-[var(--text-app)] opacity-60 flex items-center gap-2 px-1">
-            <UiIcon name="lucide:layers" class="w-4 h-4" />
-            {{ t('products.variantDiscounts', 'Variant Endirimləri') }}
-          </h4>
+          <div class="flex items-center justify-between px-1">
+            <h4 class="text-[11px] font-black text-[var(--text-app)] opacity-40 uppercase tracking-[0.1em] flex items-center gap-2">
+              <UiIcon name="lucide:layers" class="w-3.5 h-3.5" />
+              {{ t('products.variantDiscounts', 'Variant Endirimləri') }}
+            </h4>
+            <span class="text-[10px] font-bold opacity-30">{{ saleFormData.variants.length }} variant</span>
+          </div>
           
-          <div class="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar space-y-3">
-            <div 
-              v-for="v in saleFormData.variants" 
-              :key="v.id" 
-              class="p-4 bg-[var(--input-bg)] border border-[var(--border-app)] rounded-xl group hover:border-[var(--text-primary)]/20 transition-colors"
-            >
-              <div class="flex items-center justify-between mb-3">
-                <div class="flex flex-wrap gap-1.5">
-                  <span v-for="attr in (typeof v.attribute === 'string' ? JSON.parse(v.attribute) : v.attribute)" :key="attr" class="px-2 py-0.5 bg-[var(--text-primary)]/5 text-[var(--text-primary)] text-xs font-bold rounded-md">
-                    {{ attr }}
-                  </span>
+          <div class="border border-[var(--border-app)] rounded-2xl overflow-hidden bg-[var(--input-bg)]/30">
+            <div class="max-h-[350px] overflow-y-auto custom-scrollbar">
+              <div 
+                v-for="(v, idx) in saleFormData.variants" 
+                :key="v.id" 
+                class="flex items-center gap-4 p-3 hover:bg-[var(--text-primary)]/[0.02] transition-colors"
+                :class="{ 'border-t border-[var(--border-app)]': idx !== 0 }"
+              >
+                <!-- Variant Info -->
+                <div class="flex-1 min-w-0">
+                  <div class="flex flex-wrap gap-1 mb-1">
+                    <span v-for="attr in (typeof v.attribute === 'string' ? JSON.parse(v.attribute) : v.attribute)" :key="attr" class="px-1.5 py-0.5 bg-[var(--text-primary)]/5 text-[var(--text-primary)] text-[10px] font-black rounded-md">
+                      {{ attr }}
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-bold opacity-40" :class="{ 'line-through opacity-20': v.isSaleActive }">
+                      {{ v.retailPrice }} ₼
+                    </span>
+                    <span v-if="v.isSaleActive" class="text-[10px] font-black text-green-500 animate-in fade-in slide-in-from-left-1">
+                      {{ calculateDiscountedPrice(v.retailPrice, v.discountValue, v.discountType) }} ₼
+                    </span>
+                  </div>
                 </div>
-                <div class="text-xs font-bold opacity-40">
-                  {{ t('products.retailPrice', 'Qiymət') }}: {{ v.retailPrice }} ₼
-                </div>
-                <div class="ml-auto">
-                   <UiSwitch v-model="v.isSaleActive" size="sm" />
-                </div>
-              </div>
 
-              <div class="grid grid-cols-2 gap-3" :class="{ 'opacity-50 pointer-events-none': !v.isSaleActive }">
-                <UiInput v-model="v.discountValue" type="number" step="0.01" size="sm" :placeholder="t('products.discountValue', 'Miqdar')" />
-                <UiSelect 
-                  v-model="v.discountType" 
-                  size="sm"
-                  :options="[
-                    { label: '%', value: 'percent' },
-                    { label: '₼', value: 'amount' }
-                  ]" 
-                />
+                <!-- Variant Actions -->
+                <div class="flex items-center gap-3">
+                   <div v-if="v.isSaleActive" class="flex items-center bg-[var(--input-bg)] border border-[var(--border-app)] rounded-lg overflow-hidden focus-within:border-[var(--text-primary)]/50 focus-within:ring-4 focus-within:ring-[var(--text-primary)]/5 transition-all animate-in fade-in zoom-in-95 duration-200">
+                    <input 
+                      v-model="v.discountValue" 
+                      type="number" 
+                      step="0.01" 
+                      class="w-16 h-8 bg-transparent border-none px-2 text-[13px] font-black text-[var(--text-app)] outline-none placeholder:opacity-20 no-spinner"
+                      placeholder="0"
+                    />
+                    
+                    <!-- Variant Toggle -->
+                    <div class="flex items-center mr-0.5">
+                      <button 
+                        @click="v.discountType = 'percent'"
+                        class="w-6 h-6 flex items-center justify-center rounded-sm text-[9px] font-black transition-all"
+                        :class="v.discountType === 'percent' 
+                          ? 'bg-[var(--text-primary)] text-white shadow-sm' 
+                          : 'text-[var(--text-app)] opacity-40 hover:opacity-100'"
+                      >
+                        %
+                      </button>
+                      <button 
+                        @click="v.discountType = 'amount'"
+                        class="w-6 h-6 flex items-center justify-center rounded-sm text-[9px] font-black transition-all"
+                        :class="v.discountType === 'amount' 
+                          ? 'bg-[var(--text-primary)] text-white shadow-sm' 
+                          : 'text-[var(--text-app)] opacity-40 hover:opacity-100'"
+                      >
+                        ₼
+                      </button>
+                    </div>
+                  </div>
+                  <UiSwitch v-model="v.isSaleActive" size="sm" />
+                </div>
               </div>
             </div>
           </div>
@@ -981,3 +1046,29 @@ const formatVariantAttr = (attr: any) => {
     </Modal>
   </div>
 </template>
+
+<style scoped>
+/* Hide number input spinners */
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.no-spinner {
+  -moz-appearance: textfield;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border-app);
+  border-radius: 2px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--text-primary);
+}
+</style>

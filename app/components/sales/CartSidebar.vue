@@ -224,7 +224,6 @@ const getItemDisplayName = (item: CartItem) => {
                 <span class="text-[12px] font-black text-[var(--text-app)]/60 tabular-nums">
                   {{ item.retailPrice.toFixed(2) }} ₼
                 </span>
-                <span class="text-[9px] font-bold tracking-widest bg-[var(--border-app)] px-1.5 py-0.5 rounded-md opacity-60">X {{ item.qty }}</span>
               </div>
             </div>
 

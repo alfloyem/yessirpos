@@ -52,6 +52,16 @@ const formatVariantAttr = (attr: any) => {
     return String(attr)
   }
 }
+const calculateDiscountedPrice = (originalPrice: number | string, discountValue: number | string, discountType: string, isSaleActive: boolean) => {
+  const price = Number(originalPrice) || 0
+  if (!isSaleActive) return price
+  const val = Number(discountValue) || 0
+  if (discountType === 'percent') {
+    return price * (1 - val / 100)
+  }
+  return price - val
+}
+
 const hasError = ref(false)
 </script>
 
@@ -70,6 +80,11 @@ const hasError = ref(false)
       />
       <div v-else class="w-full h-full flex items-center justify-center bg-[var(--text-primary)]/[0.02]">
         <UiIcon :name="hasError ? 'lucide:image-off' : 'lucide:image'" class="w-12 h-12 text-[var(--text-app)] opacity-10" stroke-width="1" />
+      </div>
+
+      <!-- Sale Badge -->
+      <div v-if="product.isSaleActive || product.variants?.some((v: any) => v.isSaleActive)" class="absolute top-3 left-3 z-10 bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-md shadow-lg animate-pulse">
+        {{ product.variants?.filter((v: any) => v.isSaleActive).length || '' }} SALE
       </div>
 
 
@@ -138,13 +153,10 @@ const hasError = ref(false)
           </template>
           <template #menu="{ close }">
             <div class="py-1">
-              <button @click="emit('edit', product); close()" class="w-full px-4 py-2 text-sm font-semibold text-left flex items-center gap-3 hover:bg-[var(--text-primary)]/5 text-[var(--text-app)] transition-colors">
-                <UiIcon name="lucide:pen-line" class="w-4 h-4 opacity-50" /> {{ t('products.edit') }}
-              </button>
               <button @click="emit('duplicate', product); close()" class="w-full px-4 py-2 text-sm font-semibold text-left flex items-center gap-3 hover:bg-[var(--text-primary)]/5 text-[var(--text-app)] transition-colors">
                 <UiIcon name="lucide:copy" class="w-4 h-4 opacity-50" /> {{ t('common.duplicate') }}
               </button>
-              <button @click="emit('sale', product); close()" class="w-full px-4 py-2 text-sm font-semibold text-left flex items-center gap-3 hover:bg-[var(--text-primary)]/5 text-[var(--text-primary)] transition-colors">
+              <button @click="emit('sale', product); close()" class="w-full px-4 py-2 text-sm font-semibold text-left flex items-center gap-3 hover:bg-[var(--text-primary)]/5 text-[var(--text-app)] transition-colors">
                 <UiIcon name="lucide:tag" class="w-4 h-4 opacity-50" /> {{ t('products.sale', 'Endirim') }}
               </button>
               <div class="h-px bg-[var(--border-app)] my-1.5 opacity-50"></div>
@@ -183,15 +195,30 @@ const hasError = ref(false)
         </h3>
 
         <!-- Bottom Right: Price -->
-        <div class="text-base font-bold tabular-nums whitespace-nowrap leading-none">
-          <div v-if="!hasVariants" class="text-[var(--text-app)] flex items-baseline gap-0.5">
-            {{ formatPrice(product.retailPrice) }}<span class="text-xs font-semibold opacity-30">₼</span>
+        <div class="text-base font-bold tabular-nums whitespace-nowrap leading-none text-right">
+          <div v-if="!hasVariants" class="flex items-center justify-end gap-1.5">
+            <span v-if="product.isSaleActive" class="text-[10px] line-through opacity-30 font-bold">
+              {{ formatPrice(product.retailPrice) }}₼
+            </span>
+            <span :class="product.isSaleActive ? 'text-green-500' : 'text-[var(--text-app)]'">
+              {{ formatPrice(calculateDiscountedPrice(product.retailPrice, product.discountValue, product.discountType, product.isSaleActive)) }}<span class="text-xs font-semibold opacity-30">₼</span>
+            </span>
           </div>
-          <div v-else class="text-[var(--text-primary)] flex items-baseline gap-0.5">
-            <span>{{ formatPrice(getMinPrice(product.variants)) }}</span>
-            <span v-if="getMinPrice(product.variants) !== getMaxPrice(product.variants)" class="text-xs opacity-20 mx-0.5">–</span>
-            <span v-if="getMinPrice(product.variants) !== getMaxPrice(product.variants)">{{ formatPrice(getMaxPrice(product.variants)) }}</span>
-            <span class="text-xs font-semibold opacity-30">₼</span>
+          <div v-else class="flex items-center justify-end gap-1.5">
+            <!-- Original Range (Strikethrough) -->
+            <div v-if="product.variants?.some((v: any) => v.isSaleActive)" class="text-[10px] line-through opacity-20 font-bold flex items-baseline gap-0.5">
+              <span>{{ formatPrice(getMinPrice(product.variants)) }}</span>
+              <span v-if="getMinPrice(product.variants) !== getMaxPrice(product.variants)" class="text-[8px] mx-0.5">–</span>
+              <span v-if="getMinPrice(product.variants) !== getMaxPrice(product.variants)">{{ formatPrice(getMaxPrice(product.variants)) }}</span>
+              <span class="text-[8px] opacity-50">₼</span>
+            </div>
+            <!-- Discounted Range -->
+            <div :class="product.variants?.some((v: any) => v.isSaleActive) ? 'text-green-500' : 'text-[var(--text-primary)]'" class="flex items-baseline gap-0.5">
+              <span>{{ formatPrice(Math.min(...product.variants.map((v: any) => calculateDiscountedPrice(v.retailPrice, v.discountValue, v.discountType, v.isSaleActive)))) }}</span>
+              <span v-if="getMinPrice(product.variants) !== getMaxPrice(product.variants)" class="text-xs opacity-20 mx-0.5">–</span>
+              <span v-if="getMinPrice(product.variants) !== getMaxPrice(product.variants)">{{ formatPrice(Math.max(...product.variants.map((v: any) => calculateDiscountedPrice(v.retailPrice, v.discountValue, v.discountType, v.isSaleActive)))) }}</span>
+              <span class="text-xs font-semibold opacity-30">₼</span>
+            </div>
           </div>
         </div>
       </div>
