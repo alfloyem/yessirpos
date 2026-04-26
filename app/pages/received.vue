@@ -6,6 +6,7 @@ import UiButton from '~/components/ui/Button.vue'
 import UiInput from '~/components/ui/Input.vue'
 import UiIcon from '~/components/ui/Icon.vue'
 import SalesProductSaleCard from '~/components/sales/ProductSaleCard.vue'
+import ProductFormModal from '~/components/products/ProductFormModal.vue'
 import { printIntakeReceipt } from '~/utils/receiptPrinter'
 
 const { t } = useI18n()
@@ -44,6 +45,10 @@ watch(paymentMethods, (newMethods) => {
 }, { immediate: true })
 const showPaymentModal = ref(false)
 const paidAmount = ref<number>(0)
+
+// Product Modal State
+const showProductModal = ref(false)
+const editProductData = ref<any>(null)
 
 // DOM refs
 const searchInput = ref<any>(null)
@@ -203,6 +208,25 @@ watch(searchQuery, (newVal: string) => {
   }
 })
 
+const openQuickProductModal = () => {
+  editProductData.value = null
+  showProductModal.value = true
+}
+
+const handleProductSaved = (savedProduct: any) => {
+  // Add to local products list
+  const existingIdx = products.value.findIndex(p => p.id === savedProduct.id)
+  if (existingIdx !== -1) {
+    products.value[existingIdx] = savedProduct
+  } else {
+    products.value.push(savedProduct)
+  }
+  
+  // Automatically add to cart if it's new or we just want to select it
+  addToCart(savedProduct)
+  nextTick(focusSearch)
+}
+
 // --- Cart Logic ---
 const addToCart = (product: any) => {
   const wholesale = Number(product.wholesalePrice) || 0
@@ -337,6 +361,15 @@ const submitIntake = async () => {
           </h1>
 
           <div class="flex items-center gap-2 w-full sm:w-auto">
+            <UiButton 
+              variant="soft-primary" 
+              size="md" 
+              icon="lucide:plus-circle"
+              class="rounded-xl whitespace-nowrap"
+              @click="openQuickProductModal"
+            >
+              {{ t('products.addNew', 'Yeni Məhsul') }}
+            </UiButton>
             <UiInput 
               ref="searchInput"
               v-model="searchQuery" 
@@ -649,6 +682,13 @@ const submitIntake = async () => {
         </button>
       </div>
     </UiModal>
+
+    <!-- Quick Product Add Modal -->
+    <ProductFormModal 
+      v-model="showProductModal"
+      :edit-data="editProductData"
+      @saved="handleProductSaved"
+    />
 </template>
 
 <style scoped>

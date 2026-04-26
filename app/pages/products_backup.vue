@@ -25,9 +25,16 @@ useHead({
 
 // --- Helper for Barcode Generation ---
 const generateBarcode = (prefix = '', exclude: string[] = []) => {
+  // Combine all current possible barcodes in UI
+  const currentInUI = [
+    formData.value?.barcode,
+    ...(newVariantsList.value || []).map((v: any) => v.barcode),
+    ...exclude
+  ].filter(Boolean)
+
   const cBarcodes = [
     ...mockData.value.map((m: any) => m.barcode),
-    ...exclude
+    ...currentInUI
   ]
     .filter(b => typeof b === 'string' && new RegExp(`^${prefix || 'P'}\\d{7}$`).test(b))
     .map(b => parseInt(b.substring(1), 10))
@@ -39,7 +46,7 @@ const generateBarcode = (prefix = '', exclude: string[] = []) => {
   
   const existingSet = new Set([
      ...mockData.value.map((m: any) => m.barcode),
-     ...exclude
+     ...currentInUI
   ])
 
   let barcode = `${prefix || 'P'}${String(nextNum).padStart(7, '0')}`
@@ -569,7 +576,16 @@ const handleBarcodeClick = (product: any) => {
   }
 }
 
-
+const handlePrintVariant = (variant: any) => {
+  if (variant.barcode) {
+    printBarcode({
+      barcode: variant.barcode,
+      productName: formData.value.productName,
+      attribute: variant.attribute.map((a: any) => `${a.name}: ${a.value}`),
+      price: variant.retailPrice
+    })
+  }
+}
 
 const formatVariantAttr = (attr: any) => {
   if (!attr) return ''
