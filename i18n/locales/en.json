@@ -436,7 +436,7 @@
     "salesTerminal": "Sales Terminal",
     "allProducts": "All Products",
     "temporarySaved": "Drafts",
-    "ghostProduct": "Temporary Product",
+    "ghostProduct": "Temporary",
     "searchHint": "Barcode or name...",
     "noProductsFound": "No products found.",
     "draftNameCustomer": "Customer: {name}",

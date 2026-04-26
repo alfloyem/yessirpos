@@ -285,7 +285,7 @@ const getItemDisplayName = (item: CartItem) => {
     </div>
 
     <!-- Summary & Checkout -->
-    <div class="bg-[var(--bg-app)]/80 backdrop-blur-2xl border-t border-[var(--border-app)] p-2.5 space-y-2 shrink-0 shadow-[0_-8px_30px_rgba(0,0,0,0.05)]">
+    <div class="bg-[var(--bg-app)]/80 backdrop-blur-2xl border-t border-[var(--border-app)] p-4 space-y-2 shrink-0">
       <div class="space-y-1.5 px-0.5">
         <div class="flex justify-between items-center text-xs font-bold text-[var(--text-app)]">
           <span class="text-sm">{{ t('sales.draftNameCart', { count: totalQty }) }}</span>

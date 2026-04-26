@@ -669,8 +669,9 @@ const completeOrder = async (details?: any) => {
 
           <UiButton 
             variant="soft-primary" 
-            size="sm" 
+            size="md" 
             icon="lucide:plus-circle"
+            class="rounded-xl"
             @click="showGhostModal = true"
           >
             {{ t('sales.ghostProduct') }}
