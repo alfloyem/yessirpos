@@ -7,7 +7,7 @@ import Modal from '~/components/ui/Modal.vue'
 import UiButton from '~/components/ui/Button.vue'
 import UiIcon from '~/components/ui/Icon.vue'
 import UiInput from '~/components/ui/Input.vue'
-import { printReceipt as printReceiptGlobal, printIntakeReceipt, printDebtPaymentReceipt, type ReceiptData } from '~/utils/receiptPrinter'
+import { printReceipt as printReceiptGlobal, printIntakeReceipt, printDebtPaymentReceipt, printBarcode, type ReceiptData } from '~/utils/receiptPrinter'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -331,12 +331,13 @@ const formatAttribute = (attr: any) => {
       :title="t('orders.title')"
       :data="filteredOrders"
       :columns="columns"
-      :actions="true"
+      :actions="false"
       :show-add="false"
       :show-default-actions="false"
       :loading="loading"
       :custom-search="customSearch"
       @refresh="loadOrders"
+      @row-click="handleViewDetails"
     >
       <template v-if="!loading && orders.length === 0" #empty>
         <div class="text-center py-12">
@@ -370,9 +371,7 @@ const formatAttribute = (attr: any) => {
           {{ row.total.toFixed(2) }} ₼
         </span>
       </template>
-      <template #row-actions="{ row }">
-        <UiButton variant="ghost" size="icon" icon="lucide:eye" @click="handleViewDetails(row)" class="hover:text-[var(--text-primary)]" />
-      </template>
+
 
       <template #context-menu="{ row }">
         <button 
@@ -457,7 +456,13 @@ const formatAttribute = (attr: any) => {
               <tr v-for="item in selectedOrder.items" :key="item.id" class="hover:bg-[var(--text-primary)]/[0.02]">
                 <td class="px-4 py-3">
                   <div class="font-black text-sm">{{ item.productName }}</div>
-                  <div class="text-[10px] opacity-40 font-mono">{{ item.barcode }}</div>
+                  <div 
+                    class="text-[13px] opacity-70 font-mono font-bold cursor-pointer hover:text-[var(--text-primary)] transition-all active:scale-95 origin-left"
+                    @click="printBarcode(item)"
+                    :title="t('products.printBarcode', 'Barkodu çap et')"
+                  >
+                    {{ item.barcode }}
+                  </div>
                   <div v-if="item.attribute" class="mt-1">
                     <span class="text-[9px] px-1.5 py-0.5 bg-[var(--input-bg)] rounded font-black opacity-60">{{ formatAttribute(item.attribute) }}</span>
                   </div>
@@ -481,8 +486,8 @@ const formatAttribute = (attr: any) => {
 
         <!-- Totals -->
         <div class="flex flex-col lg:flex-row justify-between items-start gap-6">
-          <div class="text-[11px] font-bold opacity-40 w-full lg:max-w-md bg-[var(--input-bg)]/50 p-4 rounded-2xl border border-[var(--border-app)] order-2 lg:order-1">
-            <div class="flex items-start gap-2">
+          <div class="text-[11px] font-bold opacity-40 w-full lg:max-w-md bg-[var(--input-bg)]/50 p-2 rounded-xl border border-[var(--border-app)] order-2 lg:order-1">
+            <div class="flex items-center gap-2">
               <UiIcon name="lucide:info" class="w-4 h-4 shrink-0 mt-0.5 opacity-50" />
               <span>{{ t('orders.archiveNotice', { method: getPaymentMethodLabel(selectedOrder) }) }}</span>
             </div>
