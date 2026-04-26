@@ -87,10 +87,10 @@ const getDiscountedPrice = (p: any) => {
     <!-- Main Product Section - Compact & Elegant -->
     <div 
       @click="toggleExpand"
-      class="p-2.5 cursor-pointer flex items-center gap-3 relative transition-all duration-150 active:bg-[var(--text-primary)]/5 active:scale-[0.98]"
+      class="p-0 cursor-pointer flex items-center gap-3 relative transition-all duration-150 active:bg-[var(--text-primary)]/5"
     >
       <!-- Image - Balanced & Premium -->
-      <div class="w-14 h-14 bg-[var(--text-primary)]/5 rounded-[18px] flex items-center justify-center p-1.5 relative overflow-hidden group-hover:bg-[var(--text-primary)]/10 transition-colors shrink-0 border border-[var(--border-app)]/50">
+      <div class="w-16 h-16 bg-[var(--text-primary)]/5 flex items-center justify-center p-1.5 relative overflow-hidden group-hover:bg-[var(--text-primary)]/10 transition-colors shrink-0">
         <img 
           v-if="product.images && product.images.length > 0" 
           :src="product.images[0]" 
@@ -100,7 +100,7 @@ const getDiscountedPrice = (p: any) => {
         <UiIcon v-else name="lucide:package" class="w-6 h-6 text-[var(--text-app)] opacity-20 group-hover:scale-110 transition-transform duration-500" />
         
         <!-- Sale Badge -->
-        <div v-if="product.isSaleActive" class="absolute top-0.5 right-0.5 bg-red-500 text-white text-[8px] font-black px-1 py-0.5 rounded-md shadow-sm z-10 animate-pulse">
+        <div v-if="product.isSaleActive" class="absolute top-0.5 right-0.5 bg-red-500 text-white text-[8px] font-black px-1 py-0.5 rounded-md z-10 animate-pulse">
           %
         </div>
       </div>

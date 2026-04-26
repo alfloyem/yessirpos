@@ -619,10 +619,10 @@ const calculateDiscountedPrice = (originalPrice: number | string, discountValue:
         <UiDropdown menuClass="absolute right-0 top-full mt-2 w-48 p-2 z-[60]">
           <template #trigger>
             <UiButton 
-              variant="outline"
+              variant="soft"
               size="sm"
               icon="lucide:download"
-              class="!h-10 !w-10 !p-0"
+              class="!h-10 !w-10 !p-0 rounded-xl"
               :title="t('common.export', 'İxrac et')"
             />
           </template>
@@ -655,7 +655,7 @@ const calculateDiscountedPrice = (originalPrice: number | string, discountValue:
             class="w-full h-10 pl-10 pr-4 rounded-xl bg-[var(--input-bg)] border border-[var(--border-app)] text-[var(--text-app)] text-sm focus:outline-none focus:border-[var(--text-primary)] transition-colors"
           />
         </div>
-        <UiButton variant="primary" icon="gravity-ui:plus" @click="handleAdd" class="shrink-0 !h-10">
+        <UiButton size="sm" variant="soft" icon="gravity-ui:plus" @click="handleAdd" class="shrink-0 !h-10 rounded-xl">
           {{ t('products.addNew') }}
         </UiButton>
       </div>
