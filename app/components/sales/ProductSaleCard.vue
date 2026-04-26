@@ -81,7 +81,7 @@ const getDiscountedPrice = (p: any) => {
   <div 
     class="bg-[var(--input-bg)] border border-[var(--border-app)] rounded-2xl overflow-hidden transition-all duration-200 group select-none"
     :class="[
-      isExpanded ? 'border-[var(--text-primary)] ring-2 ring-[var(--text-primary)]/10' : 'hover:border-[var(--text-primary)]/40 shadow-sm hover:shadow-md'
+      isExpanded ? 'border-[var(--text-primary)] ring-2 ring-[var(--text-primary)]/10' : 'hover:border-[var(--text-primary)]/40'
     ]"
   >
     <!-- Main Product Section - Compact & Elegant -->
@@ -130,7 +130,7 @@ const getDiscountedPrice = (p: any) => {
       <div 
         v-if="product.variants && product.variants.length > 0"
         class="absolute top-1/2 -translate-y-1/2 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300"
-        :class="isExpanded ? 'bg-[var(--text-primary)] text-white rotate-180 shadow-lg shadow-[var(--text-primary)]/20' : 'bg-[var(--bg-app)] text-[var(--text-app)] opacity-20 hover:opacity-100'"
+        :class="isExpanded ? 'bg-[var(--text-primary)] text-white rotate-180' : 'bg-[var(--bg-app)] text-[var(--text-app)] opacity-20 hover:opacity-100'"
       >
         <UiIcon name="lucide:chevron-down" class="w-3.5 h-3.5" />
       </div>

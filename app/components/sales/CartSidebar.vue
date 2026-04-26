@@ -206,12 +206,12 @@ const getItemDisplayName = (item: CartItem) => {
         <div 
           v-for="item in cart" 
           :key="item.id"
-          class="relative bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl p-3 flex flex-col gap-3 transition-all duration-300 hover:border-[var(--text-primary)]/30 hover:shadow-lg group/item"
+          class="relative bg-[var(--bg-app)] border border-[var(--border-app)] rounded-2xl p-3 flex flex-col gap-3 transition-all duration-300 hover:border-[var(--text-primary)]/30 group/item"
         >
           <!-- Top Row: Img, Name, Delete -->
           <div class="flex items-center gap-2.5">
             <!-- Mini Image -->
-            <div class="w-10 h-10 rounded-xl bg-[var(--input-bg)] overflow-hidden shrink-0 border border-[var(--border-app)]/50 flex items-center justify-center shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-[var(--input-bg)] overflow-hidden shrink-0 border border-[var(--border-app)]/50 flex items-center justify-center">
               <img v-if="item.images && item.images.length > 0" :src="item.images[0]" class="w-full h-full object-cover" />
               <UiIcon v-else name="lucide:package" class="w-5 h-5 text-[var(--text-app)] opacity-10" />
             </div>
@@ -261,7 +261,7 @@ const getItemDisplayName = (item: CartItem) => {
                 <button 
                   @click="emit('update-item-discount-type', item, item.itemDiscountType === 'amount' ? 'percent' : 'amount')"
                   class="w-6 h-6 flex items-center justify-center font-black rounded transition-all active:scale-90"
-                  :class="item.itemDiscountType === 'percent' ? 'bg-[var(--text-primary)] text-white shadow-sm' : 'text-[var(--text-app)]/40 hover:text-[var(--text-app)]'"
+                  :class="item.itemDiscountType === 'percent' ? 'bg-[var(--text-primary)] text-white' : 'text-[var(--text-app)]/40 hover:text-[var(--text-app)]'"
                 >
                   <span class="text-[11px]">{{ item.itemDiscountType === 'percent' ? '%' : '₼' }}</span>
                 </button>
@@ -303,7 +303,7 @@ const getItemDisplayName = (item: CartItem) => {
           
           <button 
             @click="setDiscountType(discountType === 'amount' ? 'percent' : 'amount')"
-            class="w-6.5 h-6.5 flex items-center justify-center bg-[var(--text-primary)] text-white rounded-lg shadow-md active:scale-90 transition-all font-black text-xs"
+            class="w-6.5 h-6.5 flex items-center justify-center bg-[var(--text-primary)] text-white rounded-lg active:scale-90 transition-all font-black text-xs"
           >
             {{ discountType === 'amount' ? '₼' : '%' }}
           </button>
@@ -340,7 +340,7 @@ const getItemDisplayName = (item: CartItem) => {
         variant="primary"
         @click="emit('checkout')" 
         :disabled="cart.length === 0"
-        class="!h-10.5 !rounded-xl !text-[12px] font-black shadow-lg shadow-[var(--text-primary)]/10 transition-all active:scale-[0.98]"
+        class="!h-10.5 !rounded-xl !text-[12px] font-black transition-all active:scale-[0.98]"
         icon-right="lucide:arrow-right"
       >
         {{ t('cart.proceed', 'Ödənişi tamamla') }}

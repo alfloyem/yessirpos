@@ -340,7 +340,7 @@ const handleFocus = (event: Event) => {
     <div class="flex-1 items-end justify-end flex">
       <button 
       @click="emit('update:modelValue', false)" 
-      class="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-app)] bg-[var(--input-bg)] bg-opacity-50 hover:bg-[var(--text-primary)] hover:text-white transition-all shadow-sm"
+      class="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-app)] bg-[var(--input-bg)] bg-opacity-50 hover:bg-[var(--text-primary)] hover:text-white transition-all"
     >
       <UiIcon name="lucide:x" class="w-4 h-4" />
     </button>
@@ -376,7 +376,7 @@ const handleFocus = (event: Event) => {
             :class="isMultiPayment ? 'bg-[var(--text-primary)]' : 'bg-gray-500/30'"
           >
             <div 
-              class="w-2.5 h-2.5 bg-white rounded-full absolute top-0.5 transition-all shadow-sm"
+              class="w-2.5 h-2.5 bg-white rounded-full absolute top-0.5 transition-all"
               :class="isMultiPayment ? 'right-0.5' : 'left-0.5'"
             ></div>
           </div>
@@ -503,7 +503,7 @@ const handleFocus = (event: Event) => {
     </div>
 
     <UiButton 
-        class="w-full text-lg py-7 shadow-xl font-black rounded-2xl"
+        class="w-full text-lg py-7 font-black rounded-2xl"
         size="lg"
         variant="primary"
         :loading="isSaving"
@@ -623,13 +623,13 @@ const handleFocus = (event: Event) => {
         <div class="relative">
           <button 
             @click="toggleIconPicker('new', newMethodIcon)"
-            class="w-9 h-9 flex items-center justify-center rounded-lg bg-[var(--bg-app)] text-[var(--text-primary)] border border-[var(--text-primary)]/20 hover:border-[var(--text-primary)] transition-all shadow-sm active:scale-95"
+            class="w-9 h-9 flex items-center justify-center rounded-lg bg-[var(--bg-app)] text-[var(--text-primary)] border border-[var(--text-primary)]/20 hover:border-[var(--text-primary)] transition-all active:scale-95"
           >
             <UiIcon :name="newMethodIcon" class="w-4 h-4" />
           </button>
           
           <!-- New Icon Picker Popover -->
-          <div v-if="activeIconPickerId === 'new'" class="fixed z-[999] mt-2 shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in duration-200">
+          <div v-if="activeIconPickerId === 'new'" class="fixed z-[999] mt-2 animate-in fade-in zoom-in duration-200 border border-[var(--border-app)] rounded-xl">
             <UiIconSelector v-model="newMethodIcon" @update:modelValue="activeIconPickerId = null" />
             <button @click="activeIconPickerId = null" class="fixed inset-0 z-[-1] cursor-default bg-transparent"></button>
           </div>
@@ -645,7 +645,7 @@ const handleFocus = (event: Event) => {
 
         <button 
           @click="addMethod"
-          class="w-9 h-9 flex items-center justify-center rounded-lg bg-[var(--text-primary)] text-white shadow-lg shadow-[var(--text-primary)]/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:scale-100"
+          class="w-9 h-9 flex items-center justify-center rounded-lg bg-[var(--text-primary)] text-white hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:scale-100"
           :disabled="isAddingMethod || !newMethodName.trim()"
         >
           <UiIcon v-if="!isAddingMethod" name="lucide:plus" class="w-5 h-5" />
@@ -666,13 +666,13 @@ const handleFocus = (event: Event) => {
             <div class="relative">
               <button 
                 @click="toggleIconPicker(m.id, m.icon)"
-                class="w-9 h-9 flex items-center justify-center rounded-lg bg-[var(--bg-app)] text-[var(--text-app)] opacity-80 border border-[var(--border-app)] hover:opacity-100 hover:border-[var(--text-primary)]/40 transition-all active:scale-95 shadow-sm"
+                class="w-9 h-9 flex items-center justify-center rounded-lg bg-[var(--bg-app)] text-[var(--text-app)] opacity-80 border border-[var(--border-app)] hover:opacity-100 hover:border-[var(--text-primary)]/40 transition-all active:scale-95"
               >
                 <UiIcon :name="m.icon || 'lucide:credit-card'" class="w-4 h-4" />
               </button>
               
               <!-- Popover Picker -->
-              <div v-if="activeIconPickerId === m.id" class="fixed z-[999] mt-2 shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in duration-200">
+              <div v-if="activeIconPickerId === m.id" class="fixed z-[999] mt-2 animate-in fade-in zoom-in duration-200 border border-[var(--border-app)] rounded-xl">
                 <UiIconSelector 
                   v-model="tempEditIcon" 
                   @update:modelValue="(val) => updateMethodIcon(m, val)"

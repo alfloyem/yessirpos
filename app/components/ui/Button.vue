@@ -20,7 +20,7 @@ const sizeClasses = computed(() => {
     case 'lg': return 'h-14 px-10 text-[18px] rounded-[24px] gap-3 font-bold tracking-wide'
     case 'icon': return 'h-12 w-12 rounded-[20px]'
     case 'md':
-    default: return 'h-12 px-7 text-[16px] rounded-[20px] gap-2.5 font-bold tracking-wide shadow-sm'
+    default: return 'h-12 px-7 text-[16px] rounded-[20px] gap-2.5 font-bold tracking-wide'
   }
 })
 

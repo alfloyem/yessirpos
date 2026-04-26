@@ -668,7 +668,7 @@ const completeOrder = async (details?: any) => {
           </UiButton>
 
           <UiButton 
-            variant="soft-primary" 
+            variant="soft" 
             size="md" 
             icon="lucide:plus-circle"
             class="rounded-xl"
